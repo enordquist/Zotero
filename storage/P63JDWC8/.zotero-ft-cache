@@ -1,0 +1,508 @@
+6714
+
+J. Phys. Chem. B 2005, 109, 6714-6721
+
+Assessing the Accuracy of Metadynamics†
+
+Alessandro Laio, Antonio Rodriguez-Fortea, Francesco Luigi Gervasio, Matteo Ceccarelli, and Michele Parrinello*
+Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+ReceiVed: October 7, 2004; In Final Form: January 4, 2005
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on May 11, 2022 at 18:50:21 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Metadynamics is a powerful technique that has been successfully exploited to explore the multidimensional free energy surface of complex polyatomic systems and predict transition mechanisms in very different fields, ranging from chemistry and solid-state physics to biophysics. We here derive an explicit expression for the accuracy of the methodology and provide a way to choose the parameters of the method in order to optimize its performance.
+
+I. Introduction
+Computing free energies and accelerating rare events in complex polyatomic systems are of evergrowing interest in computational physics and several powerful methodologies have been proposed to tackle these problems.1 Although it is obvious that the optimal technique will depend on the system and on what one wishes to observe, many methods are apparently aimed at very similar tasks. For instance the free energy along a given reaction coordinate can be computed in at least four different manners: thermodynamic integration,2,3 weighted histogram techniques,4,5 Jarzynski’s identity based methods,6 and adaptive force bias.7 A quantitative assessment of the performance and limitations of each method would help considerably to ensure best use of the computer time allocated for a project.1,8
+In this work we address this issue for the metadynamics method introduced in ref 9. This algorithm is aimed at reconstructing the multidimensional free energy of complex systems, and is based on an artificial dynamics performed in the space defined by a few collective coordinates s, which are assumed to provide a coarse-grained description of the system. The dynamics is driven by the free energy of the system and is biased by a history-dependent potential constructed as a sum of Gaussians centered along the trajectory of the collective variables. This potential, in time, fills the minima in the free energy surface, i.e., the sum of the Gaussians and of the free energy becomes approximately a constant as a function of the collective variables. As we discussed in ref 10, our methodology can be viewed as a finite temperature extension of the Wang and Landau algorithm11 and it is also closely related to the adaptive force bias algorithm,7 in which the deriVatiVe of the free energy along a one-dimensional reaction coordinate is reconstructed with a history-dependent bias. The algorithm has been successfully applied in several different fields, ranging from chemistry12-15 and materials science16,17 to crystal structure prediction18,19 and biophysics.20 Its major advantages are its ability to cope with high dimensionality and its flexibility: it can in fact be exploited not only for efficiently computing the free energy, but also for exploring new reaction pathways (i.e., for accelerating rare events), if the collective coordinates are properly chosen.
+† Part of the special issue “David Chandler Festschrift”.
+
+The algorithm introduced in ref 9 requires, at every step, the evaluation of the derivative of the free energy with respect to the collective variables, which are then evolved in a discrete fashion in the direction of the maximum gradient. In ref 10, we analyzed in detail and improved this algorithm, deriving an explicit expression for the error, and showing that it can be used for computing with an arbitrary accuracy the density of states in a model system together with weighted histogram techniques.21
+In ref 12, to facilitate the implementation of the algorithm in conjunction with molecular dynamics schemes, we introduced a formulation in which the collective variables are evolved continuously. This is achieved by introducing, for a system described by a set of coordinates x, an extended Lagrangean in which the collective variables s(x) are coupled to auxiliary variables s˜ by an harmonic restraining potential of the form 1/2k(s˜ - s(x))2. We also assigned to the auxiliary variables a fictitious kinetic energy 1/2Ms˜˘ 2. If M is very large, the motion of s˜ is adiabatically separated and driven by the derivative of the free energy, which thus does not have to be computed explicitly. This significantly broadened the scope of the methodology, so that it can now be applied, in conjunction with Car-Parrinello molecular dynamics,22 to the prediction of reaction pathways for systems described at the DFT level.12,15
+Subsequently we discovered that in practice the adiabatic separation condition, explicitly invoked in ref 12, is not strictly required for the success of the methodology, and that also if the auxiliary masses are small, the history-dependent Gaussian potential FG(s) tends to flatten the underlying free energy F(s). Furthermore, we checked that the algorithm described in ref 12 is also valid in the limits k f ∞ and M f 0. In this case, since s˜ ) s(x), the Gaussian history-dependent potential acts directly on the atomic position and the auxiliary variables are no longer necessary. As we will discuss in detail in this work, the real core of the metadynamics algorithm (and what makes it work in all the variants) is that if the Gaussians are added sufficiently slowly, the collective variables have the tendency to diffuse toward the closest local minimum of F(s) + FG(s), and the next Gaussian will preferentially be placed in this minimum. This property does not depend on the underlying dynamics of the system, as long as it is able to reach the equilibrium distribution associated with F(s) + FG(s), and the
+
+10.1021/jp045424k CCC: $30.25 © 2005 American Chemical Society Published on Web 02/15/2005
+
+Assessing the Accuracy of Metadynamics
+
+fictitious mass can only change the efficiency at which the equilibrium is reached (e.g., the auxiliary variables can be used as a thermostat for keeping the degrees of freedom associated with the collective variables at the correct temperature).
+This observation suggests that the continuous version of the metadynamics algorithm derives in fact from very general principles, but it poses the question of its accuracy, i.e., of its ability to reconstruct a multidimensional free energy efficiently in a realistic case. For example, while it is obvious that for fixed values of the metadynamics parameters the error will be larger in systems that relax slowly toward equilibrium, the exact dependence of the accuracy on the system relaxation times is actually hard to predict. In this work, we will show that, in the same line of ref 10, it is possible to derive an explicit expression (eq 12) for the average deviation of FG(s) from F(s) as a function of the parameters of the metadynamics and a few parameters characterizing the physical system, such as the diffusion coefficient, the temperature and the system size. This allows an a priori estimate of the computational time necessary to obtain the required accuracy (eq 14) and to choose the parameters in an optimal manner. Moreover, the explicit knowledge of the error allows the optimal combination of the results of different runs by weighted histogram analysis,21,4 a technique we have already exploited in conjunction with metadynamics in ref 10. The expression for the error is derived by an extensive numerical analysis on a very simple Langevin model (section III) in which F(s) is known analytically, but in section IV, we will show that this expression predicts with remarkable precision the error in a real case, in which the metadynamics is applied to reconstruct a bidimensional free energy of a cyclophane-catenane complex in solution.
+
+II. The Continuous Metadynamics Equations
+Consider a system described by a set of coordinates x and a potential V(x) evolving under the action of a dynamics (e.g., molecular dynamics, Langevin, or Monte Carlo) whose equilibrium distribution is canonical at temperature 1/β. We are interested in studying the probability distribution for this system as a function of a limited number of collective variables s(x), which are functions of the coordinates x. This probability distribution can be written as
+
+exp(-βF(s)) P(s) )
+∫ ds exp(-βF(s))
+
+with the free energy F(s) given by
+
+(∫ ) F(s)
+
+)
+
+-
+
+1 β
+
+ln
+
+dx exp(-βV(x))δ(s - s(x))
+
+(1)
+
+Consider now a trajectory x(t) of the system at temperature 1/β.
+If this trajectory could be computed for a very long time, P(s)
+could be obtained by taking the histogram of the collective variable s along this trajectory, i.e., at time t, P(s) ) 1/t ∫0t dt′ δ(s(x(t′)) - s). This can be thought of as the ∆s f 0 limit of
+
+∫ ( ) P∆s(s) ) 1 ∆s 2πt
+
+t dt exp - (s - s(x(t′)))2
+
+0
+
+2∆s2
+
+(2)
+
+If the system displays metastability, the motion of s will be bound in some local minimum of the free energy F(s) (i.e., in a local maximum of P(s)), and it will escape from this minimum with a very low probability on the time scale determined by the potential V(x) alone.
+
+J. Phys. Chem. B, Vol. 109, No. 14, 2005 6715
+
+Metadynamics is an algorithm capable of both eliminating this metastability and reconstructing F(s). This is achieved by modifying the potential V(x) by a history-dependent term consisting of Gaussians centered along the trajectory in s space explored during the evolution of the system.9,12 If a new Gaussian is added at every time interval τG, the biasing potential at time t is given by
+
+∑ ( ) (s(x) - s(xG(t′)))2
+
+VG(s(x), t) ) w
+
+exp -
+
+t′ ) τG,2τG,3τG,...
+
+2δs2
+
+(3)
+
+t′<t
+
+where w and δs are the height and the width of the Gaussians and xG(t′) denotes the trajectory of the system under the action of V + VG.
+The ability of metadynamics to accelerate rare events in s
+space and to reconstruct the free energy relies on the fact that
+the function
+
+∑ ( ) (s - s(xG(t′)))2
+
+FG(s, t) ) -w
+
+exp -
+
+t′ ) τG,2τG,3τG,...
+
+2δs2
+
+(4)
+
+t′<t
+
+is an approximation of F(s) in the region Σ(s) explored by s(xG(t)) up to time t (see section III for a rigorous definition of Σ(s)). This property can be qualitatively understood in the limit of slow “deposition” (i.e., w/τG f 0). In this limit, the probability distribution is always approximately proportional to exp[-β(F(s) - FG(s, t))]. If the function F(s) - FG(s, t) has some local minimum, s(xG(t)) will preferentially be localized in the neighborhood of this minimum and increasing numbers of Gaussians will be deposed there until this minimum is flattened. Consider instead the case in which F(s) ∼ FG(s, t) in a region Ω(s). The probability distribution will be approximately flat in this region, and the location of the new Gaussians will not be affected by the bias deriving from the difference F(s) FG(s, t). Hence, if w/τG f 0, the only corrugations in the free energy that are not flattened by the dynamics will be of the order of the size of the new Gaussians that are deposed. The scope of this work is to provide a quantitative estimate of the amplitude of these corrugations.
+For τG f 0, the biasing potential can be written in the form
+
+∫ ( ) VG(s(x), t) )
+
+t 0
+
+dt′
+
+exp
+
+- (s(x) - s(xG(t′)))2 2δs2
+
+(5)
+
+where the constant has the dimension of an energy divided by a time. Comparing this expression with eq 2, we notice that the metadynamics biasing potential at time t is proportional to the histogram of s computed along the trajectory xG(t) with a binning width of δs. Hence, computing the histogram of a trajectory generated by V + VG with a binning of δs provides a direct estimate of the free energy, i.e., of the logarithm of the probability distribution. This is a fundamental difference with respect to a dynamics generated by V alone and allows the acceleration of rare events in s space that we already mentioned.
+Before proceeding, we note that in the algorithm introduced in ref 12, the coordinate space x is given by the set (r, s˜), in which r are the actual coordinates of the system to be studied and the s˜ are auxiliary variables, one for each collective coordinate s(r) that is considered. The potential as a function of r and s˜ is taken to be of the form
+
+6716 J. Phys. Chem. B, Vol. 109, No. 14, 2005
+
+V(x)
+
+)
+
+V(r)
+
++
+
+1 2
+
+k(s˜
+
+-
+
+s(r))2
+
++
+
+VG(s˜,
+
+t)
+
+(6)
+
+where V(r) is the potential as a function of r and VG(s˜, t) ) w ∑t′)τG,2τG,3τG,...,t′<t exp (-(s˜ - s˜(t′))2/2δs2). This is a special case of eq 3 with s(x) ) s˜. Under the same conditions described
+above VG(s˜, t) is, for large t, an approximation to the free energy
+
+Fk(s˜) )
+
+( ( [ ])) ∫ -
+
+1 β
+
+ln
+
+dr ds˜′ exp
+
+-β
+
+V(r)
+
++
+
+1 2
+
+k(s˜′
+
+-
+
+s(r))2
+
+δ (s˜′ - s˜) )
+
+( ( [ ])) ∫ -
+
+1 β
+
+ln
+
+dr exp
+
+-β
+
+V(r)
+
++
+
+1 2
+
+k(s˜
+
+-
+
+s(r))2
+
+and limkf∞ Fk(s˜) ) F(s˜), except for an additive constant (see also ref 1).
+
+III. Estimating the Error: The Langevin Case
+The error in a metadynamics run is a measure of how different FG(s, t) is from F(s) for a given metadynamics run, and is, in principle, a function of s and t. We here define
+
+(s, t) ) 〈(FG(s, t) - F(s) - 〈FG(s, t) - F(s)〉)2〉 (7)
+where the average 〈‚〉 is taken over an ensemble of statistically independent trajectories xG(t) of the same time duration t and initiated in the same local minimum of F(s). Of course FG(s, t) can be considered an estimator of F(s) only in the region Ω(s, t) explored by the metadynamics up to time t, i.e., the set of points s that belong to the neighborhood of {s(xG(t′)), t′ < t}. In this work we use a definition of Ω that does not require the knowledge of the metadynamics trajectory, but only of FG(s, t). In particular, we define Ω(s, t) as the set of s values in which -FG(s, t) > 1/β. As we will show in the following, the error in a region Ω(s, t) defined in this manner is approximately a constant with respect to s. Therefore, we define the metadynamics error at time t as
+
+∫Ω(s,t) ds′ (s′, t)
+
+j(t) z
+
+∫Ω(s,t) ds′
+
+(8)
+
+with
+
+Ω(s, t) ) {s: 〈- FG(s, t)〉 > 1/β}
+
+In this section we show that it is possible to derive an explicit expression for j by considering the time evolution of s(r) alone in the framework of stochastic differential equations. In fact, in conditions of adiabatic separation and high friction, the time evolution of s at a temperature 1/β satisfies the Langevin equation:
+
+( ) dF(s)
+ds ) βD ds + ξ(t) dt
+
+(9)
+
+〈ξ(t)ξ(t′)〉
+
+)
+
+1 Dβ2
+
+δ(t
+
+-
+
+t′)
+
+where F(s) is given by eq 1, ξ(t) is a random force and
+
+∫ D ) ∞ dt 〈s˘ (0)s˘ (t)〉 0
+
+(10)
+
+is the diffusion coefficient.23 The generalization of these equations to the many-dimensional case is straightforward.
+
+Laio et al.
+
+The collective variables in a real system are not necessarily slow variables, or adiabatically separated from the other modes of the system, and dimensional reduction will in general lead to much more complicated equations with a time-dependent friction kernel24,23 and inertial terms. Nevertheless, adiabatic separation can always be enforced by introducing auxiliary variables s˜12 and evolving the full system with a dynamics derived by an Hamiltonian of the form
+
+( ) K
+
++
+
+V(r)
+
++
+
+1 2
+
+k(s˜
+
+-
+
+s(r))2
+
++
+
+1 2
+
+M
+
+ds˜ 2 dt
+
+where K is the real kinetic energy of the system and the auxiliary mass M is large enough for the motion of the s˜ variables to be adiabatically separated. More importantly, as we will show in section IV, the expressions for the error deduced using eq 9 predict very accurately the error in a real case. This apparently surprising result derives from the fact that the accuracy is in fact primarily determined by the diffusion time τs that the collective variables s need to visit the entire region of interest (see eq 14), and τs is usually much larger than the time scales associated with inertial or memory effects.
+We thus consider the evolution of a system described by eq 9 modified by a history-dependent term of the form 3, i.e.
+
+ds )
+
+( ( ( )) ) d
+βD F(s) + w
+
+∑
+
+(s - s(t′))2 exp -
+
+ds
+
+t′ ) τG,2τG,3τG,...,
+
+2δs2
+
++ ξ(t) dt
+
+t′<t
+
+(11)
+
+For a given profile F(s), this stochastic equation can be numerically integrated, generating a very large set of statistically independent trajectories s(t), which are then used to compute the error (s, t).
+A. The Error Does Not Depend on F(s). We first consider the influence of F(s) on the error. For this purpose, we consider the evolution generated by eq 11 with D ) 0.0005 and β ) 1 in a one-dimensional system confined in a region of length 8 by reflecting boundary conditions for s ) - 4 and s ) 4. With these choices of D and β the features of the dynamics of the s variable are qualitatively similiar to the ones observed in realisitic systems. We choose for F(s) four different functional forms with respectively zero, one, two, and three minima (see Figure 1).
+The effect of the metadynamics parameters on the error will be discussed later. We now choose for our analysis the same values for all the profiles: δs ) 0.1, w ) 0.2, and τG ) 500. We compute (s, t) by averaging over 1000 independent metadynamics trajectories. In Figure 1 we plot, for every free energy profile, the average value of F(s) + FG(s, t) after 1000 Gaussians have been added and, as error bar, the value of (s, t). Both 〈F(s) + FG(s, t)〉 and the error are approximately constant on all the profiles. The error is approximately 20% smaller at the center of the profile than at the border. These deviations are possibly due to the reflecting walls and are neglected in this exposition, which aims to determine only the leading effects.
+The independence of the metadynamics results on F(s) is confirmed in Figure 2, in which we plot the average error j(t) defined in eq 8 as a function of the number of Gaussians that have been added. Regardless of the functional form, j(t) tends to the same plateau value of ∼0.6. This is reached when the average level of F(s) - FG(s, t) is approximately zero, i.e., when
+
+Assessing the Accuracy of Metadynamics
+
+J. Phys. Chem. B, Vol. 109, No. 14, 2005 6717
+
+Figure 1. Metadynamics results for four different free energy profiles: (A) F(s) ) - 4; (B) F(s) ) -5 exp(-(s/1.75)2); (C) F(s) ) -5 exp(-(s - 2/0.75)2) - 10 exp(-(s + 2/0.75)2); (D) F(s) ) -5 exp(-(s - 2/0.75)2) - 4 exp(-(s/0.75)2) - 7 exp(-(s + 2/0.75)2). The average 〈F(s) - FG(s, t)〉 computed over 1000 independent trajectories is represented as a dashed line, with the error bar given by
+eq 7.
+
+Figure 3. Error as a function of the metadynamics parameters w, τG and δs and of β, D and S in d ) 1 (upper panel) and d ) 2 (lower panel). The continuous and the dashed lines correspond to eq 12 for d ) 1 and d ) 2, respectively.
+
+Figure 2. Average error (eq 8) as a function of the number of Gaussians for the four F(s) of Figure 1. The bump in the error observed for the functional forms C and D is due to the fact that in a long part of the metadynamics one of the free energy wells is already completely filled, while the other is being filled. The error is measured using definition 8 on both the wells, but the filling level is not the same until the full profile is filled.
+all the underlying profile is filled. This required ∼500 Gaussians for all the profiles reported in Figure 1.
+We verified that these properties also hold in higher dimensionalities, for virtually any value of w and τG, and for any value of δs significantly smaller than the system size, as we will specify in more detail in the following.
+B. Dependence of the Error on the Metadynamics Parameters. Since the value of j does not depend on F(s), we consider in more detail the flat profile (Figure 1A). In d dimension, we use eq 11 with F(s) ) 0 and reflecting boundary conditions for |s| ) S/2, and we compute the dependence of the error on the metadynamics parameters w, τG and δs and on β, D, and S, which characterize the physical system. We repeated several metadynamics for different values of the parameters and
+
+for d ) 1, d ) 2, and d ) 3. If only one parameter is varied at a time, the dependence of j on that parameter can be investigated. In this manner, we found empirically that j is approximately proportional (independently of the dimensionality) to the square root of the system size S, of the Gaussian width δs and the Gaussian height w, while it is approximately proportional to the inverse square root of β, D, and τG. These observations are summarized in Figure 3, in which we plot the logarithm of j vs the logarithm of (Sδs/DτG)(w/β) when d ) 1 and d ) 2. Different color codes correspond to different physical conditions (i.e., different D, β, or S), while dots of the same color correspond to different metadynamics parameters. w is varied in the range between 0.04 and 4, δs between 0.05 and 0.4 and τG between 5 and 5000. The continuous line corresponds to the equation
+
+j ) C(d )
+
+Sδs w DτG β
+
+(12)
+
+where C(d ) 1) ∼ 0.5 and C(d ) 2) ∼ 0.3 in the same logarithmic scale, and represents a lower bound to the error. For a given value of (Sδs/DτG)(w/β), the error obtained with any parameter in the range considered leads to errors at most 50% higher than the value given by eq 12.
+The dependence of the error on the simulation parameters becomes more transparent if j is expressed as an explicit function of the total simulation time. Consider in fact a free energy profile F(s) that has to be filled with Gaussians up to a given level Fmax (e.g., the free energy of the highest saddle point in F(s)). The total computational time needed to fill this profile can be estimated as the ratio between the volume that has to be
+
+6718 J. Phys. Chem. B, Vol. 109, No. 14, 2005
+
+filled and the volume of one Gaussian times τG:
+
+∫ ( ) ttotal ) τG
+
+s:F(s)<Fmax ds (Fmax (2π)d/2wδsd
+
+-
+
+F(s))
+
+≈
+
+Fh w
+
+τG
+
+Sh d δs
+
+(13)
+
+where Sh is an estimate of the dimension of the region that has to be explored by metadynamics and Fh is an estimate of the typical value of Fmax - F(s) in this region. Solving for τG and substituting in eq 12 give
+
+( ) j ) c
+
+τSh Fh Sh d-1 ttotal β δs
+
+(14)
+
+where c is a dimensionless constant and τSh z Sh2/D is the average time required for diffusing on a distance Sh.
+Equations 14 and 12 are the main result of this work. They allow an a priori estimate of the error for a given simulation time and for a given choice of metadynamics parameters and require further analysis and discussion.
+C. The Optimal Choice for the Scaling Factor δs. We now consider in more detail the dependence of the error on the ratio δs/S. This is an important issue, since, from eq 14, j is proportional to (Sh/δs)d-1 and for d > 1 the smallest error seems to be obtained by choosing δs/Sh as large as possible. This is clearly paradoxical for a real case, since a metadynamics performed with a very large δs will smear out all the spatial details of F(s). Indeed, the data presented in Figure 2 correspond to choices of δs that are at most 1/10th of the system size S, and significant deviations from eq 12 are observed for a larger δs.
+In Figure 4, we plot the error j as a function of δs/Sh keeping the product δsdw fixed, which is equivalent to using a fixed ttotal. For the cases d ) 2 and d ) 3, we have δs2w ) 0.0012 and δs3w ) 0.005, respectively. In these conditions, eq 14 would
+predict an error proportional to 1/ δsd-1 (represented as a dashed line in Figure 4). The calculated error (circles with continuous line) is consistent with this equation only for δs/S < 0.1. For larger values of δs the error is no longer predicted by eq 12 or 14. Moreover, in these conditions the reconstructed profile shows systematic bumps, i.e., 〈F(s) + FG(s, t)〉 is not flat, as we found in other calculations not reported here.
+D. The Optimal Choice for the Time Interval between Two Gaussians. The error, as predicted by eq 14, does not depend separately on w and τG but only on the ratio τG/w which appears in the definition of ttotal: if this equation were to predict the error exactly, it would be approximately the same as when performing a metadynamics with τG ) 1000 fs and w ) 1 kcal/ mol or τG ) 100 fs and w ) 0.1 kcal/mol. This is in fact true only approximately, and it is marginally better to use a small τG, as demonstrated in Figure 5, in which we plot the ratio between the error as computed with eq 8 and the theoretical error given by eq 12 as a function of τG for three different choices of w/τG. The error grows almost linearly with τG and is approximately twice as large as the value predicted by eq 14 if τG ) 4000, and, remarkably, the linear coefficient is independent of the w/τG. Therefore, the error at finite τG can be approximately estimated as
+
+( ) j ) C(d )
+
+wSδs DτGβ
+
+1 + 40 τG τS
+
+(15)
+
+In this equation the time τG is expressed relative to τS, since, as we have already seen, the only relevant time scale for this system is the diffusion time.
+
+Laio et al.
+Figure 4. Effect of the δs/S on the error computed with eq 8 for a system in d ) 2 (top panel) and d ) 3 (bottom panel), with S ) 8, β ) 1 and D ) 0.0005. The dashed line corresponds to the theoretical error given by eq 12. τG is kept fixed at the value of 50. w is varied as a function of δs in order to mantain a constant filling speed, as described in the text.
+Figure 5. Effect of τG on the ratio / τGf 0 between the error computed with eq 8 and eq 14 for a system in d ) 2, with S ) 8, β ) 1, and D ) 0.0005. By τG f 0, we denote the error computed with eq 12. Circles, diamonds, and crosses correspond to w/τG equal to 0.0004, 0.0008, and 0.0016, respectively. The dashed line is a linear fit to the data of eq 1 + 40 τG/τS.
+The qualitative reason for this effect is that a metadynamics performed with a large τG and large w will create significant discontinuities in the free energy as a function of time. If the Gaussians are added more often (virtually at every step) the free energy never varies abruptly, and the filling proceeds more
+
+Assessing the Accuracy of Metadynamics
+
+smoothly. Moreover, if the underlying free energy is flat, the motion of s will be approximately diffusive, and there is no optimal place to put a Gaussian. Every finite τG will induce unnecessary ripples in the reconstructed free energy.
+We would like to stress that for reasonable choices of τG the correction term introduced in eq 15 is small, since τS is usually very large.
+E. The Effect of Anisotropy. Equation 11 is formally written as a one-dimensional equation, but the metadynamics algorithm is very often applied in two or more dimensions, choosing collective variables that can be physically very different from each other, for instance a distance together with an angle or a coordination number. Hence, in a real system, a free energy well will not have the same size in all the directions. Moreover, the diffusion constant D, in the d dimensional case, is a d × d tensor: DRγ ) β ∫0∞ dt 〈s˘ R(0)s˘ γ(t)〉. Considering this problem in its full generality would be beyond the scope of this presentation and will be the object of a separate publication. We consider here a simple two-dimensional case in which DRγ is diagonal and the free energy is a function of (s1/S1)2 + (s2/S2)2 where SR is the size of the free energy well in the direction R. We rewrite eq 11 as a function of the scaled variables σR ) sR/SR. This gives
+
+(dσR )
+
+1 τSR
+
+d dσR
+
+(F(|σ|)
+
++
+
+wfG(σ,
+
+t))
+
++
+
+)1
+τSR
+
+ζ(t)
+
+dt
+
+with τSR ) SR2/DR, 〈ζ(t)ζ(t′)〉 ) 1/βδ(t - t′). F(|σ|) is independent of S, and fG(σ, t) depends only on δs/S. From this equation, it is once again clear that the accuracy is determined by the diffusion times τSR and that these times cannot be changed by a linear transformation of the variables. Since the effect of
+anisotropy in S and in D does not have to be examined
+separately, we consider a two-dimensional spherical well with
+
+( ) DRγ )
+
+D11 0
+
+0 D22
+
+leaving D11 fixed at 5 × 10-4 and varying D22 between 5 × 10-3 and 5 × 10-5. We checked that the error is still predicted
+within ∼10% by eq 12 with D ) D11D22. In a similar manner, we considered the effect of performing
+a metadynamics with nonspherical Gaussians of the form w exp[-1/2[(s1 - s1(t)/δs1)2 + (s2 - s2(t)/δs2)2]] with δs1 * δs2. Also for this case the error is predicted by eq 12 with δs )
+δs1δs2.
+
+IV. Dethreading of the Cyclophane: The Performance of Metadynamics in a Real Case
+In this section, we show that the expressions for the error deduced in section III for a simple Langevin model predict with remarkable precision the error introduced by a metadynamic reconstruction of the free energy in a real case. The system (see Figure 6) is made up of a tetracationic cyclophane (cyclobis(paraquat-p-phenylene)84+) and a 1,5-dihydroxynaphthalene solvated in acetonitrile. The detailed physics of this interesting system will be discussed elsewhere25 since it is beyond the scope of the present work.
+The complex is mainly stabilized by π-π interactions (see Figure 6B). The simulations were performed using the Amber all atom force field26 and a united atom model for the acetonitrile molecules (model A from ref 27). The point charges of the ligands were obtained using a RESP fit to a HF/6-31G* calculation,26 and are reported in ref 25. Electrostatic interactions
+
+J. Phys. Chem. B, Vol. 109, No. 14, 2005 6719
+
+Figure 6. Test system. (A) Schematic view of the Cyclobis(paraquatp-phenylene)84+ (left) and the 1,5-dihydroxy-naphthalene (right). (B) Snapshot of the dynamics showing the naphthalene inside the cyclophane ring. For the sake of clarity, the acetonitrile molecules are not shown in the picture.
+
+were evaluated using the PME schemes with 32 × 32 × 32 grid points, k ) 0.40 Å-1, and a cutoff of 10 Å, as for the Lennard Jones energy terms. The structure was thermalized in the isobaric-isothermal (NPT) ensemble at T ) 300 K and P ) 0.1 MPa for 1 ns in solution. To keep the pressure constant the tetragonal MD cell was allowed only uniform deformation in a Parrinello-Rahman-like scheme.28 The temperature was controlled by a Nose` thermostat.29 Once equilibrated at constant pressure the run was continued in the canonical ensemble. The metadynamics was started after 5 more ns of thermalization. The first metacoordinate s1 was chosen to be the distance between the centroids of the cyclophane and the naphthalene. The second is the coordination number of the naphthalene with the atoms of the acetonitrile. This is defined as
+
+∑ 1 - (rij /r0)8
+
+s2
+
+)
+
+i ∈ naphthalene j ∈ solvent
+
+1
+
+-
+
+(rij
+
+/r0)14
+
+where rij is the distance between the two chosen atom types and r0 ) 4 Å. In the summations over i and j the hydrogen atoms are excluded.
+We first obtained a free energy surface as a function of these two variables by a bi-dimensional umbrella sampling. This free energy is shown in Figure 7a and has a minimum for s1-0 and s2-6. The barrier toward the dissociated state is of ∼12 kcal/ mol and is located at s1-6 and s2-8.5. The umbrella potential used was parabolic on the two variables: 0.5(Kx(X - X0)2 + Ky(Y - Y0)2) with Kx ) 6. kJ/mol Å-2 and Ky ) 6. kJ/mol rad-2. The space was divided into 16 × 10 windows. The starting configuration was obtained by restarting from the last configuration of the preceding run and applying the new values of the restraints. A zigzag path on the two-dimensional space of the variables was followed. In each window the MD run was 150 ps long, so the total length of the umbrella sampling simulation was 24 ns. The two-dimensional free energy surface was then reconstructed using the weighted histogram analysis method4,5 as implemented in the program WHAM-2d.30
+We then performed several metadynamics runs with different choices of w, δs and τG, with the aim of optimizing the performance of the method, i.e., the computational time required to obtain the free energy with a given accuracy. In fact we are in a position to compute the error explicitly with eqs 7 and 8 since the exact free energy for the system has been computed by umbrella sampling. In total, we tested more than 50 different combinations of parameters, for a total of almost 200 ns of molecular dynamics. All the simulations are started from the same initial condition in which the naphthalene is inserted in the catenane, forming a stable complex represented in Figure
+
+6720 J. Phys. Chem. B, Vol. 109, No. 14, 2005
+
+Laio et al.
+
+Figure 7. (Left): Free energy for the pseudo-rotaxane naphthalene complex as a function of the distance between the centroids of the two molecules (s1) and the coordination of the naphthalene with the solvent (s2). The continuous and dashed lines correspond to the metadynamics and umbrella sampling results, respectively. (Right): Error as a function of simulation time for four different choices of metadynamics parameter. The error is estimated with eq 8 and is computed with respect to the umbrella sampling free energy.
+
+6A, and are stopped when the system escapes this free energy minimum. This happens when the centroid distance collective variable s1 reaches a value of ∼6 and the coordination with the solvent s2 reaches a value of ∼8.5 (see also Figure 7a). The error is computed by eq 8 during all the metadynamics. If the parameters of the method are properly chosen, this error should remain approximately constant (or grow slowly) during the entire reconstruction process. Only if this condition is satisfied is the method able to localize the lowest free energy saddle point with a controlled accuracy and without any a priori knowledge of the free energy value at this saddle point. If a reasonable choice of metadynamics parameters is made, the reconstructed free energy resembles the real free energy with very good spatial detail, as shown in Figure 7a: the metadynamics and umbrella sampling free energy contour levels follow each other very closely and are in fact never further than ∼0.5 apart in the collective variable space.
+Typical behavior of the error as a function of time is shown in Figure 7b for four different choices of parameters. A coarsegrained reconstruction of F(s) ( = 1.5 kcal/mol) can be obtained using δs ) 0.5, w ) 1 kcal/mol and τG ) 1000 fs. The choice of δs ) 0.5 is consistent with the criteria introduced in section III, since the size of the system (S) is approximately 5 and hence δs/S ∼ 0.1 (see Figure 7a and 4). The whole free energy basin up to the saddle point is reconstructed in just 100 ps. The other curves in Figure 7b correspond to more conservative choices of Metadynamics parameters, as specified in the legend. The monotonic dependence of the error on the total simulation time is already obvious from these results: if an accuracy of ∼0.6 kcal/mol is required, the total filling process requires almost 0.5 ns.
+The results obtained in the previous sections provide a way of understanding the behavior observed in Figure 7b and, more importantly, predicting the value of the error. This is shown in Figure 8, in which the error computed by eq 8 is compared with the error predicted by eq 12, including the correction factor for a finite τG (eq 15). Choices of the parameters for which the error is not approximately constant during the filling procedure are discarded (e.g., δs > 1). The diffusion tensor is computed with eq 11 and its three independent components are given by D11 ) 15 × 10-5 Å2 fs-1, D22 ) 14 × 10-5 fs-1 and D12 ) 10-5 Å fs-1. The difference between the predicted and the computed value is on average only 10%. This result is particularly remarkable and indicates that the simple Langevin model introduced in section III provides quite an accurate
+
+Figure 8. Metadynamics error on the free energy for the pseudorotaxane naphthalene complex as a function of the run number. Upper panel: the error computed by eq 8 (dashed line with circles) and the error predicted by eq 12, including the correction factor for a finite τG eq 15 (continuous line with diamonds). Lower panels: the metadynamics parameters w, δs and τG as a function of the run number.
+description for the metadynamics filling process in a real system, even if several details have been neglected, including inertial and memory effects and the exact shape of the free energy basin. The size S of the system is here estimated from Figure 7. If the free energy is not known a priori, the value of S should be estimated exploiting some knowledge of the physics of the system or a preliminary metadynamics run. This introduces an additional uncertainty in the error estimate.
+V. Conclusions
+In this work we derived an explicit expression for the error in the free energy reconstructed by metadynamics as a function of w, τG, δs and a few parameters characterizing the physical system, the diffusion coefficient D, the temperature 1/β and the system size S (in the collective variable space):
+
+j ) C(d) Sδs w
+
+(16)
+
+DτG β
+
+In eq 14, we express this error as an explicit function of the total simulation time ttotal and of the free energy well depth Fh.
+
+Assessing the Accuracy of Metadynamics
+This equation and the analysis performed in section IIIC suggest a rational manner for choosing the Gaussian width δs. As can be inferred from Figure 4, in which the accuracy at fixed filling speed is plotted as a function of δs/S, if δs/S is chosen between 0.05 and 0.15 in d ) 2 and between 0.07 and 0.2 in d ) 3 the error is approximately constant. This is the best possible accuracy that can be obtained for a given filling speed. If this choice is made, the error on a free energy profile reconstructed by metadynamics is approximately given by
+
+j)γ
+
+τSh Fh ttotal β
+
+with γ ∼ 1.5 for d ) 2 and γ ∼ 4 for d ) 3. Hence, for a given physical system (defined by a system size Sh, a diffusion coefficient D, a temperature 1/β, and a free energy well depth Fh), the error depends only on the total simulation time, and the only parameter that has to be chosen with care is δs, while the ratio w/τG is fixed by the ttotal that can be afforded. Hence, the theory we developed here allows an a priori estimate of the accuracy that can be expected for a given simulation time, which is primarily determined by the diffusion time τSh.
+These expressions for the error are here derived by extensive numerical analysis on a Langevin model without memory friction or inertia, but are capable of predicting with remarkable precision the metadynamics error on the bidimensional free energy of a cyclophane-catenane complex in solution, as shown in Figure 8. This result depends on the fact that the diffusion time τS in that system is much larger than any other correlation time associated for example with inertial or memory effects. In cases in which the collective variables diffuse much faster, other characteristic times of the system might play a role, and eq 14 might no longer be valid.
+An important consequence of eq 14 is that the easier it is for the variables s to diffuse through the region of interest, the better the accuracy will be. The error will in general increase as the region explored by metadynamics becomes bigger or topologically more complex, i.e., made up of many different regions separated by narrow connections. In this case the accuracy on F(s) is worsened by the intrinsic difficulty of the dynamics to diffuse through topological bottlenecks and explore all the different regions evenly. This difficulty of course remains even if the underlying free energy is completely flattened. These considerations suggest that the metadynamics approach should be used with caution for reconstructing the free energy profile on large regions or on free energy surfaces containing many basins connected by narrow paths. It is instead particularly suited to “escaping free energy minima”,9 i.e., localizing with good accuracy the lowest free energy saddle point from a stable state, and, in general, mapping F(s) accurately in a comparably small and connected region. Nevertheless, since the error on the reconstructed free energy can now be estimated, the algorithm can easily be extended to cope with complex topologies and/or large basins by combining it with other approaches, such as weighted histogram techniques.4,10 A very promising approach is also the one described in ref 15, in which the free energy for a complex chemical reaction is first coarsely reconstructed by
+
+J. Phys. Chem. B, Vol. 109, No. 14, 2005 6721
+metadynamics in a high dimensional space. The minimum free
+energy path on FG(s) is then found, and the one-dimensional free energy is computed along this path, which defines a generalized reaction coordinate. In this approach, the potential of metadynamics for expediently providing a coarse-grained estimate of F(s) in many dimensions is fully exploited, but the quantitatiVe evaluation of the free energy difference between
+two states is performed, much more efficiently, in one dimen-
+sion.
+Acknowledgment. A number of people contributed to the
+development of metadynamics, helping, with their suggestions,
+to improve the methodology. In particular, we would like to
+thank Cristian Micheletti, Roman Martonˇa´k, Marcella Iannuzzi,
+Andras Stirling, Francesco Mercuri, Bernd Ensing, Davide
+Donadio, Jannis Kevrekidis, and Marco Bernasconi. A.L. would
+also like to acknowledge the participants of the CECAM
+workshop “Conformational Dynamics in Complex Systems,
+Lyon 2004” for a very stimulating discussion on the method.
+References and Notes
+(1) E. W.; Vanden-Eijnden, E. Lecture Notes in Computational Science and Engineering; Attinger, S., Koumoutsakos, P., Eds.; Springer: Berlin, 2004.
+(2) Carter, E.; Ciccotti, G.; Hynes, J.; Kapral, R. Chem. Phys. Lett. 1989, 156, 472.
+(3) Sprik, M.; Ciccotti, G. J. Chem. Phys. 1998, 109, 7737. (4) Kumar, S.; Rosenberg, J. M.; Bouzida, D.; Swendsen, R. H.; Kollman, P. A. J. Comput. Chem. 1995, 16, 1339-1350. (5) Roux, B. Comput. Phys. Commun. 1995, 91, 275-282. (6) Jarzynski, C. Phys. ReV. Lett. 1997, 78, 2690. (7) Darve, E.; Pohorille, A. J. Chem. Phys. 2001, 115, 9169. (8) Rodriguez-Gomez, D.; Darve, E.; Pohorille, A. J. Chem. Phys. 2004, 120, 3563. (9) Laio, A.; Parrinello, M. Proc. Natl. Acad. Sci. U.S.A. 2002, 99, 12562-12566. (10) Micheletti, C.; Laio, A.; Parrinello, M. Phys. ReV. Lett. 2004, 92, 170601. (11) Wang, F.; Landau, D. Phys. ReV. Lett. 2001, 86, 2050. (12) Iannuzzi, M.; Laio, A.; Parrinello, M. Phys. ReV. Lett. 2003, 90, 238302. (13) Stirling, A.; Iannuzzi, M.; Laio, A.; Parrinello, M. ChemPhysChem 2004, 5, 1292. (14) Churakov, S.; Iannuzzi, M.; Parrinello, M. J. Phys. Chem. B 2004, 108, 11567. (15) Ensing, B.; Laio, A.; Gervasio, F.; Parrinello, M.; Klein, M. J. Am. Chem. Soc. 2004, 126, 9492. (16) Zipoli, F.; Bernasconi, M.; Martonˇa´k, R. Eur. Phys. J. B 2004, 39, 41. (17) Iannuzzi, M.; Parrinello, M. Phys. ReV. Lett. 2004, 93, 025901. (18) Martonˇa´k, R.; Laio, A.; Parrinello, M. Phys. ReV. Lett. 2003, 90, 75503. (19) Martonˇa´k, R.; Laio, A.; Bernasconi, M.; Ceriani, C.; Raiteri, P.; Parrinello, M. Z. Kristallogr., in press 2005. (20) Ceccarelli, M.; Danelon, C.; Laio, A.; Parrinello, M. Biophys. J. 2004, 87, 58-64. (21) Ferrenberg, A.; Swendsen, R. Phys. ReV. Lett. 1988, 61, 2635. (22) Car, R.; Parrinello, M. Phys. ReV. Lett. 1985, 45, 2471. (23) Gardiner, C. Handbook of Stochastic Methods, 3rd ed.; 2004. (24) Ottinger, H. Phys. ReV. E 1998, 57, 1416. (25) Mercuri, F.; Passerone, D.; Ceccarelli, M.; Parrinello, M. Manuscript in preparation 2005. (26) Cornell, W. D.; Cieplak, P.; Bayly, C. I.; Gould, I. R.; Merz, K. M., Jr.; Ferguson, D. M.; Spellmeyer, D. C.; Fox, T.; Caldwell, J. W.; Kollmann, P. A. J. Am. Chem. Soc. 1995, 117, 5179-5197. (27) Mountain, R. J. Chem. Phys. 1997, 107, 3921. (28) Parrinello, M.; Rahman, A. Phys. ReV. Lett. 1980, 45, 1196. (29) Nose, S. Mol. Phys. 1984, 52, 255-268. (30) Grossfield, A. An implementation of WHAM: the Weighted Histogram Analysis Method; 2004.
+

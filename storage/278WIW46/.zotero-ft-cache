@@ -1,0 +1,1529 @@
+Acta Crystallographica Section D
+Biological Crystallography
+ISSN 0907-4449
+
+research papers
+Bulk-solvent and overall scaling revisited: faster calculations, improved results
+
+P. V. Afonine,a* R. W. GrosseKunstleve,a P. D. Adamsa,b and A. Urzhumtsevc,d
+aLawrence Berkeley National Laboratory, One Cyclotron Road, MS64R0121, Berkeley, CA 94720, USA, bDepartment of Bioengineering, University of California, Berkeley, Berkeley, CA 94720, USA, cIGBMC, CNRS–INSERM–UdS, 1 Rue Laurent Fries, BP 10142, 67404 Illkirch, France, and dUniversite´ de Lorraine: De´partement de Physique – Nancy 1, BP 239, Faculte´ des Sciences et des Technologies, 54506 Vandoeuvre-le`s-Nancy, France
+Correspondence e-mail: pafonine@lbl.gov
+
+A fast and robust method for determining the parameters for a ﬂat (mask-based) bulk-solvent model and overall scaling in macromolecular crystallographic structure reﬁnement and other related calculations is described. This method uses analytical expressions for the determination of optimal values for various scale factors. The new approach was tested using nearly all entries in the PDB for which experimental structure factors are available. In general, the resulting R factors are improved compared with previously implemented approaches. In addition, the new procedure is two orders of magnitude faster, which has a signiﬁcant impact on the overall runtime of reﬁnement and other applications. An alternative function is also proposed for scaling the bulk-solvent model and it is shown that it outperforms the conventional exponential function. Similarly, alternative methods are presented for anisotropic scaling and their performance is analyzed. All methods are implemented in the Computational Crystallography Toolbox (cctbx) and are used in PHENIX programs.
+1. Introduction
+Macromolecular crystals typically contain a substantial amount of disordered solvent, ranging from approximately 20 to 90% of the crystal volume, with a mean of 55%, in the Protein Data Bank (PDB; Bernstein et al., 1977; Berman et al., 2000). Anisotropy in the diffracted intensities is another common feature of macromolecular crystals that arises from various sources including crystal lattice vibrations (Shakked, 1983; Sheriff & Hendrickson, 1987). When modelling diffracted intensities, for example in structure reﬁnement or automated model building, it is therefore critical to account for these two phenomena (see, for example, Jiang & Bru¨ nger, 1994; Urzhumtsev & Podjarny, 1995; Kostrewa, 1997; Badger, 1997; Urzhumtsev, 2000; Fokine & Urzhumtsev, 2002a; Fenn et al., 2010). The ﬂat bulk-solvent model (Phillips, 1980; Jiang & Bru¨ nger, 1994) combined with overall anisotropic scaling in either exponential (Sheriff & Hendrickson, 1987) or polynomial (Uso´ n et al., 1999) forms is a well established and computationally efﬁcient approach. Alternatives have been proposed (Tronrud, 1997; Vassylyev et al., 2007), but are not currently in wide use.
+In the commonly used approach, the total structure factor is deﬁned as
+
+Received 13 December 2012 Accepted 5 January 2013
+
+Fmodel ¼ ktotalðFcalc þ kmaskFmaskÞ;
+
+ð1Þ
+
+Acta Cryst. (2013). D69, 625–634
+
+where ktotal is the overall Miller-index-dependent scale factor, Fcalc and Fmask are the structure factors computed from the atomic model and the bulk-solvent mask, respectively, and kmask is a bulk-solvent scale factor. The mask can be computed
+doi:10.1107/S0907444913000462 625
+
+research papers
+
+efﬁciently using exact asymmetric units as described in Grosse-Kunstleve et al. (2011).
+The overall scale factor ktotal can be thought of as the product
+
+ktotal ¼ koverall kisotropic kanisotropic;
+
+ð2Þ
+
+where koverall is the overall scale factor and kisotropic and
+
+kanisotropic are the isotropic and anisotropic scale factors,
+
+respectively.
+
+koverall is a scalar number that can be obtained by mini-
+
+mizing the least-squares residual
+
+LS
+
+¼
+
+P ðFobs
+
+À
+
+koveralljF0modeljÞ2;
+
+ð3Þ
+
+where Fobs are the observed structure factors and
+
+F0model ¼ kisotropic kanisotropicðFcalc þ kmaskFmaskÞ:
+
+ð4Þ
+
+The sum is over all reﬂections. Solving @LS/@koverall = 0 leads to
+
+koverall ¼ P FobsjF0modelj= P jF0modelj2:
+
+ð5Þ
+
+In the exponential model the anisotropic scale factor is deﬁned as
+
+kanisotropic ¼ expðÀ22stUcrystsÞ;
+
+ð6Þ
+
+where Ucryst is the overall anisotropic scale matrix equivalent to U* deﬁned in Grosse-Kunstleve & Adams (2002); st = (h, k, l) is the transpose of the Miller-index column vector s.
+Uso´ n et al. (1999) deﬁne a polynomial anisotropic scaling
+function that can be rewritten in matrix notation as follows:
+
+kanisotropic ¼ stV0s þ ðstV1sÞs2;
+
+ð7Þ
+
+where V0 and V1 are symmetric 3 Â 3 matrices, s2 = stG*s and G* is the reciprocal-space metric tensor. Expression (7) is
+equivalent to the ﬁrst terms in the Taylor series expansion of
+the exponential function (6),
+
+expðÀ22stUcrystsÞ ’ 1 À 22stUcrysts þ 24ðstUcrystsÞðstUcrystsÞ; ð8Þ
+
+with the constant term omitted. The omission of the constant 1 means that kanisotropic is equal to zero for the reﬂection F000, as follows from (7). Therefore, in this work we modify (7) by adding the constant
+
+kanisotropic ¼ 1 þ stV0s þ ðstV1sÞs2:
+
+ð9Þ
+
+The bulk-solvent scale factor is traditionally deﬁned as
+
+kmask ¼ ksol expðÀBsols2=4Þ;
+
+ð10Þ
+
+where ksol and Bsol are the ﬂat bulk-solvent model parameters (Phillips, 1980; Jiang & Bru¨ nger, 1994; Fokine & Urzhumtsev, 2002b).
+Depending on the calculation protocol, kisotropic may be assumed to be a part of kanisotropic or it can be assumed to be exponential: kisotropic = exp(ÀBs2/4), where B is a scalar parameter. Alternatively, it may be determined as described in x2.3 below.
+The determination of the anisotropic scaling parameters (Ucryst or V0 and V1) and the bulk-solvent parameters ksol and Bsol requires the minimization of the target function (3) with
+
+626 Afonine et al.  Bulk-solvent and overall scaling
+
+respect to these parameters. Despite the apparent simplicity, this task is quite involved owing to a number of numerical issues (Fokine & Urzhumtsev, 2002b; Afonine et al., 2005a). Previously, we have developed a robust and thorough procedure (Afonine et al., 2005a) to address these issues. This procedure is used routinely in PHENIX (Adams et al., 2010). However, owing to its thoroughness the procedure is relatively slow and may account for a signiﬁcant fraction of the execution time of certain PHENIX applications (for example, phenix.reﬁne).
+In this paper, we describe a new procedure which is approximately two orders of magnitude faster than the approach described in Afonine et al. (2005a) and often leads to a better ﬁt of the experimental data. The speed gain is the result of an analytical determination of the optimal bulksolvent and scaling parameters. The better ﬁt to the experimental data is partially the result of employing a more detailed model for kmask compared with the exponential model in equation (10) and is partially a consequence of the new analytical optimization method. Analytical optimization eliminates the possibility of becoming trapped in local minima, which exists in all iterative local optimization methods, including the procedure used previously.
+
+2. Methods
+
+2.1. Anisotropic scaling: exponential model
+
+To obtain the elements of the anisotropic scaling matrix (6),
+
+the minimization of (3) is replaced by the minimization of
+
+LSL
+
+¼
+
+P ½lnðFobsÞ
+
+À
+
+lnðjFmodeljÞ2:
+
+ð11Þ
+
+s
+
+For this, we assume that Fobs and |Fmodel| are positive. We also
+
+assume that the minima of (3) and (11) are at similar locations.
+
+This assumption is not obvious and, as discussed below, may
+
+not always hold (see x3.3 and Table 2). Expression (11) can be
+
+rewritten as
+
+LSL
+
+¼
+
+ð22Þ2
+
+P ðZ
+
+þ
+
+st Ucryst sÞ2 :
+
+ð12Þ
+
+s
+
+Here, Z = [1/(22)]ln[Fobs(koverallkisotropic|Fcalc + kmaskFmask|)À1]. Deﬁning
+
+LgSL ¼ LSL=ð22Þ2
+
+ð13Þ
+
+and using
+
+0
+
+1
+
+U11 U12 U13
+
+Ucryst ¼ @ U12 U22 U23 A;
+
+ð14Þ
+
+U13 U23 U33
+
+the target function determining the optimal Ucryst is
+
+LgSL
+
+¼
+
+P ðZ
+
+þ
+
+U11h2
+
+þ
+
+U22k2
+
+þ
+
+U33l2
+
+s
+
+þ 2U12hk þ 2U13hl þ 2U23klÞ2:
+
+ð15Þ
+
+The Ucryst values that minimize (15) are determined from the condition rULgSL = 0, which gives a system of six linear equations
+
+Acta Cryst. (2013). D69, 625–634
+
+research papers
+
+M Ucryst ¼ b:
+
+ð16Þ
+
+where
+
+M
+
+=
+
+P
+s
+
+V
+
+
+
+V,
+
+V
+
+=
+
+(h2P, k2,
+
+l2,
+
+2hk,
+
+2hl,
+
+2kl)t,
+
+
+
+denotes
+
+the outer product and b = À s ZV.
+
+The desired Ucryst matrix is determined by solving the
+
+system (16):
+
+Ucryst ¼ MÀ1b:
+
+ð17Þ
+
+Crystal-system-speciﬁc symmetry constraints can be incor-
+
+porated via a constraint matrix (C), which we derive from ﬁrst principles by solving the system of linear equations RtUR = U
+
+for all rotation matrices R of the crystal-system point group.
+
+Alternatively, symmetry constraints are often derived manu-
+
+ally and tabulated (Nye, 1957; Giacovazzo, 1992). For
+
+example, the constraint matrix for the tetragonal crystal
+
+system is
+
+
+
+
+
+C¼
+
+1 0
+
+1 0
+
+0 1
+
+0 0
+
+0 0
+
+0 0
+
+:
+
+ð18Þ
+
+The number of rows in C determines the number of inde-
+
+pendent coefﬁcients of Ucryst. Let Uind be the column vector of independent coefﬁcients; the (redundant) set of six coefﬁ-
+
+cients Ucryst is then obtained via
+
+À
+
+Á
+
+Ucryst ¼ U11 U22 U33 U12 U13 U23 ¼ Ct Uind: ð19Þ
+
+The constraint matrix C is introduced into equations (16) and (17) above as follows:
+
+MCUind ¼ bC
+
+ð20Þ
+
+P
+
+P
+
+with MC = h VC  VC, VC = CV, bC = À h ZVC and
+
+Uind ¼ MÀC1bC:
+
+ð21Þ
+
+The full Ucryst is then determined via equation (19).
+
+2.2. Anisotropic scaling: polynomial model
+The polynomial model (Uso´ n et al., 1999) for anisotropic scaling allows the direct use of the residual (3) to ﬁnd the optimal coefﬁcients for V0 and V1 in equation (9). An advantage of this model is that no assumptions about the similarity of the location of the minima of targets (3) and (11) are required. Conceptually, a disadvantage of equation (9) is that it is only an approximation of equation (6), as was shown above. However, the number of parameters is doubled in equation (9) compared with equation (6), since V0 and V1 are treated independently. The increased number of degrees of freedom may therefore compensate for approximation inaccuracies.
+Similarly to x2.1, the optimal coefﬁcients for V0 and V1 are determined by the condition rVLS = 0 and can be obtained by solving a system of 12 linear equations. We follow the arguments of Uso´ n et al. (1999) for not using symmetry constraints in this case.
+
+2.3. Bulk-solvent parameters and overall isotropic scaling
+Deﬁning K = kÀto2tal = (koverall kisotropic kanisotropic)À2, the determination of the desired scaling parameters kisotropic and kmask is reduced to minimizing
+
+Acta Cryst. (2013). D69, 625–634
+
+LSsðK;
+
+kmask Þ
+
+¼
+
+P ðjFcalc
+
+þ
+
+kmask Fmask j2
+
+À
+
+KIÞ2
+
+ð22Þ
+
+s
+
+in resolution bins, where koverall and kanisotropic are ﬁxed. This minimization problem is generally highly overdetermined
+
+because the number of reﬂections per bin is usually much
+
+larger than two.
+
+Introducing w = |Fmask|2, v = (Fcalc, Fmask) and u = |Fcalc|2 and
+
+substitution into (22) leads to
+
+LSsðK;
+
+kmaskÞ
+
+¼
+
+P ½ðk2maskw
+
+þ
+
+2kmaskv
+
+þ
+
+uÞ
+
+À
+
+KI2:
+
+ð23Þ
+
+s
+
+Minimizing (23) with respect to K and kmask leads to a system
+
+of two equations:
+
+8 >>>>><
+
+@ @kLSsðK;
+
+kmaskÞ
+
+¼
+
+À
+
+P ½ðk2maskws
+s
+
+þ
+
+2kmask vs
+
+þ
+
+usÞ
+
+À
+
+KIsIs
+
+¼0
+
+>>>>>:
+
+@ @kmaskLSsðK;
+
+kmaskÞ
+
+¼
+
+2
+
+P ½ðk2mask ws
+s
+
+þ
+
+2kmask vs
+
+þ
+
+usÞ
+
+À
+
+KIs
+
+Â ðkmaskws þ vsÞ ¼ 0:
+
+ð24Þ
+
+Developing these equations with respect to kmask,
+
+8P
+
+P
+
+P
+
+P
+
+>>><
+
+k2mask
+
+Ps
+
+wsIs
+
+þ
+
+2kmask Ps
+
+vsIs þ
+
+s
+
+usIs À K P
+
+s
+
+Is2 ¼ 0
+
+>>>: k3mask
+
+s
+
+ws þ 3k2mask wsvs þ kmask ð2v2s þ usws À KIswsÞ
+
+Ps
+
+Ps
+
+þ usvs À K Isvs ¼ 0;
+
+s
+
+s
+
+ð25Þ
+
+and introducing new notations for the coefﬁcients, we obtain &
+k2maskC2 þ kmaskB2 þ A2 À KY2 ¼ 0 k3maskD3 þ k2maskC3 þ kmaskðB3 À KC2Þ þ A3 À KY3 ¼ 0:
+ð26Þ
+
+Multiplying the second equation by Y2 and substituting KY2 from the ﬁrst equation into the new second equation, we obtain a cubic equation
+
+k3maskðD3Y2 À C22Þ þ k2maskðC3Y2 À C2B2 À C2Y3Þ
+
+ð27Þ
+
+þ kmaskðB3Y2 À C2A2 À Y3B2Þ þ ðA3Y2 À Y3A2Þ ¼ 0:
+
+The senior coefﬁcient in (27) satisﬁes the Cauchy–Schwarz
+
+inequality:
+
+D3Y2 À C22 ¼ P w2s P Is2 À P wsIs P wsIs > 0:
+
+ð28Þ
+
+s
+
+s
+
+s
+
+s
+
+Therefore, equation (27) can be rewritten as
+
+k3mask þ ak2mask þ bkmask þ c ¼ 0
+
+ð29Þ
+
+and solved using a standard procedure. The corresponding values of K are obtained by substituting
+the roots of equation (29) into the ﬁrst equation in (26):
+
+K ¼ ðk2maskC2 þ kmaskB2 þ A2Þ=Y2:
+
+ð30Þ
+
+If no positive root exists kmask is assigned a zero value, which implies the absence of a bulk-solvent contribution. If several roots with kmask ! 0 exist then the one that gives the smallest value of LSs(K, kmask) is selected.
+
+Afonine et al.  Bulk-solvent and overall scaling 627
+
+research papers
+
+If desired, one can ﬁt the right-hand side of expression (10)
+
+to the array of kmask values by minimizing the residual
+
+LS
+
+¼
+
+P ½kmask
+
+À
+
+ksol
+
+expðÀBsols2=4Þ2
+
+ð31Þ
+
+s
+
+for all kmask > 0. This can be achieved analytically as described in Appendix A. Similarly, one can ﬁt koverall exp(ÀBoveralls2/4)
+to the array of K values.
+
+2.4. Presence of twinning
+
+In case of twinning with N twin-related domains, the total model intensity is
+
+PN
+
+ImodelðsÞ ¼ jIjðTjsÞ;
+
+ð32Þ
+
+j¼1
+
+where j is the twin fraction of the jth domain, Tj is the corresponding twin operator (a 3 Â 3 rotation matrix) and
+
+IjðTjsÞ ¼ ktotalðTjsÞjFcalcðTjsÞ þ kmaskðTjsÞFmaskðTjsÞj2: ð33Þ
+
+ktotal includes all scale factors (overall, isotropic and aniso-
+
+tropic). We make the reasonable assumption that ktotal and
+
+kmask are identical for all twin domains.
+
+Finding the twin fractions j can be achieved by solving the
+
+minimization problem
+
+"
+
+#2
+
+P PN
+
+LSð1; . . . ; NÞ ¼
+
+jIjðsjÞ À IðsÞ ;
+
+ð34Þ
+
+s j¼1
+
+with the constraint condition
+
+PN
+
+Cð1; . . . ; NÞ ¼ j À 1 ¼ 0;
+
+ð35Þ
+
+j¼1
+
+where I(s) = Fo2bs and sj = Tjs. This constrained minimization problem can be reformulated as an unconstrained minimization problem by the standard technique of introducing a Lagrange multiplier:
+
+LSð1; . . . ; N; Þ ¼ LSð1; . . . ; NÞ þ Cð1; . . . ; NÞ: ð36Þ
+
+The values {1, . . . , N, } that minimize (36) are the solution
+
+of the system of N + 1 linear equations with N + 1 variables:
+
+8 ><
+
+@LSð1;
+
+.
+
+.
+
+.
+
+; N; ...
+
+Þ=@1
+
+¼
+
+0
+
+>: @LSð1; . . . ; N; Þ=@N ¼ 0
+
+ð37Þ
+
+@LSð1; . . . ; N; Þ=@ ¼ 0
+
+or
+
+8"
+
+#
+
+>>>>>>>>><
+
+P PN s "j¼1
+
+jIjðsjÞ
+
+À
+
+IðsÞ I1ðs1Þ .#. .
+
+þ
+
+
+
+¼
+
+0
+
+P PN
+
+>>>>>>>>>:
+
+s
+PN
+
+jIjðsjÞ À
+j¼1
+j À 1 ¼ 0:
+
+I
+
+ðsÞ
+
+INðsNÞ þ  ¼ 0
+
+ð38Þ
+
+j¼1
+
+The solution of this system is
+
+ð~1; . . . ; ~N; ~Þt ¼ MÀ1b
+
+ð39Þ
+
+628 Afonine et al.  Bulk-solvent and overall scaling
+
+with the (N + 1) Â (N + 1) matrix
+
+P
+
+!
+
+VV 1
+
+M¼ s
+
+;
+
+ð40Þ
+
+1
+
+0
+
+and
+
+V ¼ ½I1ðs1Þ; . . . ; INðsNÞ:
+
+ð41Þ
+
+Here, 1 is a row or column containing N unit elements to
+
+complete the matrix M and
+
+P
+
+P
+
+!t
+
+b ¼ IðsÞI1ðs1Þ; . . . ; IðsÞINðsNÞ; 1 :
+
+ð42Þ
+
+s
+
+s
+
+The values of " are expected to be between 0 and 1, and  is
+
+proportional to the sum of squared intensities. Therefore, it is
+
+numerically beneﬁciaPl to multiply the C(1, . . . , N) term in (36) by a constant s I2ðsÞ in order to make the value for  numerically similar to the values for the twin fractions .
+
+Once the twin fractions have been found, the procedure
+
+described in x2.3 can be used to obtain the overall and bulk-
+
+solvent scale factors. Similarly to (23), we can write
+
+"
+
+#2
+
+P LSsðK; kmaskÞ ¼
+
+PN jjFcalcðsjÞ þ kmaskFmaskðsjÞj2 À KI
+
+;
+
+s j¼1
+
+ð43Þ
+
+where j are known twin fractions and K and kmask are the scale factors to be determined. Similarly to x2.3, we obtain
+
+PN jjFcalcðsjÞ þ kmaskFmaskðsjÞj2 ¼ PN fjjFcalcðsjÞj2
+
+j¼1
+
+j¼1
+
+þ 2kmaskj½FcalcðsjÞFmaskðsjÞ þ k2maskjjFmaskðsjÞj2g: ð44Þ
+
+Introducing new variables as before for equation (23) leads to
+
+LSsðK;
+
+kmaskÞ
+
+¼
+
+P ½ðk2maskw
+
+þ
+
+2kmaskv
+
+þ
+
+uÞ
+
+À
+
+KI2:
+
+ð45Þ
+
+s
+
+The determination of the twin fractions  and scales ktotal and kmask are iterated several times until convergence. The determination of  does not guarantee that the individual twin fractions j are in the range 0–1. For any j outside this range the corresponding twin operation is ignored for the current iteration and the new smaller set of twin fractions and scales are redetermined. However, in the next iteration the full set of  is tried again.
+
+3. Results
+3.1. Implementation of the new protocol
+The scale factors involved in the calculation of Fmodel according to equation (1) are highly correlated. Therefore, the order of their determination is important. Empirically, we found that the determination of kisotropic and kmask followed by the determination of kanisotropic works optimally in most cases. The determination of (kmask, kisotropic) and kanisotropic is repeated several times until the R factor decreases by less than 0.01% between cycles. The number of cycles required to reach convergence is typically between 1 and 5.
+Acta Cryst. (2013). D69, 625–634
+
+research papers
+
+Table 1 Comparison of binning schemes performed with dÀ3 and ln(d) spacing for three selected PDB data sets: 1kwn, 3hay and 3gk8.
+All three data sets have very low completeness in the lowest resolution bin, which dÀ3 binning obscures while ln(d) binning makes clear even when using approximately half the number of bins. Completeness in the high-resolution region is similar in the two binning schemes. For each binning method three columns of data are presented: resolution range (A˚ ), completeness and number of reﬂections.
+
+1kwn Bin No. dÀ3
+
+ln(d)
+
+3hay dÀ3
+
+ln(d)
+
+3gk8 dÀ3
+
+ln(d)
+
+1
+
+19.96–3.25 0.967 4363 19.96–7.87 0.860 301 44.86–13.44 0.932 715 44.86–17.61 0.852 300 22.18–5.00 0.906 1938 22.18–8.16 0.610 300
+
+2
+
+3.25–2.58 0.997 4280 7.87–6.33 0.971 300 13.43–10.71 1.000 716 17.58–14.23 1.000 301 5.00–3.98 0.994 2052 8.15–7.00 0.993 300
+
+3
+
+2.58–2.26 0.999 4214 6.33–5.10 0.966 564
+
+10.71–9.37 1.000 688 14.22–11.51 1.000 556 3.98–3.48 0.997 2060 7.00–6.01 0.996 452
+
+4
+
+2.26–2.05 1.000 4218 5.10–4.10 0.961 1037
+
+9.37–8.52 1.000 693 11.51–9.31 1.000 1011 3.48–3.16 0.995 2051 6.01–5.16 0.994 700
+
+5
+
+2.05–1.90 0.990 4135 4.10–3.30 0.986 1987
+
+8.52–7.91 1.000 679 9.31–7.53 1.000 1853 3.16–2.93 0.976 1988 5.16–4.43 0.993 1087
+
+6
+
+1.90–1.79 0.993 4133 3.30–2.66 0.997 3772
+
+7.91–7.45 1.000 673 7.53–6.10 1.000 3448 2.93–2.76 0.968 1973 4.43–3.81 0.996 1735
+
+7
+
+1.79–1.70 0.992 4119 2.66–2.14 0.999 7177
+
+7.45–7.08 1.000 675 6.10–4.99 0.997 5905 2.76–2.62 0.958 1902 3.81–3.27 0.996 2716
+
+8
+
+1.70–1.63 0.989 4070 2.14–1.72 0.993 13453 7.08–6.77 1.000 657
+
+2.62–2.51 0.952 1961 3.27–2.81 0.979 4149
+
+9
+
+1.63–1.57 0.988 4094 1.72–1.38 0.990 25516 6.77–6.51 1.000 672
+
+2.51–2.41 0.954 1941 2.81–2.41 0.955 6410
+
+10
+
+1.57–1.51 0.990 4093 1.38–1.20 0.989 28106 6.51–6.29 1.000 671
+
+2.41–2.33 0.941 1876 2.41–2.07 0.931 9748
+
+11
+
+1.51–1.46 0.987 4036
+
+6.28–6.09 1.000 657
+
+2.33–2.26 0.933 1897 2.07–1.85 0.827 9681
+
+12
+
+1.46–1.42 0.990 4073
+
+6.09–5.92 1.000 655
+
+2.26–2.19 0.940 1881
+
+13
+
+1.42–1.39 0.993 4088
+
+5.91–5.76 1.000 666
+
+2.19–2.13 0.931 1876
+
+14
+
+1.39–1.35 0.992 4057
+
+5.76–5.62 1.000 656
+
+2.13–2.08 0.914 1838
+
+15
+
+1.35–1.32 0.992 4077
+
+5.62–5.49 1.000 667
+
+2.08–2.03 0.897 1834
+
+16
+
+1.32–1.29 0.995 4052
+
+5.49–5.38 1.000 653
+
+2.03–1.99 0.891 1766
+
+17
+
+1.29–1.27 0.991 4047
+
+5.38–5.27 1.000 635
+
+1.99–1.95 0.865 1765
+
+18
+
+1.27–1.24 0.991 4045
+
+5.27–5.17 1.000 663
+
+1.95–1.92 0.825 1645
+
+19
+
+1.24–1.22 0.988 4026
+
+5.17–5.08 1.000 660
+
+1.91–1.88 0.767 1537
+
+20
+
+1.22–1.20 0.972 3993
+
+5.08–4.99 0.973 623
+
+1.88–1.85 0.732 1497
+
+To determine kanisotropic, our protocol can make use of three available scaling methods: polynomial (poly; x2.2), exponential with analytical calculation of the optimal parameters (expanal; x2.1) and exponential with the optimal parameters obtained via L-BFGS (Liu & Nocedal, 1989) minimization (expmin; Afonine et al., 2005a). The three methods can be tested independently, in which case the result with the lowest R factor is accepted. However, because expmin is up to an order of magnitude slower than the other two methods it is not expected to be used routinely.
+The calculation of kisotropic and kmask requires dividing the data into resolution bins (x3.2). If oscillation of kmask between bins occurs, smoothening (Savitzky & Golay, 1964) is applied to the bin-wise determined values of kmask such that it reduces the oscillations without altering the monotonic behavior of kmask as a function of resolution (see Fig. 1). Finally, the smoothed values are assigned to individual reﬂections using linear interpolation. The kisotropic scales are updated using equation (5) in order to account for the changed kmask.
+
+As illustrated in x3.2, the minimum of the R-factor function
+
+R ¼ P Fobs À jFmodelj= P jFobsj
+
+ð46Þ
+
+and the minimum of the least-squares function (22) can be at signiﬁcantly different locations in the (kmask, kisotropic) parameter space. To assure that the ﬁnal (kmask, kisotropic) values correspond to the lowest R factor, a fast grid search is performed around the optimal values of the least-squares function.
+
+3.2. Binning
+The goal of binning is to group data by common features to characterize each group by a set of common parameters. Here, the key parameter is the resolution d of reﬂections. Binning schemes with bins containing an approximately equal number of reﬂections (i.e. the resolution range is uniformly sampled in dÀ3) or a predeﬁned number of bins are typically used. Since the low-resolution region of the data is sparse, such binning
+
+Figure 1 Examples of smoothening of kmask. The original kmask (blue; obtained as the solution of equation 29) and that after smoothening (red) are shown for three PDB entries with the PDB codes shown on the plots.
+
+Acta Cryst. (2013). D69, 625–634
+
+Afonine et al.  Bulk-solvent and overall scaling 629
+
+research papers
+
+Table 2 Comparison of Ucryst corresponding to the minima of the functions LS (3), LSL (11) and R factor (46).
+
+To improve readability, the Ucryst are shown as B values with respect to a Cartesian basis (Grosse-Kunstleve & Adams, 2002). To reduce the runtimes for the systematic parameter searches (see text), we have selected examples with symmetry constraints leading to all-zero off-diagonal elements.
+
+PDB code
+
+Optimization
+
+target
+
+B11, B22, B33
+
+R factor
+
+2ﬁh 2ﬁh (data cut at 2.5 A˚ ) 1ous (data cut at 6.5 A˚ )
+
+R factor LS LgSL R factor LS LgSL R factor LS LgSL
+
+À2.15, À1.85, À1.60 À4.20, À3.90, À3.35 À2.65, À1.95, À1.60 À9.30, À10.20, À10.35 À18.35, À19.65, À20.75 À38.25, À42.15, À46.20
+9.25, À2.20, 4.35 2.90, À2.45, 8.60 19.55, 6.55, 12.85
+
+0.1935 0.2179 0.1939 0.2417 0.2599 0.3769 0.2082 0.2086 0.2088
+
+schemes tend to produce only one or very few low-resolution bins, which is insufﬁcient to best model the bulk-solvent contribution. Unfortunately, decreasing the number of reﬂections per bin will disproportionally increase the number of bins (Nbins) at higher resolution and may still provide insufﬁcient detail for the low-resolution data (Table 1).
+An alternative approach which divides the resolution range uniformly on a logarithmic scale ln(d) (Urzhumtsev et al., 2009) efﬁciently solves this problem. The ﬂowchart of the algorithm is shown in Fig. 2. This scheme allows the higher resolution bins to contain more reﬂections than the lower resolution bins and more detailed binning at low resolution without increasing the total number of bins. An additional reason for using logarithmic binning is that the dependence of the scales on resolution is approximately exponential (see previous sections), which makes the variation of scale factors more uniform between bins when a logarithmic binning algorithm is used. Table 1 compares binning performed uniformly in dÀ3 and in ln(d) spacing for three data sets (PDB entries 3hay, 1kwn and 3gk8). Note the data completeness of the low-resolution bins.
+
+poly+expanal) and the other using the protocol of Afonine et al. (2005a) (referred to as old).
+Fig. 3 shows a comparison of the alternative methods for determining kanisotropic (see x3.1). Comparing the polynomial model (poly) versus the analytical exponential model (expanal), with a few minor exceptions poly results in slightly lower R factors overall and for the low-resolution reﬂections, while expanal results in lower R factors for the high-resolution reﬂections. Comparing poly versus the original exponential model using minimization (expmin), the R factors are very similar overall and for the high-resolution reﬂections, while poly often results in lower R factors for the low-resolution reﬂections. Comparing the two different exponential models, expmin results in lower R factors overall and nearly identical results for low-resolution reﬂections, but expanal results in lower R factors for the high-resolution reﬂections. Fig. 4 compares the new protocol combining poly and expanal with the old protocol. With very few exceptions, the new protocol performs better for all three resolution groups.
+As described above, occasionally the minima of the R-factor function (46) and the LS function (22) are at signiﬁcantly different locations in the (kmask, kisotropic) parameter space (see Fig. 5). For example, considering kisotropic to be a single-value
+
+3.3. Systematic tests
+We evaluated the performance of the new scaling protocol by applying it to approximately 40 000 data sets selected from the PDB. The structures were selected by evaluating all PDB entries using phenix.model_vs_data (Afonine et al., 2010) and excluding all entries for which the recalculated Rwork was greater than the published value by ﬁve percentage points.
+To score the test results three crystallographic R factors (46) were computed using all reﬂections, using only low-resolution reﬂections and using only high-resolution reﬂections. Lowresolution reﬂections were selected using the condition dmin > 8 A˚ but selecting at least the 500 lowest resolution reﬂections. High-resolution reﬂections were taken from the highest resolution bin. Each of the three anisotropic scaling methods (poly, expanal and expmin) was tested independently within each run. Additionally, two other tests were performed: one combining poly and expanal as described in x3.1 (referred to as
+630 Afonine et al.  Bulk-solvent and overall scaling
+
+Figure 2 Flowchart of the logarithmic resolution-binning algorithm.
+Acta Cryst. (2013). D69, 625–634
+
+research papers
+
+scalar the pair (kmask, kisotropic) that minimizes the R factor in the low-resolution range of PDB data set 1kwn is (0.2913, 0.0961), while the pair (0.3218, 0.0863) minimizes the LS function. The corresponding R factors are 0.3073 and 0.3372, respectively. The data for PDB entry 1hqw lead to an even
+
+more dramatic difference, in which the pairs (kmask, kisotropic) that minimize the R factor and the LS function are (0.25, 0.0131) and (0.6166, 0.0151), respectively, and the corresponding R factors are 0.2924 and 0.5046. We made a similar observation for the overall anisotropic scale kanisotropic, as
+
+Figure 3
+A comparison of the new scaling protocol using different models for the anisotropic scale factor. R versus R factor scatter plots for (a) poly versus expanal, (b) poly versus expmin and (c) expanal versus expmin R factors were computed using all reﬂections (left), low-resolution reﬂections only (middle) and highresolution reﬂections only (right). See x3.3 for details.
+
+Acta Cryst. (2013). D69, 625–634
+
+Afonine et al.  Bulk-solvent and overall scaling 631
+
+research papers
+
+Figure 4 R versus R factor scatter plots comparing the new scaling protocol using poly+expanal for the anisotropic scale factor with the old protocol. For each structure the full set of structure factors available from the PDB was used to calculate scale factors and to calculate R factors (left). Using the same scalefactor values the R factors were calculated separately for the low-resolution reﬂections (middle) and high-resolution reﬂections (right). A large spread of points in the vertical direction above the diagonal (red line) in these latter plots indicates that in many cases the scale factors produced by the old protocol resulted in a poorer ﬁt to the data at low and high resolutions, while the new protocol generates scale factors with a good ﬁt across all resolution ranges. See x3.3 for details.
+
+illustrated in Table 2. For this, the best
+
+values for Ucryst were determined via a systematic search for the minima of the
+
+functions (3), (11) and (46) for three
+
+combinations of structures and high-
+
+resolution cutoffs. Note the difference
+
+in the optimal Ucryst values and the corresponding R factors.
+
+The parameterization of the total
+
+model structure factor (1) does not
+
+make any assumption about the shape
+
+of kmask; for example, it does not assume it to be exponential (10). This provides
+
+an opportunity to explore the behavior
+
+of kmask as a function of resolution and compare it with kmask obtained via (10). Fig. 6 illustrates the differences between the two methods of determining kmask for six representative PDB entries selected from approximately 40 000 entries after inspection of the kmask values. We observe that the plots of the
+
+Figure 5 Plots of R factors (with kisotropic = 0.0961) and the LS function (with kisotropic = 0.0863) for PDB entry 1kwn (left) and R factors (with kisotropic = 0.0131) and the LS function (with kisotropic = 0.0151) for PDB entry 1hqw (right), illustrating that the minima of the R-factor function (46) and the LS function (22) can be at signiﬁcantly different locations in parameter space. In such cases, a line search around the value of kmask obtained by minimization of the LS function is necessary in order to obtain a value that minimizes the R factor. For plotting purposes, the values of the LS function were scaled to be similar to the R factors.
+
+values obtained using our new approach are in general Kretsinger, 1975; Tronrud, 1997). Substitution of relation (47)
+
+signiﬁcantly different from the exponential function. This into equation (1) yields
+
+observation is in line with Fig. 1 of Urzhumtsev & Podjarny (1995).
+
+Fmodel ’ ktotalð1 À p kmaskÞFcalc:
+
+ð48Þ
+
+At very low resolution the structure factors computed from the atomic model are approximately anticorrelated to the structure factors computed from the bulk-solvent mask:
+
+Obviously, Fmodel is invariant for any combination of scale factors ktotal and kmask satisfying the condition
+
+Fmask ’ ÀpFcalc:
+
+ð47Þ
+
+Here, p is a scale factor (Urzhumtsev & Podjarny, 1995). Relation (47) is the basis for alternative bulk-solvent
+
+ktotalð1 À p kmaskÞ ¼ const:
+
+ð49Þ
+
+Since our new scaling procedure determines kmask and kisotropic (which are part of ktotal) simultaneously, without imposing constraints on their values, these scale factors may assume
+
+scaling methods that employ the Babinet principle (Moews & unusual values in the low-resolution range. However, we
+
+632 Afonine et al.  Bulk-solvent and overall scaling
+
+Acta Cryst. (2013). D69, 625–634
+
+research papers
+
+Figure 6 Plots of kmask as a function of resolution (s2) for six selected PDB entries. The blue lines show kmask as determined using the new method. The red lines
+show kmask based on the exponential function (10) using optimized ksol and Bsol parameters.
+
+Table 3 Runtime comparison for selected PDB entries.
+Absolute runtimes for the new protocol range from a few hundredths of a second to a second.
+
+PDB code
+
+Resolution (A˚ )
+
+No. of atoms
+
+No. of reﬂections
+
+Speed gain
+
+1us0
+
+0.66
+
+1akg
+
+1.10
+
+1ous
+
+1.20
+
+1yjp
+
+1.80
+
+1f8t
+
+1.95
+
+1av1
+
+4.00
+
+1jl4
+
+3.99
+
+2i07
+
+4.0
+
+2gsz
+
+4.2
+
+3679
+
+511265
+
+105
+
+136
+
+4471
+
+132
+
+3784
+
+104889
+
+86
+
+66
+
+495
+
+64
+
+3593
+
+28288
+
+104
+
+6588
+
+16201
+
+110
+
+4474
+
+7428
+
+78
+
+12157
+
+20412
+
+126
+
+16344
+
+17131
+
+166
+
+observe that in practice this only happens for a very small number of the test cases.
+4. Discussion
+A new method for overall anisotropic and bulk-solvent scaling of macromolecular crystallographic diffraction data has been developed which is an improvement over the existing algorithm of ﬂat (mask-based) bulk-solvent modeling and overall anisotropic scaling, versions of which are routinely used in various reﬁnement packages such as CNS (Brunger, 2007), REFMAC (Murshudov et al., 2011) and phenix.reﬁne (Afonine et al., 2012). In the process of developing this method, we concluded that the bulk-solvent scale factor kmask deviates quite signiﬁcantly from the exponential model that has traditionally been used. This new method is approximately two orders of magnitude faster than the previous implementation and yields similar or often better R factors. Table 3 compares runtimes for a number of selected cases covering a broad range of resolutions and atomic model sizes. Therefore, the computational speed of the new method makes it possible to
+
+Acta Cryst. (2013). D69, 625–634
+
+robustly compute bulk-solvent and anisotropic scaling parameters even as part of semi-interactive procedures.
+An inherent feature of the mask-based bulk-solvent model is that it relies on the existing atomic model to compute the mask. This in turn implies that any unmodeled (as atoms) parts of the unit cell are considered to belong to the bulksolvent region. This may obscure weakly pronounced features in residual maps such as partially occupied solvent or ligands. This is common to all mask-based bulk-solvent modeling methods, leading to the development of algorithms to account for missing atoms (Roversi et al., 2000). In the future, improved maps may be obtained by combining this latter approach with the new fast overall anisotropic and bulksolvent scaling method that we have presented.
+The new method is implemented in the cctbx project (Grosse-Kunstleve et al., 2002) and is used in a number of PHENIX applications since v.1.8 of the software, most notably phenix.reﬁne (Afonine et al., 2005b, 2012), phenix.maps and phenix.model_vs_data (Afonine et al., 2010). The cctbx project is available at http://cctbx.sourceforge.net under an opensource license. The PHENIX software is available at http:// www.phenix-online.org.
+All results presented are based on PHENIX v.1.8.1.
+
+APPENDIX A Analytical derivation of a one-Gaussian approximation of a one-dimensional discrete data set
+Our goal is to approximate a set of data points {Y(x)}Nj = 1 with a Gaussian function,
+
+a expðÀbx2Þ:
+
+ð50Þ
+
+For this, we use the standard approach of minimizing a leastsquares (LS) function,
+
+Afonine et al.  Bulk-solvent and overall scaling 633
+
+research papers
+
+LS
+
+¼
+
+PN ½Y
+
+ðxjÞ
+
+À
+
+a
+
+expðÀbx2j Þ2:
+
+ð51Þ
+
+j¼1
+
+If Y(xj) ! 0 8 xj, j = 1, N, the minimization of LS can be replaced by the minimization of
+
+LSL
+
+¼
+
+PN fln½Y ðxj Þ
+
+À
+
+ln½a
+
+expðÀbx2j Þg2:
+
+ð52Þ
+
+j¼1
+
+The minimum of this LSL function can be determined analytically,
+
+LSL
+
+¼
+
+PN f½lnðY ðxj Þ
+
+À
+
+ln½a
+
+expðÀbx2j Þg2
+
+j¼1
+
+¼
+
+PN flnðaÞ
+
+À
+
+bx2j
+
+À
+
+ln½Y ðxj Þg2 :
+
+ð53Þ
+
+j¼1
+
+Deﬁning u = ln(a), vj = x2j , dj = ln[Y(xj)], we obtain
+
+LSL
+
+¼
+
+PN ðu
+
+À
+
+bvj
+
+À
+
+djÞ2:
+
+ð54Þ
+
+j¼1
+
+The variables {a, b} minimizing the LSL function are deter-
+
+mined by the condition
+
+8
+
+>< @LSL ¼ 0
+
+@u >: @LSL ¼ 0:
+
+ð55Þ
+
+@b
+
+This leads to
+
+8
+
+>>><
+
+À2
+
+PN ðu
+
+À
+
+bvj
+
+À
+
+djÞ
+
+¼
+
+0
+
+j¼1
+
+>>>:
+
+À2
+
+PN ðu
+
+À
+
+bvj
+
+À
+
+djÞvj
+
+¼
+
+0
+
+ð56Þ
+
+j¼1
+
+and
+
+8
+
+>>>< uN À b PN vj À PN dj ¼ 0
+
+j¼1
+
+j¼1
+
+>>>: u PN vj À b PN v2j À PN vjdj ¼ 0:
+
+ð57Þ
+
+j¼1
+
+j¼1
+
+j¼1
+
+Deﬁning
+
+p
+
+=
+
+PN
+j¼1
+
+dj,
+
+q
+
+=
+
+PN
+j¼1
+
+vj,
+
+r
+
+=
+
+PN
+j¼1
+
+v2j
+
+and
+
+s
+
+=
+
+PN
+j¼1
+
+vjdj,
+
+we obtain
+
+&
+
+uN À bq À p ¼ 0 uq À br À s ¼ 0
+
+ð58Þ
+
+and
+
+8
+
+>< u
+
+¼
+
+1 ðbq
+
+þ
+
+pÞ
+
+N
+
+>:
+
+b
+
+¼
+
+1 ðuq
+
+À
+
+sÞ:
+
+ð59Þ
+
+r
+
+From this, we obtain
+
+sq
+
+pÀ
+
+u
+
+¼
+
+N
+
+À
+
+r q2
+r
+
+;
+
+1 b ¼ ðuq À sÞ
+r
+
+ð60Þ
+
+and ﬁnally
+
+634 Afonine et al.  Bulk-solvent and overall scaling
+
+1
+
+a ¼ expðuÞ; b ¼ ðuq À sÞ:
+
+ð61Þ
+
+r
+
+The authors thank the NIH (grant GM063210) and the
+PHENIX Industrial Consortium for support of the PHENIX
+project. This work was supported in part by the US Depart-
+ment of Energy under Contract No. DE-AC02-05CH11231.
+References
+Adams, P. D. et al. (2010). Acta Cryst. D66, 213–221. Afonine, P. V., Grosse-Kunstleve, R. W. & Adams, P. D. (2005a). Acta
+Cryst. D61, 850–855. Afonine, P. V., Grosse-Kunstleve, R. W. & Adams, P. D. (2005b).
+CCP4 Newsl. Protein Crystallogr. 42, contribution 8. Afonine, P. V., Grosse-Kunstleve, R. W., Chen, V. B., Headd, J. J.,
+Moriarty, N. W., Richardson, J. S., Richardson, D. C., Urzhumtsev, A., Zwart, P. H. & Adams, P. D. (2010). J. Appl. Cryst. 43, 669–676. Afonine, P. V., Grosse-Kunstleve, R. W., Echols, N., Headd, J. J., Moriarty, N. W., Mustyakimov, M., Terwilliger, T. C., Urzhumtsev, A., Zwart, P. H. & Adams, P. D. (2012). Acta Cryst. D68, 352–367. Badger, J. (1997). Methods Enzymol. 277, 344–352. Berman, H. M., Westbrook, J., Feng, Z., Gilliland, G., Bhat, T. N., Weissig, H., Shindyalov, I. N. & Bourne, P. E. (2000). Nucleic Acids Res. 28, 235–242. Bernstein, F. C., Koetzle, T. F., Williams, G. J., Meyer, E. F., Brice, M. D., Rodgers, J. R., Kennard, O., Shimanouchi, T. & Tasumi, M. (1977). J. Mol. Biol. 112, 535–542. Brunger, A. T. (2007). Nature Protoc. 2, 2728–2733. Fenn, T. D., Schnieders, M. J. & Brunger, A. T. (2010). Acta Cryst. D66, 1024–1031. Fokine, A. & Urzhumtsev, A. (2002a). Acta Cryst. A58, 72–74. Fokine, A. & Urzhumtsev, A. (2002b). Acta Cryst. D58, 1387–1392. Giacovazzo, C. (1992). Fundamentals of Crystallography. Oxford University Press. Grosse-Kunstleve, R. W. & Adams, P. D. (2002). J. Appl. Cryst. 35, 477–480. Grosse-Kunstleve, R. W., Sauter, N. K., Moriarty, N. W. & Adams, P. D. (2002). J. Appl. Cryst. 35, 126–136. Grosse-Kunstleve, R. W., Wong, B., Mustyakimov, M. & Adams, P. D. (2011). Acta Cryst. A67, 269–275. Jiang, J. S. & Bru¨ nger, A. T. (1994). J. Mol. Biol. 243, 100–115. Kostrewa, D. (1997). CCP4 Newsl. Protein Crystallogr. 34, 9–22. Liu, D. C. & Nocedal, J. (1989). Math. Program. 45, 503–528. Moews, P. C. & Kretsinger, R. H. (1975). J. Mol. Biol. 91, 201–225. Murshudov, G. N., Skuba´ k, P., Lebedev, A. A., Pannu, N. S., Steiner, R. A., Nicholls, R. A., Winn, M. D., Long, F. & Vagin, A. A. (2011). Acta Cryst. D67, 355–367. Nye, J. F. (1957). Physical Properties of Crystals. Oxford: Clarendon Press. Phillips, S. E. (1980). J. Mol. Biol. 142, 531–554. Roversi, P., Blanc, E., Vonrhein, C., Evans, G. & Bricogne, G. (2000). Acta Cryst. D56, 1316–1323. Savitzky, A. & Golay, M. J. E. (1964). Anal. Chem. 36, 1627–1639. Shakked, Z. (1983). Acta Cryst. A39, 278–279. Sheriff, S. & Hendrickson, W. A. (1987). Acta Cryst. A43, 118–121. Tronrud, D. E. (1997). Methods Enzymol. 277, 306–319. Urzhumtsev, A. G. (2000). CCP4 Newsl. Protein Crystallogr. 38, 38–49. Urzhumtsev, A., Afonine, P. V. & Adams, P. D. (2009). Acta Cryst. D65, 1283–1291. Urzhumtsev, A. G. & Podjarny, A. D. (1995). Jnt CCP4/ESF–EACMB Newsl. Protein Crystallogr. 31, 12–16. Uso´ n, I., Pohl, E., Schneider, T. R., Dauter, Z., Schmidt, A., Fritz, H. J. & Sheldrick, G. M. (1999). Acta Cryst. D55, 1158–1167. Vassylyev, D. G., Vassylyeva, M. N., Perederina, A., Tahirov, T. H. & Artsimovitch, I. (2007). Nature (London), 448, 157–162.
+
+Acta Cryst. (2013). D69, 625–634
+

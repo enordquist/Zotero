@@ -1,0 +1,491 @@
+Author Manuscript
+
+Author Manuscript
+
+HHS Public Access
+Author manuscript
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+Published in final edited form as: Nat Chem. 2019 November ; 11(11): 1058–1066. doi:10.1038/s41557-019-0329-3.
+Temperature-Jump Solution X-ray Scattering Reveals Distinct Motions in a Dynamic Enzyme
+Michael C. Thompson1, Benjamin A. Barad1,2, Alexander M. Wolff1,2, Hyun Sun Cho3, Friedrich Schotte3, Daniel M.C. Schwarz1,4, Philip Anfinrud3,#, James S. Fraser1,* 1Department of Bioengineering and Therapeutic Sciences, University of California, San Francisco, San Francisco, CA 94158, USA
+2Biophysics Graduate Program, University of California, San Francisco, San Francisco, CA 94158, USA
+3Laboratory of Chemical Physics, National Institute of Diabetes and Digestive and Kidney Diseases, National Institutes of Health, Bethesda, MD 220892-0520, USA
+4Chemistry and Chemical Biology Graduate Program, University of California, San Francisco, San Francisco, CA 94158, USA
+Abstract
+Correlated motions of proteins are critical to function, but these features are difficult to resolve using traditional structure determination techniques. Time-resolved X-ray methods hold promise for addressing this challenge but have relied on the exploitation of exotic protein photoactivity, and are therefore not generalizable. Temperature-jumps (T-jumps), through thermal excitation of the solvent, have been utilized to study protein dynamics using spectroscopic techniques, but their implementation in X-ray scattering experiments has been limited. Here, we perform T-jump smalland wide-angle X-ray scattering (SAXS/WAXS) measurements on a dynamic enzyme, cyclophilin A (CypA), demonstrating that these experiments are able to capture functional intramolecular protein dynamics on the microsecond timescale. We show that CypA displays rich dynamics following a T-jump, and use the resulting time-resolved signal to assess the kinetics of conformational changes. Two relaxation processes are resolved, a fast process is related to surface
+Users may view, print, copy, and download text and data-mine the content in such documents, for the purposes of academic research, subject always to the full Conditions of use:http://www.nature.com/authors/editorial_policies/license.html#terms # - anfinrud@nih.gov. * - jfraser@fraserlab.com. Correspondence and Requests for Materials to PA or JSF. Author Contributions MCT, PAA, and JSF conceived and designed the experiments. MCT, BAB, AMW, HSC, FS, DMCS and PAA performed the experiments. MCT, BAB, and AMW analyzed the data. MCT, BAB, AMW, HSC, FS, and PAA contributed materials/analysis tools. MCT and JSF wrote the paper. All authors discussed the results and commented on the manuscript. Data Availability Statement Scattering data is deposited at NIH Figshare (https://doi.org/10.35092/yhjc.9177143). Additional information and files are available from the corresponding author upon reasonable request. Code Availability All Python scripts used for analysis of integrated X-ray scattering curves are publicly available on GitHub (https://github.com/fraserlab/solution_scattering). A code release checkpoint containing the exact scripts used in this work is available via Zenodo (https:// doi.org/10.5281/zenodo.3355707). Competing Interests The authors declare no competing interests.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 2
+
+loop motions and slower process is related to motions in the core of the protein that are critical for catalytic turnover.
+
+Graphical Abstract
+
+Author Manuscript
+
+Author Manuscript
+
+INTRODUCTION
+Protein motions are critical for functions such as enzyme catalysis and allosteric signal transduction1, but it remains challenging to study excursions away from the most populated conformations2. Traditional methods that utilize X-rays for structural characterization of biological macromolecules, such as crystallography and solution scattering, provide highquality structural information, but this information is both spatially and temporally averaged because the measurements are performed on large ensembles of molecules and are typically slower than the timescales of molecular motion2,3. To some extent, the spatial averaging inherent to X-ray experiments is advantageous, because it reveals the alternative local conformations of a molecule that are significantly populated at equilibrium; however, structural states that are not significantly populated at equilibrium, such as intermediates along a conformational transition pathway, are effectively invisible. The temporal averaging inherent to X-ray experiments also results in a loss of information about how transitions between local alternative conformational states are coupled to one another. To gain kinetic information about molecular motion, researchers often turn to spectroscopic methods, but it can be difficult to correlate spectroscopic observables with high resolution structural models.
+Time-resolved X-ray scattering and diffraction can overcome the limitations of traditional structure determination for studying the dynamics of biomolecules4–7. In these experiments, a fast perturbation is applied to the sample to remove it from conformational equilibrium and synchronize conformational changes in a significant fraction of the molecules. Ultrafast Xray pulses, which are short relative to motions of interest, are then used to perform structural measurements in real time as the system relaxes to a new equilibrium, providing simultaneous structural and kinetic information at high spatial and temporal resolution. Time-resolved X-ray experiments can identify transiently-populated structural states along a conformational transition pathway, and reveal kinetic couplings between conformations8.
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 3
+Despite this potential to provide a wealth of information, especially when combined with molecular dynamics simulation9–12, time-resolved experiments have not been broadly applied by structural biologists. To date, systems that have been most rigorously studied are those in which a protein conformational change is coupled to excitation of a photoactive chromophore molecule, because the conformational change can be initiated with an ultrafast optical laser pulse (e.g.13–18). Unfortunately, the number of proteins that undergo specific photochemistry as part of their functional cycle is small, and there is a fundamental need to develop generalized methods that can be used to synchronously excite conformational transitions in any protein molecule and expand the utility of time-resolved structural experiments19–27.
+Protein structural dynamics are intimately coupled to the thermal fluctuations of the surrounding solvent (“solvent slaving”28,29), and thermal excitation of the solvent by infrared (IR) laser temperature-jump has been used in numerous pump-probe experiments. These experiments work on the principle that absorption of IR photons excites the O-H stretching modes of water molecules, and the increased vibrational energy is dissipated through increased rotation and translation of the solvent molecules, effectively converting electromagnetic energy into kinetic (thermal) energy. Because this process of solvent heating and subsequent heat transfer to the protein is much faster than the large-scale molecular motions that define protein conformational changes, the sudden T-jump removes conformational ensembles of protein molecules from their thermal equilibrium so that their structural dynamics can be measured using relaxation methods (Figure 1a). For example, Tjump perturbations have been coupled to ultrafast spectroscopic methods, including Fouriertransform infrared (FTIR) spectroscopy30,31, nuclear magnetic resonance (NMR)32–34, and various forms of fluorescence spectroscopy35,36, for the study of protein folding and enzyme dynamics. While these methods provide detailed kinetic information, they yield only very limited structural information about the underlying atomic ensemble. In contrast, the application of T-jumps to time-resolved X-ray scattering and diffraction has been very limited. Nearly two decades ago, Hori, et al used temperature-jump Laue crystallography to study the initial unfolding step of 3-isopropylmalate dehydrogenase37. That study explored only a single pump-probe time delay, which allowed them to observe laser-induced structural changes but precluded kinetic analysis. Within the last two years, the laser T-jump method has been paired with X-ray solution scattering to explore the oligomerization of insulin in non-physiological conditions25,26 and hemoglobin27. The results and analysis we present here expand the role of the T-jump method in structural biology, by demonstrating that T-jump X-ray scattering experiments can be used as a general method to explore the functional, internal dynamics of proteins in solution. Additionally, we provide a detailed outline of a data reduction and analysis procedure suitable for T-jump SAXS/WAXS experiments.
+The T-jump SAXS/WAXS experiments we describe here used human cyclophilin A (CypA), a proline isomerase enzyme that functions as a protein folding chaperone and as a modulator of intracellular signaling pathways. CypA has been the subject of many NMR experiments that have identified two primary dynamic features of interest (Figure 1b). First, the active site-adjacent loops (covering approximately residues 60–80 and hereafter referred to as the “loops” region) are mobile on the ms-timescale38. This region is especially interesting
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 4
+because evolutionarily selected mutations within these loops perturb the dynamics of the loop39, alter the binding specificity of CypA for substrates such as HIV capsids40, and restrict the host range of these viruses41,42. Second, a group of residues that extends from the active site into the core of the protein (hereafter referred to as the “core” region) has also been shown to be mobile on a ms-timescale38. Subsequent work incorporating multitemperature X-ray crystallography43, mutagenesis44, and further NMR experiments45 have established a relationship between catalysis and conformational dynamics of a group of side chains in this region. Motivated by the sensitivity of the conformational state of the active site-core network to temperature43, we performed infrared laser-driven T-jumps on buffered aqueous solutions of CypA and measured subsequent, time-dependent changes in small and wide angle X-ray scattering (SAXS/WAXS). While our measurements provide only lowresolution structural information, we were able to measure the kinetics of protein conformational changes in CypA. We identified two relaxation processes, and by performing T-jump experiments at a range of different temperatures, we were able to calculate thermodynamic properties of the transition states for the underlying conformational transitions. Specific mutants in the “loops” or the “core” regions of CypA show that the two processes are independent, each representing a distinct and uncoupled reaction coordinate on a complex conformational landscape. Collectively, our measurements and analysis demonstrate that a wealth of information about a protein’s conformational landscape can be obtained by pairing laser-induced T-jump with time-resolved X-ray scattering.
+
+RESULTS
+A method for simultaneous measurement of structural and kinetic details of intrinsic protein dynamics
+To measure protein structural dynamics, we utilized a pump-probe method that pairs an infrared laser-induced temperature-jump with global measurement of protein structure via X-ray solution scattering (Figure 1c). We performed solvent heating in aqueous protein solutions by exciting the water O-H stretch with mid-IR laser pulses (1443nm, 7ns duration). At regularly defined time delays following the IR heating pulse (from 562ns to 1ms), we probed the sample with high-brilliance synchrotron X-ray pulses from a pink-beam undulator (3% bandwidth at 12keV, Supplementary Figure 1) that were approximately 500ns in duration, and measured X-ray scattering using a large CCD detector that was capable of capturing small and wide scattering angles on a single panel. Because the duration of the IR pump pulse was sufficiently short compared to the duration of the X-ray probe, the heating was effectively instantaneous with respect to the relaxation processes we were able to observe. Data were collected as interleaved “laser on” and “laser off” X-ray scattering images, so that each pump-probe measurement could be paired to a measurement made immediately before application of the pump laser (Figure 1d). We measured 27 unique pump-probe time delays across four decades of time spanning from 562ns to 1ms, performing 50 repeat measurements for each time delay. For each detector image, the individual pixel values were azimuthally averaged as a function of the scattering vector magnitude, q, to give one-dimensional scattering intensity profiles (I(q) curves). All scattering profiles were scaled to a single reference, and the data were analyzed as described below. These pump-probe measurements allowed us to monitor structural changes within the
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 5
+
+ensemble of heated molecules in real time as the system relaxed to a new thermal equilibrium following T-jump (Figure 1a). Additional details about the instrumentation used for our experiments are available in the Supplemental Methods.
+
+Calibrating the magnitude of the Temperature-Jump
+Because the isothermal compressibility of liquid water is highly temperature-dependent46, X-ray scattering from the bulk solvent acts as an exquisitely sensitive thermometer that can be used to calibrate the magnitude of the T-jump in our experiments9,25,27,47,48. Our instrument configuration allowed us to measure low-angle protein scattering (SAXS) and high-angle solvent scattering (WAXS) on the same detector image, enabling simultaneous measurement of CypA structure and water temperature. A method based on singular value decomposition of a matrix constructed from the measured scattering curves provided a simple way to measure the magnitude of the laser-induced T-jump (Supplementary Data). The SVD analysis showed that the average T-jump produced by our IR heating pulse was approximately 10.7°C, and allowed us to judge when cooling of the system became significant, so that we could identify the maximum pump-probe time delay that was valid for our relaxation analysis. Additionally, the SVD analysis revealed that following laser T-jump, the solvent reaches a new thermal equilibrium faster than the measurement dead time of our experiment (562ns). This observation is consistent with other work, in which changes to the structure of bulk solvent following laser T-jump have been shown to equilibrate within roughly 200ns49.
+
+T-Jump Produces Changes in the X-ray Scattering Profile of CypA
+To determine the effect of the T-jump, we initially averaged all data for a given time delay (Supplementary Figure 2), examined the scattering profiles for differences, and observed a small laser-induced change in the low-q region of the scattering profiles. Next, we exploited the interleaved data collection scheme (Figure 1d) to increase the sensitivity of the experiment. We calculated the “on-off difference” between of the paired “laser on” and “laser off” scattering profiles. Following subtraction, we binned the “on-off difference” scattering curves according to the associated pump-probe time-delay, performed an iterative chi-squared test to remove outliers, and averaged the calculated differences for all repeat measurements (Supplementary Methods). This subtraction and averaging removed systematic errors that accumulated over long experiments, resulting in accurate measurements of difference signals as a function of the pump-probe time delay. Scattering differences at high-q (1.0–4.2Å−1) were used to calibrate the final sample temperature after laser illumination (Supplementary Data), while differences at low-q (0.03–0.3Å−1), were analyzed in the context of the average physical dimensions and scattering density of the CypA “protein particle.” Here, we use the phrase “protein particle” to describe the protein molecule plus the ordered solvent bound to its surface, since both the protein and its hydration layer have an electron densities that differ from bulk solvent, and therefore contribute to the observed X-ray scattering by the CypA solution. Identical T-jump measurements were performed on protein samples and on samples consisting of buffer only without protein, and an additional step of scaling and subtraction isolated the signal changes at low-q due only to the protein (Supplementary Figure 2).
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 6
+
+Time-Resolved Changes in Small Angle X-ray Scattering
+Comparison of difference scattering curves calculated for 27 unique time delays revealed a time-dependent change in X-ray scattering by the protein, demonstrating that the modest Tjump we introduced was capable of exciting protein dynamics that could be observed in real time. The difference curves calculated from our data, showing the contribution of the protein to time-resolved changes in the SAXS/WAXS signal, have features in the low-q (q=0.03– 0.3Å−1) region (Figure 2a). The time-resolved differences are approximately the same in magnitude and direction as differences between static temperature measurements performed on samples equilibrated to temperatures that differ by 10°C and correspond to the “laser on” and “laser off” temperatures (Supplementary Figure 3). Qualitatively, the time-resolved onoff differences show that the overall low-angle scattering and extrapolated value of I(0) are reduced within the measurement dead-time of our experiment (562ns), and then begin to increase slightly over the next few microseconds before decreasing further at longer pumpprobe time delays out to 562μs. The observed “laser on-off” difference in I(0) is approximately 3% of the total observed signal, with one-third of that signal change occurring in the time regime that can be resolved by our measurements. Additional static measurements as a function of both CypA concentration and temperature allowed us to characterize and correct for the effect of interparticle interactions, and determine that their contribution to the X-ray scattering is temperature-independent over the relevant temperature range (Supplementary Data).
+
+Changes in low-angle scattering generally reflect changes in the overall size and shape of the particles in solution, and changes in I(0) result from changes to the scattering density of the particle (i.e. the number of excess electrons in the particle relative to the bulk solvent that it displaces). The observed reduction of both quantities indicated shrinkage of the scattering particles, and a decrease in their scattering density. The on-off difference for our shortest pump-probe time delay (562ns) is significantly different from 0 at low scattering angles (reduction in I(0) of approximately 2%), demonstrating the existence of structural changes that are faster than the measurement dead-time of our experiments. We hypothesize that the physical basis for this fast signal change is a combination of thermal disorder and thermal expansion effects (Supplementary Data), possibly including a temperature-induced loss (or “melting”) of ordered solvent within the protein hydration shell. Previous work, such as measurement of “protein-quake” motions in photoactive systems9,50, has demonstrated that vibrational energy transfer is fast in proteins, and we expect that the onset of thermal disorder following T-jump happens on a similar timescale, within hundreds of picoseconds. Furthermore, thermal expansion of solvent following T-jump is well-known to equilibrate within approximately 200ns25,47,48, and it is reasonable to assume that protein thermal expansion may occur on a similar timescale. The notion that thermal disorder and expansion occur rapidly in our system is experimentally supported by Kratky plots created from our static and T-jump data, which suggest a slight increase in protein flexibility without unfolding (Supplementary Figure 4). The effect is temperature-dependent, but not timedependent over the pump-probe time delays we explored, confirming that the process is faster than the measurement dead-time of our experiment. The physical details and kinetics of these fast processes, though interesting, are invisible to our experiment, and it is impossible to disentangle and quantify the exact contribution of each phenomenon to the fast
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 7
+
+signal decrease that we observe. Therefore, our analysis focused on structural dynamics that occur in the microsecond regime, which is resolved by our measurements. On the other hand, ultrafast single pulses from synchrotrons (~100ps pulse duration) or X-ray freeelectron lasers (XFELs, ~10fs pulse duration) offer the opportunity to study fast timescale processes using temperature-jump; however, a major consideration for T-jump SAXS/WAXS experiments on faster timescales is the additional complexity in signal interpretation resulting from the complex dynamics of the solvent that immediately follow laser heating25,47,48 but equilibrate within the dead time of the experiments reported here.
+
+Kinetic Modeling of Structural Dynamics from Time-Resolved Scattering Differences
+Our time-resolved measurements of scattering differences allowed us to model the kinetics of global structural changes induced by the T-jump (Supplementary Methods). We integrated the area under each of our time-resolved difference curves in the q=0.03–0.05Å−1 region and plotted the absolute value of the area as a function of the associated pump-probe time delay (Figure 2b). Based on the apparent shape of the area vs. time delay plot, we reasoned that a two-step kinetic model would be needed to fit the data, since the area first decreases, and then increases, as a function of time delay. We fit the observed data to a two-step model of relaxation kinetics (independent steps) using a non-linear least-squares curve fitting algorithm, and calculated rates of 98×104 s−1 ± 12×104 s−1 for the fast process (k1) and 2.5×104 s−1 ± 0.2×104 s−1 for the slow process (k2) at 26.7°C (299.7K). The errors calculated for these rates were determined using a bootstrap analysis51. We note that while other experimenters have employed SVD for kinetic analysis of time-resolved scattering, in our case implementation of this method produced comparable results to the integration analysis, as one singular vector dominated the time-dependent signal identified by the SVD (Supplementary Figure 5).
+In addition to performing kinetic analysis, we also utilized the on-off difference curves to generate I(q)t scattering curves, which represent the time-dependent X-ray scattering from the CypA sample, but are generated in a manner that makes use of the paired “laser on” and “laser off” measurements to reduce the effects of systematic error (Supplementary Methods). We subsequently used these scattering curves for Guinier analysis (Supplementary Methods) to determine how the radius-of-gyration (Rg) of the average CypA particle in the conformational ensemble changes as a function of time following the T-jump (Figure 3). This analysis demonstrated that after the T-Jump, the average CypA particle shrinks in the dead-time of our experiment; however, within a few microseconds of the T-jump, a fast structural transition (described by k1 in our kinetic analysis) causes the average CypA particle to expand subtly. While the increase in the calculated radius of gyration is small relative to the error on the Guinier fit for any single data point, our conclusion that the particle is expanding is supported by multiple time points and kinetic analysis of the integrated area under difference scattering curves. Following this fast increase in Rg, a second, slower process (described by k2 in our kinetic analysis) reverses this trend, causing the average CypA particle to shrink again.
+To learn more about the conformational transitions in CypA that are excited by the T-jump, we repeated the experiment at multiple different jumped (final) temperatures ranging from
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Thompson et al.
+
+Page 8
+
+6.2°C to 29.9°C (279.2K to 302.9K). We modeled the kinetics of the SAXS/WAXS signal changes to observe how the relaxation rates changed as a function of temperature. The calculated rates (k1 and k2) for all temperatures are provided in Supplementary Table 1. We analyzed the temperature-dependence of these rates, which provided insight into the thermodynamics of the transition states for the two processes. We plotted ln(k/T) versus 1/T (Figure 4), and noted that for both processes the relationships appeared to be linear. Therefore, we calculated enthalpies and entropies of activation for each of the two processes by fitting the data to the linearized Eyring equation:
+
+ln
+
+k T
+
+=
+
+ΔHǂ R
+
+⋅
+
+1 T
+
++
+
+ΔSǂ R
+
++ ln
+
+kB h
+
+Author Manuscript
+
+Author Manuscript
+
+Eq. 1
+where R is the gas constant, kB is the Boltzmann constant, and h is Planck’s constant. The enthalpies of activation (ΔH‡) and entropies of activation (ΔS‡) and their standard deviations are given in Table 1. The fast process (k1) has a large, positive enthalpy of activation, but this is partially offset by a slightly positive entropy of activation. Formation of the transition state during the slow process (k2) has a smaller enthalpic cost, but is also entropically disfavored. We note that the lowest temperature measurement (279.2K) was not used in the Eyring analysis of the fast process (k1) because the error on the measured rate was large due to the low magnitude of the overall time-resolved signal changes at this temperature.
+CypA mutations with distinct effects on conformational dynamics alter time-resolved signal changes
+The time-resolved signal changes that we attributed to WT CypA were observed only at low scattering angles, and therefore the resulting structural information had very limited resolution. To gain a better understanding of the structural transitions excited by the T-jump, we next studied two specific CypA mutants, S99T (in the “core” region, red in Figure 1b) and NH (D66N/R69H in the “loops”, blue in Figure 1b). The conformational dynamics of these two variants of the enzyme each differ from the wild type in distinct ways: S99T is catalytically impaired due to a loss of rotameric exchange in a key network of residues, whereas NH alters the substrate specificity of CypA by enhancing the dynamics of the surface-exposed loops adjacent to the active site. Importantly, NMR relaxation measurements indicate that S99T perturbs the active site but not the loops44, and that NH only perturb the loops39.
+We observed that both S99T and NH mutants showed time-resolved SAXS signal changes that differed from the wild type enzyme. Both mutants show a fast signal change that occurs within the measurement dead time of the experiment, similar to what was observed for the wild type enzyme and consistent with these changes being largely due to thermal expansion or temperature-dependent changes to the solvation shell. Beyond the initial fast loss of scattering intensity that was observed (and nearly identical) for all three CypA variants we
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 9
+studied (WT, S99T, and NH), the evolution of the time-resolved signals for each of the two mutants differ substantially from the wild type and from one another. In the S99T mutant (Figure 5a), we observed only the fast decrease (k1) of the integrated area under the difference curve (q=0.03–0.05 Å−1), and a striking absence of the subsequent increase (k2) in the integrated area at longer time delays that was observed for the wild type enzyme. In contrast, for NH, the plot of integrated area under the difference curve as a function of time delay (Figure 5b) appears to lack the initial fast decrease (k1), but it does appear to retain the slower signal change (k2) that results in an increase for this quantity at longer time delays. We found that for the mutants, the two-step kinetic model that was fit to the wild type data yielded at least one rate with a large error. For the S99T mutant, the first step (k1) was well fit but the second step (k2) was poorly fit, while the opposite was true for the NH variant. After visual inspection, we chose to use a single step kinetic model to fit the data for the S99T and NH mutants, and the calculated rates for the two mutants (k1 for S99T and k2 for NH) are also given in Supplementary Table 1. Plots of the residuals for these fits revealed no structure, suggesting that a single-step kinetic model is sufficient to explain the data for the CypA mutants. In contrast, fitting kinetic data collected for the wild type enzyme using a single-step model results in residuals with exponential character, and a two-step kinetic model is needed to reduce the error in the fit (Supplementary Figure 6).
+Our measurements of the S99T and NH variants of CypA clearly demonstrated that mutations which are known to impinge on the activity and specificity of the enzyme also perturb the observed time-resolved signal relative to the wild type in our T-jump experiments. Most notably, the slow relaxation process (modeled by k2) is shared only by the catalytically-competent wild type and NH variants, and its absence from the S99T variant suggests that the underlying conformational change is related to the catalyticallycoupled motions that are arrested by the S99T mutation. These results indicate that T-jump experiments are capable of exciting and measuring functionally-relevant, intramolecular structural dynamics of proteins, even when the data are limited to relatively low scattering angles.
+
+DISCUSSION
+Time-resolved T-jump X-ray scattering experiments have the potential to be a powerful tool for understanding the complex dynamics of protein molecules, such as the model enzyme CypA, which has no intrinsic photoactivity. In our experiments, T-jumps of 10–11°C modified the CypA conformational ensemble, producing a clear, time-dependent change at low scattering angles. Because the time-resolved scattering changes could be observed only at low-q, we demonstrated that interparticle spacings (quantified by the structure factor, S(q)) were temperature-independent, and that the changes were due to structural rearrangements within the protein particle. Guinier analysis of time-resolved scattering curves allowed us to track changes in the average radius-of-gyration (Rg) of the protein particles, which include the CypA molecules plus their ordered solvation shells. This signal change is comprised of an initial reduction in low-angle scattering that occurs within the measurement dead-time of our experiment, followed by a small increase in low angle scattering that equilibrates within a few microseconds (k1 = 98 ±12 ×104 s−1 at 26.7°C), and finally a further reduction in low angle scattering that equilibrates within tens of
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 10
+microseconds (k2 = 2.5±0.2 ×104 s−1 at 26.7°C). High-angle scattering differences required for atomistic structural interpretation were not observed due to signal-to-noise considerations. We suspect that high-angle features in time-resolved difference scattering curves may be especially weak for proteins such as CypA, in which conformational motions involve correlated shifts of atoms that can preserve many properties of short-range structure.
+This analysis suggests a model in which the scattering density of the CypA particle (protein and ordered solvent) first increases and then decreases after excitation by the T-jump. By performing T-jump experiments over a range of temperatures, we discovered that both the fast and slow processes we observed could be described using Arrhenius kinetics. An Eyring analysis revealed relatively large, positive enthalpies of activation for both processes, consistent with the idea that conformational changes generally require breakage of existing interactions in both the protein and in the solvent. The activation enthalpy for the fast process (k1) is larger, but the overall activation energy is lower because of a favorable activation entropy. The opposite is true for the slower process (k2), which has a smaller overall activation enthalpy, but has a disfavorable activation entropy. We used the S99T and NH variants of CypA to disentangle the nature of these processes and their associated functions. The S99T mutant is capable of undergoing the fast (k1) expansion process, but does not experience the subsequent slow (k2) shrinkage. NMR and crystallography have shown that this mutation arrests the conformational exchange of the “core” catalytic network of residues in CypA by creating steric hindrance, strongly favouring a minor conformation of the wild type enzyme45. This interpretation suggests that the internal rearrangements are related to the k2 process. However, there is a separation of timescales between the NMR results, which indicate ms dynamics in the “core” region, and the T-jump SAXS results here, which indicate μs dynamics. This discrepancy may reflect coupled processes that are related by a population shuffling mechanism52 and agree with a broad timescale range of side chain dynamics in CypA uncovered by molecular dynamics experiments53. In contrast to the S99T mutant, the NH variant lacks the initial fast signal change (k1) in our T-jump experiments, but clearly retains the slow (k2) signal. NMR and crystallographic studies of the D66N/ R69H (NH) double mutant demonstrated that it maintains wild type catalytic motions, but breakage of several hydrogen-bonding interactions results in enhanced flexibility of a surface loop adjacent to the active site and altered substrate specificity39. NMR experiments with NH have shown that the loop motions still occur, but at an increased rate that renders them invisible to our experiments. Therefore, we hypothesize that the loop motions are responsible for the fast (k1) signal in WT CypA and S99T, where these motions have been shown (by NMR) to be unperturbed44.
+The assignment of the motions responsible for the experimentally-observed Rg and I(0) changes by mutational analysis is also consistent with X-ray crystal structures of CypA. Using a room temperature X-ray crystal structure of wild type CypA (PDB:3K0N), we calculated the Rg of the enzyme with the core catalytic network (Arg55, Met61, Ser99, and Phe113) in both the major and minor conformational states, and found that the predicted Rg of the minor state is 0.07Å smaller than the major state (14.09Å vs. 14.16Å, for protein atoms only). In addition to decreasing the Rg of the protein, conversion from the major to the minor state also results in a small reduction in solvent-exposed surface area, which would necessarily reduce the size of the protein solvation layer. While the reduction of the protein’s
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 11
+Rg makes it more compact, and therefore should increase I(0) because the protein has become more dense, the loss of material from the solvation layer opposes this effect, likely leading to the observed decrease in the scattering density of the CypA particle and reduction in I(0). This coupling of Rg changes and changes in the solvent-exposed surface area of the protein can potentially explain the observed correlation between Rg and I(0) changes calculated from our time-resolved scattering data. Additionally the increase in the average Rg and I(0) during the faster process (k1) is consistent with the loops sampling an expanded conformational ensemble (with increased surface area), as indicated by recent exact-NOE NMR ensembles54. Our kinetic modelling of the WT and mutant data suggest that two dynamic modes are observed, each of which is individually perturbed by different mutations. It is, however, unclear from our measurements the extent to which the observed motions are coupled. The S99T variant clearly demonstrates that the fast motion can occur independently of the slower motion, because S99T is known to have arrested slow dynamics. On the other hand, the fast motion we observe is likely to be accelerated by the NH mutation, becoming too fast for us to observe rather than being impeded. Therefore, we are unable to determine whether the fast motion is a requisite first step that precedes the slower motion.
+Time-resolved X-ray structural measurements are critical for decoupling the experimental signatures of conformational changes that can become convoluted by the spatial and temporal averaging that is inherent to traditional X-ray experiments. If one were to assess traditional, static SAXS data for CypA, one would find that increasing the temperature of the sample results in a decrease in the average particle size at equilibrium. These static measurements as a function of equilibrium temperature fail to capture that the temperature change actually perturbs two distinct protein motions, which have the opposite effect on the enzyme’s global structural characteristics. This information can only be obtained through a time-resolved experiment, which is able to separate the effects of these two motions because they have substantially different rates. The ability to dissect individual conformational motions and measure their rates is important for understanding processes involving complex protein dynamics. Many of these dynamic processes, including allostery55–58 and enzyme catalysis59–63, involve extensive reorganization of interactions between the protein and its ordered solvation shell, which are key contributors to the energetics that govern protein motions28,29,64–68. Because X-ray solution scattering experiments report on the structure of a protein and the ordered solvent molecules that constitute its solvation shell69–72, the widespread application of time-resolved SAXS/WAXS experiments will enhance our understanding of protein motions, including how they are driven by solvent dynamics, especially when they can be combined with longer and increasingly detailed molecular dynamics simulations to provide atomic scale insight into the underlying structural changes9–12.
+In order for time-resolved experiments to enter the mainstream of structural biology, it is necessary to create general perturbations that can be applied universally, to any protein of interest, and our results establish that T-jump can excite functional intramolecular protein motions for time-resolved X-ray structural measurements. The intrinsic motions of proteins and other biological macromolecules are naturally driven by thermal fluctuations, which makes temperature-jump an ideal perturbation for studying their dynamics using timeresolved X-ray scattering. Consistent with this idea, a growing number of X-ray diffraction
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 12
+studies across multiple systems have demonstrated that conformational equilibria which are sensitive to temperature perturbation are the same ones exploited by evolution to create new functions73,74, by medicinal chemists in identifying novel small molecule binding sites75–77, and by enzymes during their catalytic cycles44,78,79, paving the way for time-resolved measurements on a broad variety of biochemical systems. Temperature-jump solution scattering experiments are powerful tools for understanding protein dynamics, especially when they can be paired with atomistic simulations69, or with crystal structures of alternative conformations and functional perturbations, as demonstrated here. In the future, functional perturbations such as the mutations that we used to study CypA, or binding of chemical ligands, could be paired with time-resolved structural data from T-jump experiments to provide insight into how disease alleles or drug molecules impinge on protein dynamics.
+
+Supplementary Material
+Refer to Web version on PubMed Central for supplementary material.
+
+Acknowledgements
+We thank R. Ranganathan, J. Holton, G. Hura and D. Elnatan for helpful discussions, and the staff at the BioCARS beamline at the Advanced Photon Source (I. Kosheleva, R. Henning, A. DiChiara, and V. Srajer) for their assistance. This work was supported by: NSF (STC-1231306), NIH (GM123159, GM124149), a Packard Fellowship from the David and Lucile Packard Foundation, UC Office of the President Laboratory Fees Research Program LFR-17–476732 to JSF; the Intramural Research Program of the National Institute of Diabetes and Digestive and Kidney Diseases to PA; a Ruth L. Kirschstein National Research Service Award (F32 HL129989) to MCT. Use of the Advanced Photon Source was supported by the U.S. Department of Energy, Basic Energy Sciences, Office of Science, under contract No. DE-AC02–06CH11357. Use of the BioCARS Sector 14 was also supported by the National Institutes of Health, National Institute of General Medical Sciences Grant R24GM111072. The time-resolved setup at Sector 14 was funded in part through a collaboration with PA (NIH/ NIDDK).
+REFERENCES
+1. Henzler-Wildman K & Kern D Dynamic personalities of proteins. Nature 450, 964–972 (2007). [PubMed: 18075575]
+2. van den Bedem H & Fraser JS Integrative, dynamic structural biology at atomic resolution--it’s about time. Nat. Methods 12, 307–318 (2015). [PubMed: 25825836]
+3. Bottaro S & Lindorff-Larsen K Biophysical experiments and biomolecular simulations: A perfect match? Science 361, 355–360 (2018). [PubMed: 30049874]
+4. Schmidt M Time-Resolved Macromolecular Crystallography at Modern X-Ray Sources. Methods Mol. Biol 1607, 273–294 (2017). [PubMed: 28573577]
+5. Neutze R & Moffat K Time-resolved structural studies at synchrotrons and X-ray free electron lasers: opportunities and challenges. Curr. Opin. Struct. Biol 22, 651–659 (2012). [PubMed: 23021004]
+6. Schotte F et al. Watching a signaling protein function in real time via 100-ps time-resolved Laue crystallography. Proc. Natl. Acad. Sci. U. S. A 109, 19256–19261 (2012). [PubMed: 23132943]
+7. Cho HS et al. Picosecond Photobiology: Watching a Signaling Protein Function in Real Time via Time-Resolved Small- and Wide-Angle X-ray Scattering. J. Am. Chem. Soc 138, 8815–8823 (2016). [PubMed: 27305463]
+8. Schlichting I & Miao J Emerging opportunities in structural biology with X-ray free-electron lasers. Curr. Opin. Struct. Biol 22, 613–626 (2012). [PubMed: 22922042]
+9. Arnlund D et al. Visualizing a protein quake with time-resolved X-ray scattering at a free-electron laser. Nat. Methods 11, 923–926 (2014). [PubMed: 25108686]
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 13
+10. Berntsson O et al. Sequential conformational transitions and α-helical supercoiling regulate a sensor histidine kinase. Nat. Commun 8, 284 (2017). [PubMed: 28819239]
+11. Takala H et al. Signal amplification and transduction in phytochrome photosensors. Nature 509, 245–248 (2014). [PubMed: 24776794]
+12. Brinkmann LUL & Hub JS Ultrafast anisotropic protein quake propagation after CO photodissociation in myoglobin. Proc. Natl. Acad. Sci. U. S. A 113, 10565–10570 (2016). [PubMed: 27601659]
+13. Barends TRM et al. Direct observation of ultrafast collective motions in CO myoglobin upon ligand dissociation. Science 350, 445–450 (2015). [PubMed: 26359336]
+14. Coquelle N et al. Chromophore twisting in the excited state of a photoswitchable fluorescent protein captured by time-resolved serial femtosecond crystallography. Nat. Chem 10, 31–37 (2018). [PubMed: 29256511]
+15. Pande K et al. Femtosecond structural dynamics drives the trans/cis isomerization in photoactive yellow protein. Science 352, 725–729 (2016). [PubMed: 27151871]
+16. Kern J et al. Structures of the intermediates of Kok’s photosynthetic water oxidation clock. Nature 563, 421–425 (2018). [PubMed: 30405241]
+17. Nogly P et al. Retinal isomerization in bacteriorhodopsin captured by a femtosecond x-ray laser. Science 361, (2018).
+18. Malmerberg E et al. Time-resolved WAXS reveals accelerated conformational changes in iodoretinal-substituted proteorhodopsin. Biophys. J 101, 1345–1353 (2011). [PubMed: 21943415]
+19. Hekstra DR et al. Electric-field-stimulated protein mechanics. Nature 540, 400–405 (2016). [PubMed: 27926732]
+20. Schlichting I et al. Time-resolved X-ray crystallographic study of the conformational change in HaRas p21 protein on GTP hydrolysis. Nature 345, 309–315 (1990). [PubMed: 2111463]
+21. Stoddard BL, Cohen BE, Brubaker M, Mesecar AD & Koshland DE Jr. Millisecond Laue structures of an enzyme-product complex using photocaged substrate analogs. Nat. Struct. Biol 5, 891–897 (1998). [PubMed: 9783749]
+22. Josts I et al. Photocage-initiated time-resolved solution X-ray scattering investigation of protein dimerization. IUCrJ 5, 667–672 (2018).
+23. Rimmerman D et al. Revealing Fast Structural Dynamics in pH-Responsive Peptides with TimeResolved X-ray Scattering. J. Phys. Chem. B 123, 2016–2021 (2019). [PubMed: 30763085]
+24. Olmos JL Jr et al. Enzyme intermediates captured ‘on the fly’ by mix-and-inject serial crystallography. BMC Biol 16, 59 (2018). [PubMed: 29848358]
+25. Rimmerman D et al. Direct Observation of Insulin Association Dynamics with Time-Resolved Xray Scattering. J. Phys. Chem. Lett 8, 4413–4418 (2017). [PubMed: 28853898]
+26. Rimmerman D et al. Insulin hexamer dissociation dynamics revealed by photoinduced T-jumps and time-resolved X-ray solution scattering. Photochem. Photobiol. Sci 17, 874–882 (2018). [PubMed: 29855030]
+27. Cho HS et al. Dynamics of Quaternary Structure Transitions in R-State Carbonmonoxyhemoglobin are Unveiled in Time-Resolved X-ray Scattering Patterns Following a Temperature Jump. J. Phys. Chem. B (2018). doi:10.1021/acs.jpcb.8b07414
+28. Frauenfelder H, Fenimore PW & Young RD Protein dynamics and function: insights from the energy landscape and solvent slaving. IUBMB Life 59, 506–512 (2007). [PubMed: 17701545]
+29. Fenimore PW, Frauenfelder H, McMahon BH & Parak FG Slaving: solvent fluctuations dominate protein dynamics and functions. Proc. Natl. Acad. Sci. U. S. A 99, 16047–16051 (2002). [PubMed: 12444262]
+30. Wang J & El-Sayed MA Temperature jump-induced secondary structural change of the membrane protein bacteriorhodopsin in the premelting temperature region: a nanosecond time-resolved Fourier transform infrared study. Biophys. J 76, 2777–2783 (1999). [PubMed: 10233093]
+31. Wang T, Lau WL, DeGrado WF & Gai F T-jump infrared study of the folding mechanism of coiled-coil GCN4-p1. Biophys. J 89, 4180–4187 (2005). [PubMed: 16150962]
+32. Akasaka K, Naito A & Nakatani H Temperature-jump NMR study of protein folding: ribonuclease A at low pH. J. Biomol. NMR 1, 65–70 (1991). [PubMed: 1841690]
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 14
+33. Gillespie B et al. NMR and temperature-jump measurements of de novo designed proteins demonstrate rapid folding in the absence of explicit selection for kinetics. J. Mol. Biol 330, 813– 819 (2003). [PubMed: 12850149]
+34. Yamasaki K et al. Real-time NMR monitoring of protein-folding kinetics by a recycle flow system for temperature jump. Anal. Chem 85, 9439–9443 (2013). [PubMed: 24028433]
+35. Meadows CW, Balakrishnan G, Kier BL, Spiro TG & Klinman JP Temperature-Jump Fluorescence Provides Evidence for Fully Reversible Microsecond Dynamics in a Thermophilic Alcohol Dehydrogenase. J. Am. Chem. Soc 137, 10060–10063 (2015). [PubMed: 26223665]
+36. Vaughn MB, Zhang J, Spiro TG, Dyer RB & Klinman JP Activity-Related Microsecond Dynamics Revealed by Temperature-Jump Förster Resonance Energy Transfer Measurements on Thermophilic Alcohol Dehydrogenase. J. Am. Chem. Soc 140, 900–903 (2018). [PubMed: 29323490]
+37. Hori T et al. The initial step of the thermal unfolding of 3-isopropylmalate dehydrogenase detected by the temperature-jump Laue method. Protein Eng 13, 527–533 (2000). [PubMed: 10964981]
+38. Eisenmesser EZ et al. Intrinsic dynamics of an enzyme underlies catalysis. Nature 438, 117–121 (2005). [PubMed: 16267559]
+39. Caines MEC et al. Diverse HIV viruses are targeted by a conformationally dynamic antiviral. Nat. Struct. Mol. Biol 19, 411–416 (2012). [PubMed: 22407016]
+40. Price AJ et al. Active site remodeling switches HIV specificity of antiretroviral TRIMCyp. Nat. Struct. Mol. Biol 16, 1036–1042 (2009). [PubMed: 19767750]
+41. Virgen CA, Kratovac Z, Bieniasz PD & Hatziioannou T Independent genesis of chimeric TRIM5cyclophilin proteins in two primate species. Proc. Natl. Acad. Sci. U. S. A 105, 3563–3568 (2008). [PubMed: 18287034]
+42. Wilson SJ et al. Independent evolution of an antiviral TRIMCyp in rhesus macaques. Proc. Natl. Acad. Sci. U. S. A 105, 3557–3562 (2008). [PubMed: 18287035]
+43. Keedy DA et al. Mapping the conformational landscape of a dynamic enzyme by multitemperature and XFEL crystallography. Elife 4, (2015).
+44. Fraser JS et al. Hidden alternative structures of proline isomerase essential for catalysis. Nature 462, 669–673 (2009). [PubMed: 19956261]
+45. Otten R et al. Rescue of conformational dynamics in enzyme catalysis by directed evolution. Nat. Commun 9, 1314 (2018). [PubMed: 29615624]
+46. Clark GNI, Hura GL, Teixeira J, Soper AK & Head-Gordon T Small-angle scattering and the structure of ambient liquid water. Proc. Natl. Acad. Sci. U. S. A 107, 14003–14007 (2010). [PubMed: 20647388]
+47. Kjær KS et al. Introducing a standard method for experimental determination of the solvent response in laser pump, X-ray probe time-resolved wide-angle X-ray scattering experiments on systems in solution. Phys. Chem. Chem. Phys 15, 15003–15016 (2013). [PubMed: 23918050]
+48. Cammarata M et al. Impulsive solvent heating probed by picosecond x-ray diffraction. J. Chem. Phys 124, 124504 (2006). [PubMed: 16599694]
+49. Gruebele M, Sabelko J, Ballew R & Ervin J Laser Temperature Jump Induced Protein Refolding †. Acc. Chem. Res 31, 699–707 (1998).
+50. Levantino M et al. Ultrafast myoglobin structural dynamics observed with an X-ray free-electron laser. Nat. Commun 6, 6772 (2015). [PubMed: 25832715]
+51. DiCiccio TJ & Efron B Bootstrap confidence intervals. Stat. Sci 189–212 (1996). 52. Smith CA et al. Population shuffling of protein conformations. Angew. Chem. Int. Ed Engl 54,
+207–210 (2015). [PubMed: 25377083] 53. Wapeesittipan P, Mey A, Walkinshaw M & Michel J Allosteric effects in catalytic impaired
+variants of the enzyme cyclophilin A may be explained by changes in nano-microsecond time scale motions. bioRxiv 224329 (2018). doi:10.1101/224329 54. Chi CN et al. A Structural Ensemble for the Enzyme Cyclophilin Reveals an Orchestrated Mode of Action at Atomic Resolution. Angew. Chem. Int. Ed Engl 54, 11657–11661 (2015). [PubMed: 26265096]
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 15
+55. Kim JG et al. Cooperative protein structural dynamics of homodimeric hemoglobin linked to water cluster at subunit interface revealed by time-resolved X-ray solution scattering. Struct Dyn 3, 023610 (2016). [PubMed: 27158635]
+56. Colombo MF, Rau DC & Parsegian VA Protein solvation in allosteric regulation: a water effect on hemoglobin. Science 256, 655–659 (1992). [PubMed: 1585178]
+57. Salvay AG, Grigera JR & Colombo MF The role of hydration on the mechanism of allosteric regulation: in situ measurements of the oxygen-linked kinetics of water binding to hemoglobin. Biophys. J 84, 564–570 (2003). [PubMed: 12524309]
+58. Royer WE Jr, Pardanani A, Gibson QH, Peterson ES & Friedman JM Ordered water molecules as key allosteric mediators in a cooperative dimeric hemoglobin. Proc. Natl. Acad. Sci. U. S. A 93, 14526–14531 (1996). [PubMed: 8962085]
+59. Fenwick RB, Oyen D, Dyson HJ & Wright PE Slow Dynamics of Tryptophan-Water Networks in Proteins. J. Am. Chem. Soc 140, 675–682 (2018). [PubMed: 29256600]
+60. Grossman M et al. Correlated structural kinetics and retarded solvent dynamics at the metalloprotease active site. Nat. Struct. Mol. Biol 18, 1102–1108 (2011). [PubMed: 21926991]
+61. Decaneto E et al. Solvent water interactions within the active site of the membrane type I matrix metalloproteinase. Phys. Chem. Chem. Phys 19, 30316–30331 (2017). [PubMed: 28951896]
+62. Leidner F, Kurt Yilmaz N, Paulsen J, Muller YA & Schiffer CA Hydration Structure and Dynamics of Inhibitor-Bound HIV-1 Protease. J. Chem. Theory Comput 14, 2784–2796 (2018). [PubMed: 29570286]
+63. Guha S et al. Slow solvation dynamics at the active site of an enzyme: implications for catalysis. Biochemistry 44, 8940–8947 (2005). [PubMed: 15966719]
+64. Dahanayake JN & Mitchell-Koch KR Entropy connects water structure and dynamics in protein hydration layer. Phys. Chem. Chem. Phys 20, 14765–14777 (2018). [PubMed: 29780979]
+65. Wand AJ & Sharp KA Measuring Entropy in Molecular Recognition by Proteins. Annu. Rev. Biophys 47, 41–61 (2018). [PubMed: 29345988]
+66. Caro JA et al. Entropy in molecular recognition by proteins. Proc. Natl. Acad. Sci. U. S. A 114, 6563–6568 (2017). [PubMed: 28584100]
+67. Gavrilov Y, Leuchter JD & Levy Y On the coupling between the dynamics of protein and water. Phys. Chem. Chem. Phys 19, 8243–8257 (2017). [PubMed: 28277584]
+68. Conti Nibali V, D’Angelo G, Paciaroni A, Tobias DJ & Tarek M On the Coupling between the Collective Dynamics of Proteins and Their Hydration Water. J. Phys. Chem. Lett 5, 1181–1186 (2014). [PubMed: 26274468]
+69. Hub JS Interpreting solution X-ray scattering data using molecular simulations. Curr. Opin. Struct. Biol 49, 18–26 (2018). [PubMed: 29172147]
+70. Svergun DI et al. Protein hydration in solution: experimental observation by x-ray and neutron scattering. Proc. Natl. Acad. Sci. U. S. A 95, 2267–2272 (1998). [PubMed: 9482874]
+71. Virtanen JJ, Makowski L, Sosnick TR & Freed KF Modeling the hydration layer around proteins: applications to small- and wide-angle x-ray scattering. Biophys. J 101, 2061–2069 (2011). [PubMed: 22004761]
+72. Henriques J, Arleth L, Lindorff-Larsen K & Skepö M On the Calculation of SAXS Profiles of Folded and Intrinsically Disordered Proteins from Computer Simulations. J. Mol. Biol 430, 2521– 2539 (2018). [PubMed: 29548755]
+73. Dellus-Gur E et al. Negative Epistasis and Evolvability in TEM-1 β-Lactamase--The Thin Line between an Enzyme’s Conformational Freedom and Disorder. J. Mol. Biol 427, 2396–2409 (2015). [PubMed: 26004540]
+74. Biel JT, Thompson MC, Cunningham CN, Corn JE & Fraser JS Flexibility and Design: Conformational Heterogeneity along the Evolutionary Trajectory of a Redesigned Ubiquitin. Structure 25, 739–749.e3 (2017). [PubMed: 28416112]
+75. Fischer M, Coleman RG, Fraser JS & Shoichet BK Incorporation of protein flexibility and conformational energy penalties in docking screens to improve ligand discovery. Nat. Chem 6, 575–583 (2014). [PubMed: 24950326]
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Thompson et al.
+
+Page 16
+76. Fischer M, Shoichet BK & Fraser JS One Crystal, Two Temperatures: Cryocooling Penalties Alter Ligand Binding to Transient Protein Sites. Chembiochem 16, 1560–1564 (2015). [PubMed: 26032594]
+77. Keedy DA et al. An expanded allosteric network in PTP1B by multitemperature crystallography, fragment screening, and covalent tethering. Elife 7, (2018).
+78. Fraser JS et al. Accessing protein conformational ensembles using room-temperature X-ray crystallography. Proc. Natl. Acad. Sci. U. S. A 108, 16247–16252 (2011). [PubMed: 21918110]
+79. van den Bedem H, Bhabha G, Yang K, Wright PE & Fraser JS Automated identification of functional dynamic contact networks from X-ray crystallography. Nat. Methods 10, 896–902 (2013). [PubMed: 23913260]
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Thompson et al.
+
+Page 17
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 1. Overview of T-jump SAXS/WAXS experiments. a) During a T-jump experiment, an infrared (IR) laser pulse, several nanoseconds in duration, vibrationally excites the water O-H stretch and rapidly heats an aqueous solution of protein molecules (red curve). Heating is fast, but kinetic barriers to protein motions cause a lag in the structural relaxation to a new thermal equilibrium of conformational states (gray curve). b) A ribbon model depicts a single cyclophilin A (CypA) molecule, with the “core” dynamic residues (linked to catalysis) colored red, and the “loop” region adjacent to the active site (determines substrate specificity) colored blue. Sites of key mutations (S99T) are identified by spheres at the corresponding Cα positions (S99T in red, and D66N/R69H in blue). c) T-jump SAXS/WAXS instrumentation is shown schematically, with key features highlighted. Liquid sample flows through the interaction region, where it interacts with mutually perpendicular IR pump and X-ray probe beams. Both pump and probe sources are pulsed, with a defined time delay between their arrival at the sample. Small- and wide-angle X-ray scattering (SAXS/WAXS) patterns are recorded on a single detector panel. d) A diagram illustrates the data collection sequence used for T-jump experiments. For each pump-probe time delay, a pump-probe measurement (“laser on”) was performed, followed by a measurement with no application of the pump laser (“laser off”). On-off pairs with increasing pump-probe time delays were measured in succession until all of the desired delay times were acquired, then the sequence was repeated as many as 50 times to improve the signal-to-noise ratio of the data. Note that the first measurement within each repeat is a control measurement, wherein the probe pulse arrived at the sample before the pump pulse (negative time delay).
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Thompson et al.
+
+Page 18
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 2. T-jump data allow kinetic modeling of conformational dynamics. a) A series of averaged time-resolved difference X-ray scattering curves is shown for a subset of our T-jump data (10 out of 26 unique time delays). Data at low q are plotted on a linear q scale in the inset. b) The area under the averaged difference scattering curve in the q=0.03–0.05Å−1 region was integrated for all measured pump-probe time delays, and the resulting absolute values and their standard deviations are plotted as a function of the pumpprobe time delay. The plotted data suggest the existence of multiple relaxation processes, and we used a two-step model of relaxation kinetics to fit the observations (gray line). The rates calculated from the kinetic fit are provided, along with their standard deviations.
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Thompson et al.
+
+Page 19
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 3. Time-resolved Guinier analysis. Changes in the average physical parameters of CypA protein particles in the ensemble were estimated by performing Guinier analysis on the time-resolved scattering data. Consistent with our kinetic analysis, the radius of gyration (Rg) of the average CypA particle in solution first increases and then decreases as a function of time following the T-jump. Additionally, the value of I(0) extrapolated from the Guinier analysis shows an analogous increase and decrease, suggesting that the change in the particle size is coupled to a change in its average electron density, which is likely due to the acquisition and loss of water molecules from the solvation shell as the protein swells and then shrinks. Error bars represent standard deviations of the calculated quantities based on propagation of measurement standard deviations.
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Thompson et al.
+
+Page 20
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 4. Eyring analysis of transition state thermodynamics. Linear Eyring plots are shown for each of the two relaxation processes observed in our Tjump experiments with CypA. Both processes show Arrhenius behavior over the temperature range we explored, and the apparent linear relationship between 1/T and ln(k/T) justifies the use of the linear Eyring equation (Eq. 1) to fit the data and characterize the thermodynamics of the transition states. Data points represent rates determined from the kinetic analysis, and error bars represent the standard deviations of the rates based on propagation of the measurement standard deviations and bootstrap analysis (see Supplementary Methods). The
+fit to the linear Eyring equation for the fast process (k1) is shown in purple, and the fit for the slow process (k2) is shown in green.
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Thompson et al.
+
+Page 21
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 5. Kinetic analysis of CypA variants. two CypA mutants with distinct effects on the enzyme’s function demonstrate the link between the observed T-jump signal and functional dynamics. The data are presented in the same manner as for the wild type enzyme, shown in Figure 4. Left panels show a subset of averaged difference scattering curves for several pump-probe time delays. Data points in the right panels represent the absolute value of the integrated area under the corresponding averaged difference scattering curve in the q=0.03–0.05Å−1 region, and the error bars represent the standard deviations. In the plots of integrated area versus pump-probe time delay (right panels), the signal observed for the wild type enzyme is shown in light gray for comparison. a) The S99T mutant, which displays defective catalytic function, shows only
+the fast relaxation process (k1) and lacks the slower process (k2). b) The D66N/R69H (NH) mutant, with altered substrate specificity, shows the slow relaxation process (k2) and lacks the faster process (k1).
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+
+Author Manuscript
+
+Author Manuscript
+
+Thompson et al.
+
+Page 22
+
+Table 1 Thermodynamic properties of transition states.
+Enthalpies (ΔHǂ) and entropies (ΔSǂ) of activation, and their standard deviations based on propagation of measurement standard deviations through all analysis steps, for the fast (k1) and slow (k2) processes observed for WT CypA, calculated from Eyring analysis.
+
+Fast Process (k1) Slow Process (k2)
+
+ΔHǂ (103 J mol−1) 37 ± 8 27 ± 3
+
+ΔSǂ (J mol−1 K−1) 32 ± 26 −34 ± 11
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Nat Chem. Author manuscript; available in PMC 2020 March 16.
+

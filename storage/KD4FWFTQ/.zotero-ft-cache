@@ -1,0 +1,1721 @@
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+Further ANNUAL
+REVIEWS
+Click here to view this article's online features:
+• Download ﬁgures as PPT slides • Navigate linked references • Download citations • Explore related articles • Search keywords
+
+Enhancing Important Fluctuations: Rare Events and Metadynamics from a Conceptual Viewpoint
+Omar Valsson,1,2 Pratyush Tiwary,3 and Michele Parrinello1,2
+1Department of Chemistry and Applied Biosciences, ETH Zurich, c/o Universita` della Swizzera Italiana Campus, 6900 Lugano, Switzerland; email: parrinello@phys.chem.ethz.ch 2Facolta` di Informatica, Instituto di Scienze Computationali, Universita` della Svizzera Italiana, 6900 Lugano, Switzerland 3Department of Chemistry, Columbia University, New York, NY 10027
+
+Annu. Rev. Phys. Chem. 2016. 67:159–84
+First published online as a Review in Advance on March 10, 2016
+The Annual Review of Physical Chemistry is online at physchem.annualreviews.org
+This article’s doi: 10.1146/annurev-physchem-040215-112229
+Copyright c 2016 by Annual Reviews. All rights reserved
+
+Keywords
+atomistic simulations, kinetic bottlenecks, enhanced sampling, collective variables, free energy calculations, kinetic rate calculations
+Abstract
+Atomistic simulations play a central role in many ﬁelds of science. However, their usefulness is often limited by the fact that many systems are characterized by several metastable states separated by high barriers, leading to kinetic bottlenecks. Transitions between metastable states are thus rare events that occur on signiﬁcantly longer timescales than one can simulate in practice. Numerous enhanced sampling methods have been introduced to alleviate this timescale problem, including methods based on identifying a few crucial order parameters or collective variables and enhancing the sampling of these variables. Metadynamics is one such method that has proven successful in a great variety of ﬁelds. Here we review the conceptual and theoretical foundations of metadynamics. As demonstrated, metadynamics is not just a practical tool but can also be considered an important development in the theory of statistical mechanics.
+
+159
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+MD: molecular dynamics
+
+1. INTRODUCTION
+Atomistic simulations (1, 2) play a central role in the ﬁelds of chemistry, physics, biology, and materials science, allowing researchers to obtain valuable insights into a variety of problems. In the past decade, there has been considerable progress in the size and complexity of the physical systems that can be simulated. This progress has been fueled by improvements in hardware, increased availability of computational resources, and highly optimized molecular dynamics (MD) codes (3–5) that make efﬁcient use of the available resources.
+Nevertheless, the timescale that can be reached is still severely limited. This limitation is intrinsic to MD given that the time step used to discretize the time evolution must be smaller than the fastest motion in the system. For simulations employing classical force ﬁelds, this normally restricts the timescale to microseconds, and several dynamical processes of interest usually occur on the millisecond or longer timescale. The reason for such an extended timescale is that many relevant systems are characterized by several metastable states separated by high barriers that lead to kinetic bottlenecks. The transition between one state and another thus becomes a rare event taking place often on a much longer timescale than one can simulate in practice. This limitation becomes even more restrictive if one takes into account that a single transition event has only a limited value, and one would need to observe many transition events to obtain meaningful statistics. Thus, even if one is interested only in static properties, these kinetic bottlenecks slow down sampling of phase space.
+The recent development of dedicated hardware (6), capable of reaching the millisecond timescale in protein simulations (7, 8), is very remarkable but so far is available only to a few and still falls short of what is needed in many cases (9). Future improvements in computational hardware appear likely not to come via an increase in CPU performance but rather through increased parallelism. This will allow researchers to investigate larger and more realistic systems but will not help much with regard to the timescale limitation as time evolution is intrinsically serial.
+It is therefore easy to predict that advanced sampling methods that aim at overcoming the timescale limitation of computer simulations will become an even more integral part of an atomistic modeler’s toolbox. It would be far beyond the scope of this review to even partially cover the wide range of available enhanced sampling methods. Here we focus on a few select ones and refer readers to References 10–19 for overviews of some other relevant methods.
+A vast array of enhanced sampling methods are based on the identiﬁcation of few crucial order parameters or collective variables whose ﬂuctuations are critical for the rare event of interest to take place. A unifying theme in these methods is to enhance the sampling of these variables by the introduction of a bias that depends on the chosen variables. This idea can be traced back to the umbrella sampling method introduced in 1977 by Torrie & Valleau (20) in which the authors considered a static bias potential constructed by trial and error. However, obtaining an appropriate and effective bias is far from trivial. One solution is to adaptively build the bias during the simulation. A nonexhaustive list of methods that follow such strategy includes local elevation (21), adaptive biasing force (22), the Wang–Landau algorithm (23), energy landscape paving (24), and Gaussian-mixture umbrella sampling (25).
+We focus here on metadynamics, ﬁrst introduced in 2002 by Laio & Parrinello (26), and further developed by numerous groups in the past decade. Our aim is to coherently present its conceptual and theoretical foundations. In doing so, we do not follow its historical evolution nor do we discuss in detail its many and successful applications in the ﬁelds of chemistry, physics, biology, and materials science (27–60). Due to space limitations, we are furthermore not able to cover the complete metadynamics methodological literature, and we apologize to those whose contributions have not received the deserved attention.
+
+· · 160 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+2. ENHANCED SAMPLING IN COLLECTIVE VARIABLE SPACE
+
+It is common practice in physics and chemistry to reduce the description of a complex problem to a restricted number of variables. Classical examples are the use of order parameters in Landau’s theory of phase transitions (61) and the solvent coordinate in Marcus theory of electron transfer (62). The need for ﬁnding the variables that best describe the system is also at the heart of any statistical mechanics description (63), and even if we had the most powerful computer, we would still need order parameters or collective variables (CVs) to represent our results in a concise and easily understandable way.
+From a mathematical point of view, CVs can be deﬁned as functions, generally nonlinear, of the atomic coordinates R: s(R) = (s1(R), s2(R), . . . , sd (R)). Brieﬂy speaking, the set of CVs should be able to describe the key features of the physical behavior that we are interested in. Furthermore, the CV set should ideally distinguish between all relevant metastable states and include all the slow degrees of freedom. The CVs and their choice are further discussed in Section 4.
+Having deﬁned the CVs, it is natural to consider the equilibrium distribution of the CVs, deﬁned as
+
+P(s) = dR δ[s − s(R)]P(R) = δ[s − s(R)] ,
+
+(1)
+
+where P (R) = e−βU (R)/Z is the Boltzmann distribution corresponding to the potential energy function U(R), β = (kBT )−1 is the inverse temperature, and Z = dR e−βU (R) is the partition function of the system. Of course, other ensembles could in principle be considered as well.
+The free energy surface (FES) is deﬁned as the logarithm of this distribution:
+
+F (s)
+
+=
+
+−
+
+1 β
+
+log
+
+P (s).
+
+(2)
+
+Normally, one can ignore additive constants in F (s) as often only relative differences in free energies are of interest. The low-dimensional surface F (s) is generally much smoother than the high-dimensional and rugged potential energy surface U(R). Figure 1 shows a typical FES,
+
+Collective variable (CV): coarse-grained order parameter that typically distinguishes between relevant metastable states and that is used to analyze and bias atomistic simulations
+Free energy surface (FES): low-dimensional description given in terms of collective variables containing information about metastable states, their relative stability, and the free energy barriers separating them
+
+3.0
+
+40
+
+C7eq
+
+1.5
+
+Φ
+
+Ψ
+
+Ψ 0.0
+
+–1.5
+
+C7eq
+
+C7ax
+
+30
+
+C7ax
+
+20
+
+F (Φ, Ψ)
+
+10
+
+–3.0
+
+0
+
+–3.0
+
+–1.5
+
+0.0
+
+1.5
+
+3.0
+
+Φ
+
+Figure 1
+Free energy surface (FES) F ( , ) for alanine dipeptide in vacuum in terms of its two backbone dihedral angles and . F ( , ) is in units of kBT , and and are given in radians. The FES is characterized by two metastable states, C7eq and C7ax, separated by a free energy barrier of approximately 14 kBT , making transitions between them very rare.
+
+www.annualreviews.org • Theory of Metadynamics 161
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+demonstrating that with an appropriate choice of CVs, the FES contains all the relevant in-
+
+formation about the system, such as the location and relative stability of the metastable states
+
+and the free energy barriers separating them. The relative free energy difference between two
+
+metastable states A and B can be determined from F (s) by integrating the probabilities of the two
+
+states:
+
+FA,B
+
+=
+
+−
+
+1 β
+
+log
+
+A B
+
+ds ds
+
+e e
+
+−β −β
+
+F F
+
+(s) (s)
+
+,
+
+(3)
+
+where the integrations are performed over the two regions in CV space that deﬁne the two
+
+metastable states A and B, respectively.
+
+For an ergodic system, the FES can equivalently be computed as
+
+F (s)
+
+=
+
+−
+
+1 β
+
+lim log
+t→∞
+
+N
+
+(s, t),
+
+(4)
+
+where N (s, t) =
+
+t 0
+
+dt
+
+δ
+
+[s
+
+−
+
+s(R(t
+
+))]/
+
+t 0
+
+dt
+
+is a normalized histogram accumulated in an unbiased
+
+simulation. Therefore, it would seem straightforward in a conventional simulation to estimate an
+
+FES by simply counting. However, as discussed above, this is often a rather hopeless endeavor
+
+because, for many interesting physical systems, the sampling is nonergodic on the timescale that
+
+can be afforded in an atomistic simulation. Instead, the simulation will just remain stuck in one
+
+particular state, only executing ﬂuctuations around the local equilibrium state.
+
+One way to overcome this limitation is to consider a bias potential V (s(R)) that depends on s,
+
+and thus on R through s(R), which is designed to enhance the sampling of CV space. This idea
+
+can be traced back to umbrella sampling, which was ﬁrst introduced in 1977 by Torrie & Valleau
+
+(20). With this additional biasing potential, the CVs are distributed according to
+
+PV (s) =
+
+dR δ[s − s(R)]PV (R) =
+
+e −β[F (s)+V (s)] ds e −β[F (s)+V (s)]
+
+,
+
+(5)
+
+where PV (R) = e −β[U (R)+V (s(R))]/ZV is the Boltzmann distribution of the biased ensemble, and ZV = dR e −β[U (R)+V (s(R))] is the partition function of the biased system. From this equation, it can readily be seen that the unbiased FES can be obtained up to a constant as F (s) = −(1/β) log N V (s) − V (s), where NV (s) is a histogram accumulated in the biased simulation. Thus, given that the bias potential results in a proper sampling of phase space, the FES can be
+recovered by reweighting the histogram from the biased simulation. Similarly, by employing the relation P (R) ∝ PV (R)eβV (s(R)), one can in principle estimate any R-dependent function O(R) of the unbiased ensemble by weighting each conﬁguration obtained in the biased ensemble by the
+value of the bias acting on it:
+
+O(R) =
+
+O(R)e βV (s(R)) e βV (s(R)) V
+
+V
+
+,
+
+(6)
+
+where the expectation values on the right-hand side are obtained in the biased ensemble. It is important to note that these reweighting relations are strictly valid only if the bias potential is static.
+Let us now design a bias aimed at enhancing the ﬂuctuations of the CVs in a controllable manner. This can be achieved if we take the bias potential as
+
+V (s) = −
+
+1
+
+−
+
+1 γ
+
+F (s),
+
+(7)
+
+where γ is a positive constant greater than 1. The limit γ → 1 corresponds to the unbiased ensemble. With this choice, the probability distribution in the biased ensemble PV (s) is related
+
+· · 162 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+Probability distribution Probability distribution
+
+Unbiased
+
+V(s) = –(1 –
+
+1 γ
+
+)F(s)
+
+Biased
+
+P(s)
+
+PV(s) ∝ [P(s)]1/γ
+
+A
+
+B
+
+A
+
+B
+
+CV
+
+CV
+
+Figure 2
+Model probability distribution of a system with two metastable states A and B separated by a transition region that is rarely visited. The effect of the bias in Equation 7 is to broaden the two peaks [i.e., enhance collective variable (CV) ﬂuctuations] such that the transition region is more easily visited and transitions between the two states are more likely to occur.
+
+to the unbiased one P(s) by the relation
+
+PV (s) =
+
+[P (s)]1/γ ds [P (s)]1/γ
+
+.
+
+(8)
+
+It follows from Equation 8 that in the biased ensemble the peaks can be made broader by increasing the value of γ , as shown in Figure 2. This reﬂects the fact that ﬂuctuations in s increase with γ . If the chosen CVs are able to capture the essential ﬂuctuations that allow the system to migrate from one free energy minimum to another, the exploration of the FES can be greatly and controllably accelerated.
+If we take the γ → ∞ limit, then
+
+V (s) = −F (s)
+
+(9)
+
+and
+
+PV (s) =
+
+1 = const, ds
+
+(10)
+
+leading to a uniform distribution and the complete disappearance of the free energy barriers
+
+in the CV space. This is the bias potential considered by Torrie & Valleau (20) in their original
+
+umbrella sampling paper and also in many other CV-based methods that aim at ﬂattening the FES.
+
+However, one is often interested in exploring not the whole FES but rather only its main features,
+
+for instance, the metastable minima and the transition states (TSs). In this case, a judicious choice of γ that allows barriers to be overcome, but does not push the system to explore very improbable CV values, is preferred. The appropriate choice of γ then ultimately results from a compromise. It
+
+should be large enough for the ﬂuctuations in s to be ampliﬁed to the point at which the free energy
+
+barriers can be overcome, yet small enough such that the calculation is not unduly expensive.
+
+In reality, we do not know F (s) a priori because it is the very quantity we want to calculate.
+
+As in other CV-based methods (21–25), we will try to adaptively build it on the ﬂy. In particular,
+
+in well-tempered metadynamics (WTMetaD; 64) one tries to build a bias that precisely obeys
+
+Equation 7. As discussed above, this offers the possibility of tuning the CV ﬂuctuations via an appropriate choice of γ .
+
+What sets WTMetaD apart from other methods is that the procedure is rigorous (65); it does
+
+not depend on satisfying some form of adiabatic decoupling between the CVs and the microscopic
+
+coordinates, as in some other methods (66–68); and during a WTMetaD run, the expectation values
+
+of any position-dependent operator can be calculated on the ﬂy without the need of a separate
+
+TS: transition state
+WTMetaD: well-tempered metadynamics
+
+www.annualreviews.org • Theory of Metadynamics 163
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+Biasing kernel: small repulsive function that is deposited periodically in collective variable space and builds the metadynamics bias
+
+calculation (69, 70). It also provides a natural framework (71) for extracting kinetic rate constants from metadynamics simulations, as shown in Section 8. Of course, the efﬁciency of metadynamics, similar to that of all other CV-based methods, depends on a proper choice of CVs. If some slow variable is missing, the metadynamics calculation will converge just as slowly as an unbiased one.
+
+3. METADYNAMICS
+
+Historically, metadynamics has been introduced in many variants (26, 64, 72, 73) and from different
+
+points of view. Here we focus on its well-tempered version, WTMetaD (64), and take a more
+
+formal viewpoint.
+
+We deﬁne WTMetaD as a procedure that iteratively builds a bias V (s) that asymptotically
+
+takes the form given by Equation 7, through the successive addition of small repulsive biasing
+
+kernels G(s, s ) centered at the current CV value s . Usually this biasing kernel takes the form of
+
+a Gaussian localized in s space:
+
+G(s, s ) = W e −||s−s ||2 ,
+
+(11)
+
+where W is the height of the Gaussian, and ||s − s || indicates the distance between s and s in some chosen metric. For instance, in this way, a multivariate Gaussian, which is by far the most widely employed choice for G(s, s ), is described by the metric
+
+||s − s ||2 = 1 2
+
+i, j
+
+(si − si)
+
+−1 i, j
+
+(s j
+
+−
+
+s j ),
+
+(12)
+
+where
+
+i, j is the covariance matrix, and
+
+−1 i, j
+
+is
+
+its
+
+inverse.
+
+In
+
+practice,
+
+i, j is normally taken as
+
+a diagonal matrix, i, j = δi, j σi2, where σi is the width of the Gaussians for the i -th CV. The
+
+appropriate σi values are normally estimated by considering the unbiased CV ﬂuctuations. As
+
+further discussed in Section 7, i, j can also be estimated on the ﬂy during the simulation (74),
+
+allowing the shape of the multivariate Gaussians to change with time and adapt to the features of
+
+the FES.
+
+In metadynamics, the dynamical evolution of the system is altered by the addition of an external
+
+bias potential that is periodically updated via the following stochastic iteration:
+
+Vn(s) = Vn−1(s) + G(s, sn) exp
+
+−γ
+
+1 −
+
+1
+
+β Vn−1 (sn )
+
+,
+
+(13)
+
+where V0(s) = 0, and the factor (γ − 1)β−1 is sometimes referred to as kB T . The update consists
+
+of
+
+adding
+
+a
+
+biasing
+
+kernel
+
+centered
+
+on
+
+the
+
+current
+
+CV
+
+value
+
+sn
+
+and
+
+scaled
+
+by
+
+exp
+
+[−
+
+1 γ −1
+
+β Vn−1 (sn )].
+
+It
+
+can
+
+be
+
+shown
+
+that
+
+the
+
+scaling
+
+factor
+
+exp
+
+[−
+
+1 γ −1
+
+β Vn−1 (sn )]
+
+decreases
+
+as
+
+1/n
+
+(64,
+
+65).
+
+The
+
+change
+
+of the external bias potential due to the iteration in Equation 13 thus becomes smaller as the
+
+metadynamics simulation progresses.
+
+The iteration in Equation 13 is performed every N G steps, which corresponds to a time interval of τG = N G dt, where dt is the MD time step. We assume here that in between bias updates, the system is evolved in an MD simulation, but the same principles hold if it is instead evolved in a
+
+Monte Carlo simulation (75). Between any two iterations, the system moves under the action of
+
+the bias potential Vn(s(R)). For a biasing kernel given by Equation 11, the bias potential at MD time t in the interval τGn ≤ t < τG(n + 1) reads
+
+V (s, t) =
+
+n
+
+W e −||s−sk||2 exp
+
+−γ
+
+1 −
+
+1
+
+β Vk−1 (sk )
+
+.
+
+(14)
+
+k=1
+
+· · 164 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+The remarkable feature of the stochastic iteration in Equation 13 is that the evolution of the bias can be described asymptotically by an ordinary differential equation (65, 74, 76), which after some manipulations (76) reads
+
+dV (s, t) = dt
+
+ds G(s, s ) exp
+
+− γ
+
+1 −
+
+1
+
+βV
+
+(s
+
+,
+
+t)
+
+PV (s , t),
+
+(15)
+
+where similar to Equation 5
+
+PV (s, t) =
+
+e −β ds e
+
+[F (s)+V (s,t −β[F (s)+V
+
+)] (s,t)]
+
+.
+
+(16)
+
+For a formal derivation of Equation 15, based on the application of a theorem on stochastic itera-
+
+tions (77), we refer the interested reader to Reference 65. The applicability of this theorem rests
+
+heavily
+
+on
+
+the
+
+property
+
+that
+
+the
+
+scaling
+
+factor
+
+exp
+
+[−
+
+1 γ −1
+
+β Vn−1 (sn )]
+
+decreases
+
+as
+
+1/n.
+
+Reference
+
+74
+
+presents a heuristic derivation of Equation 15 in the case in which G(s, s ) is inﬁnitesimally narrow.
+
+Although the arguments were heuristic, the WTMetaD scheme (64) was purposely designed so
+
+that it had all the crucial properties that eventually made it possible to formally derive Equation
+
+15 (65).
+
+Even more remarkably, for any G(s, s ), Equation 15 has the asymptotic solution
+
+V (s, t) = −
+
+1
+
+−
+
+1 γ
+
+F (s) + c (t),
+
+(17)
+
+where
+
+c (t)
+
+=
+
+1 β
+
+log
+
+ds e −β F(s) ds e −β[F (s)+V (s,t)]
+
+(18)
+
+is independent of s (76). Metadynamics thus converges to the desired result in Equation 7. These results were previously obtained in the limiting case in which the biasing kernel is a delta function (64), but in fact they are general, and a recent perturbation analysis of the solution of Equation 15 shows that G(s, s )-dependent correction terms decay very fast (76). Two interesting consequences arise from these results.
+First, it can be shown (76) that a time-independent estimator for F (s) is given by
+
+F (s) = −
+
+γ γ −1
+
+V
+
+(s,
+
+t)
+
++
+
+1 β
+
+log
+
+ds exp
+
+γ
+
+γ −
+
+1
+
+β
+
+V
+
+(s,
+
+t)
+
+.
+
+(19)
+
+This was previously obtained for delta function biasing kernels (70), but it is valid more generally. This estimator allows us to judge the convergence and measure the statistical error in a standard way (see 53–55 for examples).
+Second, it offers a practical way of calculating the expectation value of any R-dependent function O(R) as the simulation proceeds (69, 70). The idea is that at time t the biased probability distribution for R is given by
+
+PV (R, t) =
+
+e −β[U (R)+V (s(R),t)] dR e −β[U (R)+V (s(R),t
+
+)]
+
+,
+
+(20)
+
+which can be rewritten as
+
+PV (R, t) = P (R) e −β[V (s(R),t)−c (t)],
+
+(21)
+
+where P(R) is the Boltzmann distribution in the unbiased ensemble (see Equation 1), and c (t) is given by Equation 18 above. The time-dependent function c (t) is an estimator for the reversible work done by the bias and can be calculated in a variety of ways (70). For instance, by inserting
+
+www.annualreviews.org • Theory of Metadynamics 165
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+Equation 19 into Equation 18, one obtains
+
+c (t)
+
+=
+
+1 β
+
+log
+
+ds exp
+
+γ
+
+γ −1
+
+β
+
+V
+
+(s,
+
+t)
+
+.
+
+ds exp
+
+γ
+
+1 −1
+
+β
+
+V
+
+(s,
+
+t)
+
+(22)
+
+Using Equation 22 or other equivalent expressions (70), we obtain the result that the average of O(R) over the unbiased ensemble can be calculated from the metadynamics trajectory as
+
+O(R) = O(R)e β[V (s(R),t)−c (t)] . V
+
+(23)
+
+This powerful and simple reweighting operation is valid for any reasonable biasing kernel after a short transient (76).
+This reweighting can be used, for instance, to obtain the FES for some set of CVs s not biased by considering the function O(R) = δ [s − s (R)]. It is also useful if one considers O(R) = δ [s − s(R)] and obtains the FES for the CVs that are biased. Disagreement between the FESs obtained directly from the bias potential and through reweighting is a clear sign that the metadynamics simulation has not converged and should be taken as a warning signal.
+The above discussion is only strictly valid for a ﬁnite γ , but with some care the nontempered limit γ → ∞ can be taken. One then obtains
+
+V (s) = −F (s),
+
+(24)
+
+again within a constant. This corresponds to the limit in which the bias fully compensates the underlying free energy landscape. This was the idea that guided the ﬁrst version of metadynamics (26) in which the strength of the biasing kernel was kept constant at each iteration. The nontempered metadynamics has the advantage of a more rapid exploration of the FES, but it has the disadvantage of being harder to converge. These considerations are, however, purely empirical, and a rigorous study of the efﬁciency of metadynamics as a function of γ is still missing. We feel that the standpoint in which one tries to enhance the CV ﬂuctuations rather than completely ﬁlling the FES is more insightful and useful.
+As is common among CV-based methods, metadynamics is limited in the number of CVs it can handle as the computational cost scales exponentially with the number of CVs. This generally limits metadynamics simulation to three to four CVs.
+
+4. COLLECTIVE VARIABLES
+4.1. Overview
+Metadynamics is in principle independent of the exact choice of the CVs. That is, one can pick any set of CVs, perform metadynamics until convergence, and then reweight the trajectory to obtain the expectation value of any position-dependent function. In fact, one of the many reasons for the widespread success of metadynamics is that it is somewhat insensitive to the precise choice of CVs. However, in practice with a nonoptimal choice, the computational time to convergence can be prohibitively large. As such, prior to any metadynamics simulation, it is worthwhile to invest some effort into a rational choice. Furthermore, picking CVs with care also allows one to estimate kinetic rate constants, as discussed in Section 8. In the end, the choice of the CVs is deeply connected to the title of this review: What are the important ﬂuctuations one must enhance to facilitate movement from one metastable state to another?
+
+· · 166 Valsson Tiwary Parrinello
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+4.2. A Recipe for Selecting Good Collective Variables Over the years, many easy-to-use and robust CVs have been proposed and employed in different applications. We do not discuss them here but rather refer the reader to the manual of the software PLUMED (78, 79), which implements metadynamics and a wide range of CVs. Below we illustrate only two possible CVs: the so-called path CVs (80) and the idea of employing the potential energy as a CV (75, 81). The latter is discussed separately in Section 5.
+In the spirit of this review, we describe here the process that is often followed in selecting and constructing a good set of CVs. Generally, this is not a one-step process. However, with due diligence, identifying appropriate CVs is not too difﬁcult.
+The ﬁrst step is to use the experimental or theoretical information available as a guide in the choice of the CVs. Many different examples of such a procedure can be found in the literature (43–53, 82–84). Prior simulation studies on similar systems are also often a good indication of what are the appropriate CVs.
+When the ﬁnal state is not known, whenever possible one should employ CVs that favor a multitude of outcomes. If not much, or anything at all, is known about the system, it is often a good choice to perform replica exchange simulations (see Section 6), which can provide useful information about the metastable states and possible CVs (see 57 for an example).
+Once a preliminary CV set has been selected, the next step is to employ it in a metadynamics simulation and examine the system’s behavior. In the best possible scenario, one obtains a converged free energy estimate in a reasonable amount of time with the preliminary choice of CVs. In the worst case, one might ﬁnd that the system does not even leave the starting basin. Both these options are extreme, however, and one is generally in an intermediate regime, in which the simulation displays hysteresis. Namely, the system is trapped for an extended amount of time in different basins (see Figure 3), and the bias potential does not grow evenly, so obtaining a converged FES is difﬁcult. This is typically a clear indication of missing CVs. To deal with this situation, one should take a close look at the simulation trajectory and identify stable interactions or, more generally, slowly varying order parameters that might be responsible for the system getting occasionally trapped in some region of the phase space. Based on this new information, the CV set can be reﬁned, leading to a metadynamics run that converges faster (for illuminating examples of this procedure, see 37, 44, 45).
+In some cases, it can be hard to identify CVs that correspond to all the slowly varying degrees of freedom, or if they can all be identiﬁed, the CV set becomes unreasonably large if one is to include them all. In such cases, it can be quite beneﬁcial to combine metadynamics with a replica exchange scheme (85) (see Section 6). The requirements on the quality of the CV set are then reduced as the replica exchange will aid in sampling any missing slow degrees of freedom.
+The requirements for CVs for obtaining kinetic rate constants from metadynamics are slightly more strict than those for converging the FES. We postpone this discussion to Section 8.
+4.3. Path-Based Collective Variables: Nonlocal Enhancement of Fluctuations In path CVs (80), one assumes that the initial and ﬁnal states A and B, corresponding to two metastable basins, are known and given. One also assumes that the path that connects these two states can be expressed in a space spanned by a set of CVs, S(R) = (S1(R), S2(R), . . . , SD(R)), where the dimension D can be very large. One then writes a trajectory in this space in a parametric form as S(t), where S(0) corresponds to the initial state A and S(1) to the ﬁnal state B. There will be an inﬁnite set of trajectories that lead from A to B. Among all possible trajectories, one selects
+www.annualreviews.org • Theory of Metadynamics 167
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+a 3.0
+
+b
+
+1.5
+
+Ψ 0.0
+
+–1.5
+
+–3.0 3.0
+
+1.5 Φ 0.0
+
+–1.5
+
+–3.0
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10 0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+Time
+
+Time
+
+Figure 3
+Typical metadynamics trajectories for the two backbone dihedral angles and of the alanine dipeptide system in Figure 1 showing the effect of missing a slow degree of freedom. Time is in units of nanoseconds, and and are given in radians. In panel a, we bias only and observe that metadynamics is not able to properly enhance transitions between the two metastable states C7eq and C7ax because we are missing the slow collective variable . In this case, the bias potential does not grow evenly, so obtaining a converged free energy surface (FES) is difﬁcult. In panel b, we bias both and and observe a signiﬁcantly improved behavior as transitions between C7eq and C7ax are greatly accelerated, and the FES converges without problems.
+
+a reference path S0(t). A good choice of S0(t) helps, but the method is accommodating in this respect, as discussed below. The last ingredient is the metric || · · · || with which distances in S space are deﬁned. With these ingredients, one can construct two variables, s and z, deﬁned as
+
+s (R) = lim λ→∞
+
+1 0
+
+dt
+
+t
+
+e
+
+−λ ||S(R)−S0 (t )||2
+
+1 0
+
+dt
+
+e
+
+−λ ||S(R)−S0 (t )||2
+
+,
+
+(25)
+
+z(R) = lim
+
+− 1 log
+
+1
+dt e −λ||S(R)−S0(t)||2 .
+
+λ→∞ λ
+
+0
+
+(26)
+
+The variable s measures the progress along the path or, in more mathematical terms, induces a
+
+foliation in S space. Close to S0(t), the foliation surfaces become planar and are orthogonal to S0(t). The variable z instead expresses the distance from the reference path S0(t). In practice, S0(t) is discretized, and λ is taken as the inverse distance between points in the path (80). Figure 4
+
+presents an example of path CVs for a hypothetical two-dimensional S space.
+
+In the spirit of other path-based methods (86, 87), Reference 80 suggested a method to optimize
+
+the reference path such that one could ﬁnd the minimum free energy path in the selected S space.
+
+However, this is seldom needed. In fact, because the z variable forces the system to explore regions
+
+far away from the reference path, precise knowledge of S0(t) is not necessary, and good path CVs can be obtained even with a rather approximate S0(t). Usually, if the initial reference path S0(t) is not satisfactory, a procedure similar to the one above for improving CVs can be helpful here as
+
+well. An inspection of the F (s , z) surface obtained with the initial reference path can help identify
+
+approximate free energy minima. One can then landmark a few of these minima and draw a new
+
+reference path through them. Although this might not precisely be the minimum free energy path,
+
+· · 168 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+F(S1, S2)
+
+s(R)
+
+z(R)
+
+0
+
+1
+
+2
+
+3
+
+4 0.0 0.2 0.4 0.6 0.8 1.0 0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+2a
+
+b
+
+c
+
+B
+
+1
+
+S2 0
+
+–1
+
+A
+
+–2
+
+−2 −1
+
+0
+
+1
+
+2
+
+S1
+
+−2 −1
+
+0
+
+1
+
+2
+
+S1
+
+−2 −1
+
+0
+
+1
+
+2
+
+S1
+
+Figure 4
+Example of path-based collective variables (CVs). (a) A hypothetical free energy landscape in the CV space S = (S1, S2) with the given starting and ﬁnal states A and B and a reference path S0(t) (orange solid line). (b) s values (Equation 25) for the path along with s contours that show the foliation in S space. The s values increase from 0 to 1 while going from A to B. (c) z values (Equation 26) for the path. The z values rapidly increase from 0 as one goes away from the reference path.
+
+it will sufﬁce to deﬁne a good pair of s and z variables (44, 45). In other words, what matters are these two CVs, and the reference path S0(t) plays only an auxiliary role. This is what sets the path CV approach apart from previous path-based attempts (86, 87).
+The path-based CVs s and z have two nice features. First, they are constructed in a multidimensional space; therefore, they can express very complex transformations (44, 45). Second, F (s , z) provides information not only on the low free energy path close to the reference path S0(t), but also on other qualitatively different paths that could be separated from the reference path by large barriers. Through this functionality, path CVs can capture nonlocal ﬂuctuations. Given these two features, path CVs have proven powerful in many applications (44–47).
+4.4. Machine Learning and Dimensionality Reduction The construction of proper CVs in very complex systems can still be challenging. A possible way out is to construct them using machine learning and dimensionality reduction algorithms. This has led to methods such as reconnaissance metadynamics (88), sketch-map (89–91), ﬁeld CVs (92), diffusion map (93, 94), and several other ideas in the same spirit (95–98). In principle, these algorithms require minimal physical preknowledge about the system and can be truly exploratory.
+4.5. Metadynamics Parameters A question that naturally arises in relation to the selection of appropriate CVs involves the choice of parameters for the metadynamics simulations. These are generally the deposition rate τG, bias factor γ , height of the biasing kernel W , and widths σi of the multivariate Gaussian kernel when employing a preassigned diagonal covariance matrix i, j . For these, we refer readers to the recent review by Bussi & Branduardi (34) in which the details of choosing proper metadynamics
+www.annualreviews.org • Theory of Metadynamics 169
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+WTE: well-tempered ensemble
+
+parameters are discussed in great detail. Luckily, metadynamics is not very sensitive to this precise choice, as long as extremely large or small values are not chosen.
+
+5. THE WELL-TEMPERED ENSEMBLE: THE POTENTIAL ENERGY AS A COLLECTIVE VARIABLE
+
+A special role is played by a variant of metadynamics in which the potential energy U is used as a CV (75, 81). This is not surprising given the central role that the potential energy plays in statistical mechanics. Using Equation 2, one ﬁnds it straightforward to show that the free energy associated with U has, modulo a constant, the following physically transparent expression:
+
+F (U ) = U
+
+−
+
+1 β
+
+log N (U ) = U
+
+− T S(U ),
+
+(27)
+
+where N (U ) = dR δ[U −U(R)] is the temperature-independent density of states, and S(U ) = kB log N (U ) is the conﬁgurational entropy (99, 100). Thus, reconstructing F (U ) allows reconstruction of the density of states N (U ), from which one can determine all the thermal properties of the system (23, 99, 100).
+In this review, we underline that metadynamics has the ability to enhance ﬂuctuations. Of course, the same holds here, and using U as a CV, one samples the ensemble
+
+PV (U ) =
+
+e −βU N (U ) 1/γ dU [e −βU N (U )]1/γ =
+
+[P dU
+
+(U [P
+
+)]1/γ (U )]1/γ
+
+,
+
+(28)
+
+where P (U ) = e−βU N (U )/Z is the unbiased potential energy distribution. This equation deﬁnes the well-tempered ensemble (WTE; 81), which is a bona ﬁde statistical mechanical ensemble that has the same average U as in the canonical ensemble but with mean square ﬂuctuations of U ampliﬁed by a factor of γ . For a deeper discussion of this statement and its limits, readers are referred to Reference 100. The WTE interpolates between the canonical (γ = 1) and multicanonical (101) ensembles (γ → ∞) in which all values of U are equally probable.
+
+6. REPLICA EXCHANGE METHODS AND METADYNAMICS
+
+6.1. Replica Exchange Methods
+
+Replica exchange methods form a vast class of enhanced sampling approaches that are based on concurrently running multiple replicas or copies of the system. The replicas are arranged in a ladder in which the lowest replica generally corresponds to the physical system of interest in which sampling is difﬁcult and one would normally be stuck in a metastable state. Moving up the ladder, the replicas are then progressively modiﬁed by changing their thermodynamics conditions (10, 102, 103) or, more generally, their Hamiltonians (104), such that gradually barriers are lowered and it becomes increasingly likely for the system to go from one metastable state to another.
+Atomic conﬁgurations are then allowed to move up and down the ladder by periodically attempting to exchange two neighboring conﬁgurations through a Monte Carlo move that is accepted with a probability
+
+min 1, e i, j ,
+
+(29)
+
+where i, j depends on the details of the replica exchange method. In this way, high barriers present in the lower replica are overcome by going higher in the ladder, where barriers are lower and more easily crossed.
+
+· · 170 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+The advantage of replica exchange methods is that they generally require very little a priori knowledge of the system. However, the disadvantage is that they can be rather computationally expensive as they might require a large number of replicas to have appreciable probability of accepting exchanges. Furthermore, most replica exchange schemes are designed to reproduce canonical sampling in the lowest replica, so TSs and higher-lying metastable free energy basins are generally poorly sampled.
+6.2. Parallel Tempering
+The most popular replica exchange method is temperature replica exchange or parallel tempering (PT; 10, 102, 103), which takes advantage of phase space sampling generally being much easier and faster at higher temperatures than at lower temperatures. In PT, one considers M replicas, and for each one a simulation is performed in the canonical ensemble at a different temperature. The replicas are arranged in a temperature ladder T1 < T2 < · · · < T M , where normally the lowest replica corresponds to the temperature of interest at which sampling is difﬁcult, whereas the highest one corresponds to a temperature at which sampling is considerably easier. In this case, the acceptance probability in Equation 29 is calculated using
+
+PT: parallel tempering
+PT-WTE: parallel tempering in the well-tempered ensemble
+
+i, j = βi − β j U (Ri ) − U (R j ) ,
+
+(30)
+
+where Ri and R j are atomic coordinates of the two replicas prior to attempting the exchange. For an effective PT simulation to be achieved, the acceptance probability for an exchange given
+by Equations 29 and 30 has to be sufﬁciently high; in other words, the potential energy ﬂuctuations of neighboring replicas need to have an appreciable overlap. For large systems (e.g., biomolecules in explicit solvent), this forces one to reduce the temperature difference between replicas and thus to increase the number of replicas, often making PT simulations rather costly. Methods that aim at overcoming this limitation are, for example, solute tempering (105–107), PT in the WTE (81, 108), and replica exchange with CV tempering (109). The last two are discussed in some detail below.
+
+6.3. Parallel Tempering in the Well-Tempered Ensemble
+
+The overlap between potential energy ﬂuctuations in the PT replicas can be greatly increased if we combine PT with the use of the WTE (PT-WTE; 81, 108), where the ﬂuctuations in U can be increased by simply increasing γ , while averages of U stay essentially the same. This leads to a drastic reduction in the number of replicas needed. A further advantage of PT-WTE is that the acceptance probability in Equation 29 is determined by
+
+i, j = γ −1 βi − β j U (Ri ) − U (R j ) ,
+
+(31)
+
+which is reduced by a factor of γ as compared to conventional PT in the canonical ensemble (Equation 30). These properties of PT-WTE have proven to be quite useful in a number of applications (57–59, 100, 108).
+
+6.4. Combining Metadynamics and Replica Exchange Methods Metadynamics can be combined with replica exchange methods, where in each replica one runs a metadynamics simulation with the same set of CVs (85). For example, metadynamics has been used in conjunction with PT (85), solute tempering (110), and PT-WTE (108).
+As discussed in Section 4, such a combination reduces the quality requirement on the CVs as the replica exchange scheme will help sample the slow degrees of freedom not included in the
+www.annualreviews.org • Theory of Metadynamics 171
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+CV set. Furthermore, metadynamics will assist in sampling TSs and higher-lying metastable free energy basins that are poorly sampled in most replica exchange methods, as discussed above.
+With metadynamics and PT combined (85), the acceptance probability in Equation 29 is determined by
+
+i, j = βi − β j U (Ri ) − U (R j )
+
++ βi Vi (s(Ri ), t) − Vi (s(R j ), t) + β j V j (s(R j ), t) − V j (s(Ri ), t) ,
+
+(32)
+
+where the second line is the contribution coming from metadynamics, and Vi (s, t) and V j (s, t) are bias potentials of the two replicas. Similar expressions hold when metadynamics is combined with other replica exchange methods.
+
+6.5. Bias Exchange Metadynamics
+
+As discussed in Section 3, metadynamics is limited by the number of CVs that can be biased at the same time. Bias exchange metadynamics (111–113) is a variant of metadynamics that aims at overcoming this limitation and allows one to bias a large number of CVs simultaneously. In this approach, there are multiple replicas running metadynamics simulations at the same temperature, with each replica biasing a different set of CVs. The problem of missing slow degrees of freedom within each replica is overcome through the exchange of conﬁgurations between replicas. In this case, the acceptance probability in Equation 29 is determined by
+
+i, j = β Vi (si (Ri ), t) − Vi (si (R j ), t) + V j (s j (R j ), t) − V j (s j (Ri ), t) ,
+
+(33)
+
+where si and s j are the CVs biased in replicas i and j . A bias exchange simulation directly yields the low-dimensional free energy proﬁles of the biased
+CVs, whereas the multidimensional FES as a function of (part of ) the full CV set can in principle be obtained through a reweighting procedure speciﬁc to bias exchange (113).
+
+6.6. Replica Exchange with Collective Variable Tempering
+
+The capability of WTMetaD to enhance CV ﬂuctuations in a controlled way is put to use
+
+elegantly in the replica exchange with CV tempering (109) method. In this method, one considers
+
+M replicas with the same temperature and in each replica performs a concurrent WTMetaD
+
+simulation in which each CV is biased separately with a one-dimensional bias. In this way, a large
+
+number of degrees of freedom can be biased. The total bias in the i-th replica is thus a sum of
+
+one-dimensional biases:
+
+d
+
+Vi (s, t) =
+
+V
+
+α i
+
+(s
+
+α
+
+,
+
+t
+
+),
+
+(34)
+
+α=1
+
+where d is the total number of CVs. The replicas differ in their value of γ and are arranged
+
+in a ladder γ1 < γ2 < · · · < γM , where the lowest replica γ1 = 1 corresponds to the unbiased
+
+ensemble. In this way, the ﬂuctuations of the selected CVs are gradually enhanced as one moves
+
+up the ladder. This replica exchange scheme thus requires considerably fewer replicas than does
+
+PT, in which ﬂuctuations of all degrees of freedom are enhanced when heating up the system.
+
+7. EXTENSIONS AND VARIANTS OF METADYNAMICS Throughout the years, numerous other extensions and variants of metadynamics have been presented in the literature. Here we brieﬂy discuss the main ideas behind some of them. For full methodological details, we refer readers to the original references.
+· · 172 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+7.1. Multiple Walkers Metadynamics
+Multiple walkers metadynamics is so named because we can think of a metadynamics simulation as an agent (i.e., a walker) who moves in CV space and periodically deposits a biasing kernel G(s, s ) centered at the current CV value s (see Equation 13). In multiple walkers metadynamics (114), there are N w such walkers who run concurrently. The metadynamics bias that they feel is equal for all the walkers and results from the sum of the biasing kernels deposited by all walkers. That each walker simulation can be run in parallel offers the possibility of a signiﬁcant wall-clock time reduction and of a better use of contemporary parallel computer architecture. However, the number of walkers cannot be increased indeﬁnitely because their motion becomes correlated beyond a certain number.
+
+7.2. Metadynamics with Adaptive Gaussians
+In the adaptive Gaussian scheme (74), the full covariance matrix i, j in Equation 12 is used and estimated on the ﬂy during the metadynamics simulation, allowing the shape of the deposited Gaussian biasing kernels to change with time and adapt to the features of the FES. This leads to improved performance in cases in which employing a preassigned diagonal i, j is nonoptimal, for example, when the free energy basins of the FES differ considerably in their shape. Furthermore, a diagonal i, j does not reﬂect possible coupling between CVs and can lead to a nonoptimal ﬁlling of the FES if the CVs are highly coupled. As shown in Reference 74, one can estimate
+i, j either from a time average over the CV trajectory (dynamically adapted scheme) or from the underlying curvature of the CVs (geometrically adapted scheme). In both schemes, only a single parameter is needed, thereby simplifying things as compared to having to choose all the widths σi for a preassigned diagonal i, j . With adaptive Gaussians, the relation between V (s) and F (s) given by Equation 17 no longer holds; instead, one can estimate F (s) using an umbrella sampling–like reweighting (74).
+
+7.3. Flux-Tempered Metadynamics
+
+In ﬂux-tempered metadynamics (115, 116), one constructs a bias potential that leads to the diffusion optimized distribution (117) given by
+
+PV (s ) ∝
+
+1, D(s )
+
+(35)
+
+where D(s ) is the s -dependent local diffusivity, and s is assumed to be deﬁned in a bounded interval s− ≤ s ≤ s+. This distribution minimizes the round-trip time between s− and s+ and thus maximizes the ﬂux in s space (117). The construction of the bias potential proceeds through two distinct phases. In the initial phase, one performs a normal metadynamics simulation. The deposition of Gaussians is then stopped after a certain time, and the metadynamics bias potential is kept ﬁxed. In the second phase, the bias potential is further updated through an iterative scheme designed to maximize the ﬂux and obtain the CV distribution given by Equation 35. Flux-tempered metadynamics was originally designed for the one-dimensional case but has also been extended to the more general multidimensional case (116).
+
+7.4. Transition-Tempered Metadynamics
+In transition-tempered metadynamics (118), the stochastic iteration (Equation 13) is modiﬁed such that initially the strength of the biasing kernel is kept constant at each iteration as in nontempered metadynamics. Once the bias has ﬁlled up all the relevant metastable basins, the strength of
+
+www.annualreviews.org • Theory of Metadynamics 173
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+TST: transition state theory
+
+the added biasing kernels is gradually reduced as in WTMetaD. In the asymptotic limit, this leads to a bias potential that fully compensates the FES and to a uniform sampling of CV space. Transition-tempered metadynamics thus combines the more rapid exploration of the FES offered by nontempered metadynamics with the favorable convergence properties of WTMetaD. The procedure is completely automatic but has the drawback of requiring a priori knowledge of the metastable basins of interest.
+
+7.5. Boundary Conditions
+Any sharp boundary in the FES cannot be correctly represented as a sum of ﬁnite-width Gaussians, which is the biasing kernel mostly used in metadynamics (112, 119). For CVs deﬁned on a compact support, this can lead to systematic errors in the boundary region. Luckily, in many cases, the interesting part of the FES is located away from the boundary, so this is less of an issue, especially when using WTMetaD in which the boundary region is rarely visited. However, when it is necessary to explore the boundary region, various ﬁxes have been suggested (112, 119–121).
+
+8. DYNAMICS FROM METADYNAMICS
+
+So far we have focused our attention on the problem of mapping out the free energy landscape,
+
+which was the intended purpose of metadynamics. We have not yet considered the problem
+
+of calculating kinetic rate constants, whose importance can be seen from the diverse range of
+
+creatively designed methods proposed over the past few decades (11–13, 71, 113, 122–132).
+
+Recent work (71, 113, 132) has made it possible to use metadynamics to answer the question
+
+of how much time the system takes to escape from one metastable basin to another. Here we limit
+
+our attention solely to the infrequent metadynamics (71, 133) approach to rate calculations.
+
+An established starting point for solving the problem of calculating rates of rare events is
+
+transition state theory (TST) (134) and its generalizations. In the generalized approach, the rate k
+
+of escaping from a state A to B is proportional to the relative ﬂux crossing through the TS region
+
+per unit time and is given by
+
+kTST
+
+=
+
+ωκ
+
+ZTS ZA
+
+,
+
+(36)
+
+where ZTS and ZA are the partition functions of the TS and the starting state A, respectively,
+
+and ω is a constant depending on the temperature and mass of the reaction coordinates (for exact
+
+values of ω, see, for example, 12). The transmission coefﬁcient κ ≤ 1 accounts for the fact that not
+
+every trajectory that crosses over from A to B through the TS is necessarily a reactive trajectory.
+
+That is, a certain fraction of such trajectories might actually recross the TS multiple times before
+
+settling in a new metastable basin. A neglect of recrossings (i.e., the assumption that κ = 1 in
+
+Equation 36) is conventionally regarded as the deﬁning feature of traditional TST.
+
+Although Equation 36 is exact in principle (134, 136), it is actually quite daunting to employ in
+
+practice for many reasons. First, only an extremely small part of the trajectory visits the TS, if at
+
+all. Thus, it is not at all trivial to get a converged value of ZTS. Second, in biomolecular systems, it is often not easy to characterize the TS region in terms of order parameters as this is a far more
+
+demanding task than ﬁnding order parameters that distinguish one metastable state from another
+
+(137). In fact, the very deﬁnition of a TS as a stationary point on the potential energy surface can
+
+be called into question. A classic example is that of alanine dipeptide (71, 137): Its dihedral angles
+
+and are sufﬁcient to distinguish the two metastable states (see Figure 1), but as pointed out by
+
+Chandler and coworkers (137), describing the TS ensemble requires an additional third dihedral
+
+angle. In more generic terms, knowing the TS requires knowing the so-called reaction coordinate
+
+(138), which is often challenging to obtain. Third, with a poorly chosen TS, the transmission
+
+· · 174 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+coefﬁcient κ can take values much smaller than 1, and it is not at all trivial to calculate (139, 140). Issues such as these make it theoretically and practically difﬁcult to obtain rate constants using Equation 36 in complex systems.
+With these difﬁculties in mind, an alternate approach was taken in Reference 71, inspired by References 124, 125, and 127. This approach is based on the following three key assumptions. First, the process is characterized by movements from one metastable state to another via dynamical bottlenecks that are rarely but quickly crossed; in other words, there exists a separation of timescales between residence and transition times. Second, the transmission coefﬁcient κ is solely determined by the properties of the TS region (134, 135). Third, although there is no need for prior knowledge of the nature or location of the TS, one should have CVs that can distinguish between the metastable basins. Furthermore, one supposes that it is possible to construct a bias potential that leaves the TS region untouched.
+With these assumptions, the rates in this biased ensemble can be written as
+
+kT∗ ST
+
+=
+
+ωκ
+
+ZTS Z∗A
+
+,
+
+(37)
+
+where all quantities except Z∗A are the same as in Equation 36 given that the TS region is left untouched. The ratio of kT∗ ST to kTST is given by the so-called acceleration factor:
+
+α = Z∗A .
+
+(38)
+
+ZA
+
+The challenge is then to construct a metadynamics bias that keeps the TS region bias-free.
+
+Tiwary & Parrinello (71) proposed a simple solution: By making the bias deposition slower than
+
+the time spent in the TS region, they were able to keep it bias-free during the simulation.
+
+In a crucial development, it was later shown that one can assess the reliability of the kinetics
+
+thus obtained through a statistical analysis that quantitatively estimates how precisely the above
+
+assumptions have been met (133). This test relies on the fact that the escape times from a long-lived
+
+metastable state exhibit a time-homogeneous Poisson distribution.
+
+The acceleration factor in Equation 38 can be calculated as a running average accumulated
+
+through the course of the metadynamics simulation (71, 125, 127):
+
+α = e βV (s,t) V .
+
+(39)
+
+In practice, one can simply calculate the physical or boosted time tb by summing up the MD steps taken so far, with the MD time step dt appropriately scaled at each step:
+
+nMD
+
+tb =
+
+dt e βV (s(ti ),ti ),
+
+i
+
+(40)
+
+where nMD is the total number of MD steps, and ti = i dt is the MD time at the i-th time step. The use of metadynamics for obtaining kinetic information is still in its infancy; however, its
+
+usefulness has already been tested by several groups in a range of systems (44, 71, 133, 141–143).
+
+We expect it to be more widely used in the coming years, along with other CV-based methods
+
+that make use of the powerful acceleration factor concept (125, 127) to obtain rate constants. One
+
+such method is discussed in Section 9.
+
+Acceleration factor: quantitative relationship between the physical kinetic rate and the one obtained in a biased simulation
+
+9. VARIATIONALLY ENHANCED SAMPLING Recently, a new idea for building up a bias potential has been presented, the so-called variationally enhanced sampling method (144). Strictly speaking, this method does not belong to the metadynamics family as the principles behind it are somewhat different. Nevertheless, it is
+www.annualreviews.org • Theory of Metadynamics 175
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+appropriate to discuss here as in many respects it builds on previous work on and experience with metadynamics. For instance, all the effort devoted to ﬁnding good CVs can come to fruition here, and many extensions developed for metadynamics can be used directly with this method.
+The variationally enhanced sampling approach (144) relies on the following functional of the bias potential V (s):
+
+[V
+
+]
+
+=
+
+1 β
+
+log
+
+ds e −β[F (s)+V (s)] ds e −β F(s) +
+
+ds p(s)V (s),
+
+(41)
+
+where p(s) is a predeﬁned probability distribution assumed to be normalized, and as before, F (s) is the FES corresponding to the CV set s. This functional is related to the relative entropy (145, 146) and to the Kullback–Leibler divergence (147). It can be shown that [V ] is invariant under the addition of a constant to V (s) and, more importantly, that it is a convex functional. It can also be shown that [V ] has a minimum given within a constant by
+
+V (s)
+
+=
+
+−F (s)
+
+−
+
+1 β
+
+log
+
+p (s),
+
+(42)
+
+and thus directly relates to F (s). From the convexity of [V ], it follows that this is the global minimum. Furthermore, at this minimum, the CVs are distributed according to p(s), which is thus called the target distribution. There is considerable ﬂexibility in choosing the target distribution, as discussed further below.
+This variational principle provides a rather interesting and novel viewpoint for tackling sampling problems. We can enhance the sampling of the CVs and determine F (s) by minimizing the functional [V ] with respect to V (s). Of course, this minimization process is greatly facilitated by the convexity of [V ]. Furthermore, we can tailor the enhancement in sampling by appropriately choosing the target distribution p(s). In practice, the minimization of [V ] is performed by assuming some given functional form for V (s; α) that depends on a set of variational parameters α = (α1, α2, . . . , αK ), which allows us to deﬁne the multidimensional function (α) = [V (α)]. The components of the corresponding gradient ∇ (α) are
+
+∂ (α) = − ∂V (s; α)
+
++ ∂V (s; α) ,
+
+∂ αi
+
+∂ αi
+
+V (α)
+
+∂αi p
+
+(43)
+
+where the two expectation values on the right side are obtained in the biased ensemble given by V (s; α) or over the target distribution p(s), respectively. The Hessian is deﬁned in a similar manner.
+The minimization process is performed in a biased simulation under the action of V (s; α), in which one estimates ∇ (α) and iteratively updates the variational parameter α using a gradientbased optimization algorithm. As ∇ (α) is obtained from statistical averaging, is it intrinsically noisy, and one would need very long sampling times if employing conventional deterministic optimization algorithms. Instead, it is better to use stochastic optimization methods (77), and in particular, the optimization algorithm introduced in Reference 148 has proven to be an efﬁcient choice. Other choices are, however, possible.
+It is often convenient to take the bias potential to be a linear expansion in some set of basis functions fk(s):
+
+V (s; α) = αk fk(s).
+
+(44)
+
+k
+
+With an appropriate choice of the basis functions, for example, plane waves or products of Chebyshev polynomials (149), one is able to represent any generic FES. The FESs are in general smooth functions, and just a small number of expansion terms is needed.
+
+· · 176 Valsson Tiwary Parrinello
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+There is considerable ﬂexibility in choosing the target distribution p(s), which allows us to tailor the sampling. In principle, one can use anything from a completely localized delta function to a completely delocalized uniform distribution. It has been proven useful (150) to take the viewpoint of WTMetaD and consider a target distribution that enhances CV ﬂuctuations in a controllable manner, thus focusing the sampling toward the lowest FES regions. This can be achieved by considering the well-tempered distribution discussed above (Equation 8):
+
+p(s) =
+
+[P (s)]1/γ ds [P (s)]1/γ
+
+=
+
+e −(1/γ )β F (s) ds e −(1/γ )β F
+
+(s)
+
+,
+
+(45)
+
+where the issue of dependence on the a priori unknown F (s) is circumvented by employing a simple yet effective iterative scheme (150). The target distribution can also be employed to localize the sampling on a speciﬁc region in CV space. It is also rather natural to introduce restraints on the CVs through the target distribution.
+An intriguing possibility that the variationally enhanced sampling method offers is the idea of employing the variational property of [V ] in innovative ways, such as those in the few examples given below.
+One idea is to employ purpose-built functional forms for the bias potential. This is similar in spirit to the idea of Hylleraas-type wave functions in quantum chemistry (151) or Jastrow-type wave functions in quantum Monte Carlo (152). It is advantageous to design such bespoke functions so that the number of variational parameters is smaller than that needed by the linear expansion in Equation 44. For example, one could employ a known empirical model of the FES as a bias potential and optimize its parameters.
+A related idea that is fairly generally applicable is to introduce certain approximations to the bias potential, which should allow one to bias high-dimensional CV spaces (153). For instance, one can write V (s; α) as a sum of pairwise terms
+
+V (s 1, s 2, . . . , s d ; α) = V (si , s j ; α(i, j)),
+
+(46)
+
+i, j
+
+where each pairwise term is expanded in a basis set as in Equation 44. A ﬁnal example is the variationally optimized free energy ﬂooding method introduced in
+Reference 154, which allows one to construct a bias potential that only ﬁlls the FES up to a given cutoff. One can thus greatly accelerate transitions between metastable free energy minima while ensuring bias-free TSs. Kinetic rates can then be obtained using the same principles as described in Section 8.
+
+10. A BRIEF OUTLOOK
+Starting from very simple heuristic considerations (26), metadynamics has grown considerably in the past decade. This has been possible thanks to the efforts of a large community that has both improved the method and applied it in novel and innovative ways. The contribution of those who have developed new and clever CVs should not be underestimated in this respect.
+An ever-growing number of problems are being solved thanks to metadynamics, and this approach has proven to be a convenient starting point for introducing new ideas and new concepts. The recent demonstration of the validity of metadynamics in Reference 65 is not just the formal crowning of the metadynamics effort but has also led to the rigorous proof of the existence of an ordinary differential equation to whose solution metadynamics tends (Equation 15). This ordinary differential equation opens the way to deeper analysis and new discoveries (76). In this sense, metadynamics is not just a practical tool, but it is also an important development in the theory of statistical mechanics. This will become increasingly evident as time goes by.
+
+www.annualreviews.org • Theory of Metadynamics 177
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+One subject only brieﬂy mentioned in Section 4 is the use of ideas based on machine learning and dimensionality reduction. We expect their role and importance in atomistic simulations to increase over the years.
+This review has been focused on the study of classical systems, but a recent application has shown that metadynamics can also play a great role in the study of quantum systems as described by path integral MD (84).
+Despite the newly developed variationally enhanced sampling approach, which appears to be a strong competitor, we expect that metadynamics will remain an active and vibrant ﬁeld of research for many years to come. In fact, we believe that metadynamics and the variationally enhanced sampling method complement each other in many ways and that there will be a useful exchange of ideas between these two methods.
+DISCLOSURE STATEMENT The authors are not aware of any afﬁliations, memberships, funding, or ﬁnancial holdings that might be perceived as affecting the objectivity of this review.
+ACKNOWLEDGMENTS O.V. and M.P. acknowledge funding from the National Centre for Computational Design and Discovery of Novel Materials MARVEL and European Union grant ERC-2009-AdG-247075. The authors thank Patrick Shaffer, Pablo Piaggi, and Claudio Perego for carefully reading the manuscript.
+LITERATURE CITED 1. Frenkel D, Smit B. 2002. Understanding Molecular Simulation. New York: Academic. 2nd ed. 2. Tuckerman ME. 2012. Statistical Mechanics: Theory and Molecular Simulation. New York: Oxford Univ. Press 3. Phillips JC, Braun R, Wang W, Gumbart J, Tajkhorshid E, et al. 2005. Scalable molecular dynamics with NAMD. J. Comput. Chem. 26:1781–802 4. Pronk S, Pall S, Schulz R, Larsson P, Bjelkmar P, et al. 2013. GROMACS 4.5: a high-throughput and highly parallel open source molecular simulation toolkit. Bioinformatics 29:845–54 5. Pa´ll S, Abraham MJ, Kutzner C, Hess B, Lindahl E. 2015. Tackling exascale software challenges in molecular dynamics simulations with GROMACS. Lect. Notes Comput. Sci. 8759:3–27 6. Shaw DE, Chao JC, Eastwood MP, Gagliardo J, Grossman JP, et al. 2008. Anton, a special-purpose machine for molecular dynamics simulation. Commun. ACM 51:91–97 7. Lindorff-Larsen K, Piana S, Dror RO, Shaw DE. 2011. How fast-folding proteins fold. Science 334:517– 20 8. Shan Y, Kim ET, Eastwood MP, Dror RO, Seeliger MA, Shaw DE. 2011. How does a drug molecule ﬁnd its target binding site? J. Am. Chem. Soc. 133:9181–83 9. Pan AC, Borhani DW, Dror RO, Shaw DE. 2013. Molecular determinants of drug–receptor binding kinetics. Drug Discov. Today 18:667–73 10. Earl DJ, Deem MW. 2005. Parallel tempering: theory, applications, and new perspectives. Phys. Chem. Chem. Phys. 7:3910–16 11. Bolhuis PG, Chandler D, Dellago C, Geissler PL. 2002. Transition path sampling: throwing ropes over rough mountain passes, in the dark. Annu. Rev. Phys. Chem. 53:291–318 12. Voter AF, Montalenti F, Germann TC. 2002. Extending the time scale in atomistic simulation of materials. Annu. Rev. Mater. Res. 32:321–46
+· · 178 Valsson Tiwary Parrinello
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+13. Perez D, Uberuaga BP, Shim Y, Amar JG, Voter AF. 2009. Accelerated molecular dynamics methods: introduction and recent developments. Annu. Rep. Comput. Chem. 5:79–98
+14. Chipot C, Pohorille A, eds. 2007. Free Energy Calculations: Theory and Applications in Chemistry and Biology. Berlin: Springer-Verlag
+15. Allen RJ, Valeriani C, Rein ten Wolde P. 2009. Forward ﬂux sampling for rare event simulations. J. Phys. Condens. Matter 21:463102
+16. E W, Vanden-Eijnden E. 2010. Transition-path theory and path-ﬁnding algorithms for the study of rare events. Annu. Rev. Phys. Chem. 61:391–420
+17. Singh S, Chopra M, de Pablo JJ. 2012. Density of states–based molecular simulations. Annu. Rev. Chem. Biomol. Eng. 3:369–94
+18. Abrams C, Bussi G. 2013. Enhanced sampling in molecular dynamics using metadynamics, replicaexchange, and temperature-acceleration. Entropy 16:163–99
+19. Doshi U, Hamelberg D. 2015. Towards fast, rigorous and efﬁcient conformational sampling of biomolecules: advances in accelerated molecular dynamics. Biochim. Biophys. Acta 1850:878–88
+20. Torrie G, Valleau J. 1977. Nonphysical sampling distributions in Monte Carlo free-energy estimation: umbrella sampling. J. Comput. Phys. 23:187–99
+21. Huber T, Torda AE, Gunsteren WF. 1994. Local elevation: a method for improving the searching properties of molecular dynamics simulation. J. Comput.-Aided Mol. Des. 8:695–708
+22. Darve E, Pohorille A. 2001. Calculating free energies using average force. J. Chem. Phys. 115:9169–83 23. Wang F, Landau D. 2001. Efﬁcient, multiple-range random walk algorithm to calculate the density of
+states. Phys. Rev. Lett. 86:2050–53 24. Hansmann U, Wille L. 2002. Global optimization by energy landscape paving. Phys. Rev. Lett. 88:068105 25. Maragakis P, van der Vaart A, Karplus M. 2009. Gaussian-mixture umbrella sampling. J. Phys. Chem. B
+113:4664–73 26. Laio A, Parrinello M. 2002. Escaping free-energy minima. PNAS 99:12562–66 27. Ensing B, De Vivo M, Liu Z, Moore P, Klein ML. 2006. Metadynamics as a tool for exploring free
+energy landscapes of chemical reactions. Acc. Chem. Res. 39:73–81 28. Laio A, Gervasio FL. 2008. Metadynamics: a method to simulate rare events and reconstruct the free
+energy in biophysics, chemistry and material science. Rep. Prog. Phys. 71:126601 29. Barducci A, Bonomi M, Parrinello M. 2011. Metadynamics. WIREs Comput. Mol. Sci. 1:826–43 30. Sutto L, Marsili S, Gervasio FL. 2012. New advances in metadynamics. WIREs Comput. Mol. Sci. 2:771–79 31. Zheng S, Pfaendtner J. 2014. Enhanced sampling of chemical and biochemical reactions with metady-
+namics. Mol. Simul. 41:55–72 32. Giberti F, Salvalaglio M, Parrinello M. 2015. Metadynamics studies of crystal nucleation. IUCrJ 2:256–66 33. Cavalli A, Spitaleri A, Saladino G, Gervasio FL. 2015. Investigating drug–target association and disso-
+ciation mechanisms using metadynamics-based algorithms. Acc. Chem. Res. 48:277–85 34. Bussi G, Branduardi D. 2015. Free-energy calculations with metadynamics: theory and practice. Rev.
+Comput. Chem. 28:1–49 35. Leone V, Marinelli F, Carloni P, Parrinello M. 2010. Targeting biomolecular ﬂexibility with metady-
+namics. Curr. Opin. Struct. Biol. 20:148–54 36. Biarne´s X, Bongarzone S, Vargiu AV, Carloni P, Ruggerone P. 2011. Molecular motions in drug design:
+the coming age of the metadynamics method. J. Comput.-Aided Mol. Des. 25:395–402 37. Branduardi D, Gervasio FL, Cavalli A, Recanatini M, Parrinello M. 2005. The role of the peripheral
+anionic site and cation–π interactions in the ligand penetration of the human AChE gorge. J. Am. Chem. Soc. 127:9147–55 38. Blumberger J, Ensing B, Klein ML. 2006. Formamide hydrolysis in alkaline aqueous solution: insight from ab initio metadynamics calculations. Angew. Chem. Int. Ed. 45:2893–97 39. Lau D, Broderick K, Buehler MJ, Bu¨ yu¨ ko¨ ztu¨ rk O. 2014. A robust nanoscale experimental quantiﬁcation of fracture energy in a bilayer material system. PNAS 111:11990–95 40. Zhu Q, Zeng Q, Oganov AR. 2012. Systematic search for low-enthalpy sp3carbon allotropes using evolutionary metadynamics. Phys. Rev. B 85:201407 41. Dopieralski P, Ribas-Arino J, Anjukandi P, Krupicka M, Kiss J, Marx D. 2013. The janus-faced role of external forces in mechanochemical disulﬁde bond cleavage. Nat. Chem. 5:685–91
+www.annualreviews.org • Theory of Metadynamics 179
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+42. Jug K, Nair NN, Bredow T. 2005. Molecular dynamics investigation of oxygen vacancy diffusion in rutile. Phys. Chem. Chem. Phys. 7:2616–21
+43. Granata D, Camilloni C, Vendruscolo M, Laio A. 2013. Characterization of the free-energy landscapes of proteins by NMR-guided metadynamics. PNAS 110:6817–22
+44. Tiwary P, Limongelli V, Salvalaglio M, Parrinello M. 2015. Kinetics of protein–ligand unbinding: predicting pathways, rates, and rate-limiting steps. PNAS 112:E386–91
+45. Limongelli V, Bonomi M, Marinelli L, Gervasio FL, Cavalli A, et al. 2010. Molecular basis of cyclooxygenase enzymes (COXs) selective inhibition. PNAS 107:5411–16
+46. Saladino G, Gauthier L, Bianciotto M, Gervasio FL. 2012. Assessing the performance of metadynamics and path variables in predicting the binding free energies of p38 inhibitors. J. Am. Chem. Soc. 8:1165–70
+47. Provasi D, Bortolato A, Filizola M. 2009. Exploring molecular mechanisms of ligand recognition by opioid receptors with metadynamics. Biochemistry 48:10020–29
+48. Delemotte L, Kasimova MA, Klein ML, Tarek M, Carnevale V. 2014. Free-energy landscape of ionchannel voltage-sensor–domain activation. PNAS 112:124–29
+49. McCullagh M, Saunders MG, Voth GA. 2014. Unraveling the mystery of ATP hydrolysis in actin ﬁlaments. J. Am. Chem. Soc. 136:13053–58
+50. Angioletti-Uberti S, Ceriotti M, Lee PD, Finnis MW. 2010. Solid-liquid interface free energy through metadynamics simulations. Phys. Rev. B 81:125416
+51. Salvalaglio M, Vetter T, Giberti F, Mazzotti M, Parrinello M. 2012. Uncovering molecular details of urea crystal growth in the presence of additives. J. Am. Chem. Soc. 134:17221–33
+52. De Wispelaere K, Ensing B, Ghysels A, Meijer EJ, Van Speybroeck V. 2015. Complex reaction environments and competing reaction mechanisms in zeolite catalysis: insights from advanced molecular dynamics. Chem. Eur. J. 21:9385–96
+53. Polino D, Parrinello M. 2015. Combustion chemistry via metadynamics: benzyl decomposition revisited. J. Phys. Chem. A 119:978–89
+54. Doro F, Saladino G, Belvisi L, Civera M, Gervasio FL. 2015. New insights into the molecular mechanism of E-cadherin-mediated cell adhesion by free energy calculations. J. Chem. Theory Comput. 11:1354–59
+55. Iglesias-Ferna´ndez J, Raich L, Arde`vol A, Rovira C. 2015. The complete conformational free energy landscape of β-xylose reveals a two-fold catalytic itinerary for β-xylanases. Chem. Sci. 6:1167–77
+56. Ma C, Pietrucci F, Andreoni W. 2015. Capture and release of CO2 in monoethanolamine aqueous solutions: new insights from ﬁrst-principles reaction dynamics. J. Chem. Theory Comput. 11:3189–98
+57. Palazzesi F, Barducci A, Tollinger M, Parrinello M. 2013. The allosteric communication pathways in KIX domain of CBP. PNAS 110:14237–42
+58. Burney PR, White N, Pfaendtner J. 2014. Structural effects of methionine oxidation on isolated subdomains of human ﬁbrin D and αC regions. PLOS ONE 9:e86981
+59. Zhang Z, Schindler CEM, Lange OF, Zacharias M. 2015. Application of enhanced sampling Monte Carlo methods for high-resolution protein-protein docking in Rosetta. PLOS ONE 10:e0125941
+60. Loerbroks C, Boulanger E, Thiel W. 2015. Solvent inﬂuence on cellulose 1,4–glycosidic bond cleavage: a molecular dynamics and metadynamics study. Chem. Eur. J. 21:5477–87
+61. Landau L, Lifshitz E. 1980. Statistical Physics. Oxford, UK: Butterworth-Heinemann. 3rd ed. 62. Marcus RA. 1993. Electron transfer reactions in chemistry: theory and experiment. Rev. Mod. Phys.
+65:599–610 63. Zwanzig R. 2003. Nonequilibrium Statistical Mechanics. New York: Oxford Univ. Press 64. Barducci A, Bussi G, Parrinello M. 2008. Well-tempered metadynamics: a smoothly converging and
+tunable free-energy method. Phys. Rev. Lett. 100:020603 65. Dama JF, Parrinello M, Voth GA. 2014. Well-tempered metadynamics converges asymptotically. Phys.
+Rev. Lett. 112:240602 66. VandeVondele J, Rothlisberger U. 2002. Canonical adiabatic free energy sampling (CAFES): a novel
+method for the exploration of free energy surfaces. J. Phys. Chem. B 106:203–8 67. Rosso L, Mina´ry P, Zhu Z, Tuckerman ME. 2002. On the use of the adiabatic molecular dynamics
+technique in the calculation of free energy proﬁles. J. Chem. Phys. 116:4389–402 68. Maragliano L, Vanden-Eijnden E. 2006. A temperature accelerated method for sampling free energy
+and determining reaction pathways in rare events simulations. Chem. Phys. Lett. 426:168–75
+· · 180 Valsson Tiwary Parrinello
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+69. Bonomi M, Barducci A, Parrinello M. 2009. Reconstructing the equilibrium Boltzmann distribution from well-tempered metadynamics. J. Comput. Chem. 30:1615–21
+70. Tiwary P, Parrinello M. 2015. A time-independent free energy estimator for metadynamics. J. Phys. Chem. B 119:736–42
+71. Tiwary P, Parrinello M. 2013. From metadynamics to dynamics. Phys. Rev. Lett. 111:230602 72. Iannuzzi M, Laio A, Parrinello M. 2003. Efﬁcient exploration of reactive potential energy surfaces using
+Car-Parrinello molecular dynamics. Phys. Rev. Lett. 90:238302 73. Laio A, Rodriguez-Fortea A, Gervasio FL, Ceccarelli M, Parrinello M. 2005. Assessing the accuracy of
+metadynamics. J. Phys. Chem. B 109:6714–21 74. Branduardi D, Bussi G, Parrinello M. 2012. Metadynamics with adaptive Gaussians. J. Chem. Theory
+Comput. 8:2247–54 75. Micheletti C, Laio A, Parrinello M. 2004. Reconstructing the density of states by history-dependent
+metadynamics. Phys. Rev. Lett. 92:170601 76. Tiwary P, Dama JF, Parrinello M. 2015. A perturbative solution to metadynamics ordinary differential
+equation. J. Chem. Phys. 116:4389–402 77. Kushner HJ, Yin GG. 2003. Stochastic Approximation and Recursive Algorithms and Applications. Berlin:
+Springer-Verlag. 2nd ed. 78. Bonomi M, Branduardi D, Bussi G, Camilloni C, Provasi D, et al. 2009. PLUMED: a portable plugin
+for free-energy calculations with molecular dynamics. Comput. Phys. Commun. 180:1961–72 79. Tribello GA, Bonomi M, Branduardi D, Camilloni C, Bussi G. 2014. PLUMED 2: new feathers for an
+old bird. Comput. Phys. Commun. 185:604–13 80. Branduardi D, Gervasio FL, Parrinello M. 2007. From A to B in free energy space. J. Chem. Phys.
+126:054103 81. Bonomi M, Parrinello M. 2010. Enhanced sampling in the well-tempered ensemble. Phys. Rev. Lett.
+104:190601 82. Pietrucci F, Andreoni W. 2011. Graph theory meets ab initio molecular dynamics: atomic structures and
+transformations at the nanoscale. Phys. Rev. Lett. 107:085504 83. Limongelli V, Bonomi M, Parrinello M. 2013. Funnel metadynamics as accurate binding free-energy
+method. PNAS 110:6358–63 84. Quhe R, Nava M, Tiwary P, Parrinello M. 2015. Path integral metadynamics. J. Chem. Theory Comput.
+11:1383–88 85. Bussi G, Gervasio FL, Laio A, Parrinello M. 2006. Free-energy landscape for β hairpin folding from
+combined parallel tempering and metadynamics. J. Am. Chem. Soc. 128:13435–41 86. Henkelman G, Uberuaga BP, Jo´ nsson H. 2000. A climbing image nudged elastic band method for ﬁnding
+saddle points and minimum energy paths. J. Chem. Phys. 113:9901–4 87. Ren W, Vanden-Eijnden E. 2005. Finite temperature string method for the study of rare events. J. Phys.
+Chem. B 109:6688–93 88. Tribello GA, Ceriotti M, Parrinello M. 2010. A self-learning algorithm for biased molecular dynamics.
+PNAS 107:17509–14 89. Ceriotti M, Tribello GA, Parrinello M. 2011. Simplifying the representation of complex free-energy
+landscapes using sketch-map. PNAS 108:13023–28 90. Ceriotti M, Tribello GA, Parrinello M. 2013. Demonstrating the transferability and the descriptive
+power of sketch-map. J. Chem. Theory Comput. 9:1521–32 91. Ardevol A, Tribello GA, Ceriotti M, Parrinello M. 2015. Probing the unfolded conﬁgurations of a
+β-hairpin using sketch-map. J. Chem. Theory Comput. 11:1086–93 92. Tribello GA, Ceriotti M, Parrinello M. 2012. Using sketch-map coordinates to analyze and bias molecular
+dynamics simulations. PNAS 109:5196–201 93. Coifman RR, Kevrekidis IG, Lafon S, Maggioni M, Nadler B. 2008. Diffusion maps, reduction coordi-
+nates, and low dimensional representation of stochastic systems. Multiscale Model. Simul. 7:842–64 94. Rohrdanz MA, Zheng W, Maggioni M, Clementi C. 2011. Determination of reaction coordinates via
+locally scaled diffusion map. J. Chem. Phys. 134:124116
+www.annualreviews.org • Theory of Metadynamics 181
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+95. Rohrdanz MA, Zheng W, Clementi C. 2013. Discovering mountain passes via torchlight: methods for the deﬁnition of reaction coordinates and pathways in complex macromolecular reactions. Annu. Rev. Phys. Chem. 64:295–316
+96. Hashemian B, Milla´n D, Arroyo M. 2013. Modeling and enhanced sampling of molecular systems with smooth and nonlinear data-driven collective variables. J. Chem. Phys. 139:214101
+97. Gasparotto P, Ceriotti M. 2014. Recognizing molecular patterns by machine learning: an agnostic structural deﬁnition of the hydrogen bond. J. Chem. Phys. 141:174110
+98. Chen M, Yu TQ, Tuckerman ME. 2015. Locating landmarks on high-dimensional free energy surfaces. PNAS 112:3235–40
+99. Wales D. 2003. Energy Landscapes: Applications to Clusters, Biomolecules and Glasses. Cambridge, UK: Cambridge Univ. Press
+100. Valsson O, Parrinello M. 2013. Thermodynamical description of a quasi-ﬁrst-order phase transition from the well-tempered ensemble. J. Chem. Theory Comput. 9:5267–76
+101. Berg B, Neuhaus T. 1992. Multicanonical ensemble: a new approach to simulate ﬁrst-order phase transitions. Phys. Rev. Lett. 68:9–12
+102. Hansmann UH. 1997. Parallel tempering algorithm for conformational studies of biological molecules. Chem. Phys. Lett. 281:140–50
+103. Sugita Y, Okamoto Y. 1999. Replica-exchange molecular dynamics method for protein folding. Chem. Phys. Lett. 314:141–51
+104. Fukunishi H, Watanabe O, Takada S. 2002. On the Hamiltonian replica exchange method for efﬁcient sampling of biomolecular systems: application to protein structure prediction. J. Chem. Phys. 116:9058– 67
+105. Liu P, Kim B, Friesner RA, Berne BJ. 2005. Replica exchange with solute tempering: a method for sampling biological systems in explicit water. PNAS 102:13749–54
+106. Wang L, Friesner RA, Berne BJ. 2011. Replica exchange with solute scaling: a more efﬁcient version of replica exchange with solute tempering (REST2). J. Phys. Chem. B 115:9431–38
+107. Bussi G. 2013. Hamiltonian replica exchange in GROMACS: a ﬂexible implementation. Mol. Phys. 112:379–84
+108. Deighan M, Bonomi M, Pfaendtner J. 2012. Efﬁcient simulation of explicitly solvated proteins in the well-tempered ensemble. J. Chem. Theory Comput. 8:2189–92
+109. Gil-Ley A, Bussi G. 2015. Enhanced conformational sampling using replica exchange with collectivevariable tempering. J. Chem. Theory Comput. 11:1077–85
+110. Camilloni C, Provasi D, Tiana G, Broglia RA. 2007. Exploring the protein G helix free-energy surface by solute tempering metadynamics. Proteins 71:1647–54
+111. Piana S, Laio A. 2007. A bias-exchange approach to protein folding. J. Phys. Chem. B 111:4553–59 112. Baftizadeh F, Cossio P, Pietrucci F, Laio A. 2012. Protein folding and ligand-enzyme binding from
+bias-exchange metadynamics simulations. Curr. Phys. Chem. 2:79–91 113. Marinelli F, Pietrucci F, Laio A, Piana S. 2009. A kinetic model of Trp-cage folding from multiple biased
+molecular dynamics simulations. PLOS Comput. Biol. 5:e1000452 114. Raiteri P, Laio A, Gervasio FL, Micheletti C, Parrinello M. 2006. Efﬁcient reconstruction of complex
+free energy landscapes by multiple walkers metadynamics. J. Phys. Chem. B 110:3533–39 115. Singh S, Chiu CC, de Pablo JJ. 2011. Flux tempered metadynamics. J. Stat. Phys. 145:932–45 116. Singh S, Chiu CC, de Pablo JJ. 2012. Efﬁcient free energy calculation of biomolecules from diffusion-
+biased molecular dynamics. J. Chem. Theory Comput. 8:4657–62 117. Trebst S, Huse D, Troyer M. 2004. Optimizing the ensemble for equilibration in broad-histogram
+Monte Carlo simulations. Phys. Rev. E 70:046701 118. Dama JF, Rotskoff G, Parrinello M, Voth GA. 2014. Transition-tempered metadynamics: robust, con-
+vergent metadynamics via on-the-ﬂy transition barrier estimation. J. Chem. Theory Comput. 10:3626–33 119. McGovern M, de Pablo J. 2013. A boundary correction algorithm for metadynamics in multiple dimen-
+sions. J. Chem. Phys. 139:084102 120. Bussi G, Laio A, Parrinello M. 2006. Equilibrium free energies from nonequilibrium metadynamics.
+Phys. Rev. Lett. 96:090601
+· · 182 Valsson Tiwary Parrinello
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+121. Crespo Y, Marinelli F, Pietrucci F, Laio A. 2010. Metadynamics convergence law in a multidimensional system. Phys. Rev. E 81:055701
+122. Carter E, Ciccotti G, Hynes JT, Kapral R. 1989. Constrained reaction coordinate dynamics for the simulation of rare events. Chem. Phys. Lett. 156:472–77
+123. Faradjian AK, Elber R. 2004. Computing time scales from reaction coordinates by milestoning. J. Chem. Phys. 120:10880–89
+124. Voter AF. 1997. A method for accelerating the molecular dynamics simulation of infrequent events. J. Chem. Phys. 106:4665–77
+125. Voter AF. 1997. Hyperdynamics: accelerated molecular dynamics of infrequent events. Phys. Rev. Lett. 78:3908–11
+126. Voter AF. 1998. Parallel replica method for dynamics of infrequent events. Phys. Rev. B 57:R13985 127. Grubmu¨ ller H. 1995. Predicting slow structural transitions in macromolecular systems: conformational
+ﬂooding. Phys. Rev. E 52:2893–906 128. Tiwary P, van de Walle A. 2011. Hybrid deterministic and stochastic approach for efﬁcient atomistic
+simulations at long time scales. Phys. Rev. B 84:100301 129. Tiwary P, van de Walle A. 2013. Accelerated molecular dynamics through stochastic iterations and
+collective variable based basin identiﬁcation. Phys. Rev. B 87:094304 130. Henkelman G, Jo´ nsson H. 2001. Long time scale kinetic Monte Carlo simulations without lattice ap-
+proximation and predeﬁned event table. J. Chem. Phys. 115:9657–66 131. Prinz JH, Wu H, Sarich M, Keller B, Senne M, et al. 2011. Markov models of molecular kinetics:
+generation and validation. J. Chem. Phys. 134:174105 132. Juraszek J, Saladino G, van Erp T, Gervasio F. 2013. Efﬁcient numerical reconstruction of protein folding
+kinetics with partial path sampling and pathlike variables. Phys. Rev. Lett. 110:108106 133. Salvalaglio M, Tiwary P, Parrinello M. 2014. Assessing the reliability of the dynamics reconstructed
+from metadynamics. J. Chem. Theory Comput. 10:1420–25 134. Berne BJ, Borkovec M, Straub JE. 1988. Classical and modern methods in reaction rate theory. J. Chem.
+Phys. 92:3711–25 135. Grote RF, Hynes JT. 1980. The stable states picture of chemical reactions. II. Rate constants for con-
+densed and gas phase reaction models. J. Chem. Phys. 73:2715–32 136. Ha¨nggi P, Talkner P, Borkovec M. 1990. Reaction-rate theory: ﬁfty years after Kramers. Rev. Mod. Phys.
+62:251–341 137. Bolhuis PG, Dellago C, Chandler D. 2000. Reaction coordinates of biomolecular isomerization. PNAS
+97:5877–82 138. Best RB, Hummer G. 2005. Reaction coordinates and rates from transition paths. PNAS 102:6732–37 139. Straub JE, Berne BJ. 1985. A rapid method for determining rate constants by molecular dynamics.
+J. Chem. Phys. 83:1138–39 140. Mullen RG, Shea JE, Peters B. 2014. Transmission coefﬁcients, committors, and solvent coordinates in
+ion-pair dissociation. J. Chem. Theory Comput. 10:659–67 141. Bohner MU, Zeman J, Smiatek J, Arnold A, Ka¨stner J. 2014. Nudged-elastic band used to ﬁnd reaction
+coordinates based on the free energy. J. Chem. Phys. 140:074109 142. Sicard F, Destainville N, Manghi M. 2015. DNA denaturation bubbles: free-energy landscape and
+nucleation/closure rates. J. Chem. Phys. 142:034903 143. Tiwary P, Mondal J, Morrone JA, Berne BJ. 2015. Role of water and steric constraints in the kinetics of
+cavity-ligand unbinding. PNAS 112:12015–19 144. Valsson O, Parrinello M. 2014. Variational approach to enhanced sampling and free energy calculations.
+Phys. Rev. Lett. 113:090601 145. Chaimovich A, Shell MS. 2011. Coarse-graining errors and numerical optimization using a relative
+entropy framework. J. Chem. Phys. 134:094112 146. de Boer PT, Kroese DP, Mannor S, Rubinstein RY. 2005. A tutorial on the cross-entropy method. Ann.
+Oper. Res. 134:19–67 147. Bilionis I, Koutsourelakis P. 2012. Free energy computations by minimization of Kullback–Leibler
+divergence: an efﬁcient adaptive biasing potential method for sparse representations. J. Comput. Phys. 231:3849–70
+www.annualreviews.org • Theory of Metadynamics 183
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67CH08-Parinello ARI 24 April 2016 11:35
+148. Bach F, Moulines E. 2013. Non-strongly-convex smooth stochastic approximation with convergence rate O(1/n). In Advances in Neural Information Processing Systems, Vol. 26, ed. C Burges, L Bottou, M Welling, Z Ghahramani, K Weinberger, pp. 773–81. Red Hook, NY: Curran Assoc.
+149. Boyd JP. 2001. Chebyshev and Fourier Spectral Methods. New York: Dover. 2nd ed. 150. Valsson O, Parrinello M. 2015. Well-tempered variational approach to enhanced sampling. J. Chem.
+Theory Comput. 11:1996–2002 151. Rychlewski J, Komasa J. 2003. Explicitly correlated functions in variational calculations. In Explicitly
+Correlated Wave Functions in Chemistry and Physics, ed. J Rychlewski, pp. 91–147. New York: Springer 152. Needs RJ, Towler MD, Drummond ND, Lo´ pez R´ıos P. 2009. Continuum variational and diffusion
+quantum Monte Carlo calculations. J. Phys. Condens. Matter 22:023201 153. Shaffer P, Valsson O, Parrinello M. 2016. Enhanced, targeted sampling of high-dimensional free-energy
+landscapes using variationally enhanced sampling, with an application to chignolin. PNAS 113:1150–55 154. McCarty J, Valsson O, Tiwary P, Parrinello M. 2015. Variationally optimized free-energy ﬂooding for
+rate calculation. Phys. Rev. Lett. 115:070601
+RELATED RESOURCE PLUMED (http://www.plumed.org/): a plug-in to numerous MD codes that allows users to
+analyze and bias molecular simulations. It implements metadynamics and a wide range of CVs and includes a tutorial on how to get started with metadynamics simulations.
+· · 184 Valsson Tiwary Parrinello
+
+PC67-FrontMatter ARI 9 May 2016 20:8
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+Contents
+
+Annual Review of Physical Chemistry
+Volume 67, 2016
+
+The Independence of the Junior Scientist’s Mind: At What Price? Giacinto Scoles p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 1
+Vacuum Ultraviolet Photoionization of Complex Chemical Systems Oleg Kostko, Biswajit Bandyopadhyay, and Musahid Ahmed p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p19
+Real-Time Probing of Electron Dynamics Using Attosecond Time-Resolved Spectroscopy Krupa Ramasesha, Stephen R. Leone, and Daniel M. Neumark p p p p p p p p p p p p p p p p p p p p p p p p p p p41
+Charge-Carrier Dynamics in Organic-Inorganic Metal Halide Perovskites Laura M. Herz p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p65
+Vibrational Control of Bimolecular Reactions with Methane by Mode, Bond, and Stereo Selectivity Kopin Liu p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p91
+Interfacial Charge Transfer States in Condensed Phase Systems Koen Vandewal p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 113
+Recent Advances in Quantum Dynamics of Bimolecular Reactions Dong H. Zhang and Hua Guo p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 135
+Enhancing Important Fluctuations: Rare Events and Metadynamics from a Conceptual Viewpoint Omar Valsson, Pratyush Tiwary, and Michele Parrinello p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 159
+Vibrational Heat Transport in Molecular Junctions Dvira Segal and Bijay Kumar Agarwalla p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 185
+Gas-Phase Femtosecond Particle Spectroscopy: A Bottom-Up Approach to Nucleotide Dynamics Vasilios G. Stavros and Jan R.R. Verlet p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 211
+Geochemical Insight from Nonlinear Optical Studies of Mineral–Water Interfaces Paul A. Covert and Dennis K. Hore p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 233
+
+v
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67-FrontMatter ARI 9 May 2016 20:8
+Charge Transfer Dynamics from Photoexcited Semiconductor Quantum Dots Haiming Zhu, Ye Yang, Kaifeng Wu, and Tianquan Lian p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 259
+Valence Electronic Structure of Aqueous Solutions: Insights from Photoelectron Spectroscopy Robert Seidel, Bernd Winter, and Stephen E. Bradforth p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 283
+Molecular Shape and the Hydrophobic Effect Matthew B. Hillyer and Bruce C. Gibb p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 307
+Characterizing Localized Surface Plasmons Using Electron Energy-Loss Spectroscopy Charles Cherqui, Niket Thakkar, Guoliang Li, Jon P. Camden, and David J. Masiello p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 331
+Computational Amide I 2D IR Spectroscopy as a Probe of Protein Structure and Dynamics Mike Reppert and Andrei Tokmakoff p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 359
+Understanding the Surface Hopping View of Electronic Transitions and Decoherence Joseph E. Subotnik, Amber Jain, Brian Landry, Andrew Petit, Wenjun Ouyang, and Nicole Bellonzi p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 387
+On the Nature of Bonding in Parallel Spins in Monovalent Metal Clusters David Danovich and Sason Shaik p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 419
+Biophysical Insights from Temperature-Dependent Single-Molecule Fo¨ rster Resonance Energy Transfer Erik D. Holmstrom and David J. Nesbitt p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 441
+Next-Generation Force Fields from Symmetry-Adapted Perturbation Theory Jesse G. McDaniel and J.R. Schmidt p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 467
+Measuring the Hydrodynamic Size of Nanoparticles Using Fluctuation Correlation Spectroscopy Sergio Dominguez-Medina, Sishan Chen, Jan Blankenburg, Pattanawit Swanglap, Christy F. Landes, and Stephan Link p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 489
+Atomic and Molecular Collisions at Liquid Surfaces Maria A. Tesa-Serrate, Eric J. Smoll Jr., Timothy K. Minton, and Kenneth G. McKendrick p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 515
+Theory of Linear and Nonlinear Surface-Enhanced Vibrational Spectroscopies Dhabih V. Chulhai, Zhongwei Hu, Justin E. Moore, Xing Chen, and Lasse Jensen p p p p 541
+vi Contents
+
+Annu. Rev. Phys. Chem. 2016.67:159-184. Downloaded from www.annualreviews.org Access provided by University of Massachusetts - Amherst on 05/16/22. For personal use only.
+
+PC67-FrontMatter ARI 9 May 2016 20:8
+Single-Molecule Studies in Live Cells Ji Yu p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 565
+Excited-State Properties of Molecular Solids from First Principles Leeor Kronik and Jeffrey B. Neaton p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 587
+Water-Mediated Hydrophobic Interactions Dor Ben-Amotz p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 617
+Semiclassical Path Integral Dynamics: Photosynthetic Energy Transfer with Realistic Environment Interactions Mi Kyung Lee, Pengfei Huo, and David F. Coker p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 639
+Reaction Coordinates and Mechanistic Hypothesis Tests Baron Peters p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 669
+Fundamental Properties of One-Dimensional Zinc Oxide Nanomaterials and Implementations in Various Detection Modes of Enhanced Biosensing Jong-in Hahm p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 691
+Liquid Cell Transmission Electron Microscopy Hong-Gang Liao and Haimei Zheng p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 719
+Indexes Cumulative Index of Contributing Authors, Volumes 63–67 p p p p p p p p p p p p p p p p p p p p p p p p p p p 749 Cumulative Index of Article Titles, Volumes 63–67 p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p p 753 Errata An online log of corrections to Annual Review of Physical Chemistry articles may be found at http://www.annualreviews.org/errata/physchem
+Contents vii
+

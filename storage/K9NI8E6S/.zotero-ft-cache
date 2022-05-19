@@ -1,0 +1,496 @@
+Journal of Computational Physics 217 (2006) 143–158
+
+www.elsevier.com/locate/jcp
+
+Uncertainty quantiﬁcation for porous media ﬂows
+Mike Christie *, Vasily Demyanov, Demet Erbas
+Institute of Petroleum Engineering, Heriot-Watt University, Riccarton, Edinburgh EH14 4AS, Scotland, UK Received 12 August 2005; received in revised form 22 December 2005; accepted 19 January 2006 Available online 28 February 2006
+Abstract
+Uncertainty quantiﬁcation is an increasingly important aspect of many areas of computational science, where the challenge is to make reliable predictions about the performance of complex physical systems in the absence of complete or reliable data. Predicting ﬂows of oil and water through oil reservoirs is an example of a complex system where accuracy in prediction is needed primarily for ﬁnancial reasons. Simulation of ﬂuid ﬂow in oil reservoirs is usually carried out using large commercially written ﬁnite diﬀerence simulators solving conservation equations describing the multi-phase ﬂow through the porous reservoir rocks. This paper examines a Bayesian Framework for uncertainty quantiﬁcation in porous media ﬂows that uses a stochastic sampling algorithm to generate models that match observed data. Machine learning algorithms are used to speed up the identiﬁcation of regions in parameter space where good matches to observed data can be found. Ó 2006 Elsevier Inc. All rights reserved.
+Keywords: Uncertainty; Stochastic sampling; Genetic algorithm; Artiﬁcial neural networks; Petroleum
+
+1. Introduction
+Uncertainty quantiﬁcation is an increasingly important aspect of many areas of computational science. Weather forecasting [18], global climate modelling, complex engineering designs such as aircraft systems, all have needs to make reliable prediction and these predictions frequently depend on features that are hard to model at the required level of detail [6].
+Porous media ﬂows, and speciﬁcally prediction of uncertainty in production of oil from oil reservoirs, is another area where accurate quantiﬁcation of uncertainties in predictions is important because of the large ﬁnancial investments made. In the oil industry, predictions of ﬂuid ﬂow through oil reservoirs are diﬃcult to make with conﬁdence because, although the ﬂuid properties can be determined with reasonable accuracy, the ﬂuid ﬂow is controlled by the unknown rock permeability and porosity. The rock properties can be measured by taking samples at wells, but this represents only a tiny fraction of the total reservoir volume, leading to signiﬁcant uncertainties in ﬂuid ﬂow predictions.
+* Corresponding author. E-mail address: mike.christie@pet.hw.ac.uk (M. Christie).
+0021-9991/$ - see front matter Ó 2006 Elsevier Inc. All rights reserved. doi:10.1016/j.jcp.2006.01.026
+
+144
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+Predicting ﬂuid ﬂows through oil reservoirs is a challenging problem. The oil tends to be a complex mixture of pure hydrocarbon components, with experimentally determined PVT properties. In general, the oil is displaced towards producing wells by a cheaper ﬂuid such as water or gas, although there are other more specialized ways of producing oil [1]. If gas is injected to displace the oil, there can be complex transfer of hydrocarbon components between the oil and gas phases which signiﬁcantly aﬀects the displacement, and the displacement is likely to be hydrodynamically unstable.
+The major source of uncertainty for all displacements in porous media is lack of knowledge of the material properties. The ﬂuids ﬂow through a porous matrix whose porosity (ability to store ﬂuid) and permeability (resistance to ﬂow) are unknown. Both porosity and permeability vary across the reservoir, with variations determined by the geological processes that deposited the reservoir and subsequent processes such as deposition and cementation of the rock grains. The most direct way to measure porosity and permeability is to take a core sample while drilling a well – usually around a 3 in. length of rock whose properties are measured in the laboratory. This means that the sampling for these fundamental properties that can vary dramatically across a reservoir is very limited. It is also possible to use indirect methods such as logging which sample a greater, although still extremely limited volume.
+Fig. 1 shows an outcrop of reservoir rock illustrating some of the complexities involved in predicting ﬂuid ﬂows. The horizontal distance across the outcrop is around 20 m – signiﬁcantly smaller than typical interwell distances of several hundred meters to kilometers. If we had drilled two wells, one at either end of the outcrop, we would have to infer the details of the permeable layers visible in the centre of the picture indirectly, yet they would clearly inﬂuence the ﬂuid ﬂow.
+Predictions of reservoir scale ﬂuid ﬂows are frequently made with commercial ﬁnite diﬀerence codes. The input to these codes is the ﬂuid properties as measured in the laboratory, and the rock properties which have to be inferred. The code can then be run with a given set of input data and the predictions are compared with observed pressures and ﬂow rates. Clearly, this is an inverse problem and the solution is non-unique.
+
+2. Bayesian framework for UQ
+
+A Bayesian framework is a statistically consistent way of updating our beliefs about a given set of models given observed data. A schematic diagram showing the framework we use is shown in Fig. 2.
+We start with a set of beliefs about the details of the reservoir description. This is likely to come from a geological description of the way the reservoir was deposited. For example, a ﬂuvial reservoir laid down by
+
+Fig. 1. Outcrop of reservoir rock, Point Lobos State Park, CA (photo courtesy P Corbett, Heriot-Watt University).
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+145
+
+Fig. 2. Framework for generating multiple history-matched models.
+
+an ancient river system, is likely to have a set of meandering channels with sinuosity, width, depth, etc that can be bounded by studies of equivalent outcrops. From these beliefs we form a way of parameterising the reservoir description and a set of prior probabilities for these parameters. We sample a number of possible reservoir descriptions from the prior and examine how well the predictions made using these reservoir descriptions ﬁt the data. The models that ﬁt the data well are assigned higher probabilities, with the numerical values of the probabilities given by Bayes rule. Bayes Theorem provides a formal way to update our beliefs about probabilities when we are provided with information. The statement of Bayes Theorem is [24]:
+
+pðmjOÞ ¼ R pðOjmÞpðmÞ .
+
+ð1Þ
+
+M pðOjmÞpðmÞ dm
+
+The prior probability, p(m), contains initial probabilities for the model parameters. These initial probabilities are chosen with limited prior knowledge about the reservoir available. At this stage the prior probabilities can be fairly vague, but should not be too narrow in its range (see [12] for a discussion on choice of non-informative priors). Using Bayes theorem, the model is updated, giving a posterior probability, p(mjO), based on observations O. The likelihood function, p(Ojm), is a measure of to what degree the observed and modelled data diﬀer. Computing the value of the likelihood is the key step in Bayesian analysis. The value of the likelihood comes from a probability model for the size of the diﬀerence between the observations and the simulations. The probability model contains assumptions about the statistics of the errors, and the quality of the uncertainty forecasts depends on the assumptions made in the likelihood.
+The discrepancy – the diﬀerence between the observed value of some physical quantity and the simulated value – can be expressed as [8]
+
+discrepancy ¼ observed À simulated
+
+ð2Þ
+
+¼ ðobserved À trueÞ À ðsimulated À trueÞ
+
+ð3Þ
+
+¼ observed error À simulated error.
+
+ð4Þ
+
+At any given time, the probability density of the discrepancy, which from Eq. (4) is given by the diﬀerence
+
+between the measurement error and simulation error, is given by a convolution integral Z
+
+pðxÞ ¼ pmeasðyÞpsimðx þ yÞ dy;
+
+ð5Þ
+
+with the likelihood being given by the probability of the discrepancy being zero. This is a direct result of the additive nature of simulation and measurement errors.
+If we assume Gaussian statistics for the errors, we end up with a standard least squares formulation with covariance matrix given by the sum of the measurement and solution error covariance matrices [25]. For this case, the misﬁt (which in this paper always refers to the negative log of the likelihood) is given by
+
+M ¼ 1 ðobs À simÞTCÀ1ðobs À simÞ.
+
+ð6Þ
+
+2
+
+146
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+Eq. (6) assumes that mean errors are zero for both measurement error and simulation error. This is unlikely to be the case for simulation error, in which case the mean simulation error must be included in Eq. (6). See [17] for a detailed discussion of construction of simulation error models including mean error terms.
+Fig. 3 shows the conceptual framework used in our history matching approach. The top left picture represents the reservoir – the details of which are unknown except at a limited number of samples. Hydrocarbons have been produced from the reservoir and measurements have been taken of quantities such as pressures and ﬂuid rates (top right). Based on our knowledge of the reservoir, we decide on a mathematical model – for example, black oil vs compositional, equation of state choices, and a parameterisation of the unknown aspects of the model (bottom left). We then solve the equations using a reservoir simulator (bottom right), and this introduces additional solution errors. We make inferences about the model parameters by comparing the numerical solution with the observed data.
+There are several reasons why we might not get an exact match with observations. First, observations are subject to measurement error. This can take two forms: ﬁrst there is the instrument accuracy – multiple observations of an identical physical value will usually yield close but not identical results; secondly, there is an error introduced in the comparison of the measurement to the simulated value. For example, in measuring bottom hole pressure, the pressure gauge may be above the perforations and will be measuring pressure at a single point somewhere on the casing. The ﬂow up the well is likely to be three dimensional and may well be turbulent, so a simple 1D correction back to the datum depth will introduce uncertainties. A second reason why we might not get an exact match with observations is due to errors in the simulations. These errors can arise from multiple sources – for example a simulation is unlikely to be fully converged and will still have space and time truncation errors. Perhaps more importantly, on any ﬁnite grid size there will always be sub-grid phenomena that have been ignored. These are likely to be particularly important with coarsely gridded models. The ﬁnal reason why we might not get an exact match is that the choice of model or parameterisation excludes predictions that agree with observations for any combination of parameters. In this case, the normalising constant in Bayes Theorem will be close to zero, indicating that a more suitable choice needs to be made.
+
+2.1. Sampling in high dimensional parameter space
+
+For most history matching problems we will be looking at several tens up to hundreds of unknown history matching parameters. Use of this number of problems creates a real challenge for any numerical method because of the combinatorial explosion of ways of choosing diﬀerent values of parameters that could give a history match. Fig. 4 shows a plot of the resolution achieved in parameter space for a given number of unknown parameters if uniform Monte-Carlo sampling is used. The x-axis shows the resolution in terms of
+
+Fig. 3. Conceptual framework used in history matching.
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+147
+
+Fig. 4. Resolution in parameter space with uniform sampling.
+the number of sampled points per parameter, and the y-axis is the number of unknown parameters. The shading represent the number of simulations to achieve that resolution. Since the CPU time of most reservoir simulation models ranges from 10 s of minutes for very simple small models to 24 h or more for large models, we can see that, even with large linux clusters, it is impossible to get signiﬁcantly greater resolution than two points per axis for any reasonable number of parameters if we restrict ourselves to uniform sampling.
+In general, misﬁt surfaces can have very complex structure. Fig. 5 shows a cross section of a misﬁt surface from a simple three-parameter problem (the IC Fault Model [5] described later), and we can clearly see that there are many local minima.
+Since the misﬁt surface is used for posterior inference, the quality of sampling of the misﬁt surface determines the quality of our inference.
+The complexity of the surface forces us to use adaptive sampling, so that the algorithm can concentrate its sampling in regions of good ﬁt, and the multiple minima force us to use stochastic algorithms rather than gradient methods. This is primarily because we are making inference from all the point sampled – if we were seeking only a single maximum likelihood solution, it would make sense to combine a gradient algorithm with a stochastic search.
+0 10 20 30 40 50 60 fault throw, ft
+Fig. 5. 1D Section of misﬁt surface showing multiple minima.
+
+misfit 0 100 200 300 400 500
+
+148
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+2.2. Bayesian inference and the neighbourhood algorithm
+
+In general, for posterior inference we are interested in integrals of the form Z
+
+J ¼ gðmÞP ðmÞ dm;
+
+ð7Þ
+
+M
+
+where g(m) is some function of the reservoir model output. Because we have to run an expensive forward model, we use Monte-Carlo integration to estimate the value of the integral. The Monte-Carlo estimate is given by
+
+bJ
+
+¼
+
+1 N
+
+XN
+k¼1
+
+gðmkÞ hðmkÞ
+
+P
+
+ðmk
+
+Þ;
+
+ð8Þ
+
+with h(mk) being the sampling density. In the applications discussed in this paper, we will be sampling the parameter space irregularly using a
+genetic algorithm [3]. Genetic Algorithms (GAs) are stochastic search and optimization techniques inspired by Darwin’s theory of natural evolution. These algorithms are designed to search the parameter space by mimicking crossover, mutation and natural selection phenomena and employing a ‘‘survival of the ﬁttest’’ strategy. Since the 1970s, they have been used for a wide range of optimization problems, including those which have complex objective functions with non-linearities or discontinuities [11]. In petroleum engineering research, the primary studies involving GAs date back to the mid-1980 on pipeline optimization. Then, over the last two decades the use of GAs has become more common in petroleum geology and engineering applications including stochastic reservoir modeling [23], well placement optimization [9], reservoir characterisation and history matching [19,22,7]. GAs are expected to be competitive on ﬁnding several minima in cases where the search space is large and not perfectly smooth [16]. Therefore, they are suitable for generating multiple good-ﬁtting reservoir models in high dimensional parameter space to assess forecast uncertainties.
+The use of a stochastic sampler means that we have to reconstruct the posterior probability density function from a limited number of irregularly spaced samples. We chose to use the NAB (NA-Bayes) algorithm described by Sambridge [21] which constructs a Voronoi mesh in parameter space, with the centre of each Voronoi cell being one of the sample points, and assumes that the posterior probability density is constant on each Voronoi cell. The NAB algorithm uses a Gibbs sampler to importance sample the posterior probability density, and so Eq. (8) becomes
+
+bJ
+
+¼
+
+1 N
+
+XN gðmkÞ;
+k¼1
+
+ð9Þ
+
+with the Gibbs sampler ensuring that h(mk) % P(mk).
+
+3. Neural networks for response surfaces
+
+It is important to be able to sample the misﬁt surface with adequate resolution, yet the number of simulations required increases exponentially with the dimension of the parameter space. There are a number of factors that mean that the task of quantifying uncertainty is less intractable than might ﬁrst appear from the demands of fully resolving the misﬁt surface. Key amongst them is that it is rare for commercial or technical decisions to depend sensitively on all the unknown parameters [6]. There are also a number of sampling techniques, including Genetic Algorithms [3,5], and the Neighbourhood Algorithm [20] which adapt their sampling to the structure of the misﬁt surface.
+However, generation of multiple history-matched models is still an extremely computationally expensive task using ﬁnite diﬀerence reservoir simulators. There are various ways to improve computational eﬃciency for uncertainty assessment. Streamline simulators [2] can be used to improve the speed of the forward runs, although it can be hard to quantify the errors introduced. Another approach is to use coarse simulation grids from upscaled models [26], where again an appropriate simulation error model must be used if reasonable results are expected. Alternative methods like experimental design can reduce the number of forward simulation run but have diﬃculties in exploring complex non-stationary misﬁt surface patterns.
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+149
+
+In this paper, we examine an alternative approach to increase computing eﬃciency (reduce numerical cost) without losing accuracy in uncertainty assessment. The key problem is to improve exploration of the parameter space and interpolation of the misﬁt surface without using numerous time consuming forward simulations. Given a limited initial number of sampled models we aim to estimate the misﬁt surface with high resolution using a data-driven interpolation algorithm. The rationale of this approach is to identify regions of poor ﬁt cheaply and save the expensive model runs for the good ﬁtting regions of parameter space. The NAB algorithm for posterior inference uses Voronoi interpolation of the misﬁt surface in the multi-dimensional parameter space. However, there are a number of potential problems associated with this approach, especially if the cost of the forward simulations means that the resolution is limited. In our case, we are using the NAB algorithm with commercial reservoir simulators, and the CPU time for each forward model is several orders of magnitude greater than the receiver function inversion problem for which NAB was developed and tested. This means that our interpolation surface will in general be coarsely resolved.
+The above problems motivate us to improve the present algorithm by combining it with an eﬃcient interpolation model to obtain an accurate misﬁt surface at relatively low computer cost. Such problems are often eﬀectively solved with machine learning (ML) algorithms. The Artiﬁcial Neural Network (ANN) is a machine learning algorithm which is well known and widely used in many ﬁelds. ANNs are data-driven – they depend only on the data and learn from them, thus do not assume any predeﬁned analytical or statistical dependence. ANNs are very eﬃcient at solving multi-dimensional interpolation problems, handling non-linearities and complex noisy data patterns. More details on ANNs can be found in [10].
+
+3.1. A brief recap of artiﬁcial neural networks
+
+Artiﬁcial Neural Networks were introduced in the 1960s as alternative data-driven learning models. Since then a broad ﬁeld of Machine Learning (ML) algorithms has been developed and now unites data-driven and related algorithms: neural networks, genetic algorithms, support vector machines, fuzzy logic, pattern recognition, wavelets and many others. Among the advantages of neural networks are their ability to ﬁt highly complex and non-linear data, from which the dependencies and patterns cannot be distinguished. They are also robust to outliers and noise in data. While neural networks are often described algorithmically, they can usefully be viewed as statistical models with parameters estimated from data [14]. Multi-layer perceptrons are well known types of neural networks. A basic multi-layer perceptron (MLP) structure is shown in Fig. 6. The functional form of the neural network is given by
+
+Xk yi ¼ b0 þ bjwðctj xiÞ þ i.
+j¼1
+
+ð10Þ
+
+The model inputs (xi) are passed to the hidden neurons which operate on linear combinations of the model inputs ðctjxiÞ. w is the sigmoidal shaped basis function, and bj are the nodal weights. The number of inputs depends on the number of parameters in the model. Hidden neurons can be arranged in one or two hidden
+
+Fig. 6. Basic MLP structure: 3 inputs, 6 neurons in a single hidden layer, and 1 output.
+
+150
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+Error
+
+Training error Test error Confidence term
+Learning process (iterations)
+Fig. 7. Risk minimization theory: training and test error dynamics whilst learning progress.
+layers and the hidden layer in general is responsible for modeling non-linearity. The output neurons correspond to the target functions that are being modelled. The output layer sums the signals from the hidden layer and delivers the ﬁnal prediction.
+Multi-layer perceptrons are trained using a supervised learning rule – the backpropagation algorithm. The backpropagation algorithm is an iterative algorithm designed to minimise the diﬀerence between the actual output of the neural network and the desired output. It calculates the error measure and updates the weights on all neurons. The recursive algorithm starts at the output neurons and works back to the ﬁrst hidden layer propagating the output errors backward (additional details can be found in [13,4]). One of the key tasks in ANN modelling is to select representative training and test data sets for the training procedure. Usually, the training set is used in MLP training (via back propagation) when the records from the data set are directly exposed to the MLP inputs and outputs. The test data set is used to control the quality of the training procedure. According to the general theory of risk minimization, both training and test error decrease initially once the training starts; the training error decreases gradually towards zero given an eﬃcient optimization algorithm, while the test error reaches its minimum and then goes up again (see Fig. 7 [13]). At this point MLP starts losing its ability to generalise – to predict accurately data diﬀerent from the training set, and such overlearning (or overﬁtting) should be avoided.
+4. Applications
+4.1. The IC Fault Model
+The IC Fault Model is an extremely simple three-parameter model set up by Carter [5] as a test example for automated history matching. It has proved extremely diﬃcult to history match, and one of the conclusions published in [5] has been that the best history-matched model (from 159,000 models) is of limited use as a predictor. The geological model consists of six layers of alternating high and low permeability sands (Fig. 8). The three high permeability layers have identical properties, and the three low permeability layers have a diﬀerent set of identical properties. The porosities of the high and low permeability layers are 0.30 and 0.15 respectively. The thickness of the layers has an arithmetic progression, with the top layer having a thickness of 12.5 ft., the bottom layer a thickness of 7.5 ft., and a total thickness of 60 ft. The width of the model is 1000 ft., with a simple fault in the middle. There is a water injector well at the left-hand edge, and a producer well on the right-hand edge. Both wells are completed on all layers, and operated at ﬁxed bottom hole pressures. The simulation model is 100 · 12 grid blocks, with each geological layer divided into two simulation layers with equal thickness, each grid block is 10 ft. wide. The well depth is 8325–8385 ft. The model has three unknown parameters for history matching: high and low permeability (khigh and klow) and the fault throw (h). Our prior model has uniform distribution with ranges: khigh 2 [100, 200], klow 2 [0, 50] and h 2 [0, 60]. The IC Fault Model study speciﬁed a point in the parameter space as the true parameter values: khigh = 131.6, klow = 1.3 and h = 10.4.
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+151
+
+Fig. 8. IC Fault Model (Z. Tavassoli, Jonathan N. Carter, and Peter R. King, Errors in history matching, SPE 86883, 2004).
+
+The misﬁt was deﬁned using a standard least squares model using the discrepancy between simulated and observed oil and water production rates for the 3-year history-matching period. The standard deviation is proportional to the observed data and is given by rp = 0.03 · obsp where p is the measured parameter (oil and water production rates in this case). The likelihood used was the same as the original IC Fault Model study, namely the exponential of the negative average misﬁt over times where the reservoir was producing, i.e. exp(ÀM) where
+
+M
+
+¼
+
+1 no
+
+X no
+i¼1
+
+ðobso À simoÞ2i 2r2o
+
+þ
+
+1 nw
+
+X nw
+i¼1
+
+ðobsw À simwÞ2i 2r2w
+
+.
+
+ð11Þ
+
+Oil rate squared discrepancies are summed over the history matching period, while the water rate squared discrepancies are summed over the interval from the start of water production to the end of the history matching period.
+
+4.2. Bayesian inference using direct simulation
+
+Since one of the conclusions of the original study [5] was that the maximum likelihood model had no predictive value, we examined the use of stochastic sampling and Bayesian inference to put uncertainty bounds around the maximum likelihood model. We used two stochastic algorithms to search parameter space for models that ﬁt the observed data well.
+The ﬁrst stochastic algorithm we used was a steady state Genetic Algorithm (GA) [3], which was the most eﬃcient GA for this particular problem. In a steady state GA a number of the best models in each generation are retained and passed on to the next generation step. This provides more stable optimization and saving in computational cost.
+In the IC Fault Model, ‘‘convergence’’ of our steady state GA was achieved after generating an ensemble of 6000 models. For this application, ‘‘convergence’’ means that the GA started sampling in a relatively narrow
+
+152
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+Reference Data base
+
+Converged GA6000
+
+NA
+
+100 200 300 400 500 600
+
+100 200 300 400 500 600
+
+100 200 300 400 500 600
+
+Oil rate
+
+Oil rate
+
+Oil rate
+
+0
+
+P90 P50 P10 Truth case
+
+0
+
+P90 P50 P10 Truth case
+
+0
+
+P90 P50 P10 Truth case
+
+0 500 1000 Time (days)
+
+0 500 1000 Time (days)
+
+0 500 1000 Time (days)
+
+Fig. 9. Uncertain inference from GA and NA sampling algorithms for IC Fault Model.
+
+range of parameter space. This ensemble retained only 328 relatively likely models (due to the nature of steady state GA) from the 6000 samples. The high misﬁt models are discarded as the algorithm evolves the population.
+We also used the Neighbourhood Algorithm [20], which works by approximating the misﬁt surface in high dimensions by constant values in a set of Voronoi cells around each sample location and then selectively reﬁning the low misﬁt locations.
+We then used the NAB code [21] described in Section 2.2 to determine the p10, p50, p90 values for the oil and water rate time series. At each point in time, there is an 80% probability that the true value of oil or water production rate lies between the p10, p90 bands shown. We compared these with inference from the full 159,000 models in the IC Fault Model database provided by Carter, and the results are shown in Fig. 9. We are able to accurately capture the uncertainty bounds with a relatively low number of samples using a choice of stochastic sampling algorithms.
+4.3. Use of MLP to predict misﬁt surface
+We examined three ways to use an MLP to estimate the misﬁt for given model parameters. The ﬁrst way is to use the MLP directly for misﬁt prediction. In this case the MLP structure is simple, with only a single output neuron, and requires less training. The second and third ways obtain MLP predictions of production variables (oil and water production rates) and evaluate the misﬁt based on their estimated values rather than the exact rates from the reservoir simulator.
+In general, the compute time required to generate an ensemble of models with adequate resolution of areas of high probability is high. This observation motivates our use of MLP interpolation based on models generated early in the sampling process. We used the 246 low misﬁt models from the ﬁrst 2000 model generation steps in the GA run (one third of the total run time) to predict the misﬁt surface with increased resolution.
+4.3.1. Direct prediction of misﬁt In order to make direct predictions of the misﬁt, we created an MLP with 3 inputs (corresponding to the 3
+model parameters) and 1 output (corresponding to the misﬁt). The data was initially split into training and test
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+153
+
+sets. This separation was performed by imposing a 3 · 3 · 3 · 3 grid in the four-dimensional space formed by the three parameter values and the misﬁt. A number of points (184) were then sampled at random in each grid cell to select the training set, with the remainder (62) forming the test set.
+The number of hidden neurons was chosen to give good predictions of misﬁt without overﬁtting the available data. We chose an MLP structure with 50 neurons in a single hidden layer, providing 200 connections in the MLP (between 3 input, 50 hidden and 1 output neurons). Given 184 training samples with 3 input data points for each sample (552 values) this provides approximately 3 misﬁt values per MLP connection. This ratio is justiﬁed due to the expected complexity of misﬁt surface. Slight variations in the number of hidden neurons make no signiﬁcant diﬀerences to the estimated misﬁt values. The size of the training dataset should be larger than the number of the MLP connections(degrees of freedom), otherwise the network would not be able to train but just reproduce the given values. If there are too few connections, the MLP will be unable to represent complex structures in data. The training of the MLP was performed in two steps: ﬁrst, simulated annealing was used to ﬁnd stochastically optimal starting weights for the second step: Levenberg–Marquardt gradient optimization [15]. The data were scaled to [0.01, 0.99] interval and the misﬁt values were additionally log-transformed to mitigate the inﬂuence of extremely high values. According to the usual practice, the root mean square error (RMSE) was taken as the training evaluation criterion. This choice prevents overlearning when the MLP becomes able to reproduce only the training data and loses its ability to generalise (predict independent test data). The trained MLP was used to ﬁnd additional locations with low misﬁts. After this procedure the model ensemble was enlarged by 923 models with MLP estimated misﬁts, which were added to the initial 246 survived models to make more representative ensemble for the inference stage.
+
+4.3.2. Estimation of misﬁt using MLP prediction of production time series The second way we used an MLP to compute the misﬁt estimates was to predict a time series of the pro-
+duction variables and then use these to evaluate the misﬁt value. MLP can be used successfully for temporal predictions. However, the MLP structure becomes more complicated as we need to take into account the additional time variable. Time can be incorporated into the MLP structure as an additional input parameter along with the model parameters (perm levels and the throw). Two production history variables (oil and water rates) become MLP outputs. In this case such MLP is trained based on the simulated production history (at 38 time steps) for all GA generated models (246). Thus the training data ensemble is quite large over 9000 records (which were split into 7703 training and 1401 test sets). An MLP with 50 hidden neurons in a single layer was trained for a signiﬁcantly longer time than the MLP for direct misﬁt predictions.
+There are several problems with MLP modelling of the time series of oil and water rates. A set of rates for diﬀerent times are combined and presented to the MLP model which treats time as simply another parameter similar to the geomodel parameters (permeability, throw). Hence, the MLP does not implicitly recognise the eﬀects of causality in the data. Another important draw back of this approach is a lack of physical meaning of the predicted variables. Thus, for instance, water production should be constrained to be positive, and linked to oil rate after breakthrough.
+
+4.3.3. Generalised linear model for misﬁt prediction The ﬁnal approach we considered for modelling the production history time series to calculate the misﬁt
+was to use a generalised linear model (GLM). In the IC Fault case study the production proﬁles for oil and water rates are relatively simple and can be approximated by a combination of simple analytical functions to produce physically more realistic production curves.
+The GLM for oil rate was
+
+qoðtÞ ¼ a1 logðtÞ þ b1t þ c1 t < t1;
+
+qoðtÞ ¼ a2 t1 < t < t2;
+
+ð12Þ
+
+qoðtÞ ¼ a3t þ b3 t > t2;
+
+with the parameters estimated by the MLP being (a1, a2, a3, b1, b3, c1, t1). The history period starts 1 month after the start of production, so there is no problem with the log(t) term in Eq. (12).
+
+154
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+Fig. 10. Time series and GLM predictions of water rate compared with direct simulation.
+
+200
+
+150
+
+100
+
+MLP estimated misfit
+
+●
+
+● ●
+
+●
+
+●●
+
+● ●
+
+●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●●
+
+●●●●●● ● ●●
+●
+
+●
+
+●
+
+●
+
+● ●
+
+●
+
+Direct MLP misfit estimate
+
+● GLM/MLP misfit estimate
+
+50
+
+0
+
+0
+
+50
+
+100
+
+150
+
+200
+
+Exact misfit
+
+Fig. 11. Scatterplot of direct misﬁt estimation and GLM estimation against exact misﬁt.
+
+The water rate GLM was
+
+qwðtÞ ¼ 0 t < t2; qwðtÞ ¼ at2 þ bt þ c t > t2.
+
+ð13Þ
+
+This provides us with 10 parameters for explicit reproduction of the oil and water rate curves. These parameter values are obtained from ﬁtting GLMs to the production data for available from the forward simulations carried out for a limited number of models. Hence, for 246 sets of khigh, klow, h there are 246 corresponding sets of 10 parameters, which represent the simulated production for the models. Then, we can build and train an MLP neural network to predict the GLM coeﬃcients for any combination of the geomodel parameters. In this study, we used separate MLPs for oil and water rates with the same 3 inputs. The MLP for oil rate has 7 outputs (a1, b1, c1, t1, a2, a3, b3) and 40 hidden neurons. The MLP for water rate has 3 (a, b, c) outputs and 20 hidden neurons. The water break through time t2 is common to both models and is derived from the water rate GLM prediction when qw(t2) = 0. Both MLPs were trained using 246 data records as described above. The MLP for water rate is smaller and took less training time than the oil rate MLP. A comparison of
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+155
+
+Fig. 12. Comparison of misﬁt predictions with exact misﬁt for 3 MLP methods.
+
+Oil rate 0 100 200 300 400 500 600
+Oil rate 0 100 200 300 400 500 600
+Oil rate 0 100 200 300 400 500 600
+
+Fig. 13. Misﬁt surface for coarsely sampled surface plus MLP extended sampling.
+
+GA 2000 ensemble
+
+MLP
+
+GLM/MLP
+
+P90 P50 P10 Truth case
+
+P90 P50 P10 Truth case
+
+P90 P50 P10 Truth case
+
+0 500 1000 Time (days)
+
+0 500 1000 Time (days)
+
+0 500 1000 Time (days)
+
+Fig. 14. MLP predictions of oil production for ensemble of GA models.
+
+156
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+1.0
+
+0.8
+
+0.6
+
+P quantiles FOPR with MLP estimates
+
+0.4
+
+0.2
+
+0.0
+
+0.0
+
+0.2
+
+0.4
+
+0.6
+
+0.8
+
+1.0
+
+P quantiles FOPR with GA 6000 runs
+
+Fig. 15. Calibration curve of oil rate probability at the end of the history match period.
+
+the water rate predictions for direct simulation, the time series approach, and the GLM approach is shown in Fig. 10, which shows that the shape of the curves generated by the GLM follow those from direct simulation much more closely than the time-series approach.
+Once the GLM coeﬃcients can be determined for any model in the parameter space, the relevant misﬁt is computed for the GLM estimated production. The estimated misﬁts are compared with the exact ones for the direct MLP estimation method and estimation using MLP predicted coeﬃcients for GLM production model (see Fig. 11) The direct MLP misﬁt estimates feature better correlation, while the ones using GLM suﬀer from a positive bias (although the least squares criterion used to ﬁt the model is unbiased, we are looking at a small part of the ﬁtting region, namely the low misiﬁt models, in this ﬁgure). This causes overestimation of the misﬁt surface in general, though some relative features of the local misﬁt surface minima are in common for both methods. A comparison of the methods along a cross section through the misﬁt surface near the true solution is shown in Fig. 12.
+4.4. Inference with MLP predictions
+We compared our predictions of uncertainty in oil and water rates using the MLP with those obtained from exact simulation of the ﬂow equations shown in Fig. 9. To predict the conﬁdence intervals, we used NAB resampling to generate the posterior probabilities. We compared the results using the initial GA ensemble with 2000 (246 low misﬁt) models; the extended GA ensemble of 6000 (328 low misﬁt) models, and the ensemble with an additional 969 models estimated using the MLP trained to estimate misﬁt directly. The additional sampling is shown in Fig. 13, which plots the sampled points projected onto a 2D Voronoi diagram. The increased resolution provided by both the direct estimation of misﬁt and calculation using a GLM can clearly be seen.
+The results of the Bayesian inference using these extended misﬁt surfaces are presented as p50 production prediction curves bounded by p10, p90 conﬁdence intervals. The truth case results are also shown. Fig. 14 shows that the conﬁdence interval based on a limited ensemble of models generated by the initial 2000 GA model runs is unrealistically narrow compared with the one based on the extended GA ensemble of 6000 or the full ensemble shown in Fig. 9. The conﬁdence intervals from the GLM are wider than those predicted from direct estimation of misﬁt, and overestimate the uncertainty.
+The best results are those obtained with direct estimation of misﬁt using the MLP. These results demonstrate good agreement with the extended GA sampling, matching the p50 prediction and providing a realistic
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+157
+
+range of uncertainty given by the p10, p90 interval. The good agreement is also illustrated by the calibration curve shown in Fig. 15. In Fig. 15 the cumulative probability of the oil production at time step day 1095 (end of history match period) is plotted the cumulative probability obtained from the MLP predictions. The result shows excellent agreement (almost straight line) up to the 50% percentile, and reasonable agreement for higher probabilities.
+
+5. Conclusions
+
+In many aspects of engineering design, we are faced with the task of quantifying the uncertainty in a prediction for cases in which the simulations needed are very time consuming to run. Predictions of ﬂuid ﬂows in oil reservoirs is an example of such a system.
+In this paper, we have examined the use of a surrogate system, namely a neural network, to improve the eﬃciency of our sampling of parameter space. Our goal is to seek model parameter values that match observed system responses and to make inferences about system performance using all parameter values with an acceptable degree of match.
+Our approach is to use a stochastic sampling algorithm to make an initial exploration of parameter space. We use the misﬁt values from this initial exploration to train a neural network. We then use this neural network to guide our sampling, biasing our sampling to regions of good ﬁt. Note that we must still continue some sampling in regions where the neural network says that the ﬁt will be bad if we wish to ensure that we can ﬁnd regions of good ﬁt that have been missed in the initial exploration of parameter space.
+The approach was demonstrated on a simple three parameter sampling problem that had proved a diﬃcult problem in previous studies. By using the neural network to guide sampling within the context of a stochastic search algorithm, and running the expensive forward model principally in regions of good ﬁt, we are able to easily generated a signiﬁcant number of models that match history well. If these models are then used in a Bayesian inference step, a good forecast of uncertainty is obtained, comparable with the uncertainty envelope generated with two orders of magnitude additional simulations in the original study.
+The best results were obtained using direct prediction of misﬁt with a trained multi-layer perceptron. This method provided an estimate of uncertainty that was very close to the estimate provide using a steady state genetic algorithm which involved a signiﬁcantly higher number of forward model evaluations.
+
+Acknowledgements
+
+Funding for this work was provided by UK Engineering and Physical Sciences Research Council (GR/ T24838/01) and by the industrial sponsors of the Heriot-Watt Uncertainty Project. We also thank Jonathan Carter of Imperial College, UK, for making available the IC Fault Model input data and results database, Malcolm Sambridge of ANU for many helpful discussions, and Schlumberger-Geoquest for providing access to the ECLIPSE reservoir simulator.
+
+References
+
+[1] J.S. Archer, C.G. Wall, Petroleum Engineering: Principles and Practice, Kluwer Academic Publishers, 1986. [2] R.P. Batycky, M.J. Blunt, M.R. Thiele, A 3D ﬁeld-scale streamline based reservoir simulator, SPE Reserv. Eval. Eng. 4 (1997) 246–
+254. [3] P.J. Bentley, Evolutionary Design by Computers, Morgan Kaufmann, 1999. [4] C.M. Bishop, Neural Networks for Pattern Recognition, Oxford University Press, 1995. [5] J.N. Carter, P.J. Ballester, Z. Tavassoli, P.R. King, Our calibrated model has no predictive value: An example from the petroleum
+industry, in: Proceedings of the Fourth International Conference on Sensitivity Analysis, 2004. [6] M.A. Christie, J. Glimm, J.W. Grove, D.M. Higdon, D.H. Sharp, M.M. Wood-Schultz, Error analysis and simulations of complex
+phenomena, Los Alamos Sci. 29 (2005) 6–25. [7] F.J.T. Floris, M.D. Bush, M. Cuypers, F. Roggero, A.-R. Syversveen, Methods for quantifying the uncertainty of production
+forecasts: a comparative study, Petrol. Geosci. 7 (2001) S87–S96. [8] J. Glimm, D.H. Sharp, Prediction and the quantiﬁcation of uncertainty, Physica D (1999). [9] B. Guyaguler, R.N. Horne, L. Rogers, J.J. Rosenzweig, Optimization of well placement in a Gulf of Mexico Waterﬂooding Project,
+Society of Petroleum Engineers Preprint, 78266, 2002.
+
+158
+
+M. Christie et al. / Journal of Computational Physics 217 (2006) 143–158
+
+[10] S. Haykin, Neural networks. A comprehensive foundation, Macmillan College Publishing Company, New York, 1999. [11] E.R. Jaﬀery, Design applications of genetic algorithms, Society of Petroleum Engineers Preprint, 26367, 1993. [12] E.T. Jaynes, Probability Theory: The Logic of Science, Cambridge University Press, 2003. [13] M. Kanevski, M. Maignan, Analysis and Modelling of Spatial Environmental Data, EPFL Press, 2004. [14] H.K.H. Lee, Bayesian Nonparametrics via Neural Networks, ASA-SIAM, Philadelphia, 2004. [15] T. Masters, Practical Neural Network Recipes in C++, Academic Press, 1993. [16] M. Mitchell, An Introduction to Genetic Algorithms, MIT Press, Cambridge, 1996. [17] A. O’Sullivan, M.A. Christie, Error models for reducing history match bias, Comput. Geosci. 9 (2) (2005). [18] T.N. Palmer, Predicting uncertainty in forecasts of weather and climate, Rep. Prog. Phys. 63 (2000) 71–116. [19] C.E. Romero, J.N. Carter, A.C. Gringarten, R.W. Zimmerman, A modiﬁed genetic algorithm for reservoir characterisation, Society
+of Petroleum Engineers Preprint, 64765, 2000. [20] M. Sambridge, Geophysical inversion with a neighbourhood algorithm – 1. Searching a parameter space, Geophys. J. Int. (138) (1999)
+479–494. [21] M. Sambridge, Geophysical inversion with a neighbourhood algorithm – II. Appraising the ensemble, Geophys. J. Int. (138) (1999)
+727–745. [22] R.W. Schulze-Riegert, J.K. Axmann, O. Haase, D.T. Rian, Y.-L. You, Evolutionary algorithms applied to history matching of
+complex reservoirs, Society of Petroleum Engineers Preprint, 77301, 2002. [23] M.K. Sen, D.G. Akhil, P.L. Stoﬀa, L.W. Lake, G.A. Pope, Stochastic reservoir modeling using simulated annealing and genetic
+algorithm, Society of Petroleum Engineers Preprint, 24754, 1995. [24] D.S. Sivia, Data Analysis – A Bayesian Tutorial, Clarendon Press, Oxford, 1996. [25] A. Tarantola, Inverse Problem Theory, Methods for Data Fitting and Model Parameter Estimation, Elsevier Science Publishers,
+Amsterdam, 1987. [26] O.I. Tureyen, J. Caers, A parallel multiscale approach to reservoir modelling, Comput. Geosci. 9 (2) (2005).
+

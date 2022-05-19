@@ -1,0 +1,1805 @@
+See discussions, stats, and author profiles for this publication at: https://www.researchgate.net/publication/328198985
+Robust Information Divergences for Model-Form Uncertainty Arising from Sparse Data in Random PDE
+Article · October 2018
+DOI: 10.1137/17M1143344
+
+CITATIONS
+2
+2 authors: Eric Joseph Hall RWTH Aachen University 14 PUBLICATIONS 32 CITATIONS
+SEE PROFILE
+
+READS
+68
+Markos A. Katsoulakis University of Massachusetts Amherst 128 PUBLICATIONS 2,634 CITATIONS
+SEE PROFILE
+
+Some of the authors of this publication are also working on these related projects: Error estimates for FEMs for random PDE with rough data View project From Atomistic to Systematic Coarse-grained Models for Molecular Systems View project
+
+All content following this page was uploaded by Eric Joseph Hall on 10 October 2018.
+The user has requested enhancement of the downloaded file.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+SIAM/ASA J. UNCERTAINTY QUANTIFICATION Vol. 6, No. 4, pp. 1364--1394
+
+\bicgcirc 2018 Society for Industrial and Applied Mathematics and American Statistical Association
+
+Robust Information Divergences for Model-Form Uncertainty Arising from Sparse Data in Random PDE\ast 
+\sansE \sansr \sansi \sansc  \sansJ \sanso \sans \sanse \sansp \sansh  \sansH \sansa \sansl \sansl \dager  and \sansM \sansa \sansr \sansk \sanso \sans  \sansA . \sansK \sansa \sanst \sans \sanso \sansu \sansl \sansa \sansk \sansi \sans \dager 
+
+Abstract. We develop a novel application of hybrid information divergences to analyze uncertainty in steadystate subsurface flow problems. These hybrid information divergences are nonintrusive, goal-oriented uncertainty quantification tools that enable robust, data-informed predictions in support of critical decision tasks such as regulatory assessment and risk management. We study the propagation of model-form or epistemic uncertainty with numerical experiments that demonstrate uncertainty quantification bounds for (i) parametric sensitivity analysis and (ii) model misspecification due to sparse data. Further, we make connections between the hybrid information divergences and certain concentration inequalities that can be leveraged for efficient computing and account for any available data through suitable statistical quantities.
+Key words. uncertainty quantification, epistemic, sparse data, data-informed, information divergence, concentration inequalities, sensitivity analysis, model misspecification, random PDE, steady-state flow
+AMS subject classifications. 65C50, 60H35, 94A17
+DOI. 10.1137/17M1143344
+1. Introduction.
+1.1. Context and objectives. Stochastic modeling of complex systems involves a multilayered process where various sources of uncertainty are accounted for at different stages. In a goal-oriented framework, the ultimate focus of the model is to estimate a quantity of interest (QoI) that depends on model outputs in order to make predictions in support of risk management, regulatory assessment, performance optimization, safety or reliability engineering, and other critical decision tasks [46, 11]. Since model outputs can be sensitive to distributional assumptions made throughout this process, the analysis of uncertainty in a QoI is essential. Additionally, applications in physically relevant settings often pose challenges not present in the conceptual formulation that demand incorporating data into the modeling process. The modeling of complex systems in physically relevant settings, therefore, requires goal-oriented uncertainty quantification (UQ) tools that allow one to distinguish sources of uncertainty present in the system with a view toward making robust, data-informed predictions.
+In the present work, we consider the modeling of steady-state subsurface flow, a complex system depicted in Figure 1 that has important applications in hydrology, carbon sequestration, and petroleum engineering [2, 25, 1, 16]. The core mathematical problem involves
+\ast Received by the editors August 14, 2017; accepted for publication (in revised form) August 13, 2018; published electronically October 9, 2018.
+http://www.siam.org/journals/juq/6-4/M114334.html Funding: This research was supported by the Office of Advanced Scientific Computing Research, U.S. Department of Energy, under contract DE-SC0010723. \dager Department of Mathematics \& Statistics, University of Massachusetts Amherst, Amherst, MA 01003 (hall@math.umass.edu, markos@math.umass.edu).
+1364
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+SUBSURFACE FLOW SYSTEM
+
+INPUTS geostatistical model
+(conductivity, initial data)
+
+SOLVER/SIMULATOR random PDE model
+(FEM, error estimates)
+
+OUTPUTS quantity of interest
+(ensemble of FEM solutions)
+
+1365
+
+DATA
+
+FURTHER SYSTEM ANALYSIS ◦ sensitivity analysis ◦ model calibration ◦ model reduction ◦ model selection
+FURTHER DATA EXPLORATION ◦ experimental design ◦ data collection ◦ data assimilation
+
+Analysis
+
+No
+
+satisﬁes
+
+require-
+
+ments?
+
+DECISION MAKERS
+
+Yes
+
+ANALYSIS COMPLETE
+
+Figure 1. The modeling of steady-state subsurface flow in physically relevant settings demands goal-oriented UQ tools that allow one to distinguish different sources of uncertainty present in the system with a view toward making robust, data-informed predictions in support of decision tasks (adapted from [46]). A key challenge concerning the propagation of epistemic uncertainty from inputs to outputs is examined in detail in Figure 2.
+
+a random partial differential equation (PDE) of elliptic type that describes the physics of steady-state flow. The stochastic coefficient in the PDE represents a conductivity field given by a geostatistical model with properties inferred from relevant data. Robust predictions for a QoI, and in particular techniques for quantifying the propagation uncertainty from the geostatistical model, are critical to inform decision tasks. However, in physically relevant settings the complexity of subsurface porosity and the sparsity of available data pose a number of challenges.
+We seek to address some of these challenges using techniques from applied probability. Information divergences, the primary tool that we will employ, have been successfully applied to problems in stochastic dynamics [11, 21, 34, 31]. Based on the Donsker--Varadhan variational principle [20], information divergences provide goal-oriented UQ bounds that first appeared in [11] and have since undergone various extensions and further analysis [42, 4, 38]. However, the application of information divergences to complex real-world systems, for example, systems containing multiple scales, multiple levels of fidelity, and multiple sources and types of uncertainty, have only been shallowly explored. The multifaceted nature of the modeling task for our problem of interest requires a formulation that distinguishes multiple sources of uncertainty to which we attach varying levels of confidence while also considering computational challenges to practical implementation. Further, we wish to incorporate data into this process
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1366
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+in a systematic manner that complements existing inference procedures, and we provide new perspectives on the hybrid information divergences that enable data-informed predictions.
+For our system of interest, we develop a novel application of hybrid information divergences to study the propagation of model-form uncertainty related to the inputs of the goal-oriented framework in Figure 1. Model-form or epistemic uncertainty [35, 36, 52, 26, 37, 48, 49] in this context expresses ignorance in the nature of the geostatistical model due to the sparsity of available data arising, for example, from lacking priors, incomplete information, and missing science. This uncertainty represents a modeling error that we evaluate as the weak error between a QoI obtained from a nominal and an alternative geostatistical model for the inputs. These hybrid information divergences build on traditional UQ by enabling bounds across model predictions that would otherwise be computationally expensive using standard techniques, e.g., Monte Carlo (MC) or generalized polynomial chaos (gPC) expansions.
+Importantly, the hybrid nature of the information divergences employed here allows us to represent, aggregate, and distinguish various sources of uncertainty by treating distinct sources under performance measures that allow us to attach varying levels of confidence to different parts of the model. These hybrid divergences have the form of a relative entropy penalized by a risk-sensitive hybrid performance measure, similar in flavor to the Gibbs variational formula in statistical mechanics [23], that strikes a balance between data-dependent quantities (relative entropy) and physics-dependent quantities (risk-sensitive performance measures, i.e., cumulant generating functions that depend on the output of the forward model). On the one hand, these bounds are robust in that for a fixed nominal model they bound all alternative models within a given information budget. On the other hand, these bounds are tight in that there exists an alternative model within a given information budget for which the bounds are attained as equality [4, 32]. We mention that this information budget, when viewed as an allowable level of model-form uncertainty, is philosophically similar to the privacy level introduced in the context of R\e'nyi divergence in a model for differential privacy [19]. Numerical experiments are included here to demonstrate the application of this theory for (i) a straightforward UQ task in section 3 concerning parametric sensitivity analysis and (ii) a more exploratory UQ task in section 4 featuring bounds for model misspecification due to sparse data that are not captured by small parametric perturbations.
+Although a mathematically rigorous hybrid modeling framework was first introduced in [11], with variations in [41], here we explore the application of hybrid goal-oriented divergences to stochastic models of complex systems involving random PDE and also provide new insights on uncertainty arising from data while providing a new perspective on the information divergences as data-informed UQ bounds. In particular, we apply hybrid information divergences to complex systems where the forward modeling involves random PDE where the random field is inferred from real-world data and gPC cannot be used due to log-normality [24]. We explore how the hybrid information divergences quantify model-form uncertainty while also providing a perspective linking model-form uncertainty to sparse data. This brings new insights on the use of information divergence for predictive modeling with data by studying how changes to data result in alternative models that are not small perturbations of the nominal model. Further, we explore connections with certain well-known concentration inequalities [17] that can be leveraged for efficient computing; this latter approach was recently introduced and applied to model problems in [32], and we extend these ideas here to models for complex sys-
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1367
+
+tems involving random PDE where the stochastic fields are infinite dimensional and inferred from real-world data. The concentration inequalities yield nonintrusive upper and lower UQ bounds that involve statistical quantities more easily computed than the cumulant generating functions in earlier works on information divergences.
+The hybrid divergences presented here provide a UQ framework that is well suited to the particular application of interest for a number of reasons. First, hybrid information divergences provide a natural way of representing and distinguishing various sources of uncertainty arising in the distinct layers of the modeling process for complex systems that complement existing inference procedures while allowing us to attach varying levels of confidence in different components of our model. Second, the structure of the hybrid divergences allows UQ computations to be carried out nonintrusively by interfacing with existing simulation and sampling methods for the random PDE such as the popular MC finite element method (FEM). Third, the hybrid information divergences encapsulate ``worst-case"" scenarios within a rigorous formulation similar to a robust optimization perspective [6], making them appropriate deliverables in the context of decision support. In the remainder of this section, we formulate the model problem and some of the main UQ challenges that motivate our approach.
+1.2. Formulation of the model problem. Presently we detail the main layers comprising the subsurface flow system in Figure 1, each in turn.
+1.2.1. Random PDE model. For a given probability space (\Omega , \scrF , P ), we consider the random PDE in the unknown u,
+
+(1)
+
+ -  \nabla  \cdot  (a(\omega , x)\nabla u(\omega , x)) = f (x) for x \in  \Gama  \subset  Rd,
+
+subject to u = u0 on \partial\Gama , with given data u0, source term f : \Gama  \rightar R, and stochastic conductivity a : \Omega  \times  \Gama  \rightar R. Arising from Darcy's law with continuity, (1) is a model for steady-state flow or diffusion. In subsurface hydrology, problem (1) models time-independent groundwater flow where u might represent a water head (pressure) or the concentration of a containment [2, 16]. The existence of a unique pathwise variational solution u to (1) follows by assuming sufficiently regular data and boundedness of the conductivity [9]. For simplicity of presentation we consider the steady-state system (1); however, the theory that follows can be applied to other forward models for subsurface flow and/or transport such as (reaction-)advection-dispersion equations [55, 2].
+In what follows we consider the standard, continuous piecewise-linear FEM approximation u\=(\omega ) \aprox  u(\omega ) of the pathwise variational solution of (1) and then sample QoIs via an MC method. This approach is favored for the application of interest since the finite element solution z = (u\=n) is a possibly high dimensional random vector due to the low regularity of the conductivity field. A discrete projection of the conductivity field y = (a\=n) \aprox  a(\omega ) is then used when forming the stiffness matrix in the FEM solver. Other approaches, such as the stochastic Galerkin [44] and stochastic collocation [5] methods, are typically advantageous when the conductivity possesses more regularity; being nonintrusive, our approach is also applicable using these methods. Regarding the analysis of FEM errors, a priori estimates are available in [10], and computable goal-oriented estimates for problems with rough stochastic conductivities are in [33].
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1368
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+1.2.2. QoIs. The goal of problem (1) is to estimate a QoI,
+
+\int  EP [g(u)] = g(u(\omega , x))dP,
+\Omega 
+for a given goal functional g in support of a decision task. The numerical experiments in this work focus on goal functionals that yield statistics of point estimates, g(u) = u(x), and indicator goal functionals, g(u) = 1A, that correspond to failure probabilities,
+
+(2)
+
+EP [1A] = P (A) ,
+
+for events A \subset  \Omega  such as A := \{ \omega  : u(\omega , x0) > k\} , the event that the solution at x0 \in  \Gama  exceeds a threshold k. In this instance, QoIs might involve solving the steady-state system (1) for contaminant concentrations and hydraulic heads or fluxes (e.g., heads u(x), fluxes q(x) :=  - a(x)\nabla u(x)) to predict QoIs or forecast future conditions [2]. QoIs such as failure probabilities, for example, the probability of a contaminant exceeding a threshold or a contaminant plume reaching a specified zone, would then factor into larger probabilistic risk assessment, i.e., concerning contamination of groundwater, that would represent perhaps one system fault or route to failure [55]. A QoI that is meant to provide a quantitative description of the system can be highly sensitive to distributional assumptions on the underlying geostatistical model. This poses a key challenge for the support of decision tasks and highlights the importance of understanding the propagation of modeling error due to the geostatistical model in order to quantify uncertainty in a QoI.
+1.2.3. Geostatistical model. Subsurface materials are observed to be heterogeneous over each of the problem scales related to experimental measurements [15]. In applications to physically relevant settings, fully resolving a model for a requires more data than is possible to acquire. Uncertainty in the problem data is subsequently captured through a geostatistical model for a that typically takes the form of a log-normal random field that possesses low regularity. Such a field is characterized by its mean, \mu (x) = E[log a(x)], and covariance,
+
+C(x, x\~) = Cov[log a(x), log a(x\~)], for x, x\~ \in  \Gama .
+These quantities describe the spatial structure in terms of statistics between different locations and are nontrivial to model for heterogeneous media. In applications, these quantities are typically further assumed to have a parametric form where the hyperparameters that describe \mu  and C are representative of physical properties that can theoretically be measured using relevant data. Inference procedures for the hyperparameters range from classical geostatistical methods, which rely on fitting variograms using likelihoods or moments, to more advanced Bayesian methodologies [27]. For applications in physically relevant settings, the complex physics of subsurface porosity results in sparse data that diminishes our confidence in the form of the geostatistical model. In the next section, we further motivate and formulate these challenges.
+1.3. UQ challenges. The rough log-normal random fields that are typically used to capture the heterogeneity of subsurface materials produce computational challenges at the level
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1369
+
+of the solver and when analyzing model outputs (Figure 1). For example, gPC methods exhibit slow convergence due to the log-normality [24]. As noted in [13], the correlation lengths involved in the geostatistical model are typically short with respect to the problem domain; hence stochastic Galerkin methods yield high dimensional QoIs, but still too large to guarantee a separation of scales, an obstacle to stochastic homogenization techniques. In addition, the complex physics also affects the acquisition and reliability of data.
+The data used to identify the salient features of the geostatistical model are typically sparse due to costs arising from a number of confounding factors. In this context, data may come from either empirical or experimental measurements collected by domain scientists at different scales of the problem. Then, relevant data, for instance, the permeability field, needs to be assimilated and inferred from these measurements. For example, a geostatistical model for the conductivity might be based on empirical porosity and water retention measurements from a controlled laboratory experiment in combination with variogram fitting methods [22] or on hydraulic head measurements from in situ field tests in combination with a Bayesian inverse problem [45]. In both cases, the geostatistical model is determined from data whose availability is limited and whose reliability should be questioned. The combination of these factors influences our confidence in the form of the geostatistical model.
+Therefore, we view the geostatistical model as a source of model-form or epistemic uncertainty. Although theoretically reducible, eliminating epistemic uncertainty entirely for subsurface flow is not feasible due to the prohibitive cost of collecting sufficient data. Additionally, the physical system has other sources of randomness such as aleatoric uncertainty, or variability, in the model inputs, solver, and outputs and may have independent sources of epistemic uncertainty that arise in each of these layers. All of this randomness propagates to the QoI and influences the decision task. A less refined approach, in contrast to the one considered here, is to assume that epistemic uncertainty can be modeled by aleatoric uncertainty, which is typically the case in a standard MC approximation when one assumes that a distribution for each uncertain aspect of the system exists [46, 11].
+The main UQ challenges postulated above are summarized as follows: \circ  represent and distinguish various sources of uncertainty in the system; \circ  propagate model-form uncertainty; \circ  inform decision tasks through robust data-informed deliverables; \circ  quantify the impact of sparse data on predictions in a goal-oriented framework; and \circ  analyze heterogeneity of subsurface physics. The final challenge point, related to the solver layer of Figure 1, leads to considerations that impact the random PDE model, such as UQ for multiphase flows, and are beyond the scope of the present work. The focus of the present work is instead toward addressing the first four challenge points, which have important implications for the inputs, outputs, further analysis, and data layers of the model in Figure 1. In particular, we address the propagation of modelform uncertainty by employing hybrid representations of information divergences, introduced in the next section, that allow us to represent and distinguish various sources of randomness.
+2. Hybrid information divergences and model-form uncertainty.
+2.1. Propagation of model-form uncertainty. A key challenge addressed in this work concerns the propagation of model-form uncertainty within the goal-oriented framework in
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1370
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+INPUTS
+
+OUTPUTS
+
+Nominal γ(dy)
+Alternative λ(dy) epistemic
+Geostatistical Model
+
+SOLVER/SIMULATOR ν(dz | y) aleatoric
+Random PDE/FEM Solver
+
+Eγ⊗ν [h] = EP [g(u¯)]
+Eλ⊗ν [h] = EQ[g(u¯)] statistic
+Quantity of Interest
+
+Figure 2. Detail of the dashed box in Figure 1 that demonstrates model-form uncertainty in the geostatistical model propagating through the random PDE solver, with distribution (5), to a QoI. The propagation is controlled by the weak error (3) between a QoI evaluated under a nominal and alternative model with distributions (4).
+
+Figure 1. We view the propagation of model-form uncertainty as a modeling error or model bias,
+
+(3)
+
+\scrE (Q, P ; g(u\=)) := EQ[g(u\=)]  -  EP [g(u\=)],
+
+the weak error between a QoI evaluated under a nominal measure P and an alternative measure Q. We do not give a method for choosing the nominal model P or the alternative model Q, but only a method for reasoning quantitatively about the effect that different modeling choices will have on decision support. In this context we view the nominal model P as a computationally tractable model or surrogate presently being used to inform decision tasks; in subsurface flow, the nominal model would be derived from the conceptual model chosen by a geoscientist that summarizes what is known about the hydrogeological system [2, 55]. Respectively, the alternative model Q can be viewed either as a fine scale model that is not computationally tractable (for instance, P as a coarse-grained model for Q) or, in view of sparse data, as another surrogate that is also plausible (Q is equally as plausible as the nominal model P ). In either case, the weak error (3) suggests how different modeling choices impact model predictions of the QoI. We seek representations for P and Q that will allow us to track the propagation of uncertainty from model inputs to outputs as illustrated in Figure 2. We observe that although the propagation of model-form uncertainty is controlled by (3), quantifying the propagation directly using (3) will be computationally infeasible (cf. Corollary 2.3 below).
+As the conductivity field a is a source of epistemic uncertainty, the distribution of y = (a\=n) is not known, and it will be of natural interest to study the propagation of this source of uncertainty in particular and to compare the effects of different solver inputs as suggested in Figure 2. To this end, we consider
+
+(4)
+
+nominal y \sim  \gama  or alternative y \sim  \lambda 
+
+for measures \gama  and \lambda  on a Polish space \scrY , arising from the geostatistical models proposed for a. For example, the nominal and alternative distributions of y could be associated with small parametric perturbations or to completely different models within a parametric family. The discrete solution z = (u\=n), resulting from a given algorithm for solving the random PDE, represents a source of variability as it is modeled by a stochastic process. Theoretically, z has
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1371
+
+a known distribution given by \nu , on a Polish space \scrZ , that depends on the solver and a\=. In general, even if the distribution of a is prescribed, it may not be tractable to sample from \nu  directly. Instead, the conditional distribution of u\= given y, that is,
+
+(5)
+
+z = (u\=n) \sim  \nu (dz |  y),
+
+is a computable quantity that we will evaluate using a FEM solver as indicated in Figure 2. Theoretically, qualitatively different distributions for y (i.e., geostatistical models with more or less regularity) could necessitate different solvers; in this case, one could also include \nu \prime  different from \nu . For simplicity here we assume that the same solver with distribution \nu (dz |  y) is used with respect to the nominal and alternative models. Stating our objective more formally, we consider (3) between a QoI sampled with respect to the full Bayesian network for the nominal measure P = \gama  \otimes  \nu  and alternative measure Q = \lambda  \otimes  \nu . The preceding analysis suggests that bounds for model outputs that distinguish these different sources of uncertainty can be obtained by concentrating on a special case of the hybrid bounds proposed in [11] that rely on the conditional distribution (5).
+2.2. Representing and distinguishing sources of uncertainty. To achieve the desired bounds, we represent g(u\=) in terms of a variational form
+
+g(u\=) = h(y, z)
+
+that distinguishes between the epistemic variable y, related to a\=, and the aleatoric variable z, related to u\=. That is, for Q = \lambda  \otimes  \nu  we define a hybrid performance measure h by
+
+\int  \int 
+
+\int 
+
+(6)
+
+E\lambda \otimes \nu  [h] =
+
+h(y, z)\nu (dz |  y)\lambda (dy) = g(u\=)dQ = EQ[g(u\=)].
+
+\scrY  \scrZ 
+
+\Omega 
+
+For simplicity in the presentation we assume that z = (u\=n) is only a source of variability and that the u0 and f in (1) are deterministic; however, observe that the representation (6) can easily be extended to characterize various uncertain aspects of the system by introducing multiple integrals that aggregate and distinguish each independent source of randomness.
+A key observation is that the hybrid performance measure (6) can then be expressed as
+
+(7)
+
+E\lambda \otimes \nu  [h] = E\lambda [H g] ,
+
+where the random variable Hg(y) is the marginal performance measure given by
+
+\int 
+
+(8)
+
+Hg(y) = h(y, z)\nu (dz |  y)
+
+\scrZ 
+
+for y \in  \scrY . Hg encodes the propagation of the model-form uncertainty to the ensemble solution of the random PDE (the outputs in Figure 2). Approximation of a QoI depending on the goal functional g amounts to a standard MC estimate for the sample mean of Hg where Hg is computed in a nonintrusive manner using any available algorithm for the solver. Next, we introduce an important information theoretic tool that will allow us to measure differences between models suggested for epistemic variables.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1372
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+2.3. Relative entropy in UQ. The relative entropy, or Kullback--Leibler divergence, quantifies the discrepancy between two distributions (see, for example, [50, section A.5]). Given probability measures \gama  and \lambda , such that \lambda  \ll  \gama , the relative entropy of \lambda  with respect to \gama  is
+
+\int  \scrR (\lambda  |  \gama ) =
+
+log
+
+d\lambda (y) d\gam a  (y)
+
+\lambda (dy),
+
+and we note that \scrR (\lambda  |  \gama ) \geq  0 with equality if and only if \lambda  = \gama  almost everywhere (the Gibbs inequality). For distributions that belong to a general exponential family, closed formulas exist for the relative entropy [28, 43]. For example, the relative entropy for d-dimensional multivariate Gaussian distributions \lambda  = \scrN  (\mu i, \Sigma i) and \gama  = \scrN  (\mu j, \Sigma j) is given by
+
+(9)
+
+\scrR (\lambda 
+
+| 
+
+\gam a  )
+
+=
+
+1 2
+
+\Bigl(  log | \Sigma j| 
+
+ - 
+
+log | \Sigma i| 
+
++
+
+tr \Bigl( \Sigma  j- 1\Sigma i\Bigr) 
+
++
+
+(\mu i
+
+ - 
+
+\mu j )\top  \Sigma  j- 1 (\mu i
+
+ - 
+
+\mu j )
+
+ - 
+
+\Bigr)  d,
+
+where |  \cdot  |  denotes the determinant. The relative entropy is related to the observable Hg via the Legendre transform of the
+cumulant generating functional log E\gama [eHg ]. We will use this well-known fact from large deviations theory to study the propagation of model-form uncertainty in Figure 2. This representation balances data- and physics-based components, and in particular we use this new perspective in section 4 to provide data-informed UQ bounds. The proof of the following lemma is well known and available in [20]; nevertheless we provide it for the convenience of the reader.
+\sansL \sanse \sansm \sansm \sansa  \sanstwo.\sansone. Let the marginal performance measure Hg (8) be measurable and bounded, and let \gama  be a probability measure on (\Omega , \scrF ). Then
+
+log E\gama [eHg ] = sup \{ E\lambda [Hg]  -  \scrR (\lambda  |  \gama )\}  .
+\lambda \ll \gam a 
+Proof. Define \nu  as d\nu /d\gama  = eHg / E\gama [eHg ]. Then
+
+ - 
+
+\scrR (\lambda 
+
+| 
+
+\gam a  )
+
++
+
+E\lambda  [H g ]
+
+=
+
+ - 
+
+\bigl[  E\lambda  log
+
+d\lambda  d\gam a 
+
+\bigr] 
+
++
+
+E\lambda  [H g ]
+
+=
+
+ - 
+
+\bigl[  E\lambda  log
+
+d\lambda  d\nu 
+
+\bigr] 
+
+ - 
+
+\bigl[  E\lambda  log
+
+d\nu  d\gam a 
+
+\bigr] 
+
++
+
+E\lambda  [H g ]
+
+=  -  \scrR (\lambda  |  \nu ) + log E\gama [eHg ].
+
+This proves the lemma, and \nu  is necessarily the supremizing measure.
+Lemma 2.1 is the key ingredient in the proof of Theorem 2.2, concerning hybrid information divergences, which follows in the next section.
+2.4. Goal-oriented hybrid divergences for modeling error. We begin by defining a hybrid risk-sensitive performance measure,
+
+(10)
+
+\Lambda \gama (c, Hg)
+
+:=
+
+1 c
+
+\int 
+log
+\scrY 
+
+ec(\int \scrZ  h(y,z)\nu (\mathrm{z| y) - E\gama  [Hg])\gama (dy)
+
+=
+
+1 c
+
+log E\gama  [ec(Hg - E\gama  [Hg])],
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1373
+
+for a parameter c > 0 that depends on the goal function g through the marginal performance measure Hg. As suggested by the last equality in (10), \Lambda \gama  is a weighted cumulant generating functional (log moment generating functional) for the centered random variable c(Hg  -  E\gama [Hg]). The idea behind Theorem 2.2 below is to apply Lemma 2.1 to (10) to obtain a family of bounds indexed by c. The best bound is then found by minimizing over c,
+
+(11)
+
+\Xi (\lambda 
+
+| 
+
+\gam a  ;
+
+Hg)
+
+:=
+
+inf
+c>0
+
+\big l\{ \Lambda \gam a  (c,
+
+Hg)
+
++
+
+1 c
+
+\scrR (\lambda 
+
+| 
+
+\big r\} \gam a  )
+
+,
+
+which defines a goal-oriented hybrid information divergence. This insight was first made in [21], where information divergences were applied to stochastic dynamical systems with single sources of uncertainty; we contrast the naive implementation of the information divergences from [21] with the hybrid information divergences developed here for our problem of interest after the proof of Theorem 2.2. That (11) is a divergence, i.e., \Xi (\lambda  |  \gama ; Hg) \geq  0 and \Xi (\lambda  |  \gama ; Hg) = 0 if and only if \lambda  = \gama  almost everywhere or Hg is constant \gama -a.s., follows analogously from the proof of Theorem 2.7 in [21]. A bound for the weak error (3) specialized to (11) is formulated as follows.
+\sansT \sansh \sanse \sanso \sansr \sanse \sansm  \sanstwo.\sanstwo (\sansh \sansy \sansb \sansr \sansi \sansd  \sansi \sansn \sansf \sanso \sansr \sansm \sansa \sanst \sansi \sanso \sansn  \sansd \sansi \sansv \sanse \sansr \sansg \sanse \sansn \sansc \sanse ). For a probability measure \gama , measurable marginal performance measure Hg, and finite \Lambda \gama (c, Hg) in a neighborhood about c = 0, the bound
+
+(12)
+
+ -  \Xi (\lambda  |  \gama ;  - Hg) \leq  EQ[g(u\=)]  -  EP [g(u\=)] \leq  \Xi (\lambda  |  \gama ; Hg)
+
+holds for any probability measure \lambda  such that \scrR (\lambda  |  \gama ) < \infty  where Q = \lambda  \otimes  \nu  and P = \gama  \otimes  \nu . Further, the goal-oriented divergence can be linearized with respect to the relative entropy,
+
+\sqrt{} 
+
+(13)
+
+\Xi (\lambda  |  \gama ; \pm Hg) = Var\gama  [Hg]\sqrt{} 2 \scrR (\lambda  |  \gama ) + O(\scrR (\lambda  |  \gama )) .
+
+Proof. For any bounded and measurable observable Hg, replacing Hg in Lemma 2.1 with c(Hg  -  E\gama [Hg]), for c > 0, yields
+
+log E\gama  [ec(Hg - E\gama [Hg])] = sup \{ c(E\lambda [Hg]  -  E\gama  [Hg])  -  \scrR (\lambda  |  \gama )\}  .
+\lambda \ll \gam a 
+
+This variational characterization yields the bounds
+
+(14a) (14b)
+
+E\lambda [Hg]  -  E\gama  [Hg]
+
+\leq 
+
+1 c
+
+log E\gama  [ec(Hg - E\gama  [Hg])] +
+
+1 c
+
+\scrR (\lambda 
+
+| 
+
+\gam a  )
+
+and
+
+E\lambda  [H g ]
+
+ - 
+
+E\gama  [Hg]
+
+\geq 
+
+ - 
+
+1 c
+
+log
+
+E\gama  [ec(Hg - E\gama  [Hg])]
+
+ - 
+
+1 c
+
+\scrR (\lambda 
+
+| 
+
+\gam a  ),
+
+where the optimal bound can be found by minimizing (14a) (respectively, maximizing (14b))
+over c > 0. This implies (12) for any measurable and bounded Hg. This bound can be extended to any measurable Hg by considering (14a) and (14b) with Hag,b  -  E\gama [Hg] in place of Hg  -  E\gama [Hg] in the cumulant generating functional, where Hag,b = [Hg \vee  ( - a)] \wedge  b for a, b \in  R, and then letting a \rightar \infty  under the monotone convergence theorem and b \rightar \infty 
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1374
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+using the dominating function ec(Hg - E\gama [Hg]), following the argument given in [21, p. 86]. The linearization (13) arises from an asymptotic expansion at \scrR (\lambda  |  \gama ) = 0, i.e., when \lambda  is a perturbation of \gama , which relies on first proving that the optimization problems in (12) admit a unique solution c\ast (\rho ). The details follow analogously from the proofs of Lemma 2.11 and Theorem 2.12 in [21].
+Theorem 2.2 suggests an upper and lower bound for the weak error (3) between model predictions with respect to the full Bayesian network formulation for the nominal model P and alternative model Q. Equation (12) trades the problem of sampling the weak error (3), which involves sampling the QoI with respect to both Q and P , for an optimization problem (11) that only requires sampling a cumulant generating functional with respect to P . This enables comparisons among models in contrast to the optimal uncertainty bounds in [47]. In the present work, we do not compare model outputs to experimentally observed flow variables, nor do we assimilate data from experimental observations to recalibrate the probabilistic models in the experiments. Due to the sparsity of available data, model verification is not typically employed in geostatistical modeling as all available data is used to formulate and calibrate the model [18].
+We reiterate that bounds (12) are nonintrusively computable and tight. The structure of the marginal performance measure Hg allows the cumulant generating functional appearing in (12) to be sampled nonintrusively (i.e., without changing the code for simulating the forward model) with respect to the nominal model \gama  (the proposed computationally tractable model). Recall that Hg (8) is intimately related to the propagation of epistemic uncertainty in Figure 2 from the inputs to the solver/simulator. In contrast to classical bounds derived from the Pinsker or Chapman--Robbins inequalities [14, 57], (12) is tight in that equality is attainable for a given QoI by a suitable \lambda  within a given relative entropy distance of the nominal model, as suggested in Figure 3 (for a full discussion on tightness, see [32]).
+In general, the hybrid information divergence (11) allows one to express different levels of confidence in various components in a complex system, and we refer to these bounds as hybrid divergences, following the terminology in [11]. For complex subsurface flow systems (Figure 1), (11) possesses a form aligned with our goal of evaluating model-form uncertainty as a modeling error. In contrast, the goal-oriented information divergences from [21] defined on product measures have the form
+
+(15)
+
+\Xi (\lambda 
+
+\otimes 
+
+\nu 
+
+| 
+
+\gam a 
+
+\otimes 
+
+\nu ;
+
+h)
+
+:=
+
+inf
+c>0
+
+\big l\{ \Lambda \gama \otimes \nu  (c,
+
+h)
+
++
+
+1 c
+
+\scrR (\lambda 
+
+\otimes 
+
+\nu 
+
+| 
+
+\gam a 
+
+\otimes 
+
+\big r\} \nu )
+
+,
+
+where \Lambda \gama \otimes \nu  is the standard risk-sensitive performance measure given by
+
+(16)
+
+\Lambda \gama \otimes \nu  (c, h)
+
+=
+
+1 c
+
+log E\gama \otimes \nu  [ec(h - E\gama \otimes \nu  [h])] .
+
+The divergence (15) incorporates the epistemic and aleatoric variables in a balanced manner that does not conform with the asymmetrical way that we view these different sources of uncertainty. Moreover, in the present setting it may not be possible to sample h directly, whereas the marginal performance measure Hg is the natural quantity to sample in the context of the MC FEM approach. To make the connection between the original divergence and the
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1375
+
+hybrid divergence concrete, we observe that (15) depends on the representation for h while (11) depends on Hg (cf. (7)). While both (15) and (11) yield valid bounds for the weak error
+(3), we have that
+
+\Xi (\lambda  |  \gama ; Hg) \leq  \Xi (\lambda  \otimes  \nu  |  \gama  \otimes  \nu ; h) = \Xi (Q |  P ; g)
+due to Jensen's inequality applied to the exponential of (8). That is, the naive implementation of (15) contains (not surprisingly) more uncertainty than the hybrid divergence (11).
+In what follows, we write
+
+\Xi + := \Xi  and \Xi  - (\cdot  |  \cdot ; Hg) :=  - \Xi (\cdot  |  \cdot ;  - Hg)
+
+to have a short notation for distinguishing the upper bound from the lower bound. Next, we emphasize that (12) applies to all alternative models within a given information budget.
+
+\sansC \sanso \sansr \sanso \sansl \sansl \sansa \sansr \sansy  \sanstwo.\sansthr. Let the assumptions of Theorem 2.2 hold, and let \rho  := \scrR (\lambda  |  \gama ). Then
+
+(17)
+
+ - 
+
+\Bigl\{  inf \Lambda \gama (c,  - Hg)
+c>0
+
++
+
+\rho  \Bigr\}  c
+
+\leq 
+
+EQ[g(u\=)]
+
+ - 
+
+EP [g(u\=)]
+
+\leq 
+
+\Bigl\{  inf \Lambda \gama (c, Hg)
+c>0
+
++
+
+\rho  \Bigr\}  c
+
+for all Q = \eta  \otimes  \nu  such that \scrR (\eta  |  \gama ) \leq  \rho . Corollary 2.3 suggests a bound across an infinite dimensional family of alternative models,
+
+\scrQ  := \{ Q = \eta  \otimes  \nu  : \scrR (\eta  |  \gama ) \leq  \rho \} ,
+that includes both parametric and nonparametric perturbations as depicted in Figure 3. We observe that the bound (17) requires sampling the cumulant with respect to the nominal model and then optimizing over c once for a given \rho  and QoI. In contrast, computing the weak error (3) directly for every Q \in  \scrQ  would be computationally infeasible. Although we cannot give general insight on how to interpret the information budget, one can get a sense of the family of alternative models that fall within a given budget, for example, how qualitatively different a model you can buy for a fixed amount of relative entropy, by computing a relative entropy landscape (cf. Figures 5c and 6b). In the context of R\e'nyi divergence in a model of differential privacy, [19] introduces a level of privacy, \alpha , that is philosophically similar to \rho  when viewed as an allowable level of model-form uncertainty.
+Remark 2.4 (\sansd \sansa \sanst \sansa  \sansp \sansr \sanso \sansc \sanse \sans \sans \sansi \sansn \sansg  \sansi \sansn \sanse \sansq \sansu \sansa \sansl \sansi \sanst \sansy ). For any invertible transformation T ,
+
+\scrR (\lambda  |  \gama ) = \scrR (T (\lambda ) |  T (\gama )),
+from the data processing inequality (see, for example, [28]). Thus, we can replace the distribution of the conductivity a\= with the distribution of log a\= in any relative entropy statement without loss of information.
+2.5. Uncertainty intervals. We end this section with another perspective on (12) for data-informed prediction. For a given nominal model P = \gama  \otimes  \nu , (12) can be rewritten as
+EP [g(u\=)]  -  \Xi (\lambda  |  \gama ;  - Hg) \leq  EQ[g(u\=)] \leq  EP [g(u\=)] + \Xi (\lambda  |  \gama ; Hg),
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1376
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+non-parametric alternative model
+parametric alternative model
+
+Q Pθ= γ ⊗ν
+Q = Pθ
+
+parametric family
+nominal model
+
+Q := {Q = η ⊗ ν : R(η | γ) ≤ ρ}
+
+Figure 3. For a given information budget \rho , Corollary 2.3 suggests tight and computable upper and lower bounds for the weak error (3) between a nominal model P for every alternative model Q \in  \scrQ , an infinite dimensional family that includes both parametric and nonparametric perturbations. The information budget \rho  can be interpreted as an allowable level of model-form uncertainty.
+
+yielding an uncertainty interval for an alternative model prediction. The alternative model Q = \lambda  \otimes  \nu  falls within a region of confidence given by the nominal model prediction \pm \Xi , i.e., EQ[g(u\=)] \in  EP [g(u\=)] \pm  \Xi (\lambda  |  \gama ; \pm Hg), providing a guarantee on a QoI with respect to an alternative model Q. For failure probabilities (2) (such as the goal functionals g1 and g2 to appear in sections 3 and 4), the hybrid information divergences have a particularly simple form that gives a confidence interval for the Q-probability of failure.
+\sansT \sansh \sanse \sanso \sansr \sanse \sansm  \sanstwo.\sansfiv (\sansu \sansn \sansc \sanse \sansr \sanst \sansa \sansi \sansn \sanst \sansy  \sansi \sansn \sanst \sanse \sansr \sansv \sansa \sansl  \sansf \sanso \sansr  Q-\sansf \sansa \sansi \sansl \sansu \sansr \sanse ). For a nominal model P = \gama  \otimes  \nu , let g(u\=) = 1A for A \subset  \Omega  with P (A) = p, and let \rho  := \scrR (\lambda  |  \gama ). Then,
+
+ - 
+
+min
+c>0
+
+\bigl\{ 1 c
+
+log(pe - c
+
++
+
+1
+
+ - 
+
+p)
+
++
+
+\rho  \bigr\} c
+
+\leq 
+
+Q(A)
+
+\leq 
+
+min
+c>0
+
+\bigl\{ 1 c
+
+log(pec
+
++
+
+1
+
+ - 
+
+p)
+
++
+
+\rho  \bigr\} c
+
+for every alternative model Q = \eta  \otimes  \nu  such that \scrR (\eta  |  \gama ) \leq  \rho . Proof. The risk-sensitive performance measure is
+
+(18)
+
+\Lambda \gama (c, \pm Hg)
+
+=
+
+1 c
+
+log E\gama  [e\pm c(Hg - E\gama  [Hg])]
+
+=
+
+1 c
+
+log(pe\pm c
+
++
+
+1
+
+ - 
+
+p)
+
+\mp 
+
+p,
+
+and thus the bounds follow immediately from (12).
+
+The remainder of this paper focuses on applications of the hybrid information divergences to UQ. First, in section 3 we apply Theorem 2.2 to derive bounds for parametric sensitivity analysis by considering alternative models that can be represented by small parametric perturbations of the nominal model. Then in section 4 we examine a more exploratory UQ task and derive bounds for model misspecification due to sparse data where the nominal and alternative models cannot, in general, be described by small perturbations. Finally, in section 5, we leverage the connection between certain concentration inequalities and the hybrid divergences for efficient computing.
+
+3. The simplest UQ application: Parametric sensitivity analysis. Presently we apply the tools developed in section 2 to sensitivity analysis when the model inputs are specified
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1377
+
+by a parametric geostatistical model. This setting represents the simplest UQ application of the hybrid information divergences in that we have tight control over the perturbations and hence over the alternative models under consideration (see Figure 3 where the parametric perturbations are tightly controlled). Although simple, the example nonetheless represents an important UQ task and allows us to demonstrate the tightness and robustness of the bounds derived from the hybrid information divergences. In principle, this approach can be applied to study nonparametric models, i.e., models that are infinite dimensional in the parameter space, such as a gPC representation of the conductivity in combination with a stochastic Galerkin method for the solver. However, we note that for our specific application of interest with a lognormal conductivity such an approximation is not guaranteed to converge due to Proposition 4.2 in [24].
+In the section that follows, we begin by providing notation and motivation for the parametric sensitivity analysis. In subsection 3.2 we give Corollary 3.1, containing a cheaply computed bound that can be used to efficiently screen for insensitive parameter directions. Then, in subsection 3.3, we apply Theorem 2.2 to obtain accurate and robust bounds for sensitivity analysis. Finally, in subsection 3.4, we provide details on the implementation. We emphasize that although a one-dimensional example problem is considered, the techniques demonstrated easily scale to higher dimensions.
+3.1. Parametric geostatistical models and sensitivity indices. For a given probability space (\Omega , \scrF , P ) we consider the two-point boundary value problem
+
+(19)
+
+ -  (a\theta (\omega , x)u\prime (\omega , x))\prime  = 1 for x \in  [0, 1],
+
+subject to u(\omega , 0) = 0 and a\theta (\omega , 1)u\prime (\omega , 1) = 1, where randomness enters only through a scalar-valued log-normal process a\theta  that depends on a vector of hyperparameters \theta  \in  Rk. In particular, we consider log a\theta  with mean \mu  and squared-exponential type two-point covariance
+function C given by
+
+(20)
+
+C (r)
+
+=
+
+\Biggl\{ \sigma 
+
+\surd 
+2e - | r/ 2\el
+
+ | 2
+
+\tau  2 + \sigma 2
+
+for r > 0, for r = 0,
+
+where r = | x  -  x\~|  for x, x\~ \in  [0, 1]. For the mean and covariance above, a\theta  is a stationary, isotropic random field where the
+hyperparameters of interest are \theta  = (\mu , \sigma 2, \el , \tau  2) \in  R4. In applications, these hyperparameters have geostatistical interpretations that play a role in fitting the model for a\theta  from data; \mu  is related to the overall trend, \sigma 2 is related to the sill measurement, \el  is related to the spatial correlation length, and \tau  2 is related to the nugget effect or microscale variability [27]. The sample paths of the process a\theta  exhibit qualitatively different behavior across a range of
+hyperparameter values, and it is therefore natural to question the sensitivity of a QoI with
+respect to parametric modeling assumptions on the conductivity field. With a view toward
+employing the hybrid information divergences in section 2, we denote the finite dimensional distributions (a\=\ntheta  ) \sim  \gama  and (a\=\ntheta \prime ) \sim  \gama \prime  where \theta \prime  = \theta  + \epsilonv is a small perturbation for \epsilon > 0 in the direction v \in  R4 with | v|  = 1. Then we consider the joint probability measures P \theta  = \gama  \otimes  \nu  and P \theta \prime  = \gama \prime  \otimes  \nu  that correspond to the nominal and perturbed parameters of
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1378
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+the geostatistical model where we denote the distribution of the corresponding finite element solution by (u\=n) \sim  \nu (dz |  \cdot ). We would like to understand the sensitivity of EP \theta  [g(u\=)] with respect to distributional assumptions on P \theta  and in particular to quantify worst-case scenarios concerning this sensitivity with a view toward informing decision tasks.
+For a given goal functional g, we define the sensitivity index,
+
+(21)
+
+\scrS  (v,
+
+\theta ;
+
+g)
+
+=
+
+\theta 
+
+lim
+\epsilon\rightar0
+
+EP \theta +\epsilonv [g(u\=)]  -  \epsilon
+
+EP \theta  [g(u\=)] ,
+
+which describes the sensitivity of a given goal functional g with respect to \theta  in the direction v,
+
+provided \scrS  depends continuously on \theta . In the limit of small \epsilon, \scrS  converges to the logarithmic
+
+derivative \partial\mathrm{\mathrm{\mathrm{ \theta  EP \theta  [g(u\=)] = \theta \partial\theta  EP \theta  [g(u\=)], a scaling chosen to control for differences in the orders of magnitude of the hyperparameters.
+
+Computing a classical gradient approximation of \scrS  in each parameter direction for each
+
+QoI represents a nontrivial computational cost even for the simple model problem (19). A
+
+naive finite difference approximation of the sensitivity index would require sampling with respect to both P \theta  and P \theta \prime  where each sample involves a call to a PDE solver for each direction v in \theta \prime  = \theta  + \epsilonv. Moreover, such a gradient approximation introduces a bias error
+
+that must be taken into account; for a better approximation of the sensitivity, corresponding
+
+to small \epsilon, the variance of the approximation increases, and therefore our confidence of it
+
+decreases. While reduced variance methods for gradient approximations exist [29, 30], our
+
+direction here is an altogether different one. In contrast, (12) in Theorem 2.2 yields tight
+
+non--gradient-based estimates for the sensitivity (21) that only require sampling with respect to the nominal model P \theta . Before considering these more accurate bounds in subsection 3.3,
+
+we first demonstrate in subsection 3.2 a cheaply computed bound, derived from expansion
+
+(13) in Theorem 2.2, that can be used to screen for insensitive parameter directions.
+
+3.2. Fast screening for small perturbations. While it is always advantageous if the number of parameters to include in the full sensitivity analysis can be reduced, the efficiency gain is acute when simulations are computationally expensive, such as involving successive calls to a PDE solver. Following from (13) in Theorem 2.2, we consider a linearization specialized to small perturbations that relies on the Fisher information matrix (FIM). As the FIM can be computed cheaply, that is, without sampling, the linearized bound can be used to efficiently screen for insensitive parameter directions. We recall that the FIM for a parametric family of distributions P \theta  is given by
+
+\int  \scrI (\theta ) := \nabla \theta  log p(x; \theta )(\nabla \theta  log p(x; \theta ))\top p(x; \theta )dx,
+Rd
+where p(x; \theta ) is the density conditional on the value of \theta  (a classical definition from [58]).
+\sansC \sanso \sansr \sanso \sansl \sansl \sansa \sansr \sansy  \sansthr.\sansone (\sanse ffi\sansc \sansi \sanse \sansn \sanst  \sans \sansc \sansr \sanse \sanse \sansn \sansi \sansn \sansg ). For a smooth parametric family P \theta  and \epsilon > 0,
+
+1 \epsilon
+
+| 
+
+EP
+
+\theta \prime 
+
+[g(u\=)]
+
+ - 
+
+EP
+
+\theta 
+
+[g(u\=)]| 
+
+\leq 
+
+\sqrt{} 
+
+\sqrt{} 
+
+Var\gama [Hg] v\top \scrI (\theta )v
+
++
+
+O(\epsilon),
+
+where \scrI (\theta ) is the FIM associated with P \theta . Hence
+
+\sqrt{} 
+
+\sqrt{} 
+
+(22)
+
+| \scrS (v, \theta ; g)|  \leq  \theta  Var\gama [Hg] v\top \scrI (\theta )v.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1379
+
+The bounds suggested in Corollary 3.1 are for small \epsilon perturbations of the nominal model in terms of the variance of the marginal performance measure Hg and the FIM. Recall that Hg is related to the distribution of the QoI given the distribution of input parameters. Reminiscent of the variance-bias tradeoff of other information-based criteria for assessing model selection in statistics (for example, the Akaike information criterion and the Bayesian information criterion [8]), importantly (22) is a goal-oriented quantity that incorporates the output of the forward model Hg.
+Corollary 3.1 follows from the general noninfinitesimal linearization (13) by noticing that the relative entropy has the expansion
+
+\scrR (P \theta +\epsilonv
+
+| 
+
+P \theta )
+
+=
+
+\epsilon2 2
+
+v\top 
+
+\scrI 
+
+(\theta )v
+
++ O(\epsilon3)
+
+when considering small perturbations to a smooth parametric family of probability measures; the complete proof follows from results in [21]. A similar linearization has been used in chemical kinetics to screen for insensitive parameter directions in the situation where the number of parameters is large [3, 56]. For both a multivariate normal distribution and lognormal distribution characterized by mean \mu (\theta ) and covariance \Sigma (\theta ), the i, j component of FIM can be expressed as
+
+(23)
+
+vi\top  \scrI  (\theta )vj
+
+=
+
+\partial\mu \top  \partial\theta i
+
+\Sigma 
+
+\partial\mu  \partial\theta j
+
++
+
+1 2
+
+tr
+
+\big
+
+l(  \Sigma  - 1
+
+\partial\Sigma  \partial\theta i
+
+\Sigma  - 1
+
+\partial\Sigma  \partial\theta j
+
+\big
+
+r) 
+
+(see, for example, [39]). An analysis of the singular value decomposition of the FIM can then reveal arbitrary parameter directions that are relatively insensitive to perturbations.
+Recall that \scrS , defined in (21), is the sensitivity index based on the logarithmic derivative to control for differences in magnitude between the parameters. At present we assume that the choice of solver is independent of the choice of parameters; in this case, the variance term of the marginal performance measure in (22) is fixed and the sensitivity of parameters can be screened based on the appropriately scaled FIM appearing in (22). In general, the solver and hence \nu  might depend on the parameters as these affect the regularity of the random field. In Figure 4, the screening index,
+
+\sqrt{} 
+
+(24)
+
+J (i, i) = \theta i vi\top \scrI (\theta )vi,
+
+is calculated for each i = 1, . . . , 4, that is, for each of the principal parameter directions \{ \mu , \sigma 2, \el , \tau  2\}  corresponding to the diagonals of the FIM. These indices are compared across a range of nominal models for a fixed goal functional. Figure 4 demonstrates the relative insensitivity of perturbations in \mu  and \sigma 2 over the range of nominal models where \el  and \tau  2 vary for \mu  = 0.8 and \sigma 2 = 4. J is computed without sampling using expression (23) and identifies that the directions \mu  and \sigma 2 might be excluded from the full sensitivity analysis for the given goal functional since the screening index is small relative to the value for other directions.
+3.3. Robust bounds and worst-case scenarios. Next, we demonstrate bounds based on (12) in Theorem 2.2 that are more accurate than the linearized bounds at the cost of being
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1380
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+= 0.005
+
+= 0.045
+
+τ 2 = 0.005 40 30 20 10 0
+
+40 30 20 10 0
+
+40
+
+30
+
+20
+
+10
+
+0
+
+µ
+
+σ2
+
+τ2
+
+τ 2 = 0.045
+
+µ
+
+σ2
+
+τ2
+
+τ 2 = 0.085
+
+µ
+
+σ2
+
+τ2
+
+Screening index J(i, i) for θi:
+
+θ1 = µ
+
+θ2 = σ2
+
+θ3 =
+
+θ4 = τ 2
+
+= 0.085
+
+Figure 4. The screening index J in (24) for the logarithmic-derivative based parametric sensitivity depends on the FIM and can be computed cheaply (without sampling), thus providing an efficient method for screening parameters. In this instance, J indicates that the directions \mu  and \sigma 2 are relatively insensitive compared to perturbations in \el  and \tau  2 over nine different nominal models for a fixed QoI corresponding to a failure
+probability.
+
+more computationally expensive. To investigate the performance for parametric sensitivity analysis, we fix a nominal model P \theta , with hyperparameters \theta  = (\mu  = 0.8, \sigma 2 = 4, \el  = 0.005, \tau  2 = 0.045), and consider the sensitivity with respect to alternative models P \theta +\epsilonv corresponding to small perturbations in the \el  and \tau  2 which we denote by \epsilon(\el ) and \epsilon(\tau  2) (see also
+Figure 5c). We also fix the goal functionals
+
+(25a) (25b) (25c)
+
+g1(u\=) = 1\{ u\=(1)>1.2\}  , g2(u\=) = 1\{ 0.25<u\=(1)<0.75\}  , and g3(u\=) = min(u(1), 3) .
+
+Equations (25a) and (25b) are indicator functions (QoI corresponding to failure probabilities; cf. Theorem 2.5), and (25c) is a point estimate with an enforced upper bound.
+In Figures 5a and 5b, a scaled hybrid information divergence (11),
+
+(26)
+
+\theta  \epsilon
+
+\Xi \pm  (\gam a  \prime 
+
+| 
+
+\gam a  ;
+
+Hgi ),
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+()
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1381
+
+( ), perturbation in 1.0 0.5 0.0
+
+1.0
+
+Quantity
+
+∆ˆ
+
+θ Ξ±
+
+0.5
+
+0.0
+
+1.0 0.5 0.0
+0.01
+
+0.03
+
+0.05
+
+g3(u¯)
+
+g2(u¯)
+
+g1(u¯)
+
+(τ 2), perturbation in τ 2 0.2 0.1 0.0 -0.1 -0.2
+
+0.2 0.1 0.0 -0.1 -0.2
+
+0.2 0.1 0.0 -0.1 -0.2
+0.01
+
+0.03
+
+0.05
+
+(a)
+
+(b)
+
+g3(u¯)
+
+g2(u¯)
+
+g1(u¯)
+
+R¯
+
+50
+
+100
+
+150
+
+0.075
+
+0.050
+
+0.025
+
+0.000
+
+Nominal
+-0.025 0.000 0.025 0.050
+(τ 2)
+(c)
+
+Figure 5. In (a) and (b), the bounds (26) provide a tight estimate of the logarithmic-derivative based parametric sensitivity index (27) for bounded goal functionals (25a)--(25c). The shaded regions in Figures 5a and 5b denote confidence intervals of two standard deviations from the corresponding sample mean (28) based on 102 runs of M = 103 samples. Comparing (a) to (b), we observe that the bounds in (b) are captured by the corresponding bounds in (a); the relative entropy landscape in (c) reveals an explanation, namely, that the information budget established by \epsilon(\el ), i.e., small \epsilon perturbations in \el , contains corresponding perturbations \epsilon(\tau  2). Thus, we note the bounds (26) in (a) are robust, providing a worst-case scenario envelope for all perturbations within an information budget (cf. Corollary 2.3).
+
+is compared to the reference quantity,
+
+(27)
+
+\D\el^ta (\epsilon, M ; gi)
+
+=
+
+\theta  \epsilon
+
+\bigl( E\gMama \prime  [gi]
+
+ - 
+
+E\gMama  [gi]\bigr)  ,
+
+a finite difference approximation of the sensitivity \scrS  where
+
+(28)
+
+E\gMama  (f )
+
+=
+
+1 M
+
+M
+\sum  f (\omega j)
+
+j=1
+
+denotes the sample average based on M independent and identically distributed samples of f drawn with respect to \gama . Each observation appearing in Figures 5a and 5b is based on the mean of 102 runs of M = 103 samples, and the confidence intervals denote two standard deviations from the corresponding sample mean.
+We observe in Figures 5a and 5b that for each QoI (facet corresponding to rows), the bounds (26) provide an accurate estimate of the sensitivity for \epsilon(\el ) and \epsilon(\tau  2). In particular, the plots are suggestive of the tightness of the bounds derived from the hybrid information divergence. Further, a comparison of Figure 5a and Figure 5b indicates that the bounds (26)
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1382
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+are robust. For this particular nominal model, the relative entropy landscape in Figure 5c shows that \epsilon(\tau  2) always fall within the information budget established by \epsilon(\el ), that is, the level sets relating to \epsilon(\el ) contain the corresponding \epsilon(\tau  2). Thus, the bounds (26) in Figure 5a are guaranteed to contain the bounds in Figure 5b by Corollary 2.3 and can be interpreted as giving the worst-case scenario for each QoI, providing a natural way to rigorously incorporate worst-case scenarios into the decision support framework in Figure 1.
+3.4. A posteriori computability. We emphasize that the components appearing in the argument of the optimization problem in (11), and in particular in the right-hand side of (26), are a posteriori computable quantities that represent significant computational savings over gradient approximations. Moreover, (26) incorporates worst-case scenarios that might not be efficiently observed using traditional estimates of the sensitivity. In the previous numerical experiment, we approximate (26) by
+
+\Xi \pm (\gama \prime  |  \gama ; Hg) \ap rox  \pm \xi (c\ast , \pm Hg),
+
+where c\ast  = arg minc>0 \xi (c, Hg) and
+
+(29)
+
+\xi (c,
+
+Hg)
+
+:=
+
+\L\am^bda \gam a  (c,
+
+Hg)
+
++
+
+1 c
+
+\s\cr=R (\gam
+
+a  \prime 
+
+| 
+
+\gam a  )
+
+for suitable approximations \L\amb^da \gama  and \s\cr=R  of the risk-sensitive performance measure and relative entropy, respectively. The optimal c\ast  as a function of \rho  := \scrR (\lambda  |  \gama ) has the representation
+
+\surd 
+
+(30)
+
+c\ast (\rho )
+
+=
+
+2\rho  \sqrt{} Var\gam a  [H g ]
+
++
+
+O(\rho ),
+
+which follows from equation (2.28) of [21]. For perturbations resulting in small \rho  (30) can be used; otherwise, we find the optimal c\ast  by a one-dimensional Newton--Raphson method, a
+step that must be repeated for each QoI for every alternative model under consideration. The \L\amb^da \gama  appearing in (29) can be sampled using a standard MC approximation,
+
+\L\amb^da \gama (c, Hg)
+
+=
+
+1 c
+
+log
+
+E\gMama  (exp\{ c(Hg
+
+ - 
+
+H\widehgat )\} )
+
+\ap rox 
+
+\Lambda \gam a  (c,
+
+Hg)
+
+for H\widehgat := E\gMama  (Hg) \ap rox  E\gama [Hg], where E\gMama  denotes the sample average (28). This quantity needs to be computed only once for each QoI, according to the nominal model \gama , and can then be used as in (17) to test any number of alternative models within the established information budget as in Corollary 2.3. In contrast, the relative entropy appearing in (29) needs to be computed for every alternative model under consideration. However, the relative entropy can be computed without sampling using the analytic formula (9) together with Remark 2.4 to replace the distribution of the conductivity with the corresponding Gaussian. In the preceding experiments the approximation \s\cr=R (\gama \prime  |  \gama ) \ap rox  \scrR (\gama \prime  |  \gama ) is obtained by taking the Gaussians to have the same dimension as the finite element discretization.
+Remark 3.2 (\sansc \sansu \sansm \sansu \sansl \sansa \sansn \sanst  \sansg \sanse \sansn \sanse \sansr \sansa \sanst \sansi \sansn \sansg  \sansf \sansu \sansn \sansc \sanst \sansi \sanso \sansn \sans  \sansa \sansm \sansp \sansl \sansi \sansf \sansy  \sansv \sansa \sansr \sansi \sansa \sansn \sansc \sanse ). Forming an estimator involving the hybrid information divergence \Xi  as in (26) requires sampling a cumulant generating
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1383
+
+functional (\L\amb^da \gama ). Although sampled with respect to the nominal model, if the variance of the marginal performance measure is large, then this variance could potentially be amplified by \L\amb^da \gama ; in Figure 5a, the estimator of \Xi + for goal functional g3 (25c) is observed to have higher variance than the indicator functionals (25a) and (25b). In section 5, we demonstrate concentration inequality bounds for \Lambda \gama  that result in reduced variance predictions of the information divergences \Xi \pm .
+Remark 3.3 (\sansC \sansh \sanso \sansl \sanse \sans \sansk \sansy -\sansl \sansi \sansk \sanse  \sansc \sanso \sansv \sansa \sansr \sansi \sansa \sansn \sansc \sanse  \sansd \sanse \sansc \sanso \sansm \sansp \sanso \sans \sansi \sanst \sansi \sanso \sansn ). The formula (9) depends on the discrete projection (a\=n) \aprox  a. In some instances \Sigma  may be close to singular, hampering the computation of the precision matrix \Sigma  - 1 or the log-determinant. In the numerical experiments presented here, such issues were easily addressed using a Cholesky-like covariance decomposition and facts about Toeplitz matrices. Geostatistical models based on Markov random fields [53], as opposed to parametric covariance models, is an approach that sidesteps this difficulty, and we note the techniques outlined here also apply to conductivities given by Markov random fields (see [32]).
+In the next section, we examine nonparametric perturbations to a geostatistical model. In particular, Theorem 2.2 yields tight and robust UQ bounds in the context of model misspecification due to sparse data.
+4. Data-informed error bounds for nonparametric perturbations. In the present section, we consider model-form uncertainty in connection with misspecification of the geostatistical model due to lacking or incomplete data. As emphasized in the introduction, data for our applications of interest are sparse, and small perturbations to data result in geostatistical models that are nonparametric perturbations of the nominal model (see Figure 3). By allowing us to compare the effect that distributional assumptions on model inputs have on model outputs, the hybrid information divergence provides a link between data and decision tasks. In this vein, we explore how the hybrid information divergences complement an existing inference procedure by providing robust, data-informed bounds that give a sense of worst-case scenarios under modeling errors. Next, we review the data set and the inference procedure used in our experiments.
+4.1. Conductivity data and model problem. We utilize permeability data for a Brent sequence (365.76 m by 670.56 m by 51.816 m) from SPE10 model 2 in [12]. Due to its importance in the North Sea petroleum industry, the Brent sequence is well studied from a geological perspective [51]. The sequence has two distinct phases; the upper layers of the sequence comprise a Tarbert formation, and the bottom layers comprise an Upper Ness formation. The log-permeability of these two formations both vary by several orders of magnitude and exhibit strikingly different spatial correlations. In our numerical experiments, we will fit various geostatistical models based on data from a one-dimensional slice of the uppermost level of the Tarbert formation displayed in Figure 6a.
+For the experiments that follow, we fix both a parametric form for the geostatistical model and an inference procedure. We then consider different geostatistical models fit from incomplete samples of the full data set. Specifically, we assume that the available log-data are Gaussian and then fit the parameters of the geostatistical model using the maximum likelihood method. For a given parametric model, this method gives parameter values that are
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+conductivity a(x) frequency
+
+1384
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+Data excluded
+
+P1
+
+P2
+
+P3
+
+200
+
+150
+
+100
+
+50
+
+0
+
+0
+
+152.4
+
+304.8
+
+457.2
+
+spatial x (m)
+
+(a)
+
+609.6
+
+4 × 104
+2 × 104
+0 0
+
+Nominal
+
+P1
+
+P2
+
+P3
+
+5
+
+10
+
+15
+
+20
+
+relative entropy
+
+(b)
+
+Figure 6. In (a), a one-dimensional slice of the Tarbert formation data (from the SPE10 model 2 in [12]) used in numerical experiments in section 4 varies by orders of magnitude over the problem scale. In (b), three frequency distributions for the relative entropy are depicted for nonsmall perturbations of three different nominal models corresponding to P1, P2, and P3 in (a). We observe that relative entropy distributions with respect to the family of alternative models (33) are multimodal and depend in a nontrivial fashion on the nominal model (cf. the relative entropy landscape in Figure 5c, where the small parametric perturbations result in a relatively flat landscape in the \epsilon(\tau  2) direction with a smooth ascent in \epsilon(\el )).
+
+found to maximize the likelihood of making an observation of a particular data point given the parameter value; this process is entirely automated by a number of software packages, and the present experiments use \ttR \tta \ttn \ttd \tto \ttm \ttF \tti \tte \ttl \ttd \tts  [54] available in R. For convenience we shall again use the covariance (20) from section 3. Although we posit a parametric form, geostatistical models resulting from fits relying on incomplete observations of the full data set are not in general small parametric perturbations of one another. Even small changes to these discrete degrees of freedom may result in global changes to parameters and hyperparameters, in contrast to the localized sensitivity analysis in section 3.
+We again consider the one-dimensional model problem (19), where the conductivity fields (a\=n) are generated on a regular uniform mesh of n equally spaced cells, and this projection is used in forming the stiffness matrix for the FEM computation as well as the covariance matrices required for the relative entropy calculations (i.e., n = d). The FEM solution (u\=2n) is then computed using standard, piecewise linear elements on a coarse mesh with diameter 2n.
+In the remainder of the present section, we describe two numerical experiments that use the hybrid information divergence (12) to obtain data-informed bounds. The first experiment in subsection 4.2 provides a sense of the modeling error due to misspecification stemming from incomplete data over a range of changes to the discrete degrees of freedom. In the second experiment in subsection 4.3, we fix a nominal model based on a portion of the full data set and examine the distribution of the relative entropy to identify an information budget such that the hybrid information divergences give robust bounds that include worst-case scenarios.
+4.2. Hybrid information divergences for model misspecification. In Figures 7 and 8, we demonstrate the sensitivity of the modeling error (3) with respect to changes in the geostatistical model resulting from the inclusion or exclusion of a small number of data points. This sensitivity is with respect to discrete changes to the degrees of freedom used to fit the
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+weak error weak error
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE g1(u¯)
+0.5 0.0 -0.5
+
+1385
+
+g2(u¯)
+
+Quantity
+
+Ξ+
+
+E
+
+Ξ−
+
+Q10 Q20 Q30 Q40 Q60 Q70 Q80 Q90 Q100
+
+Q10 Q20 Q30 Q40 Q60 Q70 Q80 Q90 Q100
+
+alternative models
+
+Figure 7. For the failure probability goal functionals (32a) and (32b), the data-informed bounds \Xi \pm  (31) give a tight and robust prediction of the weak error \scrE  (3) over a range of changes to the discrete degrees of freedom. Above, box plots are given for 102 observations, each of M = 103, samples where trend lines through
+the mean are added to indicate how the bounds form an envelope around model predictions.
+
+g3(u¯)
+
+6
+
+Quantity
+
+Ξ+
+
+E
+
+Ξ−
+
+4
+
+2
+
+0
+Q10 Q20 Q30 Q40 Q60 Q70 Q80 Q90 Q100 alternative models
+Figure 8. The data-informed bounds \Xi \pm  (31) provide a tight and robust estimate of the weak error \scrE  (3) for an unbounded g3 (32c); however, \Xi + have high variance (cf. Remark 3.2). We emphasize that the predictions here and in Figure 7 are robust in that \Xi \pm  bound the weak error for all alternative models that fall within a given information budget, thus including a sense of worst-case scenarios. Above, box plots are given for 102 observations, each of M = 103, samples where trend lines through the mean are added to indicate how the bounds form an envelope around model predictions.
+
+parametric model and is not understood in the same sense as (21). The weak errors in Figures 7 and 8 are between a nominal model, based on a portion of the available data set, and alternative models that correspond to including or excluding a fixed number of points from the data used to construct the nominal model. The data-informed bounds derived from the hybrid information divergence give tight and robust predictions for this weak error.
+In particular, we begin by fixing a data set for the nominal model \gama  by sampling, uniformly at random, 50 percent of the full data set depicted in Figure 6a. We then fit a squared exponential covariance model (20) using the maximum likelihood method. We also fit a collection of alternative models \{ \lambda 10, . . . , \lambda 100\} , where \lambda q is related to a geostatistical model that is fit using q percent of the full data set where a small number of points are added or deleted from the subset of data used for neighboring alternative models. For example, the data set used to construct \lambda 60 is formed by sampling 10 percent of the data points from the full
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1386
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+data set not included in \lambda 50 and then adding them to the partial set used for \lambda 50. In keeping with the notation used in previous sections, we then denote the nominal product measure P = \gama  \otimes  \nu  and the alternatives Qq = \lambda q \otimes  \nu . Thus, the weak error displayed in Figures 7 and 8 corresponds to alternative models related to a perturbation of the observed data set used to fit the models, that is, to a perturbation of discrete degrees of freedom.
+For this collection of nominal and alternative geostatistical models, the bounds
+
+(31)
+
+\Xi \pm (\lambda q |  \gama ; Hg) \ap rox  \pm \xi (c\ast , \pm Hg)
+
+are computed using an expression similar to (29) in the spirit of subsection 3.4. Box plots for 102 observations of each bound and weak error, each based on M = 103 samples, are displayed in Figures 7 and 8 along with a trend line corresponding to the mean of the observations. The bounds and the weak errors are examined for the goal functionals,
+
+(32a) (32b) (32c)
+
+g1(u\=) = 1\{ u\=(x1)>m\}  , g2(u\=) = 1\{ m+s>u\=(x1)>m - s\}  , and g3(u\=) = u\=(x1)/m ,
+
+where m is the sample average of u\=(x1) at the right-hand endpoint of the domain and s is the corresponding standard deviation. We note that for (32a) and (32b) the weak error is bounded in [ - 1, 1], whereas for (32c) it is unbounded, and we therefore anticipate any estimate related to (32c) to naturally have higher variance.
+In Figure 7, related to (32a) and (32b), we observe that there is a fairly wide spread in the values for the weak errors corresponding to different alternative models. In this instance, the data-informed bounds (31) form a tight envelope around this spread. Even in the case of (32c), Figure 8 illustrates that (31) gives a reliable estimate of the weak error. However, we observe that the estimator for \Xi + has high variance in this instance due to the sampling strategy used for the risk-sensitive performance measure \L\amb^da \gama . As noted in Remark 3.2, an alternative method will be discussed in section 5.
+4.3. Finding worst-case scenarios related to incomplete data. Presently we examine worst-case scenarios due to changes in the discrete degrees of freedom. The distribution of the relative entropy with respect to a training set is used to determine an information budget that yields robust, data-informed bounds encapsulating worst-case scenarios.
+We consider three different nominal models, P1 = \gama 1 \otimes  \nu , P2 = \gama 2 \otimes  \nu , and P3 = \gama 3 \otimes  \nu , that are related to fitting a parametric geostatistical model \gama i to 70 percent of the full data set sampled uniformly. In Figure 6a, the full data set is displayed in addition to the corresponding ``gaps"" in the three different nominal models. As in previous sections, these models are fit to a squared exponential covariance model (20) using the maximum likelihood method. For each nominal model, we build the training set
+
+(33)
+
+\scrQ i = \{ Q+ = \lambda + \otimes  \nu \}  , i = 1, 2, 3 ,
+
+a collection of alternative models based on \lambda + that are fit to enlargements of the nominal model data (i.e., to 80 percent of the full data set) where points are added by sampling those
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+weak error
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1387
+
+g1(u¯)
+
+P1
+
+P2
+
+P3
+
+0.50 0.25 0.00 -0.25 -0.50 0.3
+
+0.0
+
+-0.3
+
+-0.6
+
+g2(u¯)
+
+g3(u¯)
+
+6 Quantity
+
+Ξ+
+
+E
+
+Ξ−
+
+4
+
+2
+
+0
+
+Qmax Qmin Qmean Qmed
+
+Qmax Qmin Qmean Qmed alternative models
+
+Qmax Qmin Qmean Qmed
+
+Figure 9. Choosing an alternative model Q\mathrm{\mathrm{\mathrm{ related to the maximum relative entropy observed in a training set yields robust, data-informed bounds \Xi \pm  that include a sense of worst-case scenarios related to the impact of incomplete data on the modeling process for the nominal models P1, P2, and P3 in Figure 6. The matrix of plots above contains box plots of 102 observations, each of M = 103 samples, where trend lines through
+the means have been added to indicate how the bounds form an envelope around model predictions.
+
+excluded from the nominal model set uniformly. The corresponding frequency distribution of the relative entropy for each Pi with respect to | \scrQ i|  = 105 alternative models is displayed in Figure 6b. The distributions, which exhibit multimodality, demonstrate the nontrivial dependence of the relative entropy on the nominal model under consideration. These frequency distributions play a role similar to that of the relative entropy landscape in Figure 5c since in this case there is no natural ordering among the alternative models (cf. Figure 5c, where the small epsilon perturbation provides a basis for ordering the models). The tightness of the hybrid information divergence suggests that the modeling error (3) may cluster according to the peaks in the relative entropy distribution. Further, the information budget established by the maximum observed relative entropy can be used to bound all the alternative models in \scrQ i according to Corollary 2.3.
+From each \scrQ i, we select four alternative models Q\mathrm{\mathrm{\mathrm{ = \lambda \mathrm{\mathrm{\mathrm{ \otimes  \nu , Q\mathrm{\mathrm{\mathrm{ = \lambda \mathrm{\mathrm{\mathrm{ \otimes  \nu , Q\mathrm{\mathrm{\mathrm{\mathrm{ = \lambda \mathrm{\mathrm{\mathrm{\mathrm{ \otimes  \nu , and Q\mathrm{\mathrm{\mathrm{ = \lambda \mathrm{\mathrm{\mathrm{ \otimes  \nu  that correspond to the maximum, minimum, mean, and median relative entropy with respect to Pi, respectively; see also Figure 6b. In Figure 9, we observe that once again the bounds \Xi \pm  yield robust predictions for the modeling error between the nominal and each of the alternative models. As expected, we observe that the weak error corresponding to Q\mathrm{\mathrm{\mathrm{ appears to be a worst-case scenario and that this error is reliably contained in the envelope defined by \Xi \pm . In the present setting, these goal-oriented bounds \Xi \pm  represent data-informed quantities that encapsulate worst-case scenarios for the errors in misspecifying the geostatistical model due to epistemic uncertainty.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1388
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+5. Efficient computation of hybrid information divergences. The variance of the hybrid
+information divergence \Xi  depends on the variance of the risk-sensitive hybrid performance measure \Lambda \gama (c, Hg) defined in (10). As \Lambda \gama  has the form of a cumulant generating functional of the marginal performance measure Hg in (8), the variance of \Lambda \gama  behaves like the variance of an exponential function of the random variable Hg. If \Xi  exhibits large variance, as observed
+for the upper bound \Xi + for the goal function g3 in Figures 5a, 8, and 9, then attempting to reduce the overall variance by running additional simulations for Hg may be infeasible if the
+solver for the forward model is computationally expensive. Presently, we outline a different
+strategy that involves estimating \Lambda \gama  by concentration inequalities from large deviations theory [7]. This approach was recently introduced and applied to model problems in [32], and we
+extend these ideas to complex systems involving random PDE where the stochastic fields are
+infinite dimensional and inferred from real-world data. The concentration inequality estimates that we explore rely on statistics of Hg, such as mean and variance, and provide a bound on
+\Lambda \gama , which can be used as a surrogate in \Xi , accounting for any available data. Thus, not only are these concentration inequality estimates computationally nonintrusive, but they also rely
+on quantities that one is already likely to compute in the normal course of a simulation.
+
+5.1. Variance of the standard estimator for \Xi . The variance of the standard MC estimator for \Xi + is given by
+
+Var\gama 
+
+[\Xi +(\lambda 
+
+| 
+
+\gama ; Hg)]
+
+=
+
+(c\ast 
+
+Var\gama  [ec\ast Hg ] )2M (E\gama  [ec\ast H
+
+g
+
+])2
+
+,
+
+a quantity that depends exponentially on both c\ast  and Hg. We recall that the optimal c\ast  is linked to the information budget \rho  = \scrR (\lambda  |  \gama ) by (30). For alternative models that are close in relative entropy to the nominal model, such as small parametric perturbations, (30) provides a good approximation of the optimal c\ast  up to first order in \rho . However, for alternative models that are a large relative entropy distance from the nominal model, we see from (30) that the optimal c\ast  grows at least linearly in \rho .
+Attempting to sample an estimator with large variance poses a difficulty for the present application of interest as sampling involves calls to a random PDE solver. In such settings, it is therefore of interest to find an alternative strategy to sampling \Lambda \gama . As suggested by the righthand side of (10), \Lambda \gama  may have a known description as a cumulant generating functional for particular Hg. In other instances, \gama  might have a form amenable to the numerical integration of E\gama [ec(Hg - E\gama [Hg])], for example via thermodynamic integration techniques [40].
+In the remainder of this section, we indicate an alternative approach, recently introduced in [32], that relies on concentration inequalities from large deviations theory to bound \Lambda \gama . The concentration inequalities, at least in their simplest form, require bounded observables Hg but rely on quantities that we are already likely to be sampling in our simulation such as the expected value and the variance. Although in the form of concentration inequalities discussed below the observable must be bounded, we show that such bounds produce fairly reliable results even when the observable is merely finite and an artificial bound is imposed (see Remark 5.4). We refer the reader to [32] for a complete discussion on UQ methods based on concentration inequalities for both bounded and unbounded observables in several model problems.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1389
+
+5.2. Concentration inequalities for risk-sensitive performance measures. We recall the following bound on the moment generating function of a random variable in terms of its first two moments (see, e.g., [17]).
+\sansL \sanse \sansm \sansm \sansa  \sansfiv.\sansone (\sansB \sanse \sansn \sansn \sanse \sanst \sanst ). Supposed X \leq  b is a real-valued random variable with m = E[X] and E[(X  -  m)2] \leq  s2 for some s > 0. Then, for any c \geq  0,
+
+E[ecX ]
+
+\leq 
+
+ecm
+
+\big l(  (b
+
+(b  -  m)2  -  m)2 +
+
+ - 
+
+cs2 b - m
+
+s e 2
+
++
+
+(b
+
+ - 
+
+s2 m)2
+
++
+
+\big r)  s2 ec(b - m) .
+
+Thus we formulate a bound for \Lambda \gama (c, Hg) where the estimator of this quantity does not involve sampling an exponentially large quantity, i.e., the moment generating functional.
+\sansT \sansh \sanse \sanso \sansr \sanse \sansm  \sansfiv.\sanstwo (\sansc \sanso \sansn \sansc \sanse \sansn \sanst \sansr \sansa \sanst \sansi \sanso \sansn ). For a bounded observable Hg \leq  \b= and c \geq  0,
+
+\Lambda \gama (c, Hg)
+
+\leq 
+
+1 c
+
+log
+
+\Big
+
+l( 
+
+(\b=
+
+(\b=  - 
+
+ -  H\widehgat H\widehgat )2
+
+)2 +
+
+s2g
+
+e - cs2g
+
+/(\b= - H\widehgat
+
+)
+
++
+
+(\b=  - 
+
+s2g H\widehgat )2
+
++
+
+\Big r)  ec(\b= - H\widehgat ) , s2g
+
+where H\widehgat = E\gama [Hg] and s2g = Var\gama [Hg].
+Proof. This follows immediately from Lemma 5.1 by considering the centered X = Hg - H\widehgat with b = \b=  -  H\widehgat , m = E[Hg  -  H\widehgat ] = 0, and s2g = E[X2] = Var\gama [Hg].
+We note from Theorem 2.5 that for failure probabilities the risk-sensitive performance measure has the form (18); thus the bound appearing in Theorem 5.2 holds with equality. An immediate extension to Lemma 5.1 bounds the moment generating function in terms of its mean and support and can be used when Hg has both an upper and a lower bound.
+\sansL \sanse \sansm \sansm \sansa  \sansfiv.\sansthr (\sansB \sanse \sansn \sansn \sanse \sanst \sanst -(a, b)). Suppose X \in  [a, b], for fixed a < b, is a real-valued random variable with m = E[X]. Then for any c \in  R,
+
+E[ecX ]
+
+\leq 
+
+m  -  a b  -  a
+
+ecb
+
++
+
+b  -  b  - 
+
+m a
+
+eca.
+
+We end by demonstrating these alternative bounds for the experiment in section 3.
+
+5.3. Implementation for a parametric model. In the spirit of (29), we let
+
+(34) and obtain
+
+\zeta  (c,
+
+Hg)
+
+:=
+
+\L\amb=da \gam a  (c,
+
+Hg)
+
++
+
+1 c
+
+\s\c=rR (\gam
+
+a 
+
+\prime 
+
+| 
+
+\gam a  )
+
+(35)
+
+B+(Hg) \ap rox  \zeta (c\ast , Hg) and C+(Hg) \ap rox  \zeta (c\ast , Hg)
+
+for an optimal c\ast  where \L\amb=da \gama (c, Hg) in (34) is approximated using Theorem 5.2 and Lemma 5.3, respectively. These surrogates for the cumulant generating functional account for any available data through suitable statistical quantities of the marginal performance measure Hg in (8)
+that is related to the propagation of model-form uncertainty from the geostatistical model to the forward model in Figure 1. Corresponding lower bounds, B - (Hg) and C - (Hg), are
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+weak error weak error
+
+1390
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+g3(u¯) g3(u¯)
+
+( ), perturbation in
+
+2
+
+1
+
+0
+
+-1
+
+20
+
+40
+
+60
+
+80
+
+R¯
+
+(a)
+
+(τ 2), perturbation in τ 2 0.4
+
+0.2
+
+0.0
+
+-0.2
+
+-0.4 Quantity
+
+E
+
+Ξ±
+
+B±
+
+C±
+
+0.0000 0.0005 0.0010 0.0015 0.0020 0.0025 R¯
+(b)
+
+Figure 10. The bounds \Xi \pm , B\pm , and C\pm  are compared above for predictions of the weak error \scrE  between small parametric perturbations of \el  (a) and \tau  2 (b) for the parametric geostatistical model with mean \mu  and covariance (20) (cf. Figures 5a and 5b). The bounds B\pm  and C\pm  in (35) based on the Bennett and Bennett-(a, b) concentration inequalities in Lemmas 5.1 and 5.3 provide a computationally efficient alternative to sampling the cumulant generating functional for the marginal performance measure directly when the goal functional has high variance, as is the case for (32c). Notice in (a) that the shaded regions denoting confidence intervals for the concentration inequalities B\pm  and C\pm  are negligible compared to the shaded region for the estimator of \Xi \pm . The smaller variance of the concentration inequalities comes at the cost of some tightness in the estimates for \scrE ; in this case \Xi  \leq  B\pm  \leq  C\pm . In particular, we observe in (b) that C\pm  overpredicts the weak error \scrE .
+
+derived in a similar manner. In Figure 10, we demonstrate all of the bounds for the goal functional g3 (32c), noting that the bounds B\pm  and C\pm  have much smaller variance than the estimator for \Xi \pm  and in each case form an envelope around the sensitivity for the QoI that remains tight and robust. In Figure 10, the shaded regions denoting confidence intervals for the concentration inequalities B\pm  and C\pm  are negligible compared to the shaded region for the estimator of \Xi \pm . The smaller variance of the concentration inequalities comes at the cost of some tightness in the estimates for \scrE .
+Remark 5.4 (\sansu \sansn \sansb \sanso \sansu \sansn \sansd \sanse \sansd  \sansQ \sanso \sansI \sans ). Although the concentration inequalities as quoted here are indicated only for a bounded QoI, we note that there exist other formulations for unbounded QoIs such as for sub-Gaussian random variables [32]. In practice Theorem 5.2 is a useful computational tool for a finite QoI; we observe that the tight bounds demonstrated in Figure 10 are for g3(u\=) = min(u\=(1), 3) where the cut-off was arbitrarily chosen using a training set of 103 observations of u\=(1).
+6. Conclusions. The present work develops UQ tools for a random PDE model of steadystate subsurface flow in Figure 1 with potential impacts in hydrology, carbon sequestration, and petroleum engineering. These tools are realized through the novel application of hybrid information divergences that balance observable and data-dependent quantities. The hybrid nature of the divergences allows us to represent and distinguish various sources of uncertainty entering into the model by attaching different levels of confidence to parts of the model. Ultimately, this allows us to address a key challenge concerning the propagation of modelform or epistemic uncertainty from the geostatistical model via the pathway in Figure 2.
+We derive tight and robust estimates for modeling errors or biases from the hybrid information divergences and apply these to important UQ tasks including parametric sensitivity
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1391
+
+analysis and model misspecification arising from sparse data. In particular, we demonstrate the use of these bounds for making data-informed predictions such as quantifying the impact of incomplete data as in section 4. The robustness, when interpreted as including worst-case scenarios within a given information budget (i.e., within a family of acceptable alternative models; see Figure 3), suggests that these bounds are an appropriate deliverable in the context of the decision support framework in Figure 1. We emphasize that the bounds derived here are also goal-oriented and nonintrusive in nature, that is, can be used in conjunction with any algorithm or solver for the random PDE problem in Figure 1. Finally, we also make connections between the hybrid information divergences and certain concentration inequalities from large deviations theory that can be leveraged for efficient computing and account for any available data through suitable statistical quantities.
+
+Appendix A. Source code. Source code and links to observational data are available at https://github.com/ejhall/robust-uq-divergences.
+
+REFERENCES
+[1] J. R. E. Aarnes, K.-A. Lie, V. Kippe, and S. Krogstad, Multiscale methods for subsurface flow, in Multiscale Modeling and Simulation in Science, B. Engquist, P. Lo\"stedt, and O. Runborg, eds., Lect. Notes Comput. Sci. Eng. 66, Springer, Berlin, 2009, pp. 3--48, https://doi.org/10.1007/ 978-3-540-88857-4 1.
+[2] M. P. Anderson, W. W. Woessner, and R. J. Hunt, Applied Groundwater Modeling: Simulation of Flow and Advective Transport, 2nd ed., Academic Press, New York, 2015, https://doi.org/10.1016/ B978-0-08-091638-5.00013-4.
+[3] G. Arampatzis, M. A. Katsoulakis, and Y. Pantazis, Accelerated sensitivity analysis in highdimensional stochastic reaction networks, PLoS ONE, 10 (2015), e0130825, https://doi.org/10.1371/ journal.pone.0130825.
+[4] R. Atar, K. Chowdhary, and P. Dupuis, Robust bounds on risk-sensitive functionals via R\e'nyi divergence, SIAM/ASA J. Uncertain. Quantif., 3 (2015), pp. 18--33, https://doi.org/10.1137/130939730.
+[5] I. Babu\sv ka, F. Nobile, and R. Tempone, A stochastic collocation method for elliptic partial differential equations with random input data, SIAM J. Numer. Anal., 45 (2007), pp. 1005--1034, https://doi.org/ 10.1137/050645142.
+[6] A. Ben-Tal, L. El Ghaoui, and A. Nemirovski, Robust Optimization, Princeton Ser. Appl. Math., Princeton University Press, Princeton, NJ, 2009, https://doi.org/10.1515/9781400831050.
+[7] S. Boucheron, G. Lugosi, and P. Massart, Concentration Inequalities: A Nonasymptotic Theory of Independence, Oxford University Press, Oxford, UK, 2013, https://doi.org/10.1093/acprof:oso/ 9780199535255.001.0001.
+[8] K. P. Burnham and D. R. Anderson, Model Selection and Multimodel Inference, 2nd ed., SpringerVerlag, New York, 2002, https://doi.org/10.1007/b97636.
+[9] J. Charrier, Strong and weak error estimates for elliptic partial differential equations with random coefficients, SIAM J. Numer. Anal., 50 (2012), pp. 216--246, https://doi.org/10.1137/100800531.
+[10] J. Charrier, R. Scheichl, and A. L. Teckentrup, Finite element error analysis of elliptic PDEs with random coefficients and its application to multilevel Monte Carlo methods, SIAM J. Numer. Anal., 51 (2013), pp. 322--352, https://doi.org/10.1137/110853054.
+[11] K. Chowdhary and P. Dupuis, Distinguishing and integrating aleatoric and epistemic variation in uncertainty quantification, ESAIM Math. Model. Numer. Anal., 47 (2013), pp. 635--662, https://doi. org/10.1051/m2an/2012038.
+[12] M. Christie and M. Blunt, Tenth SPE comparative solution project: A comparison of upscaling techniques, in SPE Reservoir Simulation Symposium, Society of Petroleum Engineers, 2001, https://doi.org/10.2118/72469-PA.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+1392
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+[13] K. A. Cliffe, M. B. Giles, R. Scheichl, and A. L. Teckentrup, Multilevel Monte Carlo methods and applications to elliptic PDEs with random coefficients, Comput. Vis. Sci., 14 (2011), pp. 3--15, https://doi.org/10.1007/s00791-011-0160-x.
+[14] T. M. Cover and J. A. Thomas, Elements of Information Theory, 2nd ed., Wiley-Interscience, Hoboken, NJ, 2006, https://doi.org/10.1002/047174882X.
+[15] G. Dagan, Statistical theory of groundwater flow and transport: Pore to laboratory, laboratory to formation, and formation to regional scale, Water Resour. Res., 22 (1986), pp. 120S--134S, https: //doi.org/10.1029/WR022i09Sp0120S.
+[16] G. Dagan, Flow and Transport in Porous Formations, Springer-Verlag, Berlin, 1989, https://doi.org/ 10.1007/978-3-642-75015-1.
+[17] A. Dembo and O. Zeitouni, Large Deviations Techniques and Applications, Stoch. Model. Appl. Probab. 38, Springer-Verlag, Berlin, 2010, https://doi.org/10.1007/978-3-642-03311-7.
+[18] J. E. Doherty and R. J. Hunt, Approaches to Highly Parameterized Inversion: A Guide to Using PEST for Model-Parameter and Predictive-Uncertainty Analysis, Tech. report, US Geological Survey, 2010, http://pubs.usgs.gov/sir/2010/5211.
+[19] J. C. Duchi, M. I. Jordan, and M. J. Wainwright, Local privacy and statistical minimax rates, in Proceedings of the 54th Annual IEEE Symposium on Foundations of Computer Science, IEEE, Washington, DC, 2013, pp. 429--438, https://doi.org/10.1109/FOCS.2013.53.
+[20] P. Dupuis and R. S. Ellis, A Weak Convergence Approach to the Theory of Large Deviations, John Wiley \& Sons, New York, 1997, https://doi.org/10.1002/9781118165904.
+[21] P. Dupuis, M. A. Katsoulakis, Y. Pantazis, and P. Plecha\'c\v , Path-space information bounds for uncertainty quantification and sensitivity analysis of stochastic dynamics, SIAM/ASA J. Uncertain. Quantif., 4 (2016), pp. 80--111, https://doi.org/10.1137/15M1025645.
+[22] W. Durner, Hydraulic conductivity estimation for soils with heterogeneous pore structure, Water Resour. Res., 30 (1994), pp. 211--223, https://doi.org/10.1029/93WR02676.
+[23] R. S. Ellis, Entropy, Large Deviations, and Statistical Mechanics, Springer-Verlag, Berlin, 2006, https: //doi.org/10.1007/3-540-29060-5.
+[24] O. G. Ernst, A. Mugler, H.-J. Starkloff, and E. Ullmann, On the convergence of generalized polynomial chaos expansions, ESAIM Math. Model. Numer. Anal., 46 (2012), pp. 317--339, https: //doi.org/10.1051/m2an/2011045.
+[25] R. E. Ewing, ed., The Mathematics of Reservoir Simulation, Frontiers Appl. Math. 1, SIAM, Philadelphia, 1983, https://doi.org/10.1137/1.9781611971071.
+[26] S. Ferson and L. R. Ginzburg, Different methods are needed to propagate ignorance and variability, Reliab. Eng. Syst. Safe., 54 (1996), pp. 133--144, https://doi.org/10.1016/S0951-8320(96)00071-3.
+[27] A. E. Gelfand, P. Diggle, P. Guttorp, and M. Fuentes, eds., Handbook of Spatial Statistics, CRC Press, Boca Raton, FL, 2010, https://doi.org/10.1201/9781420072884.
+[28] M. Gil, F. Alajaji, and T. Linder, R\e'nyi divergence measures for commonly used univariate continuous distributions, Inform. Sci., 249 (2013), pp. 124--131, https://doi.org/10.1016/j.ins.2013.06.018.
+[29] P. Glasserman, Monte Carlo Methods in Financial Engineering, Stoch. Model. Appl. Probab. 53, Springer, New York, 2003, https://doi.org/10.1007/978-0-387-21617-1.
+[30] P. Glasserman and D. D. Yao, Some guidelines and guarantees for common random numbers, Management Sci., 38 (1992), pp. 884--908, https://doi.org/10.1287/mnsc.38.6.884.
+[31] K. Gourgoulias, M. A. Katsoulakis, and L. Rey-Bellet, Information metrics for long-time errors in splitting schemes for stochastic dynamics and parallel kinetic Monte Carlo, SIAM J. Sci. Comput., 38 (2016), pp. A3808--A3832, https://doi.org/10.1137/15M1047271.
+[32] K. Gourgoulias, M. A. Katsoulakis, L. Rey-Bellet, and J. Wang, How Biased is Your Model? Concentration Inequalities, Information and Model Bias, preprint, https://arxiv.org/abs/1706.10260, 2017.
+[33] E. J. Hall, H. Hoel, M. Sandberg, A. Szepessy, and R. Tempone, Computable error estimates for finite element approximations of elliptic partial differential equations with rough stochastic data, SIAM J. Sci. Comput., 38 (2016), pp. A3773--A3807, https://doi.org/10.1137/15M1044266.
+[34] V. Harmandaris, E. Kalligiannaki, M. Katsoulakis, and P. Plecha\'c\v , Path-space variational inference for non-equilibrium coarse-grained systems, J. Comput. Phys., 314 (2016), pp. 355--383, https://doi.org/10.1016/j.jcp.2016.03.021.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+ROBUST INFORMATION DIVERGENCES FOR RANDOM PDE
+
+1393
+
+[35] J. C. Helton, Treatment of uncertainty in performance assessments for complex systems, Risk Anal., 14 (1994), pp. 483--511, https://doi.org/10.1111/j.1539-6924.1994.tb00266.x.
+[36] F. O. Hoffman and J. S. Hammonds, Propagation of uncertainty in risk assessments: The need to distinguish between uncertainty due to lack of knowledge and uncertainty due to variability, Risk Anal., 14 (1994), pp. 707--712, https://doi.org/10.1111/j.1539-6924.1994.tb00281.x.
+[37] S. C. Hora, Aleatory and epistemic uncertainty in probability elicitation with an example from hazardous waste management, Reliab. Eng. Syst. Safe., 54 (1996), pp. 217--223, https://doi.org/10.1016/ S0951-8320(96)00077-4.
+[38] M. A. Katsoulakis, L. Rey-Bellet, and J. Wang, Scalable information inequalities for uncertainty quantification, J. Comput. Phys., 336 (2017), pp. 513--545, https://doi.org/10.1016/j.jcp.2017.02.020.
+[39] M. Komorowski, M. J. Costa, D. A. Rand, and M. P. Stumpf, Sensitivity, robustness, and identifiability in stochastic chemical kinetics models, Proc. Natl. Acad. Sci. USA, 108 (2011), pp. 8645--8650, https://doi.org/10.1073/pnas.1015814108.
+[40] T. Lelie\`vre, M. Rousset, and G. Stoltz, Free Energy Computations, Imperial College Press, London, 2010, https://doi.org/10.1142/9781848162488.
+[41] J. Li, X. Qi, and D. Xiu, On upper and lower bounds for quantity of interest in problems subject to epistemic uncertainty, SIAM J. Sci. Comput., 36 (2014), pp. A364--A376, https://doi.org/10.1137/ 120892969.
+[42] J. Li and D. Xiu, Computation of failure probability subject to epistemic uncertainty, SIAM J. Sci. Comput., 34 (2012), pp. A2946--A2964, https://doi.org/10.1137/120864155.
+[43] F. Liese and I. Vajda, Convex Statistical Distances, Teubner, Leipzig, 1987. [44] H. G. Matthies and A. Keese, Galerkin methods for linear and nonlinear elliptic stochastic partial
+differential equations, Comput. Methods Appl. Mech. Engrg., 194 (2005), pp. 1295--1331, https://doi. org/10.1016/j.cma.2004.05.027. [45] D. McLaughlin and L. R. Townley, A reassessment of the groundwater inverse problem, Water Resour. Res., 32 (1996), pp. 1131--1161, https://doi.org/10.1029/96WR00160. [46] W. L. Oberkampf, J. C. Helton, C. A. Joslyn, S. F. Wojtkiewicz, and S. Ferson, Challenge problems: Uncertainty in system response given uncertain parameters, Reliab. Eng. Syst. Safe., 85 (2004), pp. 11--19, https://doi.org/10.1016/j.ress.2004.03.002. [47] H. Owhadi, C. Scovel, T. J. Sullivan, M. McKerns, and M. Ortiz, Optimal uncertainty quantification, SIAM Rev., 55 (2013), pp. 271--345, https://doi.org/10.1137/10080782X. [48] G. W. Parry, The characterization of uncertainty in probabilistic risk assessments of complex systems, Reliab. Eng. Syst. Safe., 54 (1996), pp. 119--126, https://doi.org/10.1016/S0951-8320(96)00069-5. [49] M. E. Pate\'-Cornell, Uncertainties in risk analysis: Six levels of treatment, Reliab. Eng. Syst. Safe., 54 (1996), pp. 95--111, https://doi.org/10.1016/S0951-8320(96)00067-1. [50] C. E. Rasmussen and C. K. I. Williams, Gaussian Processes for Machine Learning, MIT Press, Cambridge, MA, 2006, http://www.gaussianprocess.org/gpml/. [51] P. Richards, An introduction to the Brent group: A literature review, in Geology of the Brent Group, A. Morton, R. Haszeldine, M. Giles, and S. Brown, eds., Special Publications 61, Geological Society of London, London, 1992, pp. 15--26, https://doi.org/10.1144/GSL.SP.1992.061.01.03. [52] W. D. Rowe, Understanding uncertainty, Risk Anal., 14 (1994), pp. 743--750, https://doi.org/10.1111/ j.1539-6924.1994.tb00284.x. [53] H. Rue and L. Held, Gaussian Markov Random Fields, Monogr. Statist. Appl. Probab. 104, Chapman and Hall/CRC, Boca Raton, FL, 2005, https://doi.org/10.1201/9780203492024. [54] M. Schlather, A. Malinowski, M. Oesting, D. Boecker, K. Strokorb, S. Engelke, J. Martini,
+F. Ballani, O. Moreva, J. Auel, P. Menck, S. Gross, U. Ober, C. Berreth, K. Burmeister, J. Manitz, P. Ribeiro, R. Singleton, B. Pfaff, and R Core Team, Randomfields: Simulation and Analysis of Random Fields, 2017, https://cran.r-project.org/web/packages/RandomFields/ index.html (accessed 2017-04-18), R package version 3.1.50. [55] D. M. Tartakovsky, Assessment and management of risk in subsurface hydrology: A review and perspective, Adv. Water Res., 51 (2013), pp. 247--260, https://doi.org/10.1016/j.advwatres.2012.04.007.
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+
+1394
+
+E. J. HALL AND M. A. KATSOULAKIS
+
+[56] A. Tsourtis, Y. Pantazis, M. A. Katsoulakis, and V. Harmandaris, Parametric sensitivity analysis for stochastic molecular systems using information theoretic metrics, J. Chem. Phys., 143 (2015), 014116, https://doi.org/10.1063/1.4922924.
+[57] A. B. Tsybakov, Introduction to Nonparametric Estimation, Springer Ser. Statist., Springer, New York, 2009, https://doi.org/10.1007/b13794.
+[58] L. Wasserman, All of Statistics, Springer-Verlag, New York, 2004, https://doi.org/10.1007/ 978-0-387-21736-9.
+
+Downloaded 10/10/18 to 128.119.201.219. Redistribution subject to SIAM license or copyright; see http://www.siam.org/journals/ojsa.php
+
+Copyright © by SIAM and ASA. Unauthorized reproduction of this article is prohibited.
+View publication stats
+

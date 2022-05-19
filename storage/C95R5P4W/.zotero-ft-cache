@@ -1,0 +1,937 @@
+INFORMATICS
+
+Human Mutation
+OFFICIAL JOURNAL
+
+Performance of Protein Stability Predictors
+
+Sofia Khan1 and Mauno Vihinen1,2Ã
+
+www.hgvs.org
+
+1Institute of Medical Technology, FI-33014 University of Tampere, Finland; 2Science Center, Tampere University Hospital, FI-33520 Tampere, Finland
+
+Communicated by Sean V. Tavigian
+Received 17 November 2009; accepted revised manuscript 2 March 2010. Published online 15 March 2010 in Wiley InterScience (www.interscience.wiley.com). DOI 10.1002/humu.21242
+
+ABSTRACT: Stability is a fundamental property affecting function, activity, and regulation of biomolecules. Stability changes are often found for mutated proteins involved in diseases. Stability predictors computationally predict protein–stability changes caused by mutations. We performed a systematic analysis of 11 online stability predictors’ performances. These predictors are CUPSAT, Dmutant, FoldX, I-Mutant2.0, two versions of IMutant3.0 (sequence and structure versions), MultiMutate, MUpro, SCide, Scpred, and SRide. As input, 1,784 single mutations found in 80 proteins were used, and these mutations did not include those used for training. The programs’ performances were also assessed according to where the mutations were found in the proteins, that is, in secondary structures and on the surface or in the core of a protein, and according to protein structure type. The extents to which the mutations altered the occupied volumes at the residue sites and the charge interactions were also characterized. The predictions of all programs were in line with the experimental data. I-Mutant3.0 (utilizing structural information), Dmutant, and FoldX were the most reliable predictors. The stability-center predictors performed with similar accuracy. However, at best, the predictions were only moderately accurate ($60%) and significantly better tools would be needed for routine analysis of mutation effects. Hum Mutat 31:675–684, 2010. & 2010 Wiley-Liss, Inc.
+KEY WORDS: protein stability; free energy; missense mutations; stability predictors; prediction programs; bioinformatics; computational methods; predictions
+Introduction
+Stability is a fundamental property affecting function, activity, and regulation of biomolecules. Conformational changes are required for many proteins’ function [Hsu et al., 2008; Mohamed et al., 2009; Muller et al., 1996]; therefore, conformational flexibility and rigidity must be finely balanced [Vihinen, 1987].
+Incorrect folding and decreased stability are the major consequences of pathogenic missense mutations [Bross et al., 1999; Ferrer-Costa et al., 2002; Wang and Moult, 2001; Yue et al., 2005]. Single residue mutations can cause, for example, reduction in hydrophobic area, over packing, backbone strain, and loss of
+Additional Supporting Information may be found in the online version of this article. ÃCorrespondence to: Mauno Vihinen, Institute of Medical Technology, Fi-33014 University of Tampere, Finland. E-mail: mauno.vihinen@uta.fi
+
+electrostatic interaction, and thus lead to changes in protein stability [Steward et al., 2003]. Alterations in atom–atom interactions affect the free energy difference (DG) between the folded and unfolded states of proteins. Changes in the interaction among residues within a protein or between a protein and its surroundings affect the entropy of the system with consequent effects in local flexibility/rigidity of the structure [Yue et al., 2005]. In addition to covalent disulphide bonds, proteins are stabilized by the noncovalent hydrophobic, electrostatic, and van der Waals interactions, and hydrogen bonds [Pace, 1990; Ponnuswamy and Gromiha, 1994]. Cooperative, noncovalent, long-range interactions provide stability that counteracts local tendencies to unfold [Abkevich et al., 1995; Gromiha and Selvaraj, 2004]. The importance of the interactions for stability has been revealed by site-directed mutagenesis experiments [Akasako et al., 1997; Petsko, 2001; Sawano et al., 2008; Villegas et al., 1996]. Intramolecular interactions define the overall structure and stability of a protein, as well as regions that can undergo conformational rearrangements. Additionally, functions, such as catalysis, allosteric regulation, and ligand binding, depend mostly on the same interactions that define stability.
+Understanding the mechanisms by which mutations affect protein stability is an important subject. Accurate prediction of protein stability changes that arise upon mutagenesis is necessary if the structure–function relationship of a protein is to be understood or if a new protein is to be designed. Understanding the structure–function relationship is also essential when characterizing disease mechanisms [Sunyaev et al., 2001; Thusberg and Vihinen, 2009] and evolutionary dynamics [Bloom et al., 2005b, 2007; Camps et al., 2007; DePristo et al., 2005; Pal et al., 2006; Poelwijk et al., 2007], and when designing or engineering proteins [Baltzer and Nilsson, 2001; Bloom et al., 2005a; Bolon et al., 2002; Butterfoss and Kuhlman, 2006; Lehmann and Wyss, 2001; van den Burg and Eijsink, 2002].
+Many computational methods have been developed to predict the difference in the free energy of unfolding (DDG) between a wild-type protein and its mutant. Some of these methods rely on energy functions to compute the DDG, whereas others apply machine-learning approaches. The methods that use energy functions can be subdivided to: physical potential approaches, statistical potential approaches, and empirical potential approaches [Capriotti et al., 2004]. The physical potential approaches [Bash et al., 1987; Pitera and Kollman, 2000; Prevost et al., 1991] simulate the atomic force fields of a structure and therefore cannot be applied to large datasets because they are computationally intense. Statistical potential approaches [Deutsch and Krishnamoorthy, 2007; Gilis and Rooman, 1997, 2000; Magyar et al., 2005; Zhou and Zhou, 2002, 2004] use potential functions derived from statistical analyses of environmental propensities, substitution frequencies, and correlations of adjacent
+
+& 2010 WILEY-LISS, INC.
+
+residues found experimentally in protein structures. For the empirical-potential approach [Cheng et al., 2006; Guerois et al., 2002; Parthiban et al., 2006], the energy function is a combination of the weighted physical and statistical energy terms and structural descriptors. Machine-learning methods [Capriotti et al., 2005, 2008; Cheng et al., 2006; Dosztanyi et al., 1997, 2003; Shen et al., 2008] are first trained using examples of proteins and their mutants for which the DDGs have been experimentally measured. Recently a combination of these approaches has been developed [Masso and Vaisman, 2008].
+Experimental studies on the molecular effects of mutations are often laborious, time-consuming, and costly. Computational and statistical methods may be used instead to predict many of the effects caused by mutations and to elucidate the underlying biological mechanisms [Thusberg and Vihinen, 2009]. We performed a systematic analysis of the performances of 11 stability predictors available on the Internet. The developers of these methods have used different datasets to test the accuracies of their programs; therefore; a comprehensive, comparative assessment of their performances has yet to be made. Our analysis revealed that the predictive performances of the methods clearly differ and there is a need for more reliable tools.
+Materials and Methods
+The novel methods that produce vast biological datasets demand bioinformatics tools and methods to analyze and interpret the observations. For certain tasks several tools may be available, but without reliable knowledge about the performance and quality of predictions choosing the correct tool to use is not possible. We therefore performed a comprehensive evaluation of eleven bioinformatics tools designed to predict protein stability changes.
+Test Cases
+We built a dataset containing missense mutations for which the corresponding proteins had experimentally determined DDG values from ProTherm database (ProTherm update Dec. 19, 2008) [Kumar et al., 2006]. ProTherm is the most comprehensive database for experimentally determined protein stability free energy changes caused by mutations, although the measurements have not always been made in physiological conditions. Mutations with associated DDG values between 0.5 and À0.5 kcal/mol were classified as neutral cases, not affecting stability, because the experimental error for measurement of DDG has been estimated as 70.48 kcal/mol [Khatun et al., 2004]. We defined positive cases as having DDG values Z0.5 or rÀ0.5 kcal/mol. We did not consider proteins containing double mutations and used only one representative case when several DDG values from different studies were available for a given mutation. The final dataset contained 1784 mutations from 80 proteins, with 1,154 positive cases of which 931 were destabilizing (DDGZ0.5 kcal/mol), 222 were stabilizing (DDGrÀ0.5 kcal/mol), and 631 were neutral (0.5 kcal/molZDDGZÀ0.5 kcal/mol). (Note that the signs for the DDG values are the opposite those given in the ProTherm database.)
+The sizes of the datasets used to test the stability predictors varied, because the majority of the predictors had been trained using data obtained from earlier versions of ProTherm; therefore, only those cases that had been added to the database after training had occurred were used. The datasets for I-Mutant2.0, CUPSAT, FoldX, Dmutant, and MultiMutate included 174, 536, 1,541,
+
+1,714, and 1,757 mutations, respectively. The smallest datasets used that contained enough cases for statistical analysis was for MUpro (166 mutations) and both versions of I-Mutant3.0 (115 cases each). For the programs SCide, SRide, and Scpred, which predict the existence of stability centers, the datasets contained 1,646, 1,589, and 1,784 mutations, respectively. For AUTO-MUTE, the dataset contained only 28 cases.
+Prediction Methods
+The effects of mutations on protein stabilities were predicted using the default parameters of the programs. We ran the programs at the Pathogenic-or-Not Pipeline [Thusberg and Vihinen, 2009]. This service submits the input data, that is, the wild-type protein structure and/or sequence, and the amino acid substitution, to the selected predictors and parses the results of the individual methods into a single output.
+AUTO-MUTE [Masso and Vaisman, 2008] (http://proteins. gmu.edu/automute/AUTO-MUTE.html) uses a four-body, knowledge-based, statistical contact potential. The program calculates an empirical, normalized measure of the environmental perturbation for substitutions. A feature vector is used to estimate the effect of the mutation by considering the spatial perturbation inflicted by the mutation upon its nearest neighbors in the 3D structure. We used the random forest option.
+CUPSAT [Parthiban et al., 2006] (http://cupsat.uni-koeln.de) predicts DDG using structural, environment-specific, atomic potentials and torsion-angle potentials derived from nonredundant protein structures [Wang and Dunbrack, 2003]. The torsionangle potentials are derived from the distribution of protein backbone j and c angles in the dataset.
+Dmutant [Zhou and Zhou, 2002] (http://sparks.informatics. iupui.edu/hzhou/mutation.html) uses a statistical potential approach with a distance-dependent, residue-specific, all-atom, and knowledge-based potential for protein structure-based predictions.
+FoldX version 3.0 [Guerois et al., 2002] (http://foldx.crg.es/) is an empirical potential approach that uses an energy function derived from a weighted combination of physical-energy terms, statistical-energy terms, and structural descriptors calibrated to fit experimental DDG values. FoldX and Dmutant are the only programs discussed herein that return negative DDG values for stabilizing mutations and positive values for destabilizing mutants.
+I-Mutant2.0 [Capriotti et al., 2005] (http://gpcr2.biocomp. unibo.it/cgi/predictors/I-Mutant2.0/I-Mutant2.0.cgi) and I-Mutant3.0 [Capriotti et al., 2008] (http://gpcr2.biocomp.unibo.it/ cgi/predictors/I-Mutant3.0/I-Mutant3.0.cgi) are support vector machine (SVM)-based tools. The services use either a protein structure or a sequence as input. We used the sequence-based version of both the versions as well as the structure based version of I-Mutant3.0. I-Mutant2.0 programs can be used to predict the sign of the stability change upon mutation or as a regression estimator to predict DDG values. Unlike other stability predictors analyzed here, the I-Mutant3.0 classifies the prediction in three classes: neutral mutation (À0.5rDDGr0.5), large Decrease (rÀ0.5) and large Increase (40.5).
+MultiMutate [Deutsch and Krishnamoorthy, 2007] (http:// www.math.wsu.edu/math/faculty/bkrishna/DT/Mutate/) uses a four-body scoring function based on Delaunay tessellation of proteins. The method calculates the change in how well packed the residues are in the wild-type protein and in the mutant. Score values between 0.5% and À0.5% are classified as negative.
+
+676
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+MUpro version 2.0.4 [Cheng et al., 2006] (http://www.igb. uci.edu/servers/servers.html) contains two machine-learning programs, SVM and Neural Networks. We used the sequence-based version of the program. The SVM method was run using the default parameters. The output of the program is the sign of the energy change (1 or À).
+The programs SCide [Dosztanyi et al., 2003], Scpred [Dosztanyi et al., 1997], and SRide [Magyar et al., 2005] identify stability centers from sequence data. Mutations found at stability centers were considered by us to be destabilizing and thus deleterious. SCide (http://www.enzim.hu/scide) attempts to identify stability centers within experimentally determined protein structures. Stabilizing, cooperative, long-range contacts identified by SCide are formed between regions that are sequentially well separated or that are part of different subunits within a complex. Scpred (http://www.enzim.hu/scpred/pred.html) locates stability-center elements that impart stability via cooperative, long-range interactions. Scpred uses a neural network to predict stabilizing residues in conjunction with sequence information for the protein under study and its homologues. SRide (http://sride.enzim.hu/) combines several methods to identify residues expected to play key roles in stabilization. It analyzes tertiary structures, rather than primary structures, and the evolutionary conserved residues contained within. A residue is predicted to be stabilizing if it is surrounded by hydrophobic residues, exhibits long-range order, has a high conservation score, and, if it is part of a stability center.
+Determination of Protein Structural Classes for the Test Cases
+CATH (class, architecture, topology, homology; http:// www.cathdb.info/), a hierarchical protein-domain classification system [Orengo et al., 1997], was used to group the proteins according to secondary structure type and tertiary organization (protein structure type).
+
+false negatives, respectively.
+
+tp1tn
+
+Accuracy
+
+¼ tp1tn1fp1fn
+
+tn Specificity ¼ tn1fp
+
+Sensitivity ¼ tp tp1fn
+
+MCC ¼ pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃtﬃﬃpﬃﬃﬃÂﬃﬃﬃﬃﬃtﬃnﬃﬃﬃﬃÀﬃﬃﬃﬃﬃfﬃnﬃﬃﬃﬃÂﬃﬃﬃﬃfﬃﬃpﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ ðtp1fnÞðtp1fpÞðtn1fnÞðtn1fpÞ
+
+Matthew’s correlation coefficients (MCC) range from À1 to 1. A value of MCC 5 1 defines the best possible prediction, whereas MCC 5 À1 indicates the worst possible prediction (or anticorrelation). For MCC 5 0, the prediction is the result of chance. To be able to correlate the quality parameters for different programs with different sizes of test sets containing different amounts of positive and negative cases, the numbers of negative cases were normalized to be equal to the number of positive cases for each program. We used receiver operating characteristics (ROC) curves to plot the balance between sensitivity and specificity. ROC analysis was run at http://www.jrocfit.org.
+Mutation statistics were analyzed by comparing the frequencies of the mutations with the expected values that were calculated using the distribution of all amino acids in the analyzed dataset. For the mutated residues, the expected values were calculated with regard to their codon diversity thereby taking into account all possible amino acid substitutions.
+The w2 test was used to determine the significance of the results and chi-square was calculated as:
+w2 ¼ X ðfo À feÞ2 fe
+where fo is the observed frequency and fe is the expected frequency for an amino acid. p-Values were estimated in a one-tailed fashion.
+Correlations between the program outputs were calculated by counting all of the common cases and those predicted correctly.
+
+Determination of Secondary Structural Elements and Accessible Surface Areas
+Secondary structural information for each mutation site was obtained from ProTherm where the data is taken from PDB file annotations. Accessible surface area (ASA) values were obtained from ProTherm, originally computed using the program, Analytical Surface Calculation. We classified residues with o10% ASAs as buried and with 425% ASAs as exposed.
+Determination of Volume and Charge Changes
+To calculate the residue-site charge and volume changes that would occur upon mutation, we obtained from the literature amino acid isoelectric point values [Greenstein and Winitz, 1961] and volumes [Pontius et al., 1996].
+Statistical Analyses
+In the analysis the net effect i.e. the sign of the predictions was used. The DDG values were used only to separate neutral cases from positive ones. The quality of the predictions is described by four parameters. In the following equations, tp, fp, tn, and fn refer to the number of true positives, false positives, true negatives, and
+
+Results
+The performances of the 11 stability predictors differed when tested with our ProTherm dataset. SCide [Dosztanyi et al., 2003] and Scpred [Dosztanyi et al., 1997], which predict stability centers, as well as SRide [Gromiha and Selvaraj, 2004], which predicts stabilizing residues, can predict only destabilizing effects caused by mutations. The other programs evaluate both stabilizing and destabilizing changes.
+Figure 1A diagrams the distributions of the predicted and the experimental DDG values follow normal distribution curves. The values predicted by I-Mutant2.0 and CUPSAT are somewhat biased toward negative values, whereas those for Dmutant trend toward positive values, although the highest peak in the curve for the Dmutant data is at DDG 5 0. The distribution for the FoldX results does not show a clear peak; however, there is a peak at the negative end, and many of the DDG values predicted by FoldX are smaller than À4 kcal/mol.
+To evaluate the performances of the programs, we used four measures: accuracy, specificity, sensitivity, and MCC. Table 1 displays the values of these measures for all of the mutations and individually for the stability-increasing and -decreasing mutations. The overall performances are best for I-Mutant3.0 (structure version), Dmutant and FoldX, which all have accuracies varying from 0.54 to 0.64. MUpro returned the best sensitivity
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+677
+
+Figure 1. A: Distributions of predicted and experimental DDG values. The predictors used were I-Mutant2.0 (red), Dmutant (green), CUPSAT
+(blue), FoldX (gray), and the experimental DDG values are shown in black. B: Receiver operating characteristics curves diagramming the performances of FoldX, I-Mutant2.0, Dmutant, and CUPSAT with the values for AUC7SE derived from the areas under the curves. Color coding for the individual predictors is shown in the figure.
+
+Table 1. Performance of Stability Predictors
+
+All cases Parameters
+
+CUPSAT
+
+Dmutant
+
+FoldX
+
+I-Mutant2.0
+
+I-Mutant 3.0 I-Mutant 3.0 (sequence) (structure)
+
+tp
+fp
+tn
+fn Totala Accuracyb Specificityb
+Sensitivity MCCb
+
+249 123 53 111 536
+0.50 0.30 0.69 À0.01
+
+Stability increasing cases Parameters CUPSAT
+
+576 238 365 535 1,714
+0.56 0.61 0.52 0.12
+Dmutant
+
+629 321 244 347 1,541
+0.54 0.43 0.64 0.08
+
+72 53 19 30 174 0.48 0.26 0.71 À0.03
+
+FoldX I-Mutant2.0
+
+35 38 24 18 115 0.52 0.39 0.66 0.05
+
+34 23 39 19 115 0.64 0.63 0.64 0.27
+
+MUpro
+
+MultiMutate
+
+tp
+fp
+tn
+fn Totala Accuracyb Specificityb
+Sensitivity MCCb
+
+25 45 131 33 234 0.74 0.88 0.43 0.35
+
+Stability decreasing cases
+
+Parameters
+
+CUPSAT
+
+91 131 472 123 817
+0.60 0.78 0.43 0.22
+
+86 134 431 125 776
+0.59 0.76 0.41 0.18
+
+Dmutant FoldX
+
+8 7 65 15 95 0.63 0.90 0.35 0.30
+
+8 15 55 17 95 0.55 0.79 0.32 0.12
+
+91 193 427 128 839
+0.55 0.69 0.42 0.11
+
+I-Mutant3.0 I-Mutant3.0 I-Mutant2.0 (sequence) (structure)
+
+tp
+fp
+tn
+fn Totala Accuracyb Specificityb
+Sensitivity MCCb
+
+224 78 98 78 478 0.65 0.56 0.74 0.30
+
+485 107 496 412 1,500
+0.68 0.82 0.54 0.38
+
+543 187 378 222 1,330
+0.69 0.67 0.71 0.38
+
+64 46 26 15 151 0.59 0.36 0.81 0.19
+
+35 36 26 13 110 0.57 0.42 0.73 0.16
+
+aTotal number of cases used by the given program. bAccuracy, specificity, sensitivity, and MCC are calculated from normalized numbers.
+
+34 20 42 14 110 0.69 0.68 0.71 0.39
+
+MUpro 71 70 0 25 166 0.37 0.00 0.74 À0.39
+MUpro 63 55 15 8 141 0.55 0.21 0.89 0.14
+
+MultiMutate
+620 414 206 517 1,757
+0.44 0.33 0.55 À0.13
+
+SCide SRide Scpred
+
+197 122 465 862 1,646
+0.49 0.79 0.19 À0.03
+
+33 28 548 980 1,589 0.49 0.95 0.03 À0.04
+
+402 238 393 751 1,784
+0.49 0,62
+0.35 -0.03
+
+MultiMutate
+529 221 399 389 1,538
+0.61 0.64 0.58 0.22
+
+value (0.74); whereas for I-Mutant2.0 and CUPSAT, the values are the predictors, the best being I-Mutant3.0 (structure version) that only slightly smaller (0.71 and 0.69, respectively). The specificity has MCC of 0.27. The worst overall MCC value (À0.39) was (0.95) is best for SRide. However, the MCC values are poor for all obtained for MUpro.
+
+678
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+Figure 2. The values of the four quality parameters, accuracy, specificity, sensitivity, and Matthew’s correlation coefficient for the secondary
+structures, the CATH classifications, and the accessible surface areas. A: Secondary structures: a-helices (red), b-strands (blue), coils (yellow),
+and turns (green). B: Protein structure types: mainly a-helical (red), mainly b-stranded (blue), a/b structures (green), and few secondary structures (yellow). C: Accessible surface areas: exposed residues (blue, ASAZ25%) and buried residues (red, ASAr10%). Color coding for the classifications is shown in the figure.
+
+All the programs succeed better when considering their ability to predict stability increasing or decreasing mutations individually. In these analyses only two classes were considered: stabilizing or destabilizing, and neutral cases. The neutral cases thus also contained destabilizing or stabilizing cases as well, depending on the analysis. CUPSAT has the highest accuracy, sensitivity, and MCC for stabilizing mutation predictions, 0.74, 0.43, and 0.35, respectively. All the programs have specificity over 0.60. Due to low number of stabilizing cases (5) among I-Mutant3.0 datasets, they were excluded. IMutant3.0 (structure version), FoldX and Dmutant are the best methods for the prediction of destabilizing mutations all having MCC around 0.38. Sensitivity measures the proportion of true positive cases that are correctly identified. MUpro and I-Mutant2.0 have the best sensitivity values. The specificity of all programs varies from 0.21 (MUpro) to 0.82 (Dmutant). Of the stability-center predictors, which only predict destabilizing mutations were equally accurate, but when considering the specificity SRide is the most reliable and Scpred most sensitive. The results for these programs are somewhat poorer than for the best general predictors. The ROC curves for the performances of FoldX, I-Mutant2.0, Dmutant, and CUPSAT are shown in Figure 1B. The steep increase in the curves indicates that these programs were all capable of predicting the stability effects caused by the mutations. However, the curves bend strongly already at tp $0.6. The AUCs for these programs are between 0.79 and 0.83.
+Analysis of Structural Properties
+The effects that the type of mutation had on prediction performance were tested by determining the number of times a
+
+mutation replaced or substituted for a given amino acid, occurred within a secondary structural element or within a protein folding type, and caused a change in residue size or charge. The distributions of the original (mutated) and substituted (mutant) residues are given in Supp. Table S1. Among the mutated residues that are replaced by stabilizing mutations, D and H are significantly overrepresented, and P and K are significantly underrepresented. Among the mutated residues that were replaced by ones causing destabilization, C, I, and V are significantly overrepresented, whereas E, G, K, Q, and S are significantly underrepresented. For residues replaced by mutations that changed |DDG| by 0.5 kcal/mol or less (neutral mutations), the distributions are also biased but involve different residues. Mutations to P, G, and L are much rarer than expected, whereas E, D, and V are overrepresented. Among the mutant residues, the distributions are even more biased. For all categories, but particularly those involving destabilizing or neutral mutations, alanine substitutions are greatly overrepresented. This observation contradicts the basic assumption behind alanine-scanning mutagenesis [Cunningham and Wells, 1989], that is, alanine substitutions are assumed to affect only the function of the substituted residue (and not the stability of the protein). Destabilizing alanine substitutions were found mainly in coils, turns, and b-strands (33 Â greater than expected for coils, 26.3 Â greater for b-strands, and 15.5 Â greater for turns, when compared with the wild-type alanine distribution). The mutation profiles are clearly different for stabilizing and destabilizing mutations. The distribution for stabilizing mutant residues is nearly random.
+The results for the mutations in the secondary structural elements are given in Figure 2A. The dataset for I-Mutant3.0 was
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+679
+
+too small. For MUpro the specificity values were not possible to count. Overall, the majority of the programs predict different secondary structural elements with almost equal accuracy. CUPSAT predicted, with somewhat better accuracy than did the other programs, the effects of mutations that occurred in coils and turns. For all structural categories, I-Mutant2.0, FoldX, MUpro, MultiMutate, and CUPSAT gave the best results for sensitivity. When accuracy and sensitivity were considered, Dmutant performed better for mutations found in a-helices and coils and performed poorly for mutations in strands or turns. Among different secondary structural elements SRide was less sensitive of all programs but it gave the most specific results among strands and coils. The majority of the programs predict turns and coils with better specificity than helices and strands. Proteins are classified by CATH as mainly a-helical, as mainly b-stranded, as mixed a and b structures, or as having few secondary structures. The predictions obtained from the nine programs differed with respect to performance depending on which protein class type a mutation was found in (Fig. 2B). CUPSAT, Dmutant, FoldX, I-Mutant2.0, and MultiMutate made the most accurate and sensitive and CUPSAT, Dmutant, FoldX, SCide, and Scpred the most specific predictions for mutations that are in domains or proteins composed of few secondary structures. SCide, Scpred, and SRide predicted the effects of a-helical and a and b proteins with almost equal specificity, whereas other programs showed variability in specificity when different protein structure types were compared. Additionally, the MCCs for the programs deviate widely. Five out of eight programs (MUpro lacks the respective value) have highest MCC for proteins composed of few secondary structures.
+Often, a mutation, associated with a disease state, drastically changes the chemical and/or physical properties at the mutated site. One such change is a change in the accessible surface area (ASA). We considered residues with ASA values of at least 25% those of fully exposed amino acids to be surface residues and those having ASA values of r10% to be buried. All programs, except MultiMutate, predict exposed mutations more accurately than buried mutations (Fig. 2C). There are major categorical differences in prediction sensitivity for CUPSAT, Dmutant, FoldX, Multimutate, and MUpro. Predictions for mutations among exposed residues are more specific than for amino acids in core. The MCCs are higher for amino acids on surface than for buried mutations except for MultiMutate. The performances of the predictors as a function of volume change upon mutation are shown in Supp. Fig. S1. When the original residue is replaced with a residue of smaller volume, a cavity may form in the protein interior. Large volume changes were predicted better than were small changes by all the programs. In comparison with the experimental data, the distributions of correct predictions are similar for CUPSAT and MultiMutate. The distributions of the false positives for the stabilizing mutations are all quite similar except that the peak positions do not coincide. The distributions of destabilizing mutations predicted by the programs follow the experimental distribution very closely. For the false positive distributions, that produced by Scpred differs substantially from the others. The performances of the predictors were unbiased with regard to the type of mutation and the accuracy of the prediction.
+The distributions caused by changes in charge are presented in Supp. Fig. S2. For destabilizing mutations there are no significant performance deviations in the methods for different charge changes. The results obtained using I-Mutant2.0 and MUpro are not reliable because only eight mutations within their datasets
+
+changed charge. The distributions obtained for the neutral cases are similar to those found for the experimental data, except for those of the Scpred and MultiMutate. In summary, the predictors performed similarly despite differences in the extent to which the volume or charge varied as functions of the original residue and the mutation.
+To further assess the performances of the programs we compared the predictions obtained for the same mutations used by the programs in a pairwise fashion (Table 2). The programs were tested with different datasets, which avoided using the training cases. The most similar test sets were for Scpred and MultiMutate, which shared 98.5% of the cases. Conversely, the dataset used for the CUPSAT and I-Mutant2.0 comparison had only 18 mutations (1% of the original dataset). The largest percentage of correctly predicted cases was 38% (for the Dmutant and I-Mutant2.0 comparison). On average, the number of correctly predicted cases was less than one-third of the total data in each set. The correlation between two programs was best for MUpro and SRide, relatively good for SCide and SRide and for CUPSAT and MUpro, and the worst for SRide and IMutant2.0. In general, however, the overall performances varied greatly because the correlations between programs were found to be small.
+Figure 3 shows the agreement among the programs with the experimental data. For the vast majority of cases when only the six general methods were considered, the predictions of just one to three of the methods are in agreement, and when all 11 predictors were considered, only one to four of the predictions agree. There was not a single case for which all of the programs correctly predicted the experimental result, and when only the general predictors were considered together, in 16% none of their results agree with the experimental data.
+Discussion
+We evaluated how reliably the stability effects of missense mutations could be predicted. Stability changes can be studied experimentally, but such studies are laborious, time-consuming, and often costly. Therefore, reliable computational methods that can predict stability changes are valuable tools. Mutations that decrease the stability of proteins are generally considered to be harmful. In some circumstances, mutations that increase protein stability can also be deleterious. Proteins are dynamic molecules, and mechanical flexibility is necessary for their function [Daniel et al., 2003; Fields, 2001; Vihinen, 1987]. Increased stability can reduce flexibility [Somero, 1995; Wolf-Watz et al., 2004]. The active-site residues of enzymes are generally polar or charged, and are usually located in hydrophobic clefts [Fersht, 1999]. Stabilizing mutations in active site residues can reduce enzymatic activities [Beadle and Shoichet, 2002; Counago et al., 2008; Garcia et al., 2000; Kidokoro et al., 1995; Meiering et al., 1992; Mukaiyama et al., 2006; Nagatani et al., 2007; Schreiber et al., 1994, Shoichet et al., 1995; Zhi et al., 1991]. Additionally, a stabilizing mutation increased the resistance of ribonuclease A to proteolysis [Markert et al., 2001], which, for example, would be an undesirable effect if it occurred in enzymes involved in cell signaling [Fink, 2005].
+We tested the performances of 11 protein stability predictors. For this study, we used only sequence data as input for I-Mutant2.0, MUpro, and Scpred, even though the first two programs can also use structural information. CUPSAT, Dmutant, MultiMutate, SCide, and SRide require structural information as input data. Bioinformatic studies concerning protein stability
+
+680
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+Table 2. Pairwise Prediction Correlations
+
+CUPSAT Dmutant FoldX I-Mutant2.0 I-Mutant3.0 structure I-Mutant3.0 sequence MultiMutate MUpro SCide Scpred SRide
+
+CUPSAT
+
+29.4
+
+21.4
+
+1.0
+
+0.1
+
+Dmutant
+
+8.1
+
+82.5
+
+9.6
+
+6.3
+
+FoldX
+
+8.1
+
+31.5
+
+9.8
+
+6.4
+
+I-Mutant2.0
+
+0.2
+
+3.6
+
+3.5
+
+6.4
+
+I-Mutant3.0 structure 0.0
+
+3.2
+
+3.0
+
+2.1
+
+I-Mutant3.0 sequence 0.0
+
+2.6
+
+2.4
+
+2.4
+
+2.7
+
+MultiMutate
+
+7.8
+
+30.7
+
+27.2
+
+3.3
+
+2.2
+
+MUpro
+
+0.7
+
+2.9
+
+2.9
+
+2.0
+
+1.5
+
+Scide
+
+4.5
+
+22.5
+
+17.6
+
+1.4
+
+2.6
+
+Scpred
+
+7.5
+
+26.5
+
+22.9
+
+2.3
+
+2.9
+
+Sride
+
+2.6
+
+19.9
+
+13.5
+
+1.2
+
+2.4
+
+0.1
+
+29.5
+
+2.0
+
+26.1
+
+30.0
+
+23.0
+
+6.3
+
+94.6
+
+9.1
+
+90.4
+
+96.1
+
+87.7
+
+6.4
+
+84.9
+
+9.3
+
+78.7
+
+86.2
+
+75.3
+
+6.4
+
+9.5
+
+7.5
+
+9.0
+
+9.8
+
+9.0
+
+6.4
+
+6.4
+
+5.9
+
+6.4
+
+6.4
+
+6.4
+
+6.4
+
+5.9
+
+6.4
+
+6.4
+
+6.4
+
+2.0
+
+9.2
+
+90.8
+
+98.5
+
+87.7
+
+1.7
+
+2.6
+
+8.5
+
+9.3
+
+8.5
+
+1.8
+
+16.2
+
+1.2
+
+92.3
+
+87.8
+
+2.3
+
+21.6
+
+2.6
+
+24.6
+
+89.1
+
+1.6
+
+11.5
+
+0.4
+
+26.2
+
+19.8
+
+CUPSAT
+
+524
+
+381
+
+18
+
+1
+
+Dmutant
+
+27
+
+1,471
+
+171
+
+113
+
+FoldX
+
+38
+
+38
+
+174
+
+115
+
+I-Mutant2.0
+
+22
+
+38
+
+36
+
+114
+
+I-Mutant3.0 structure 0
+
+50
+
+46
+
+33
+
+I-Mutant3.0 sequence 0
+
+42
+
+37
+
+37
+
+43
+
+MultiMutate
+
+26
+
+32
+
+32
+
+35
+
+34
+
+MUpro
+
+34
+
+32
+
+31
+
+27
+
+25
+
+Scide
+
+17
+
+25
+
+22
+
+16
+
+40
+
+Scpred
+
+25
+
+28
+
+27
+
+24
+
+45
+
+Sride
+
+11
+
+23
+
+18
+
+14
+
+37
+
+1
+
+527
+
+35
+
+465
+
+536
+
+411
+
+113
+
+1,688
+
+162 1,613 1,714 1,565
+
+115
+
+1,514
+
+166 1,404 1,538 1,344
+
+114
+
+169
+
+134
+
+160
+
+174
+
+161
+
+115
+
+114
+
+106
+
+115
+
+115
+
+115
+
+114
+
+106
+
+115
+
+115
+
+115
+
+31
+
+164 1,620 1757 1,564
+
+28
+
+28
+
+152
+
+166
+
+152
+
+28
+
+18
+
+14
+
+1,646 1,566
+
+36
+
+22
+
+28
+
+27
+
+1,589
+
+25
+
+13
+
+5
+
+30
+
+22
+
+CUPSAT
+
+Dmutant
+
+0.04
+
+FoldX
+
+0.28
+
+0.28
+
+I-Mutant2.0
+
+0.16
+
+0.18
+
+0.24
+
+I-Mutant3.0 structure —
+
+0.38
+
+0.38
+
+0.17
+
+I-Mutant3.0 sequence —
+
+0.33
+
+0.27
+
+0.53
+
+0.42
+
+MultiMutate
+
+0.15
+
+0.25
+
+0.20
+
+0.26
+
+0.04
+
+MUpro
+
+0.54
+
+0.09
+
+0.29
+
+0.37
+
+0.02
+
+Scide
+
+À0.14
+
+0.10 À0.03 À0.26
+
+0.24
+
+Scpred
+
+À0.07
+
+0.12
+
+0.06
+
+0.07
+
+0.44
+
+Sride
+
+À0.28
+
+0.10 À0.15 À0.37
+
+0.07
+
+0.16 0.33 0.01 0.30 À0.12
+
+0.23
+
+À0.05 À0.30
+
+0.04
+
+0.22
+
+0.35
+
+À0.18 À0.65
+
+0.64
+
+0.22
+
+Upper table: The number of cases shared by two programs, reported as a percentage (upper right triangle). The number of cases predicted correctly, reported as a percentage (lower left triangle). Middle table: The absolute number of cases shared by two programs (upper right triangle). The percentage of correctly predicted cases (lower left triangle). Bottom table: Pairwise correlation.
+
+Figure 3. Number of stability predictors that returned predictions
+that agreed with the experimental values. Black bars do not include the results of the stability-center programs (SCide, SRide, and Scpred). The gray bars include the results of all of the programs.
+predictions have often used tertiary structure information, because such information has improved the quality of the predictions and, indeed, we found that I-Mutant3.0 (structure
+
+version), Dmutant, and FoldX were the best of the predictors. However, even though Scpred uses only sequence data as input, it returned the most sensitive predictions among the stabilitycenter predictors. Although there are two versions of Mupro—one that uses structural and sequence data and one that uses only sequence data—the two versions of the program are quite similar [Cheng et al., 2006], and therefore, we used the sequence-based version.
+Certain aspects of the performance of stability predictors have been tested in three previous studies. Potapov and colleagues [2009] compared the performances of six programs, CC/PBSA, EGAD, FoldX, I-Mutant2.0, Rosetta, and Hunter. I-Mutant2.0 and FoldX are the only predictors also used in our study. Their dataset was composed of 2,156 single mutations obtained from ProTherm. As with our study, mutations that were used to train the programs were not used in their trials. None of the programs they assessed performed as well as reported by their developers, which is what we also found. Of the tested programs, EGAD [Pokala and Handel, 2005] cannot predict effects for all types of mutations, and a description of Hunter has not been published and the program is not available. We identified Web services that could be used in conjunction with only sequence data, mutation positions, and, in some cases, coordinates of the wild-type protein as input, and then used those services without subsequent user intervention. CC/PBSA [Benedix et al., 2009] did not meet these criteria, as it requires the use of two programs and extensive
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+681
+
+computing power. Rosetta software is used for protein modeling and design. The intent of Potapov et al. [2009] was to correlate experimental and predicted DDG values, while we were interested in determining whether the stabilizing or destabilizing effect caused by a mutation could be correctly predicted, because, for mutations associated with disease states, the sign of the stability change is what is needed.
+Lonquety and colleagues [2008] evaluated predictors that detect folding nuclei affected by mutations. The programs tested included Dmutant, the two versions of I-Mutant2.0, MUpro, and PoPMuSiC. Their dataset contained 1,409 mutations from the ProTherm. However, they tested I-Mutant2.0 and MUpro with same dataset that had been used for training. Thus, their results indicated only how well the methods learned the training set. The correlation coefficients for PoPMuSiC and Dmutant were $0.5. We did not test PoPMuSiC because the server for the version available at the time was very unstable. A new, more stable version [Dehouck et al., 2009] was released after we finished our study. We could not test the newer version because its neural network was trained using a more current set of ProTherm data, and thus, there were not enough test cases available.
+Tastan and colleagues [2007] used three structure-based programs, Dmutant, FoldX, and I-Mutant2.0, to investigate stability predictions for mutations in two types of membrane proteins, mammalian rhodopsins (279 mutations) and bacteriorhodopsins (54 mutations). The best prediction accuracy for the rhodopsin dataset was o0.60, whereas it was somewhat greater for the bacteriorhodopsin dataset. Only 20% of the rhodopsin dataset and 35% of the bacteriorhodopsin dataset were accurately predicted by all three programs.
+There are other stability predictors, in addition to those mentioned above, that we did not test. Eris (http://eris.dokhlab. org) uses a physical force field in combination with atomic modeling and fast side-chain packing [Yin et al., 2007]. The program is also designed to predict changes in backbone conformations caused by mutations by modeling backbone flexibility. Because the Eris Website does not allow for batch submissions, we could not study its performance. iPTREE-STAB (http://210.60.98.17/IPTREEr/iptree.htm) uses a decision-tree method. The sequence-based method determines stabilizing and destabilizing mutations but uses only a seven-residue window, with the mutation position in the middle. The service could not be accessed. Finally, although we attempted to assess the prediction accuracy of AUTO-MUTE, only 28 cases that had not been used to train the program could be retrieved from ProTherm, which was too small a number for a statistical analysis. Of the 28 cases, AUTO-MUTE correctly predicted 6 (21%).
+Mutations can introduce or relieve strain into the protein backbone. To properly estimate DDG stability values, structural rearrangements that induce or release strain should be considered. Calculations of the DDG values associated with strain are computationally possible using either molecular dynamics or Monte Carlo simulations but are also computationally very intense. The simpler methods, such as those that we used, allow a large number of mutations to be surveyed and their effects on stabilities determined quickly but cannot model protein dynamics.
+Our analyses showed that the predicted DDG values are distributed in a fashion similar to those of the experimental data. However, the mutant and mutated residue distributions are strongly biased in the stabilizing, destabilizing, and neutral categories. These biases may have arisen because the designs of the original experiments that produced the mutations were biased,
+
+for example, consider the excessive number of alanine mutations retrieved from ProTherm.
+Our ROC curves are quite similar to those found for a function–stability correlation study that used missense mutations [Bromberg and Rost, 2009]. The curves in Figure 2 increase sharply until a tp value of 0.6 is reached, but then bend sharply, and continue to rise more slowly.
+We found that the structural context of a residue strongly affected predictor performance. Disease-causing mutations have biased distributions in secondary structural elements [Khan and Vihinen, 2007]. Both the secondary structure type and the protein folding type had significant effects. There was also a clear difference between the prediction accuracies for buried and accessible residues. The structural context effect depended on the method used and influenced the values of the quality parameters differently. Conversely, the extent of volume or charge change upon mutation did not influence the prediction performances significantly.
+In conclusion, at best, the methods predicted the changes in stability caused by mutations with only moderate accuracies. However, the number of false positives and false negatives returned by the programs was substantial. As so many factors affect protein stability, even small differences in the DDG values between a wild type and its mutant can be significant. Molecular dynamics and Monte Carlo simulations provide more accurate results in general; however, characterization of mutational effects is still problematic even when these methods are used. Additionally, the computational power demands of these two methods are prohibitively great for the analysis of large datasets.
+For mutation effect investigations the tested methods have only limited applicability, and should thus be used preferably together with other prediction approaches. One way to improve the performance of predictors might be to use additional features.
+Acknowledgments
+Financial support from the Finnish Academy, the Sigrid Juselius Foundation, and the Medical Research Fund of Tampere University Hospital is gratefully acknowledged.
+References
+Abkevich VI, Gutin AM, Shakhnovich EI. 1995. Impact of local and non-local interactions on thermodynamics and kinetics of protein folding. J Mol Biol 252:460–471.
+Akasako A, Haruki M, Oobatake M, Kanaya S. 1997. Conformational stabilities of Escherichia coli RNase HI variants with a series of amino acid substitutions at a cavity within the hydrophobic core. J Biol Chem 272:18686–18693.
+Baltzer L, Nilsson J. 2001. Emerging principles of de novo catalyst design. Curr Opin Biotechnol 12:355–360.
+Bash PA, Singh UC, Langridge R, Kollman PA. 1987. Free energy calculations by computer simulation. Science 236:564–568.
+Beadle BM, Shoichet BK. 2002. Structural bases of stability–function tradeoffs in enzymes. J Mol Biol 321:285–296.
+Benedix A, Becker CM, de Groot BL, Caflisch A, Bockmann RA. 2009. Predicting free energy changes using structural ensembles. Nat Methods 6:3–4.
+Bloom JD, Meyer MM, Meinhold P, Otey CR, MacMillan D, Arnold FH. 2005a. Evolving strategies for enzyme engineering. Curr Opin Struct Biol 15:447–452.
+Bloom JD, Raval A, Wilke CO. 2007. Thermodynamics of neutral protein evolution. Genetics 175:255–266.
+Bloom JD, Silberg JJ, Wilke CO, Drummond DA, Adami C, Arnold FH. 2005b. Thermodynamic prediction of protein neutrality. Proc Natl Acad Sci USA 102:606–611.
+Bolon DN, Voigt CA, Mayo SL. 2002. De novo design of biocatalysts. Curr Opin Chem Biol 6:125–129.
+
+682
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+Bromberg Y, Rost B. 2009. Correlating protein function and stability through the analysis of single amino acid substitutions. BMC Bioinformatics 10(Suppl 8):S8.
+Bross P, Corydon TJ, Andresen BS, Jorgensen MM, Bolund L, Gregersen N. 1999. Protein misfolding and degradation in genetic diseases. Hum Mutat 14:186–198.
+Butterfoss GL, Kuhlman B. 2006. Computer-based design of novel protein structures. Annu Rev Biophys Biomol Struct 35:49–65.
+Camps M, Herman A, Loh E, Loeb LA. 2007. Genetic constraints on protein evolution. Crit Rev Biochem Mol Biol 42:313–326.
+Capriotti E, Fariselli P, Casadio R. 2004. A neural-network-based method for predicting protein stability changes upon single point mutations. Bioinformatics 20(Suppl 1):i63–i68.
+Capriotti E, Fariselli P, Casadio R. 2005. I-Mutant2.0: predicting stability changes upon mutation from the protein sequence or structure. Nucleic Acids Res 33:W306–W310.
+Capriotti E, Fariselli P, Rossi I, Casadio R. 2008. A three-state prediction of single point mutations on protein stability changes. BMC Bioinformatics 9(Suppl 2):S6.
+Cheng J, Randall A, Baldi P. 2006. Prediction of protein stability changes for single-site mutations using support vector machines. Proteins 62: 1125–1132.
+Counago R, Wilson CJ, Pena MI, Wittung-Stafshede P, and Shamoo Y. 2008. An adaptive mutation in adenylate kinase that increases organismal fitness is linked to stability-activity trade-offs. Protein Eng Des Sel 21:19–27.
+Cunningham BC, Wells JA. 1989. High-resolution epitope mapping of hGH-receptor interactions by alanine-scanning mutagenesis. Science 244:1081–1085.
+Daniel RM, Dunn RV, Finney JL, Smith JC. 2003. The role of dynamics in enzyme activity. Annu Rev Biophys Biomol Struct 32:69–92.
+Dehouck Y, Grosfils A, Folch B, Gilis D, Bogaerts P, Rooman M. 2009. Fast and accurate predictions of protein stability changes upon mutations using statistical potentials and neural networks: PoPMuSiC-2.0. Bioinformatics 25:2537–2543.
+DePristo MA, Weinreich DM, Hartl DL. 2005. Missense meanderings in sequence space: a biophysical view of protein evolution. Nat Rev Genet 6:678–687.
+Deutsch C, Krishnamoorthy B. 2007. Four-body scoring function for mutagenesis. Bioinformatics 23:3009–3015.
+Dosztanyi Z, Fiser A, Simon I. 1997. Stabilization centers in proteins: identification, characterization and predictions. J Mol Biol 272:597–612.
+Dosztanyi Z, Magyar C, Tusnady G, Simon I. 2003. SCide: identification of stabilization centers in proteins. Bioinformatics 19:899–900.
+Ferrer-Costa C, Orozco M, de la Cruz X. 2002. Characterization of disease-associated single amino acid polymorphisms in terms of sequence and structure properties. J Mol Biol 315:771–786.
+Fersht AR. 1999. Structure and mechanism in protein science: a guide to enzyme catalysis and protein folding. New York: W.H. Freeman.
+Fields PA. 2001. Review: protein function at thermal extremes: balancing stability and flexibility. Comp Biochem Physiol A Mol Integr Physiol 129:417–431.
+Fink AL. 2005. Natively unfolded proteins. Curr Opin Struct Biol 15:35–41. Garcia C, Nishimura C, Cavagnero S, Dyson HJ, Wright PE. 2000. Changes in the
+apomyoglobin folding pathway caused by mutation of the distal histidine residue. Biochemistry 39:11227–11237. Gilis D, Rooman M. 1997. Predicting protein stability changes upon mutation using database-derived potentials: solvent accessibility determines the importance of local versus non-local interactions along the sequence. J Mol Biol 272: 276–290. Gilis D, Rooman M. 2000. PoPMuSiC, an algorithm for predicting protein mutant stability changes: application to prion proteins. Protein Eng 13:849–856. Greenstein JP, Winitz M. 1961. Chemistry of the amino acids. New York: John Wiley & Sons. Gromiha MM, Selvaraj S. 2004. Inter-residue interactions in protein folding and stability. Prog Biophys Mol Biol 86:235–277. Guerois R, Nielsen JE, Serrano L. 2002. Predicting changes in the stability of proteins and protein complexes: a study of more than 1000 mutations. J Mol Biol 320:369–387. Hsu YH, Johnson DA, Traugh JA. 2008. Analysis of conformational changes during activation of protein kinase Pak2 by amide hydrogen/deuterium exchange. J Biol Chem 283:36397–36405. Khan S, Vihinen M. 2007. Spectrum of disease-causing mutations in protein secondary structures. BMC Struct Biol 7:56. Khatun J, Khare SD, Dokholyan NV. 2004. Can contact potentials reliably predict stability of proteins? J Mol Biol 336:1223–1238. Kidokoro S, Miki Y, Endo K, Wada A, Nagao H, Miyake T, Aoyama A, Yoneya T, Kai K, Ooe S. 1995. Remarkable activity enhancement of thermolysin mutants. FEBS Lett 367:73–76. Kumar MD, Bava KA, Gromiha MM, Prabakaran P, Kitajima K, Uedaira H, Sarai A. 2006. ProTherm and ProNIT: thermodynamic databases for proteins and protein–nucleic acid interactions. Nucleic Acids Res 34:D204–D206.
+
+Lehmann M, Wyss M. 2001. Engineering proteins for thermostability: the use of sequence alignments versus rational design and directed evolution. Curr Opin Biotechnol 12:371–375.
+Lonquety M, Lacroix Z, Chomilier J. 2008. Evaluation of the stability of folding nucleus upon mutation. In: Chetty M, Ahmad S, Ngom A, editors. Pattern recognition in bioinformatics. Heidelberg: Springer. p 5265.
+Magyar C, Gromiha MM, Pujadas G, Tusnady GE, Simon I. 2005. SRide: a server for identifying stabilizing residues in proteins. Nucleic Acids Res 33:W303–W305.
+Markert Y, Koditz J, Mansfeld J, Arnold U, Ulbrich-Hofmann R. 2001. Increased proteolytic resistance of ribonuclease A by protein engineering. Protein Eng 14:791–796.
+Masso M, Vaisman II. 2008. Accurate prediction of stability changes in protein mutants by combining machine learning with structure based computational mutagenesis. Bioinformatics 24:2002–2009.
+Meiering EM, Serrano L, Fersht AR. 1992. Effect of active site residues in barnase on activity and stability. J Mol Biol 225:585–589.
+Mohamed AJ, Yu L, Ba¨ckesjo¨ CM, Vargas L, Faryal R, Aints A, Christensson B, Berglo¨f A, Vihinen M, Nore BF, Smith CIE. 2009. Bruton’s tyrosine kinase (Btk): function, regulation, and transformation with special emphasis on the PH domain. Immunol Rev 228:58–73.
+Mukaiyama A, Haruki M, Ota M, Koga Y, Takano K, Kanaya S. 2006. A hyperthermophilic protein acquires function at the cost of stability. Biochemistry 45:12673–12679.
+Muller CW, Schlauderer GJ, Reinstein J, Schulz GE. 1996. Adenylate kinase motions during catalysis: an energetic counterweight balancing substrate binding. Structure 4:147–156.
+Nagatani RA, Gonzalez A, Shoichet BK, Brinen LS, Babbitt PC. 2007. Stability for function trade-offs in the enolase superfamily ‘‘catalytic module.’’ Biochemistry 46:6688–6695.
+Orengo CA, Michie AD, Jones S, Jones DT, Swindells MB, Thornton JM. 1997. CATH—a hierarchic classification of protein domain structures. Structure 5:1093–1108.
+Pace CN. 1990. Conformational stability of globular proteins. Trends Biochem Sci 15:14–17.
+Pal C, Papp B, Lercher MJ. 2006. An integrated view of protein evolution. Nat Rev Genet 7:337–348.
+Parthiban V, Gromiha MM, Schomburg D. 2006. CUPSAT: prediction of protein stability upon point mutations. Nucleic Acids Res 34:W239–W242.
+Petsko GA. 2001. Structural basis of thermostability in hyperthermophilic proteins, or ‘‘there’s more than one way to skin a cat’’. Methods Enzymol 334:469–478.
+Pitera JW, Kollman PA. 2000. Exhaustive mutagenesis in silico: multicoordinate free energy calculations on proteins and peptides. Proteins 41:385–397.
+Poelwijk FJ, Kiviet DJ, Weinreich DM, Tans SJ. 2007. Empirical fitness landscapes reveal accessible evolutionary paths. Nature 445:383–386.
+Pokala N, Handel TM. 2005. Energy functions for protein design: adjustment with protein–protein complex affinities, models for the unfolded state, and negative design of solubility and specificity. J Mol Biol 347:203–227.
+Ponnuswamy PK, Gromiha MM. 1994. On the conformational stability of oligonucleotide duplexes and tRNA molecules. J Theor Biol 169:419–432.
+Pontius J, Richelle J, Wodak SJ. 1996. Deviations from standard atomic volumes as a quality measure for protein crystal structures. J Mol Biol 264:121–136.
+Potapov V, Cohen M, Schreiber G. 2009. Assessing computational methods for predicting protein stability upon mutation: good on average but not in the details. Protein Eng Des Sel 22:553–560.
+Prevost M, Wodak SJ, Tidor B, Karplus M. 1991. Contribution of the hydrophobic effect to protein stability: analysis based on simulations of the Ile-96—Ala mutation in barnase. Proc Natl Acad Sci USA 88:10880–10884.
+Sawano M, Yamamoto H, Ogasahara K, Kidokoro S, Katoh S, Ohnuma T, Katoh E, Yokoyama S, Yutani K. 2008. Thermodynamic basis for the stabilities of three CutA1s from Pyrococcus horikoshii, Thermus thermophilus, and Oryza sativa, with unusually high denaturation temperatures. Biochemistry 47: 721–730.
+Schreiber G, Buckle AM, Fersht AR. 1994. Stability and function: two constraints in the evolution of barstar and other proteins. Structure 2:945–951.
+Shen B, Bai J, Vihinen M. 2008. Physicochemical feature-based classification of amino acid mutations. Protein Eng Des Sel 21:37–44.
+Shoichet BK, Baase WA, Kuroki R, Matthews BW. 1995. A relationship between protein stability and protein function. Proc Natl Acad Sci USA 92:452–456.
+Somero GN. 1995. Proteins and temperature. Annu Rev Physiol 57:43–68. Steward RE, MacArthur MW, Laskowski RA, Thornton JM. 2003. Molecular basis of
+inherited diseases: a structural perspective. Trends Genet 19:505–513. Sunyaev S, Lathe W 3rd, Bork P. 2001. Integration of genome data and protein
+structures: prediction of protein folds, protein interactions and ‘‘molecular phenotypes’’ of single nucleotide polymorphisms. Curr Opin Struct Biol 11:125–130.
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+
+683
+
+Tastan O, Yu E, Ganapathiraju M, Aref A, Rader AJ, Klein-Seetharaman J. 2007. Comparison of stability predictions and simulated unfolding of rhodopsin structures. Photochem Photobiol 83:351–362.
+Thusberg J, Vihinen M. 2009. Pathogenic or not? And if so, then how? Studying the effects of missense mutations using bioinformatics methods. Hum Mutat 30:703–714.
+van den Burg B, Eijsink VG. 2002. Selection of mutations for increased protein stability. Curr Opin Biotechnol 13:333–337.
+Wang G, DunbrackJr RL. 2003. PISCES: a protein sequence culling server. Bioinformatics 19:1589–1591.
+Wang Z, Moult J. 2001. SNPs, protein structure, and disease. Hum Mutat 17:263–270. Vihinen M. 1987. Relationship of protein flexibility to thermostability. Protein Eng
+1:477–480. Villegas V, Viguera AR, Aviles FX, Serrano L. 1996. Stabilization of proteins by rational
+design of a-helix stability using helix/coil transition theory. Fold Des 1:29–34.
+
+Wolf-Watz M, Thai V, Henzler-Wildman K, Hadjipavlou G, Eisenmesser EZ, Kern D. 2004. Linkage between dynamics and catalysis in a thermophilic-mesophilic enzyme pair. Nat Struct Mol Biol 11:945–949.
+Yin S, Ding F, Dokholyan NV. 2007. Modeling backbone flexibility improves protein stability estimation. Structure 15:1567–1576.
+Yue P, Li Z, Moult J. 2005. Loss of protein structure stability as a major causative factor in monogenic disease. J Mol Biol 353:459–473.
+Zhi W, Srere PA, Evans CT. 1991. Conformational stability of pig citrate synthase and some active-site mutants. Biochemistry 30:9281–9286.
+Zhou H, Zhou Y. 2002. Distance-scaled, finite ideal-gas reference state improves structure-derived potentials of mean force for structure selection and stability prediction. Protein Sci 11:2714–2726.
+Zhou H, Zhou Y. 2004. Quantifying the effect of burial of amino acid residues on protein stability. Proteins 54:315–322.
+
+684
+
+HUMAN MUTATION, Vol. 31, No. 6, 675–684, 2010
+

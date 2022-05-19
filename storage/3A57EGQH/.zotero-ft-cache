@@ -1,0 +1,409 @@
+Cite This: J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Article pubs.acs.org/JCTC
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on October 30, 2019 at 01:59:32 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Obtaining Protein Association Energy Landscape for Integral Membrane Proteins
+Nandhini Rajagopal and Shikha Nangia*
+Department of Biomedical and Chemical Engineering, Syracuse University, 343 Link Hall, Syracuse, New York 13244, United States
+*S Supporting Information
+ABSTRACT: Integral membrane proteins are ubiquitous in biological cellular and subcellular membranes. Despite their signiﬁcance to cell function, isolation of membrane proteins from their hydrophobic lipid environment and further characterization remains a challenge. To obtain insights into membrane proteins, computational approaches such as docking or self-assembly simulations have been used; however, the promise of these approaches has been limited due to the computational cost. Here we present a new approach called Protein AssociatioN Energy Landscape (PANEL) that provides an extensive and converged data set for all possible conformations of membrane protein associations using a combination of stochastic sampling and equilibration simulations. The PANEL method samples the rotational space around both interacting proteins to obtain the comprehensive interaction energy landscape. We demonstrate the versatility of the PANEL method using two distinct applications: (a) dimerization of claudin-5 tight junction proteins in phospholipid bilayer membrane and (b) dimer and trimer formation of the Outer membrane protein F (OmpF) in the lipopolysaccharide-rich bacterial outer membrane. Both applications required only a fraction of simulation cost compared to self-assembly simulations. The method is robust as it can capture changes in protein−protein conformations caused by point mutations. Moreover, the method is versatile and independent of the molecular resolution (atomistic or coarse grain) or the choice of force ﬁeld employed to compute the pairinteraction energies. The PANEL method is implemented in easy-to-use scripts that are available for download for general use by the scientiﬁc community to characterize any pair of interacting integral membrane proteins.
+
+1. INTRODUCTION
+Integral membrane proteins represent a signiﬁcation proportion of the proteome, and they occupy 30−50% of the surface area of a typical mammalian cell membrane.1 They perform vital cellular functions such as signal transduction,2−7 particulate transport,8−14 enzymatic activity,15−17 and cell− cell adhesion,18−27 among others. The membrane proteins employ their hydrophobic and hydrophilic segments to weave through the lipids via single28−32 or multiple membranespanning α-helices33−35 or wrap their β-sheets into barrelshaped structures11,36−38 to stabilize themselves in the lipid bilayer. Additionally, membrane proteins associate with each other through speciﬁc18,39−44 and nonspeciﬁc45−51 interactions mediated by the biochemically complex lipid membrane components.52,53
+The clinical signiﬁcance of protein−protein interactions in several disease pathologies has motivated the targeting of such protein contacts for drug design.54−57 However, when interacting proteins are embedded in cell membranes, deciphering their mechanisms of action at the molecular or atomistic levels, essential for rational drug design, has been impeded.58 Experimental isolation and the characterization of membrane proteins’ interactions is often untenable because
+
+their highly hydrophobic nature makes them inherently insoluble.59 To address this challenge, computational methods have emerged to predict protein association using molecular docking and molecular dynamics simulations at both atomistic and coarse-grained resolutions.60,61
+Several protein association studies using molecular dynamics (MD) have been reported, where the proteins are simulated in complex lipid bilayers and solvent environment to mimic the physiological conditions.62−65 A popular MD approach is to simulate large patches (tens of nanometers) of complex lipid bilayers with multiple proteins over extended periods of time (μs).61−69 The protein association behavior is observed by allowing the molecules in the system to self-assemble, most commonly at coarse-grained (CG) resolution using the MARTINI force ﬁeld for biomolecules.70−72 Some notable work using an MD approach includes the study of the dimerization of glycophorin-A (GpA),73 a small protein with single transmembrane (TM) helix; the dimerization of large proteins with multiple TM helix domains such as G proteincoupled receptors (GPCRs);63,74 and the claudin family of
+Received: June 21, 2019 Published: October 8, 2019
+
+© XXXX American Chemical Society
+
+A
+
+DOI: 10.1021/acs.jctc.9b00626 J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 1. Theoretical framework of the PANEL method. (a) Protein rotational angle convention, (b) grid spacing approach of the rotational space, and (c) stochastic sampling technique to generate equilibrium dimer conformations.
+
+tight junction proteins in membrane environments of varying lipid compositions.75−77
+Advances in parallel computing workﬂow have enabled
+ensemble-based MD approaches that use multiple parallel
+systems to retrieve large sets of data. For example, Sidekick
+uses a coarse grained molecular dynamics (CGMD) simulation setup to predict the probability of TM−helix insertion into lipid bilayer,78 which is important since the lipid environment signiﬁcantly impacts membrane protein association. Further, this method also quantiﬁes helix interactions based on the
+frequency of the amino acid contact matrix obtained from the
+ensemble data. Closely related to this approach is the ensemble-based helix−helix interactions approach put forth by Altwaijry et al. speciﬁcally for GPCR interactions,79 which quantiﬁes helix interactions using amino acid contact matrices
+generated using distances between them. Another high
+throughput method, Docking Assay for Transmembrane components (DAFT),80 focuses on generating multiple unbiased and noninteracting initial conﬁgurations with optimal
+periodic boundary conditions and allowing them to self-
+assemble over time. Despite rapid advances in ensemble-based investigations of
+protein association, the quantiﬁcation of protein−protein association is often based on ﬁnal protein dimer populations,
+their interaction distances, or contact mapping. However, such
+populations are subject to high degrees of uncertainty as they
+are based on the method used to determine convergence. These issues raise the following questionsis the selfassembled protein−protein population in an MD simulation
+fully representative of protein association at equilibrium, and at
+what time scale in the MD simulation does the population
+converge? In this work, our goal was to generate an exhaustive set of protein−protein association conformations and energy proﬁle using a standard set of quantiﬁcation parameters to
+overcome the shortcomings of the simulation process outlined
+above.
+
+To achieve this goal, we explored the rotational space around both interacting membrane proteins: Protein P1 (0− 360°) and Protein P2 (0−360°). The P1−P2 orientations were generated from multiple initial conﬁgurations with protein dimers within the van der Waals interaction radius. Further, we quantiﬁed the stability of each resulting protein−protein association using their nonbonded interaction energies to generate a potential energy proﬁle for all orientations regardless of their likelihood of formation. Because each orientation is independently and uniformly generated, the need for high energy to overcome barriers in the potential energy landscape is eliminated. The low potential energy conformations for membrane proteins are often unachievable through self-assembly MD simulations due to several factors such as lipid−protein interactions and the masking eﬀect of lipids around the proteins, slow diﬀusion of the proteins in the membrane milieu that tends to dominate in membrane with higher lipid complexity, lack of suﬃcient number of proteins, and adequate simulation length to capture signiﬁcant populations of thermodynamically preferred conformations over kinetically favored conformations. The method discussed in this work allowed us to achieve not only the low potential energy, stable conformations but also explore high potential energy conformations that lack favorable pairwise residue interactions. These attributes render the method, called Protein Association Energy Landscape (PANEL), robust and comprehensive in performing exhaustive sampling of the association space of any given set of proteins or transmembrane entities and make the method independent of the limitations of a speciﬁc force ﬁeld of choice.
+2. PROTEIN ASSOCIATION ENERGY LANDSCAPE (PANEL): THEORETICAL DEVELOPMENT
+The PANEL method captures the pair-interaction energies for an extensive set of transmembrane proteins’ conformations. The goal of the approach is to sample the rotational space around each interacting protein (Figure 1a) and obtain an
+
+B
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+extensive data set of possible pair conformations using a
+combination of stochastic sampling and equilibration simu-
+lations. To accomplish this, we generated a set of initial or seed
+geometries {Si:i = 1,...,N} each comprising of a pair of proteins (P1 and P2) randomly oriented in the rotational space (θ,θ′), where θ ∈ {0,360°} and θ′ ∈ {0,360°}. Further, the initial rotational space (θ,θ′) is divided in equal, nonoverlapping segments Ωi, where i = 1, ..., NΩ (Figure 1b). To achieve uniform stochastic distribution of the conformation space, we required the selection of N/NΩ random seed conﬁguration in each Ωi segment.
+The proteins were placed within an interacting distance (ds) and embedded in the lipid membrane. Each seed geometry, Si, then underwent a short MD simulation without constraints to
+yield a set of equilibrium conformations {Rj: j = 1,...,M}. All N seed conﬁgurations were run independently and in parallel to yield a set of N × M conﬁgurations {Rk; k = 1,...,N × M} (Figure 1c). The nonbonded interaction energy Ej was computed for each equilibrium conformation Rj. The θk and θk′ angles and the corresponding Ek are computed by summing over nonbonded interaction potential energy Vinjb between the P1 and P2 proteins.
+
+Ek(θk, θk′) = ∑ ∑ Vinj b(Rk)
+
+i∈P1 j∈P2
+
+(1)
+
+The calculation is performed for {Rk; k = 1,...,N × M} conformations that yield the PANEL {θk,θk′,Ek} data set.
+For analysis, the PANEL rotational space is binned into Nbin along each of the two θ and θ′ angles to generate a twodimensional (Nbin × Nbin) grid. For each grid, the contour plots for minimum energy and frequency were calculated
+
+Emin(ibin, jbin ) = mink∈ibin,jbin Ek(θ , θk′)
+
+(2)
+
+where ibin,jbin = 1, 2, ..., Nbin. PANEL Workﬂow. The PANEL workﬂow starts with
+coarse graining the atomistic structure of the integral
+membrane protein followed by system setup, production, results, and analysis (Figure 2). Each stage of the workﬂow has
+been implemented in python scripts (see the Supporting Information), which streamline the information ﬂow from
+input to the output. Setup. The coarse grained protein structure(s) were taken
+as input to determine the ds value (Figure S1) for the dimer of interest by an in-house python code P_sep.py. Using ds and N as input parameters, seed conformation of proteins embedded
+in membrane lipids were generated using P_setup.py script. The SN seed conﬁgurations were generated in a uniformly distributed fashion over the rotational space. The basic framework of the system setup is adapted from DAFT80 with modiﬁcations to include uniform sampling of the initial seed
+geometries and inclusion of ds. Each of the N seed geometries was then allowed to undergo energy minimization and
+equilibration, followed by production run for M ns. All N
+jobs run independently and in parallel for maximum
+productivity. Analysis. The trajectories obtained from production runs
+were then processed to obtain the dimer angles and interaction
+energies as a cascade of steps in the python script, P_analysis.py. Trajectories were ﬁrst treated to remove periodic boundaries to extract the dimer conﬁgurations. The processed
+trajectories were then used to obtain the interaction energy between the proteins using GROMACS81−83 utility “gmx
+
+Figure 2. PANEL workﬂow.
+energy”. Next, angles corresponding to each dimer conformation were computed according to rotation angle convention (Figure S2). The data set was ﬁltered to remove conformation frames of dimers that had their center-of-mass distances between them larger than ds. Only the proteins within the ds were used to generate the potential energy landscape.
+Binning Data and Energy Landscape Generation. To generate the energy landscape plots, the nonbonded (LJ potential and Columbic) interaction energy of each protein pair (within the ds cutoﬀ) was recorded as a function of the rotational (θ, θ′) angles, and the ﬁnal data set was binned into Nbin and passed to the P_result.py script. The binning was done to divide the rotational space into Nbin number of equally spaced intervals along the x- and y-axes, which represent the degree of rotation of each interacting protein. In the present work, we used Nbin = 360, which resulted in 360 × 360 grid of protein dimer conformations. The entire data set of {θk,θk′,Ek} for {Rk; k = 1,..., N × M} conformations was pooled into the 360 × 360 binned grid. The binned data were sampled to compute (a) frequency, i.e., the number of times each grid point was sampled during the production run; (b) grid coverage to determine the total number of grid points visited; and (c) minimum energy of the conformations at the grid point. Analyzed data are presented as a two-dimensional frequency, grid coverage, and minimum energy contour plots or landscapes.
+All in-house python codes written to perform steps from system setup to PANEL analysis utilized several python packages including the MDAnalysis package,84,85 which aided the import and processing of data from GROMACS81 trajectory ﬁles.
+Convergence. Multiple PANEL runs were performed to demonstrate convergence for the user-deﬁned input parameters (Figures S3 and S4). To quantify the performance of the PANEL run, we computed the percent coverage of the sampling landscape, deﬁned as
+
+C
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+# of grid points visited at least once
+
+% coverage =
+
+total # of grid points
+
+(3)
+
+A PANEL simulation with 100% coverage would imply that the entire rotational space (360° × 360°) was sampled at least once. The results of convergence tests (Figure S3) and the recommended input parameters are provided in the Supporting Information (S2).
+
+3. METHODS
+The homology-modeled protein structures for our two applications, claudin-5 dimerization and OmpF dimer and trimerization, were obtained using our previously discussed method.75,86 Proteins were CG mapped to the MARTINIv2.272,87 force ﬁeld using martinize.py, and the secondary structure was maintained using Elnedyn bonds with a side chain ﬁx.88 Seed geometries were embedded in the lipid bilayer using insane.py. Claudin-5 systems were simulated in the DOPC (dioleoylphosphatidylcholine) bilayer, and OmpF proteins were embedded in the asymmetric E. coli outer membrane constituted by lipopolysaccharide lipids (LIPO) in the upper leaﬂet and DPPE (dipalmitoylphosphatidylethnaolamine) in the lower leaﬂet. The CG force ﬁeld parameters for LIPO were reported in our earlier work.89 All MD simulations were performed using the GROMACS 2018 package.81 Each system (Table S1) was energy minimized followed by isothermal−isochoric (NVT) and isothermal−isobaric (NPT) simulation steps for 75 ns with position restraints on the protein backbone. Temperature was maintained at 300 K for claudin-5 simulations and at 340 K for OmpF simulations using the v-rescale90 thermostat with τt = 1 ps; a semi-isotropic pressure of 1 bar was maintained using Berendsen barostat91 with a τp = 5 ps during the simulations. For the production MD run, a v-rescale thermostat and a Parrinello−Rahman barostat92 were used with τt = 1 ps and τp = 12 ps. All runs were performed with a 20 fs time step. The nonbonded van der Waals and Coulomb interaction cutoﬀs were set to 1.1 nm. Three-dimensional periodic boundary conditions were applied to each system. The interaction energies between the protein dimers were computed by deﬁning energy groups for each protein in the GROMACS input ﬁle. The point mutations of OmpF were performed using CHARMM-GUI.93,94
+4. RESULTS
+Two applications are presented to demonstrate the features of the PANEL method and its applicability to diﬀerent integral membrane proteins (Figure 3). The ﬁrst is the association of claudin-5 proteins, critical components of tight junctions at the blood-brain barrier interface.95 The second is the barrel-shaped OmpF that exists as a symmetric trimer in the Gram-negative bacterial outer membrane.96,97 The trimer formation illustrates a two-step application of the PANEL method.
+Application I: PANEL for Blood-Brain Barrier Tight Junction Forming Claudin-5 Protein Dimer. Claudin-5, a member of the claudin family of tight junction proteins, is a quintessential protein. It establishes the size- and chargeselective barrier at the intercellular space between adjoining endothelial cells that regulates the transport of molecules at the blood-brain barrier interface. This relatively small protein (23 kDa) is composed of 216 amino acids that form four transmembrane domains (TM1-4), two extracellular loops (ECL1 and ECL2), a cytosolic loop (Cyto), and cytoplasmic N- and C-terminal domains (Figure 3a). In previous work, we
+
+Figure 3. Model of transmembrane protein structures for PANEL application. (a) Claudin-5 (gray ribbon) and (b) OmpF (gray ribbon) and key residues: G19 (red), G57 (orange), G59 (purple), R100 (blue), and G135 (yellow).
+have shown that multiple claudin-5 proteins embedded in a membrane interact to form speciﬁc dimeric interfaces, which then self-assemble to form contiguous tight junction strands.75
+Here we revisit claudin-5 pair interactions using PANEL primarily to achieve a comprehensive sampling of the pairinteraction energies in the rotational space. In addition to interaction energies, we computed the number of times each grid in the rotational space was visited to produce a frequency landscape. The percent coverage of the rotational space was computed to ensure complete sampling.
+Energy Landscape. The PANEL plot for claudin-5 dimer was generated using ∼1.2 million data points (N = 3000 and M = 400). The resulting contour plot (Figure 4a) shows a rugged interaction energy landscape as a function of the rotational coordinates (θ, θ′). The energy values range from −1512.4 kJ mol−1 at (93°, 106°), which is the lowest energy structure to higher energy values up to 0 kJ mol−1. The interaction energy for any conformation is the result of multiple pair interactions between the amino acid residues of the two proteins; this means that a small change in the rotational angle of the proteins can expose new interacting surfaces and residues, to cause a sharp change in the interaction energy. Thus, based on the type of residue−residue contact lost, sharp changes in the PANEL energy landscape are possible. Despite the ruggedness, prominent low energy wells between (100°, 100°) and (120°, 120°) are observed in the claudin-5 energy landscape, which denotes stable and preferred conformations. In contrast, the regions with relatively high energies depict less stable dimer conformations that are energetically less preferred.
+The distribution of 1.2 million data points used for generating the energy landscape is shown in the grid coverage plot (Figure 4b). Although the seed geometries (N = 3000) were generated from a uniform distribution, the ﬁnal grid coverage after the MD simulations (M = 400) shows a nonuniform grid coverage. Further, the grid frequency or the number of times each grid was visited was computed as a function of the rotational angles (Figure 4c). Interestingly, the grid frequency mimics the energy landscape; i.e., the visiting frequency is high for grid points that have low energy or preferred conformations, and the visiting frequency is low for grid points associated with high energy and less preferred dimers. Thus, we infer that the interaction energy landscape is in agreement with the grid frequencies.
+Grid coverage. The eﬃciency of sampling the rotational space for a pair of proteins was assessed by percent coverage as
+
+D
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 4. Claudin-5 protein association contour plots showing (a) minimum energy (scale blue to red) landscape, (b) grid coverage (sampled − white; not sampled − black), and (c) grid population (scale 1 to >20).
+
+deﬁned in eq 1. To determine optimal values of input parameters N and M that will yield the highest percent coverage, we performed multiple claudin−claudin simulations with various combinations of N and M values (Table 1). The
+
+Table 1. Percent Coverage for Input Parameters N and M
+
+M
+
+N
+
+250
+
+400
+
+500
+
+1500
+
+500
+
+40%
+
+50%
+
+54%
+
+61%
+
+1000
+
+64%
+
+73%
+
+76%
+
+86%
+
+2000
+
+85%
+
+89%
+
+91%
+
+95%
+
+3000
+
+92%
+
+95%
+
+96%
+
+97%
+
+data show that for a given value of N, an increase in M results
+in incremental increase in coverage. For example, when N = 500, increasing M from 250 to 1500 (corresponds to 1.5 μs of
+MD simulation) results in only 61% grid coverage; however, increasing N from 500 to 3000 shows high coverage in 92−
+97% range for all values of M.
+To illustrate this further, two sets of N and M were compared that have the same number (N × M = 1.5 × 106) of
+data points: N = 1000, M = 1500 and N = 3000, M = 500
+(Figure 5). In the case of lower N, the population landscape
+
+Figure 5. Landscape coverage for (a) N = 1000, M = 1500 and (b) N = 3000, M = 500 with a total of 1.5 million sample points each.
+shows a patchy coverage where MD trajectory was unable to sample the conformations (Figure 5a), whereas in the case of larger N, the MD trajectories are able to sample more conformations. Thus, from this analysis we conclude that sampling a larger set of seed geometries with shorter MD simulations is more eﬃcient in providing higher grid coverage of the rotational space.
+Dimer Characterization. In our previous work, we identiﬁed four key claudin-5 dimer orientations (labeled as dimers A, B, C, and D) that were observed with high frequency
+
+in the self-assembly simulations.75 Among these dimers, dimers B, C, and D are symmetric and lie on the symmetry axis (diagonal) of the rotational space, which implies that both the claudin proteins interact via identical domains; for example, to form dimer B, both claudin proteins interact via their TM3 domains, while to form dimer C, both proteins interact through their TM4 domains and the ECL2 loops. Similarly, in the case of dimer D, both the claudin proteins interact via their ECL1 loops. Dimer A, however, lies outside the symmetry axis and the proteins interact via diﬀerent domains; TM4 domain of one protein interacts with the TM1 domain of the other. As shown in our earlier work, symmetric dimers B, C, and D play a signiﬁcant role in the tight junction architecture; both dimers D and B form tight junction pores (Pores I and II).66 In contrast, dimer C functions as the nonpore forming conformation and is vital in the formation of the tight junction seal.
+The claudin-5 association results from our self-assembly simulations provide insightful information on tight junction architecture and transport properties of small molecules across the pores; however, the results were often limited by the size of the system (70 × 70 nm2 membrane patch), length of the simulation time (∼10 μs), limited dimer population (15−20 dimers) per simulation, lack of energetics data, and the cost of the simulation (thousands of hours of wall-clock time). The PANEL method mitigates such limitations and provides the interaction energy surface as a function of the rotational space.
+The locations of dimers A−D are mapped on the minimum energy contour plot (Figure 6). The dimer C region has low pair-interaction energies (−1512.4 to −1400 kJ mol−1) relative to dimers B and D (−800 to −200 kJ mol−1), which indicates higher stability for these nonpore forming conformations relative to the pore forming dimers. The oﬀ-diagonal regions of dimer A have few low energy conformations, which are less stable than dimer C.
+The lowest energy dimer conformation that lies in the dimer C region at (93°, 106°) grid point was reverse mapped to an atomistic level to examine the pairwise residue−residue interactions (Table S2). The vast majority of amino acid residue pairs making signiﬁcant contributions to the stability of the dimer was observed to be from close interaction between TM4 and ECL2 on either of the proteins with additional contribution from TM3 and ECL1. The strongest interacting pair was found to be from the ECLs. Some major interactions include the aromatic residue pair H38−Y148 and the charged residue pair R145−Q159 in the ECL region (Figure S5).
+The one-dimensional energy proﬁle of dimer conformations along the symmetry axis (Figure 7) shows multiple local
+
+E
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+Figure 6. (a) Claudin-5 dimers A−D mapped (boxed regions) on the contour plot of the minimum energy landscape along with (b) the three-dimensional representation of the dimer C region. The scale shows the energy and the corresponding colors.
+minima. Selected conformations in the local minima were reverse mapped to atomistic resolution to identify the protein− protein contacts in terms of the secondary structure (Figure 7b). Conformations with contacts through the ECL1−ECL1 or Cyto−Cyto domains such as (0°,0°), (340°,340°), or (310°,310°) are less stable than those with some TM−TM contacts (50°,50°), (80°,80°), (110°,110°), (160°,160°), (190°,190°), (240°,240°), and (270°,270°). Notably, the
+
+Article
+(110°,110°) conformation, which is a dimer C orientation, forms the largest number of symmetric contacts through ECL1, ECL2, TM3, and TM4 and has the lowest energy. Similar one-dimensional energy proﬁles were generated for other regions of the PANEL contour plot (Figure S6).
+Application II: PANEL for the OmpF Dimer and Trimer. The second application demonstrates PANEL method’s versatility to a bacterial proteinOuter Membrane Protein F (OmpF), an integral membrane protein found in Escherichia coli. OmpF porin is a symmetric trimer formed by barrel-shaped monomers, which allow passive exchange of small hydrophilic molecules across the bacterial membrane through their water-ﬁlled channels.11,97,98 Earlier studies have reported that formation of the OmpF trimer occurs via a stepwise process of two monomers forming a dimer intermediate, which then combines with another monomer to form the symmetric trimer.99
+The stability of the OmpF trimer is attributed to a set of amino acids (G19, G57, G59, R100, and G135) on the β-barrel surface (Figure 1). In our earlier work, we performed selfassembly simulations of OmpF monomers that formed stable dimers and a symmetric trimer through interaction between monomers via G19 and G135 residues.86 The prohibitively high computational cost of the self-assembly simulations prevented the evaluation of point mutations on dimer and trimer formation and stability. The PANEL method lends itself to such evaluation to better understand the role of key residue in trimer formation.
+The PANEL plot for the OmpF dimer was generated using ∼1.5 million data points (N = 3000 and M = 500). The resulting contour plot (Figure 8a) shows a very distinct interaction energy landscape as a function of the rotational coordinates (θ, θ′); both OmpF monomers show preferred orientations around θ or θ′ = 300° or 15°. Thus, there are four
+
+Figure 7. Variations in interaction energies and interacting protein domains for symmetric dimers. (a) Interaction energy curve along the symmetry axis denoting symmetric dimer orientations with reverse mapped dimer structures for selected local minima with highlighted green and pink residues denoting pair interactions. (b) Secondary structure contact maps for selected conformations.
+
+F
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 8. OmpF dimer formation. Protein association contour plots showing (a) minimum energy landscape along with the subset of (b) dimer conformations with energy values below −1400 kJ/mol. The scale shows contour energy and the associated colors. (c) Reverse mapped OmpF porins (gray ribbons) show the orientation of the two OmpF monomers at (15°,15°), (300°,15°), (300°,300°), and (15°,300°) along with the
+location of amino acid residues G19 (red spheres) and G135 (yellow spheres).
+
+low energy regions below −1400 kJ/mol (∼15°, ∼15°), (∼15°, ∼300°), (∼300°, ∼15°), and (∼300°, ∼300°), as shown in Figure 8b. The reverse mapped structures for representative orientations from the four regions show the conformations involving symmetric G19−G19 or G135−135 interactions between the OmpF monomers or asymmetric G19−G135 interactions.
+Interestingly, the lowest energy asymmetric dimer conﬁguration obtained from PANEL corresponds to the precursor for the symmetric trimer formation. The reverse mapped conformation (300°,15°) of the asymmetric dimer shows the signature interaction between G19−G135 residues, with exposed G135 and G19 residues, respectively, to accommodate a third OmpF protein and form a trimer. Symmetric dimers with G19−G19 or G135−G135 interactions are incapable of forming a symmetric trimer.
+In addition to G19 and G135, the role of highly conserved glycine residues G57 and G59 and R100 in dimer formation was investigated. In an earlier work, Naveed et al. indicated that each glycine and arginine residue plays a distinct but variable role, and all of them contribute signiﬁcantly to the stability of the OmpF pair interactions. To test the sensitivity of the PANEL method to point mutations and to capture the loss of stability in an interaction, we mimicked the mutations performed in earlier experiments by progressively adding the mutations, starting with the G19W mutation, followed by G19W/G135W/R100L, and ﬁnally with all the key residues mutated as G19W/G135W/R100L/G57I/G59L (Figure S7). The reduced stability of G19W/G135W/R100L/G57I/G59L mutated OmpF is evident in the contour plots (Figure 9).
+OmpF Trimer. The PANEL method for generating trimeric systems was designed to have a workﬂow similar to that described for the claudin dimeric system. Here, however, one of the monomers was replaced with a dimer, and the other remained unchanged as a monomer (Figure S2). The most stable dimer orientation (Figure 10a inset) was selected to generate the PANEL for the trimer. To enhance the sampling eﬃciency of the method, selection of the seed geometries was restricted to cyclic orientations where the monomer interacted
+
+Figure 9. (a) The minimum energy contour plot of the dimers formed by mutated (G19W/G135W/R100L/G57I/G59L) OmpF monomers and (b) the regions below −1400 kJ mol−1. The scale shows contour energy and the associated colors.
+with both OmpF subunits of the dimer; noncyclic/linear trimeric seed conﬁgurations were eliminated.
+The energy landscape of the OmpF trimer is presented as a polar plot (Figure 10a), where the circumferential angle corresponds to the rotation around the dimer, and the radial angle corresponds to the monomer. The blank spaces correspond to noncyclic conﬁgurations that were eliminated from sampling. Two low energy regions were observed around (∼360°, ∼90°) and (∼360°, ∼270°) showing the interaction of the monomer with OmpF dimer’s major and minor grooves, respectively. The lowest energy trimer was observed around the (∼360°, ∼90°) region on the plot in which the monomer interacts with the exposed G19 and G135 residues. The orientation of the monomer is such that its G19 interacts with
+
+G
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+Figure 10. Polar plot of the OmpF trimer. (a) Minimum energy landscape with inset stable dimer orientation precursor to trimer formation; dimer angle (θ′, circumference) and monomer angle (θ, radial); the orientation of the dimer is superimposed for reference; the lowest energy trimer region (pink circle) was observed around (∼360°, ∼90°). (b) Reversed mapped structure (gray ribbons) of the trimer at (360°, 90°) with G19 (red spheres) and G135 (yellow spheres).
+exposed G135 and monomer’s G135 pairs with the exposed G19 of the dimer (Figure 10b). The reverse mapped structure of the stable trimer shows a total of three G19−G135 pairs. The observed trimer closely matches the OmpF crystal structure, validating the ability of PANEL to capture the energy landscape of the trimeric interactions successfully.
+5. DISCUSSION The PANEL method is a robust, computationally inexpensive approach to obtain comprehensive and converged energy landscape data for the association of integral membrane proteins. The method beneﬁts from the proteins’ conﬁnement in the two-dimensional membrane plane as there are fewer degrees of freedom compared to soluble proteins. In both the claudin-5 and OmpF applications, minimal changes to input parameters were required to study a tetraspanning protein in the phospholipid bilayer and a β-barrel porin trimer embedded in a lipopolysaccharide rich bacterial outer membrane.
+The PANEL method utilizes a fraction of the computational resources and wall-clock time to complete the simulations as compared to traditional self-assembly simulations (Table S3). The use of much smaller system sizes (10 × 10 nm2 membrane patches) compared to larger self-assembly simulation setups (50 × 50 nm2 membrane patches) and short simulation times (400−500 ns) eliminates the need for high-performance computing resources. Underlying simulation eﬃciency is the use of seed geometries for proteins within the interacting
+
+Article
+distance; therefore, short MD simulations provide suﬃcient pairwise energy data for generating the landscape. Additionally, the algorithm supports a high level of parallelization, as each of the selected seed geometries (up to 3000) runs independently. The PANEL workﬂow and scripts are programmed to be userfriendly and easy to install for all future applications.
+The PANEL method has several advantages over other computational methods currently in use to analyze membrane protein association. For example in our previous claudin work, the relative stability of the dimers was computed via umbrellasampling or metadynamics simulations that required pull simulations and breaking the dimers into monomers gradually or forming the dimers as a function of some collective variable; neither approach is straightforward for membrane proteins that are embedded in lipids. Similarly, in OmpF trimer selfassembly, the computational cost of the slowly diﬀusing OmpF monomers limited the scope of the work to the wild-type OmpF system. Due to the absence of convergence criteria in self-assembly simulations, it was impossible to prove that the OmpF trimer did not exist when critical glycine residues were mutated. The application of the PANEL method in the present work eliminated the prior limitations.
+Comparison of PANEL and the DAFT Method. Developed by Wassenaar et al., the DAFT method80 utilizes a docking strategy plus self-assembly MD simulations to identify preferred protein binding orientations. The novelty of the DAFT method lies in how proteins are placed in unit cells and with optimal periodic boundary conditions that allow maximum decoupling between the protein and its periodic images. The method generates multiple unbiased initial orientations to allow the protein to interact with another protein in the system in any of its periodic images and move in a preferred orientation dictated by the pairwise interactions to form an associated product.
+In terms of output, DAFT yields the ﬁnal population of dimers as a function of rotational space. The DAFT output of claudin-5 dimer population was computed using 3000 starting conformations followed by 500 ns of equilibration MD for each system (Figure 11a). The output enables the prediction of preferred dimer orientations based on the population density in a speciﬁc region. However, the DAFT approach (i) does not provide any information on the dimer orientations that are not part of the ﬁnal conformations (in Figure 11a); (ii) may be inﬂuenced by the stickiness of the MARTINI force ﬁeld, i.e., bound proteins are unable to dissociate, despite the eﬀorts to maximally decouple the protein via the periodic images; (iii) relies on slow diﬀusion of proteins to self-assemble, which may
+
+Figure 11. Comparison of (a) DAFT’s population analysis (brown dots) with (b) PANEL’s minimum energy contour plot (scale on right) for claudin-5 dimers.
+
+H
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+keep dimers trapped in local minima, restricting the uniform sampling of the rotational space; and (iv) requires long simulation times for trimer formation.
+On the other hand, the PANEL method builds on the strengths of the DAFT method to provide additional output data (Figure 11b). The key distinction of the PANEL approach is that (i) membrane proteins are placed within the interacting distance (with the van der Waal cutoﬀ) of each other; (ii) sampling of rotational space is done stochastically from a uniform distribution; (iii) interaction energies of the protein dimers are recorded over the equilibration MD run to generate a comprehensive energy landscape; (iv) it provides a fully sampled potential energy landscape as a function of rotational angles; and (v) it achieves convergence by maximizing the grid coverage of the energy landscape. Thus, the PANEL approach builds on the merits of the docking strategy, stochastic sampling, and equilibrium molecular simulations to study protein associations in membrane lipid environment.
+6. CONCLUSIONS
+We present the computationally aﬀordable, and user-friendly PANEL method for performing comprehensive sampling of association of transmembrane proteins. Unlike other ensemblebased methods of protein association, PANEL does not quantify membrane protein association based on ﬁnal protein dimer populations; and thereby circumvents the limitations associated with the convergence of equilibrium population. The PANEL method can provide a comprehensive set of data for any interacting membrane protein in a highly streamlined parallelized job setup which does not require high-performance supercomputers to generate results and can be achieved with a minimal number of parallel nodes. The method is versatile and independent of the limitations of a speciﬁc force ﬁeld as shown by two example applications of claudin-5 dimer formation and OmpF dimer and trimer formation. Both applications required only a fraction of the simulation cost compared to the selfassembly simulations. The PANEL method successfully captured the loss of stable OmpF dimers upon point mutations that were observed in prior experiments. The PANEL method is implemented in easy-to-use scripts that are available for download and use by the scientiﬁc community to characterize any pair of integral membrane proteins.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jctc.9b00626.
+Description of PANEL python scripts; details of PANEL parameters; parameters used for generating PANEL for each system; list of pairwise LJ and Columbic interaction energies; performance analysis; radial distance distribution; rotational angle conventions; convergence tests, minimum energy PANEL plots; reverse mapped atomistic structures; low energy region descriptions; and OmpF wt and mutated dimer PANEL landscapes (PDF)
+■ AUTHOR INFORMATION
+Corresponding Author *Phone (315) 443 0571. E-mail: snangia@syr.edu.
+ORCID
+Shikha Nangia: 0000-0003-1170-8461
+
+Funding
+This work is supported by the CAREER CBET-1453312 grant from the National Science Foundation. Computational resources were provided by the Information and Technology Services at Syracuse University (Eric Sedore, Larne Pekowsky, and Michael R. Brady) as well as by the Extreme Science and Engineering Discovery Environment (XSEDE), which is supported by National Science Foundation grant number ACI-1053575.
+Notes
+The authors declare no competing ﬁnancial interest.
+■ REFERENCES
+(1) Yeagle, P. L. Membrane Proteins. In The Membranes of Cells, 3rd ed.; Yeagle, P. L., Ed.; Academic Press: Boston, 2016; Chapter 10, pp 219−268, DOI: 10.1016/B978-0-12-800047-2.00010-3. (2) Spiegel, A. M. Defects in G Protein-Coupled Signal Transduction in Human Disease. Annu. Rev. Physiol. 1996, 58 (1), 143− 170. (3) Von Heijne, G. The membrane protein universe: what’s out there and why bother? J. Intern. Med. 2007, 261 (6), 543−557. (4) Kawai, T.; Akira, S. The role of pattern-recognition receptors in innate immunity: Update on toll-like receptors. Nat. Immunol. 2010, 11 (5), 373−384. (5) Takeda, K.; Kaisho, T.; Akira, S. Toll-like receptors. Annu. Rev. Immunol. 2003, 21, 335−376. (6) Ullrich, A.; Schlessinger, J. Signal transduction by receptors with tyrosine kinase activity. Cell 1990, 61 (2), 203−212. (7) Pawson, T.; Scott, J. D. Signaling through scaffold, anchoring, and adaptor proteins. Science 1997, 278 (5346), 2075−2080. (8) Agre, P.; Preston, G. M.; Smith, B. L.; Jung, J. S.; Raina, S.; Moon, C.; Guggino, W. B.; Nielsen, S. Aquaporin CHIP: the archetypal molecular water channel. Am. J. Physiol. Renal. Physiol. 1993, 265 (4), F463−F476. (9) Dawson, R. J. P.; Locher, K. P. Structure of a bacterial multidrug ABC transporter. Nature 2006, 443 (7108), 180−185. (10) Gouaux, E.; MacKinnon, R. Principles of selective ion transport in channels and pumps. Science 2005, 310 (5753), 1461−1465. (11) Koebnik, R.; Locher, K. P.; Van Gelder, P. Structure and function of bacterial outer membrane proteins: barrels in a nutshell. Mol. Microbiol. 2000, 37 (2), 239−253. (12) King, L. S.; Kozono, D.; Agre, P. From structure to disease: the evolving tale of aquaporin biology. Nat. Rev. Mol. Cell Biol. 2004, 5 (9), 687−698. (13) Nikaido, H. Porins and specific diffusion channels in bacterial outer membranes. J. Biol. Chem. 1994, 269 (6), 3905−3908. (14) Yasui, M.; Hazama, A.; Kwon, T.-H.; Nielsen, S.; Guggino, W. B.; Agre, P. Rapid gating and anion permeability of an intracellular aquaporin. Nature 1999, 402 (6758), 184−187. (15) Campaña, M. B.; Irudayanathan, F. J.; Davis, T. R.; McGovernGooch, K. R.; Loftus, R.; Ashkar, M.; Escoffery, N.; Navarro, M.; Sieburg, M. A.; Nangia, S.; Hougland, J. L. The ghrelin Oacyltransferase structure reveals a catalytic channel for transmembrane hormone acylation. J. Biol. Chem. 2019, 294, 14166. (16) Hayes, J. D.; Pulford, D. J. The glut athione s-transferase supergene family: Regulation of GST and the contribution of the lsoenzymes to cancer chemoprotection and drug resistance part i. Crit. Rev. Biochem. Mol. Biol. 1995, 30 (6), 445−520. (17) Walker, J. E.; Saraste, M.; Runswick, M. J.; Gay, N. J. Distantly related sequences in the alpha- and beta-subunits of ATP synthase, myosin, kinases and other ATP-requiring enzymes and a common nucleotide binding fold. EMBO J. 1982, 1 (8), 945−951. (18) Bell, G. I. Models for the specific adhesion of cells to cells. Science 1978, 200 (4342), 618−627. (19) Carlos, T. M.; Harlan, J. M. Leukocyte-endothelial adhesion molecules. Blood 1994, 84 (7), 2068−2101.
+
+I
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+(20) Cukierman, E.; Pankov, R.; Stevens, D. R.; Yamada, K. M.
+Taking cell-matrix adhesions to the third dimension. Science 2001, 294 (5547), 1708−1712. (21) Gumbiner, B.; Stevenson, B.; Grimaldi, A. The role of the cell
+adhesion molecule uvomorulin in the formation and maintenance of the epithelial junctional complex. J. Cell Biol. 1988, 107 (4), 1575−
+1587. (22) Gumbiner, B. M. Cell adhesion: The molecular basis of tissue architecture and morphogenesis. Cell 1996, 84 (3), 345−357. (23) Hynes, R. O. Integrins: Versatility, modulation, and signaling in cell adhesion. Cell 1992, 69 (1), 11−25. (24) Martìn-Padura, I.; Lostaglio, S.; Schneemann, M.; Williams, L.;
+Romano, M.; Fruscella, P.; Panzeri, C.; Stoppacciaro, A.; Ruco, L.;
+Villa, A.; Simmons, D.; Dejana, E. Junctional adhesion molecule, a
+novel member of the immunoglobulin superfamily that distributes at
+intercellular junctions and modulates monocyte transmigration. J. Cell Biol. 1998, 142 (1), 117−127. (25) Ruoslahti, E.; Pierschbacher, M. D. New perspectives in cell adhesion: RGD and integrins. Science 1987, 238 (4826), 491−497. (26) Rutishauser, U.; Acheson, A.; Hall, A. K.; Mann, D. M.;
+Sunshine, J. The neural cell adhesion molecule (NCAM) as a regulator of cell-cell interactions. Science 1988, 240 (4848), 53−57. (27) Tsujii, M.; DuBois, R. N. Alterations in cellular adhesion and
+apoptosis in epithelial cells overexpressing prostaglandin endoperoxide synthase 2. Cell 1995, 83 (3), 493−501. (28) Worch, R.; Bökel, C.; Höfinger, S.; Schwille, P.; Weidemann, T.
+Focus on composition and interaction potential of single-pass transmembrane domains. Proteomics 2010, 10 (23), 4196−4208. (29) Lu, C.; Mi, L. Z.; Grey, M. J.; Zhu, J.; Graef, E.; Yokoyama, S.;
+Springer, T. A. Structural evidence for loose linkage between ligand
+binding and kinase activation in the epidermal growth factor receptor. Mol. Cell. Biol. 2010, 30 (22), 5432−5443. (30) Lau, T. L.; Dua, V.; Ulmer, T. S. Structure of the integrin αIIb transmembrane segment. J. Biol. Chem. 2008, 283 (23), 16162−
+16168. (31) Lau, T. L.; Kim, C.; Ginsberg, M. H.; Ulmer, T. S. The structure of the integrin αiIbB3 transmembrane complex explains integrin transmembrane signalling. EMBO J. 2009, 28 (9), 1351−
+1361. (32) Liu, W.; Eilers, M.; Patel, A. B.; Smith, S. O. Helix Packing
+Moments Reveal Diversity and Conservation in Membrane Protein Structure. J. Mol. Biol. 2004, 337 (3), 713−729. (33) Rosenbaum, D. M.; Rasmussen, S. G. F.; Kobilka, B. K. The
+structure and function of G-protein-coupled receptors. Nature 2009, 459 (7245), 356−363. (34) Vinothkumar, K. R.; Henderson, R. Structures of membrane proteins. Q. Rev. Biophys. 2010, 43 (1), 65−158. (35) White, S. H.; Wimley, W. C. Membrane protein folding and
+stability: Physical principles. Annu. Rev. Biophys. Biomol. Struct. 1999, 28, 319−365. (36) Richardson, J. S.; Richardson, D. C. Natural β-sheet proteins
+use negative design to avoid edge-to-edge aggregation. Proc. Natl. Acad. Sci. U. S. A. 2002, 99 (5), 2754−2759. (37) Ormö, M.; Cubitt, A. B.; Kallio, K.; Gross, L. A.; Tsien, R. Y.;
+Remington, S. J. Crystal structure of the Aequorea victoria green fluorescent protein. Science 1996, 273 (5280), 1392−1395. (38) Weiss, M. S.; Abele, U.; Weckesser, J.; Welte, W.; Schiltz, E.;
+Schulz, G. E. Molecular architecture and electrostatic properties of a bacterial porin. Science 1991, 254 (5038), 1627−1630. (39) Holowaty, M. N.; Zeghouf, M.; Wu, H.; Tellam, J.;
+Athanasopoulos, V.; Greenblatt, J.; Frappier, L. Protein profiling
+with Epstein-Barr nuclear antigen-1 reveals an interaction with the
+herpesvirus-associated ubiquitin-specific protease HAUSP/USP7. J. Biol. Chem. 2003, 278 (32), 29987−29994. (40) Naren, A. P.; Quick, M. W.; Collawn, J. F.; Nelson, D. J.; Kirk,
+K. L. Syntaxin 1A inhibits CFTR chloride channels by means of
+domain-specific protein-protein interactions. Proc. Natl. Acad. Sci. U. S. A. 1998, 95 (18), 10972−10977.
+
+(41) Poulin, G.; Lebel, M.; Chamberland, M.; Paradis, F. W.;
+Drouin, J. Specific protein-protein interaction between basic helixloop-helix transcription factors and homeoproteins of the Pitx family. Mol. Cell. Biol. 2000, 20 (13), 4826−4837. (42) Thaler, J. P.; Lee, S. K.; Jurata, L. W.; Gill, G. N.; Pfaff, S. L. LIM factor Lhx3 contributes to the specification of motor neuron and
+interneuron identity through cell-type-specific protein-protein interactions. Cell 2002, 110 (2), 237−249. (43) Trinkle-Mulcahy, L.; Boulon, S.; Lam, Y. W.; Urcia, R.; Boisvert, F. M.; Vandermoere, F.; Morrice, N. A.; Swift, S.; Rothbauer, U.; Leonhardt, H.; Lamond, A. Identifying specific
+protein interaction partners using quantitative mass spectrometry and bead proteomes. J. Cell Biol. 2008, 183 (2), 223−239. (44) Vermeulen, M.; Hubner, N. C.; Mann, M. High confidence determination of specific protein-protein interactions using quantitative mass spectrometry. Curr. Opin. Biotechnol. 2008, 19 (4), 331− 337. (45) Bahadur, R. P.; Chakrabarti, P.; Rodier, F.; Janin, J. A Dissection of Specific and Non-specific Protein-Protein Interfaces. J. Mol. Biol. 2004, 336 (4), 943−955. (46) Best, R. B.; Zheng, W.; Mittal, J. Balanced protein-water interactions improve properties of disordered proteins and nonspecific protein association. J. Chem. Theory Comput. 2014, 10 (11), 5113−5124. (47) Herschlag, D.; Khosla, M.; Tsuchihashi, Z.; Karpel, R. L. An
+RNA chaperone activity of non-specific RNA binding proteins in hammerhead ribozyme catalysis. EMBO J. 1994, 13 (12), 2913−2924. (48) Ito, T.; Iida-Tanaka, N.; Niidome, T.; Kawano, T.; Kubo, K.; Yoshikawa, K.; Sato, T.; Yang, Z.; Koyama, Y. Hyaluronic acid and its derivative as a multi-functional gene expression enhancer: Protection from non-specific interactions, adhesion to targeted cells, and transcriptional activation. J. Controlled Release 2006, 112 (3), 382− 388. (49) Jeyachandran, Y. L.; Mielczarski, J. A.; Mielczarski, E.; Rai, B. Efficiency of blocking of non-specific interaction of different proteins by BSA adsorbed on hydrophobic and hydrophilic surfaces. J. Colloid Interface Sci. 2010, 341 (1), 136−142. (50) Lee, M. H.; Brass, D. A.; Morris, R.; Composto, R. J.; Ducheyne, P. The effect of non-specific interactions on cellular adhesion using model surfaces. Biomaterials 2005, 26 (14), 1721− 1730. (51) Segall, A. M.; Goodman, S. D.; Nash, H. A. Architectural elements in nucleoprotein complexes: Interchangeability of specific non-specific DNA binding proteins. EMBO J. 1994, 13 (19), 4536− 4548. (52) Levental, I.; Grzybek, M.; Simons, K. Greasing Their Way: Lipid Modifications Determine Protein Association with Membrane Rafts. Biochemistry 2010, 49 (30), 6305−6316. (53) Schreiber, G.; Haran, G.; Zhou, H. X. Fundamental Aspects of Protein-Protein Association Kinetics. Chem. Rev. 2009, 109 (3), 839−
+860. (54) Safari-Alighiarloo, N.; Taghizadeh, M.; Rezaei-Tavirani, M.; Goliaei, B.; Peyvandi, A. A. Protein-protein interaction networks (PPI) and complex diseases. Gastroenterol. Hepatol. Bed Bench 2014, 7 (1), 17−31. (55) Spires-Jones, T. L.; Attems, J.; Thal, D. R. Interactions of pathological proteins in neurodegenerative diseases. Acta Neuropathol. 2017, 134 (2), 187−205. (56) Bienstock, R. J. Computational Drug Design Targeting ProteinProtein Interactions. Curr. Pharm. Des. 2012, 18 (9), 1240−1254. (57) Rosell, M.; Fernań dez-Recio, J. Hot-spot analysis for drug discovery targeting protein-protein interactions. Expert Opin. Drug Discovery 2018, 13 (4), 327−338. (58) Page, R. C.; Li, C.; Hu, J.; Gao, F. P.; Cross, T. A. Lipid bilayers: an essential environment for the understanding of membrane proteins. Magn. Reson. Chem. 2007, 45 (S1), S2−S11. (59) Rawlings, A. E. Membrane proteins: always an insoluble problem? Biochem. Soc. Trans. 2016, 44 (3), 790−795.
+
+J
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+
+Article
+
+(60) Pagadala, N. S.; Syed, K.; Tuszynski, J. Software for molecular docking: a review. Biophys. Rev. 2017, 9 (2), 91−102. (61) Lindahl, E.; Sansom, M. S. Membrane proteins: molecular dynamics simulations. Curr. Opin. Struct. Biol. 2008, 18 (4), 425−431. (62) Koldsø, H.; Reddy, T.; Fowler, P. W.; Duncan, A. L.; Sansom,
+M. S. P. Membrane Compartmentalization Reducing the Mobility of Lipids and Proteins within a Model Plasma Membrane. J. Phys. Chem. B 2016, 120 (34), 8873−8881. (63) Koldsø, H.; Sansom, M. S. P. Organization and Dynamics of
+Receptor Proteins in a Plasma Membrane. J. Am. Chem. Soc. 2015, 137 (46), 14694−14704. (64) Ingoĺ fsson, H. I.; Carpenter, T. S.; Bhatia, H.; Bremer, P. T.; Marrink, S. J.; Lightstone, F. C. Computational Lipidomics of the Neuronal Plasma Membrane. Biophys. J. 2017, 113 (10), 2271−2280. (65) Ingoĺ fsson, H. I.; Melo, M. N.; van Eerden, F. J.; Arnarez, C.;
+Lopez, C. A.; Wassenaar, T. A.; Periole, X.; de Vries, A. H.; Tieleman, D. P.; Marrink, S. J. Lipid Organization of the Plasma Membrane. J. Am. Chem. Soc. 2014, 136 (41), 14554−14559. (66) Irudayanathan, F. J.; Wang, N.; Wang, X.; Nangia, S.
+Architecture of the paracellular channels formed by claudins of the blood-brain barrier tight junctions. Ann. N. Y. Acad. Sci. 2017, 1405 (1), 131−146. (67) Sengupta, D.; Marrink, S. J. Lipid-mediated interactions tune
+the association of glycophorin A helix and its disruptive mutants in membranes. Phys. Chem. Chem. Phys. 2010, 12 (40), 12987−12996. (68) Anbazhagan, V.; Schneider, D. The membrane environment modulates self-association of the human GpA TM domain
+Implications for membrane protein folding and transmembrane signaling. Biochim. Biophys. Acta, Biomembr. 2010, 1798 (10), 1899−1907. (69) Cuthbertson, J. M.; Bond, P. J.; Sansom, M. S. P.
+Transmembrane Helix-Helix Interactions: Comparative Simulations of the Glycophorin A Dimer. Biochemistry 2006, 45 (48), 14298−
+14310. (70) Marrink, S. J.; Risselada, H. J.; Yefimov, S.; Tieleman, D. P.; De
+Vries, A. H. The MARTINI force field: Coarse grained model for biomolecular simulations. J. Phys. Chem. B 2007, 111 (27), 7812−
+7824. (71) Monticelli, L.; Kandasamy, S. K.; Periole, X.; Larson, R. G.;
+Tieleman, D. P.; Marrink, S.-J. The MARTINI Coarse-Grained Force
+Field: Extension to Proteins. J. Chem. Theory Comput. 2008, 4 (5), 819−834. (72) Periole, X.; Marrink, S. J. The martini coarse-grained force field. Methods Mol. Biol. 2013, 924, 533−565. (73) Psachoulia, E.; Marshall, D. P.; Sansom, M. S. P. Molecular Dynamics Simulations of the Dimerization of Transmembrane αHelices. Acc. Chem. Res. 2010, 43 (3), 388−396. (74) Periole, X.; Knepp, A. M.; Sakmar, T. P.; Marrink, S. J.; Huber, T. Structural Determinants of the Supramolecular Organization of G
+Protein-Coupled Receptors in Bilayers. J. Am. Chem. Soc. 2012, 134 (26), 10959−10965. (75) Irudayanathan, F. J.; Trasatti, J. P.; Karande, P.; Nangia, S. Molecular Architecture of the Blood Brain Barrier Tight Junction
+Proteins-A Synergistic Computational and In Vitro Approach. J. Phys. Chem. B 2016, 120 (1), 77−88. (76) Irudayanathan, F. J.; Wang, X.; Wang, N.; Willsey, S. R.; Seddon, I. A.; Nangia, S. Self-Assembly Simulations of Classic ClaudinsInsights into the Pore Structure, Selectivity, and Higher Order Complexes. J. Phys. Chem. B 2018, 122 (30), 7463−7474. (77) Rajagopal, N.; Irudayanathan, F. J.; Nangia, S. Palmitoylation of Claudin-5 Proteins Influences Their Lipid Domain Affinity and Tight
+Junction Assembly at the Blood-Brain Barrier Interface. J. Phys. Chem. B 2019, 123 (5), 983−993. (78) Hall, B. A.; Halim, K. B. A.; Buyan, A.; Emmanouil, B.; Sansom,
+M. S. P. Sidekick for Membrane Simulations: Automated Ensemble Molecular Dynamics Simulations of Transmembrane Helices. J. Chem. Theory Comput. 2014, 10 (5), 2165−2175. (79) Altwaijry, N. A.; Baron, M.; Wright, D. W.; Coveney, P. V.;
+Townsend-Nicholson, A. An Ensemble-Based Protocol for the
+
+Computational Prediction of Helix-Helix Interactions in G ProteinCoupled Receptors using Coarse-Grained Molecular Dynamics. J. Chem. Theory Comput. 2017, 13 (5), 2254−2270. (80) Wassenaar, T. A.; Pluhackova, K.; Moussatova, A.; Sengupta, D.; Marrink, S. J.; Tieleman, D. P.; Böckmann, R. A. HighThroughput Simulations of Dimer and Trimer Assembly of Membrane Proteins. The DAFT Approach. J. Chem. Theory Comput. 2015, 11 (5), 2278−2291. (81) Abraham, M. J.; Murtola, T.; Schulz, R.; Paĺ l, S.; Smith, J. C.; Hess, B.; Lindahl, E. GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers. SoftwareX 2015, 1−2, 19−25. (82) Berendsen, H. J. C.; van der Spoel, D.; van Drunen, R. GROMACS: A message-passing parallel molecular dynamics implementation. Comput. Phys. Commun. 1995, 91 (1), 43−56. (83) Van der Spoel, D.; Lindahl, E.; Hess, B.; Groenhof, G.; Mark, A. E.; Berendsen, H. J. C. GROMACS: Fast, flexible, and free. J. Comput. Chem. 2005, 26 (16), 1701−1718. (84) Michaud-Agrawal, N.; Denning, E. J.; Woolf, T. B.; Beckstein, O. MDAnalysis: A toolkit for the analysis of molecular dynamics simulations. J. Comput. Chem. 2011, 32 (10), 2319−2327. (85) Gowers, R. J.; Barnoud, M. L. J.; Reddy, T. J. E.; Melo, M. N.; Seyler, S. L.; Dotson, D. L.; Domanski, J.; Buchoux, S.; Kenney, I. M.; Beckstein, O. MDAnalysis: A Python package for the rapid analysis of molecular dynamics simulations. In Proceedings of the 15th Python in Science Conference; SciPy: Austin, TX, 2016; pp 102−109. (86) Ma, H.; Khan, A.; Nangia, S. Dynamics of OmpF Trimer Formation in the Bacterial Outer Membrane of Escherichia coli. Langmuir 2018, 34 (19), 5623−5634. (87) de Jong, D. H.; Singh, G.; Bennett, W. F. D.; Arnarez, C.; Wassenaar, T. A.; Schaf̈ er, L. V.; Periole, X.; Tieleman, D. P.; Marrink, S. J. Improved Parameters for the Martini Coarse-Grained Protein Force Field. J. Chem. Theory Comput. 2013, 9 (1), 687−697. (88) Herzog, F. A.; Braun, L.; Schoen, I.; Vogel, V. Improved Side Chain Dynamics in MARTINI Simulations of Protein-Lipid Interfaces. J. Chem. Theory Comput. 2016, 12 (5), 2446−2458. (89) Ma, H.; Cummins, D. D.; Edelstein, N. B.; Gomez, J.; Khan, A.; Llewellyn, M. D.; Picudella, T.; Willsey, S. R.; Nangia, S. Modeling Diversity in Structures of Bacterial Outer Membrane Lipids. J. Chem. Theory Comput. 2017, 13 (2), 811−824. (90) Bussi, G.; Donadio, D.; Parrinello, M. Canonical sampling through velocity rescaling. J. Chem. Phys. 2007, 126 (1), 014101. (91) Berendsen, H. J. C.; Postma, J. P. M.; van Gunsteren, W. F.; DiNola, A.; Haak, J. R. Molecular dynamics with coupling to an external bath. J. Chem. Phys. 1984, 81 (8), 3684−3690. (92) Parrinello, M.; Rahman, A. Polymorphic transitions in single crystals: A new molecular dynamics method. J. Appl. Phys. 1981, 52 (12), 7182−7190. (93) Huang, J.; Rauscher, S.; Nawrocki, G.; Ran, T.; Feig, M.; de Groot, B. L.; Grubmüller, H.; MacKerell, A. D., Jr CHARMM36m: an improved force field for folded and intrinsically disordered proteins. Nat. Methods 2017, 14, 71. (94) Lee, J.; Cheng, X.; Swails, J. M.; Yeom, M. S.; Eastman, P. K.; Lemkul, J. A.; Wei, S.; Buckner, J.; Jeong, J. C.; Qi, Y.; Jo, S.; Pande, V. S.; Case, D. A.; Brooks, C. L.; MacKerell, A. D.; Klauda, J. B.; Im, W. CHARMM-GUI Input Generator for NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM Simulations Using the CHARMM36 Additive Force Field. J. Chem. Theory Comput. 2016, 12 (1), 405−413. (95) Nitta, T.; Hata, M.; Gotoh, S.; Seo, Y.; Sasaki, H.; Hashimoto, N.; Furuse, M.; Tsukita, S. Size-selective loosening of the blood-brain barrier in claudin-5-deficient mice. J. Cell Biol. 2003, 161 (3), 653. (96) Masi, M.; Pages̀ , J.-M. Structure, Function and Regulation of Outer Membrane Proteins Involved in Drug Transport in Enterobactericeae: the OmpF/C - TolC Case. Open Microbiol. J. 2013, 7, 22−33. (97) Yamashita, E.; Zhalnina, M. V.; Zakharov, S. D.; Sharma, O.; Cramer, W. A. Crystal structures of the OmpF porin: function in a colicin translocon. EMBO J. 2008, 27 (15), 2171.
+
+K
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+
+Journal of Chemical Theory and Computation
+(98) Nikaido, H. Porins and specific channels of bacterial outer membranes. Mol. Microbiol. 1992, 6 (4), 435−442. (99) Naveed, H.; Jimenez-Morales, D.; Tian, J.; Pasupuleti, V.; Kenney, L. J.; Liang, J. Engineered Oligomerization State of OmpF Protein through Computational Design Decouples Oligomer Dissociation from Unfolding. J. Mol. Biol. 2012, 419 (1), 89−101.
+
+Article
+
+L
+
+DOI: 10.1021/acs.jctc.9b00626
+
+J. Chem. Theory Comput. XXXX, XXX, XXX−XXX
+

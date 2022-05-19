@@ -1,0 +1,3162 @@
+ESAIM: M2AN 47 (2013) 635–662 DOI: 10.1051/m2an/2012038
+
+ESAIM: Mathematical Modelling and Numerical Analysis www.esaim-m2an.org
+
+DISTINGUISHING AND INTEGRATING ALEATORIC AND EPISTEMIC VARIATION IN UNCERTAINTY QUANTIFICATION ∗
+Kamaljit Chowdhary1 and Paul Dupuis2
+Abstract. Much of uncertainty quantiﬁcation to date has focused on determining the eﬀect of variables modeled probabilistically, and with a known distribution, on some physical or engineering system. We develop methods to obtain information on the system when the distributions of some variables are known exactly, others are known only approximately, and perhaps others are not modeled as random variables at all. The main tool used is the duality between risk-sensitive integrals and relative entropy, and we obtain explicit bounds on standard performance measures (variances, exceedance probabilities) over families of distributions whose distance from a nominal distribution is measured by relative entropy. The evaluation of the risk-sensitive expectations is based on polynomial chaos expansions, which help keep the computational aspects tractable.
+Mathematics Subject Classiﬁcation. 41A10, 60H35, 65C30, 65C50.
+Received March 22, 2011. Revised March 13, 2012. Published online March 29, 2013.
+
+1. Introduction
+Uncertainty quantiﬁcation refers to a broad set of techniques for understanding the impact of uncertainties in complicated mechanical, physical, and computational systems. In this context “uncertainty” can take on many meanings, but we follow the convention of dividing uncertainty into aleatoric and epistemic categories. In short, aleatoric uncertainty refers to inherent uncertainty due to stochastic or probabilistic variability. This type of uncertainty is irreducible in that there will always be positive variance since the underlying variables are truly random. Epistemic uncertainty refers to limited knowledge we may have about the model or system. This type of uncertainty is reducible in that if we have more information, e.g., take more measurements, then this type of uncertainty can be reduced. However, for many problems where uncertainty quantiﬁcation is important, the acquisition of data is diﬃcult or expensive. The epistemic uncertainty cannot be removed entirely, and so one needs modeling and computational techniques which can also accommodate this form of uncertainty.
+
+Keywords and phrases. Epistemic uncertainty, aleatoric uncertainty, generalized polynomial chaos, relative entropy, uncertainty quantiﬁcation, spectral methods, stochastic diﬀerential equations, monte Carlo integration, stochastic collocation method, quadrature.
+∗ This research was supported in part by the Air Force Oﬃce of Scientiﬁc Research (FA9550-07-1-0425 and FA9550-09-1-0378), the National Science Foundation (DMS-1008331), and the Department of Energy (DE-SCOO02413).
+1 Division of Applied Mathematics, Brown University, Providence, RI, 02912,USA. kchowdhary@brown.edu 2 Lefschetz Center for Dynamical Systems, Division of Applied Mathematics,Brown University, Providence, RI, 02912, USA. dupuis@dam.brown.edu
+
+Article published by EDP Sciences
+
+c EDP Sciences, SMAI 2013
+
+636
+
+K. CHOWDHARY AND P. DUPUIS
+
+Much of the work to date has focused on aleatoric uncertainty and what one might call the propagation of uncertainty. Here, one characterizes uncertainty concerning one or more elements of a physical system via some probability distribution, and attempts to quantify how that uncertainty will be propagated throughout the system under its constitutive equations and laws. The simplest and most straightforward method to characterize this output distribution would be to sample from the input probability distribution, solve the system equations, and thereby produce output samples (i.e., standard Monte Carlo). Although this is very simple conceptually, it can be far from practical, especially when it is computationally intensive to construct the mapping that takes input variables to output. Straightforward schemes such as Monte Carlo would require that the system be solved for each sample of the random variable, a situation that is often not practical. In recent years eﬃcient computational methods have been developed to calculate particular functionals of the induced distribution that may be required for a particular application (e.g., covariances or error probabilities). Most recently, polynomial chaos has become popular as an eﬃcient method for approximating the distribution of the output variable.
+We note that random variables with a well-deﬁned and given distribution are often used in this context even when there is no justiﬁcation for their use, as in the case of modeling error. In other words, it is (perhaps implicitly) assumed that epistemic uncertainty can be modeled by aleatoric uncertainty. One reason is that, at least as they have been developed to date, most computational techniques (e.g., polynomial chaos and Monte Carlo) are based on the assumption that the user can identify some “appropriate” distribution for each uncertain aspect of the system, regardless of the type of uncertainty, aleatoric or epistemic. If one is interested in just basic qualitative properties of the system then this may not be a central issue, since virtually any model of uncertainty will give information on the sensitivities of the system. However, when the intended use of uncertainty quantiﬁcation is for regulatory assessment or some other application where performance measures are sensitive to distributional assumptions, the issue becomes much more important, and one should carefully distinguish how one accounts for the two types of uncertainty.
+The aim of the present paper is to describe an approach that (i) logically distinguishes those aspects of uncertainty that are treated as stochastic variability from other forms of uncertainty, (ii) in cases where a stochastic model is theoretically valid but for which determination of the distribution is not practical, gives bounds for performance measures that are valid for explicitly identiﬁed families of distributions, and (iii) is computationally feasible if ordinary uncertainty propagation is feasible. The intended audience is broad, including numerical analysts interested in robust performance bounds as well as applied probabilists for whom certain computational aspects of uncertainty quantiﬁcation may be novel. Since a typical reader might not be familiar with the terminology and methods from both ﬁelds, we have included background material for both the probabilistic and numerical analysis approaches used to make the paper broadly accessible.
+The paper is organized as follows. In Section 2 we further discuss the distinction between aleatoric and epistemic uncertainty, and explain some of the limitations to achieving useful performance bounds in the presence of epistemic uncertainty. Section 3 introduces risk-sensitive performance measures and discusses their robust properties. Several hybrid forms are introduced that are more useful than the simplest form when both aleatoric and epistemic uncertainties are present. Various properties of the risk-sensitive measures that are useful in applications (monotonicity, optimization) are also discussed. Section 4 presents numerical examples, reviews the computational methods used to evaluate the risk-sensitive performance measures, and ﬁnishes with a Section of discussion and conclusions.
+
+2. Aleatoric and epistemic uncertainties
+As noted in the Introduction, uncertainty can be divided into two categories, aleatoric and epistemic. From the perspective of mathematical formulation and modeling, aleatoric uncertainty is in some sense simpler. In contrast, epistemic uncertainty can mean diﬀerent things in diﬀerent contexts. Lack of knowledge is an ambiguous term that encompasses many diﬀerent scenarios.
+To illustrate, we consider an elementary example. Consider a system described by some well-posed partial diﬀerential equation (PDE), but with an uncertain boundary condition. The boundary condition is expressed in
+
+ALEATORIC AND EPISTEMIC UQ
+
+637
+
+terms of a random variable X (e.g., ux(0, t) = X) with a particular ﬁxed distribution, and the numerical analysis problem is to characterize the induced distribution of the solution to the PDE at some time and location (e.g., u(x0, t0; X)). Suppose we know that the boundary condition is properly modeled as a random variable, but we do not know the correct value of some parameter in that distribution. For example, based on a central limit type argument, one might claim the distribution is known to be Gaussian, but still unknown are the “true” mean and/or variance. In this case, the lack of knowledge is this missing information about the parameters of the distribution. The lack of information regarding these parameters is a form of epistemic uncertainty. Hence in this example aleatoric and epistemic uncertainty are mingled. Assuming that samples are available, one could use the empirical mean and variance from data to approximate the true mean and variance, and thus reduce this uncertainty. However, in the common situation where sampling is necessarily limited, some epistemic uncertainty is inherent in the model due to practical limitations on data acquisition and modeling.
+Another type of epistemic uncertainty is the omission of important aspects of the system model. This form is possibly the most diﬃcult to quantify. For example, there might be a hidden random variable in the true physical system. In the PDE example we have assumed the boundary condition is modeled via a random variable, but there may be other coeﬃcients in the true physical system that are random, but are modeled as constants. It is also frequently true that the mathematical model used for the system is only approximately true. For example, the model might simplify the geometry of the true system, nonlinearities may be approximated by linear relations, etc. In the context of the PDE example, boundary conditions of Dirichlet form were chosen, when in fact a more realistic model might use a mixed form (e.g., Robin boundary conditions).
+For almost all forms of epistemic uncertainty there is little justiﬁcation for the use of random variables to model the uncertainty. Nonetheless, it is common practice to do just that, and in practice randomness and random variables are used in many situations to account for errors in the physical model or modeling ignorance. The reasons were mentioned previously–that basic distributional properties of the output (e.g., variance) will still provide a reasonable sensitivity analysis for the problem, and existing computational methods are largely based on aleatoric uncertainty. However, with little justiﬁcation for the use of any particular distribution (or even the use of randomness at all), in more critical applications one may insist on rigorous bounds on performance that are valid for a particular family of distributions. In the extreme case where no probabilistic model is considered acceptable, one may wish to only prescribe bounds on certain parameters, and then obtain tight bounds on performance over all values of the parameters that satisfy the bounds.
+Thus there are many diﬀerent types of uncertainty that one should account for in an analysis of the eﬀects of uncertainty. These include: (i) aleatoric with known distribution; (ii) aleatoric with partly known distribution (mingled aleatoric and epistemic); (iii) epistemic for which one is willing to model by a family of aleatoric uncertainties, and (iv) epistemic where one is only willing to place bounds on the uncertainties. As remarked in the Introduction, this paper will introduce an approach that allows these uncertainties to be handled within a single framework that can exploit computational methods originally developed just for the treatment of aleatoric uncertainties.
+
+3. Duality for exponential integrals
+Our development of performance measures that distinguish forms of uncertainty, and which in particular allow for robustness with respect to epistemic uncertainties, depends on a duality relation between exponential integrals and relative entropy. Its ﬁrst use along these lines but with regard to estimation appears to be in [1], and for optimization in [3]. We ﬁrst state the basic duality result, and then deﬁne two functionals which will allow aleatoric and epistemic uncertainties to be analyzed simultaneously but at the same time distinguished.
+The general duality is stated for random variables that take values in a Polish metric space (i.e., a complete, separable metric space) X . The associated σ-algebra is the Borel σ-algebra. A typical example of X for our purposes is a closed subset of some Euclidean space Rd. Let P(X ) denote the collection of probability measures on X , and let μ ∈ P(X ). Given any ν ∈ P(X ) that is absolutely continuous with respect to μ, we deﬁne the
+
+638
+
+K. CHOWDHARY AND P. DUPUIS
+
+relative entropy of ν with respect to μ by
+
+dν
+
+R (ν μ ) = log (x) ν(dx)
+
+X
+
+dμ
+
+whenever log(dν/dμ(x)) is integrable with respect to ν. In all other cases R (ν μ ) is deﬁned to be ∞. Relative entropy deﬁnes a mapping (ν, μ) → R (ν μ ) from P(X )2 to R ∪ ∞. This mapping has a number
+of very attractive properties. For example, relative entropy is non-negative, with R (ν μ ) = 0 if and only if ν = μ. In addition, the mapping is jointly convex and lower semicontinuous [2], Lemma 1.4.3. It is important to note, however, that relative entropy is not a true metric since it is not symmetric, nor does it satisfy the triangle inequality. A property of particular interest for our purposes is the following variational formula for exponential integrals, which can be considered as an inﬁnite-dimensional version of the Legendre transform. Given any bounded and continuous function F : X → R and any c ∈ (0, ∞),
+
+Λc
+
+=.
+
+1 c
+
+log
+
+ecF (x)μ(dx) = sup
+
+X
+
+ν∈P(X )
+
+− 1 R (ν c
+
+μ) +
+
+F (x)ν(dx)
+X
+
+.
+
+(3.1)
+
+For a proof see [2], Proposition 1.4.2. The duality continues to hold as stated if F is bounded from above, and also when bounded from below if one restricts the supremum to ν ∈ P(X ) for which R (ν μ ) < ∞ [2], Proposition 4.5.1.
+As an elementary example on how such a formula can be useful, suppose that F is a performance measure (e.g., variance or an error probability), and that μ is a model for some random phenomena. We consider μ to be the nominal model, e.g., our best guess3. However, we are uncertain if this is the correct model, and would like a measure of performance that also holds for alternative models, but with a penalty for deviation from the nominal model. Λc is just such a performance measure, since by (3.1), for any alternative model ν the bound
+
+X
+
+F
+
+(x)ν(dx)
+
+≤
+
+Λc
+
++
+
+1 R
+c
+
+(ν
+
+μ)
+
+(3.2)
+
+applies. Hence we obtain bounds on performance over a family of alternative models. The parameter c allows
+
+one to balance robustness with respect to possible model inaccuracies against tighter bounds. In particular, as c
+
+tends to 0, Λc converges to X F (x)μ(dx), which is the performance measure under the nominal model, but in the limit the bound is meaningful only when ν = μ.
+Suppose that a bound on performance over a speciﬁc family of distributions is needed. Let R∗ denote the
+
+maximum of relative entropy with respect to the nominal model over this family. Then the tightest possible
+
+bound is obtained by minimizing
+
+Λc
+
++
+
+1 R∗ c
+
+over c > 0. We show in Proposition 3.3 below that this function has only one local minimum over c ∈ (0, ∞],
+
+and thus the global minimum is easy to compute.
+
+Functionals of the exponential form that appears in the deﬁnition of Λc are sometimes called risk-sensitive because the exponential ampliﬁes the eﬀect of any large values of the performance measure F . In the next two
+
+sections we consider two hybrid risk-sensitive functionals that will allow aleatoric and epistemic variables to be
+
+combined and yet distinguished.
+
+3.1. Two hybrid forms
+In this section and the next random variables with a known distribution will take values in a Polish space X . Variables whose distribution is not known or are otherwise of the epistemic variety take values in the Polish metric space Y.
+
+3This is similar to the prior distribution in the Bayesian framework.
+
+ALEATORIC AND EPISTEMIC UQ
+
+639
+
+The performance measure of interest for some given problem is assumed to be of the form
+
+F (x, y)λ(dy)ν(dx),
+XY
+
+(3.3)
+
+where ν (resp., λ) is a probability measure on X (resp., Y). If X and Y are independent random variables with distributions ν and λ, then F (X, Y ) represents both the performance measure (e.g., a second moment) as well as the underlying physical or mechanical system that maps these aleatoric and epistemic inputs into outputs. Now, let μ and γ represent the nominal distribution of X and Y , resp., while ν and λ represent the alternative probability distributions of X and Y , resp. Applying (3.2) to the joint measures μ × γ (nominal) and ν × λ (alternative), we obtain bounds on the performance measure
+
+X
+
+F (x, y)λ(dy)ν(dx)
+
+≤
+
+1 R
+
+(λ
+
+1 γ ) + R (ν
+
+Y
+
+c
+
+c
+
+μ ) + Λc
+
+where the ordinary risk-sensitive performance measure is
+
+(3.4)
+
+1 Λc = c log
+
+X
+
+ecF (x,y)γ(dy)μ(dx).
+Y
+
+Since the distribution of X is known, we can take ν = μ so that (3.4) now becomes
+
+(3.5)
+
+X
+
+F (x,
+
+y)λ(dy)ν(dx)
+
+≤
+
+1 R (λ
+
+Y
+
+c
+
+γ ) + Λc.
+
+(3.6)
+
+While (3.6) seems to give upper bounds on the performance measure under uncertainty in the distribution of Y only, the measure (3.5) does not distinguish the variables according to type (aleatoric or epistemic). In fact, the risk-sensitive performance measure (3.5) is the same in both (3.4) and (3.6). Therefore, the use of a risk-sensitive form (3.5) is not well motivated for the aleatoric variables. Indeed, use of this measure will give bounds that are robust with respect to variations on a distribution that is known (as can be seen in (3.4)), and obviously such bounds are not as tight as possible.
+The ﬁrst form we consider for a hybrid measure is
+
+Λ1c
+
+=
+
+1 c
+
+log
+
+e X cF (x,y)μ(dx)γ(dy).
+Y
+
+(3.7)
+
+Note that by Jensen’s inequality (applied to the convex function exp), this is smaller than (and in general
+strictly smaller than) Λc. Using the relative entropy representation for exponential integrals given in (3.1) [but with Y in place of X and letting X cF (x, y)μ(dx) be the cost function], it follows that for any distribution θ(dy)
+
+Y
+
+F (x, y)μ(dx)θ(dy)
+
+≤
+
+1 R (θ(dy)
+
+X
+
+c
+
+γ(dy) ) + Λ1c.
+
+(3.8)
+
+This gives a bound on the performance measure for an arbitrary distribution of Y , but with the distribution of X equal to the known true distribution. The distributions thus play very diﬀerent roles. In particular, we think of γ as a nominal distribution of Y , which should be distinguished from a possible true distribution. The risk sensitive functional Λ1c, whose numerical evaluation can be carried out by a variety of methods (including polynomial chaos expansion as discussed below), is based on the nominal distribution. Through the relative entropy duality, it will yield various bounds (depending on c) on a families of distributions, with the relative entropy distance the key metric. Ideally one would consider the smallest family that contains the “true” distribution (if it exists), and get the tightest bound by optimizing over c. With the hybrid risk-sensitive formulation, μ is allowed to be both the nominal (computational) distribution and also the true distribution.
+
+640
+
+K. CHOWDHARY AND P. DUPUIS
+
+The second form one could consider for a hybrid measure is
+
+Λ2c
+
+=
+
+1 c
+
+X
+
+log
+
+ecF (x,y)γ(dy)
+Y
+
+μ(dx).
+
+(3.9)
+
+Note that by Jensen’s inequality (applied now to the concave function log), this is again in general strictly
+
+smaller than Λc. The relative entropy representation for exponential integrals gives
+
+F (x, y)θ(dy|x) ≤ 1 R (θ(dy|x)
+
+1 γ(dy) ) + log
+
+ecF (x,y)γ(dy).
+
+Y
+
+c
+
+c
+
+Y
+
+Here θ(dy|x) is any stochastic kernel on Y given X , which is essentially a conditional distribution on Y given X = x (for the precise deﬁnition see [2], p. 35). Integrating over X gives
+
+X
+
+F (x, y)θ(dy|x)μ(dx) ≤ 1
+
+Y
+
+c
+
+R (θ(dy|x) γ(dy) ) μ(dx) + Λ2c.
+X
+
+In the case where θ(dy|x) is independent of x, we obtain
+
+X
+
+F (x, y)θ(dy)μ(dx)
+
+≤
+
+1 R (θ(dy)
+
+Y
+
+c
+
+γ(dy) ) + Λ2c.
+
+Note that the second hybrid cost gives a more general bound, in that it allows the alternative distribution on Y (i.e., θ(dy|x)) to depend on the value taken by X. This additional ﬂexibility comes at a cost, and indeed we will show in the next Section that the following inequalities hold (typically in a strict fashion):
+
+F (x, y)γ(dy)μ(dx) ≤ Λ1c ≤ Λ2c ≤ Λc.
+XY
+
+(3.10)
+
+Hence if one is concerned with performance bounds for distributions on Y that do not depend on the variable X,
+
+then the tightest bound is obtained using Λ1c. Before studying properties of the risk-sensitive measures, we note some elementary generalizations that are
+
+possible. Suppose that the nominal distribution of X and Y is not of product form. In the setting of the ﬁrst
+
+form, we could let γ be the marginal distribution of Y and let μ(dx|y) be the conditional distribution of X
+
+given Y = y. Using the extended deﬁnition
+
+Λ¯1c
+
+=
+
+1 c
+
+log
+
+e X cF (x,y)μ(dx|y)γ(dy),
+Y
+
+we obtain the bound
+
+Y
+
+F (x, y)μ(dx|y)θ(dy)
+
+≤
+
+1 R (θ(dy)
+
+X
+
+c
+
+γ(dy) ) + Λ¯1c.
+
+For the second form, we let μ be the marginal distribution of X and let γ(dy|x) be the conditional distribution
+
+of Y given X = x. With the deﬁnition
+
+Λ¯2c
+
+=
+
+1 c
+
+X
+
+log
+
+ecF (x,y)γ(dy|x)
+Y
+
+μ(dx),
+
+we obtain
+
+X
+
+F (x, y)θ(dy|x)μ(dx) ≤ 1
+
+Y
+
+c
+
+R (θ(dy|x) γ(dy|x) ) μ(dx) + Λ¯2c.
+X
+
+It is indeed sometimes useful to allow the distribution of one type of variable to depend on the value taken
+
+by the other type of variable. As an elementary example, consider the situation where an aleatoric variable
+
+appears in a system, and while it is known that this variable has a Gaussian distribution with mean zero, the
+
+variance of the variable is however not known. Then the variance itself might be modeled as an uncertainty whose distribution is not known precisely, i.e., as an epistemic uncertainty. In this case Λ¯1c would be the relevant risk-sensitive formulation. An example of this sort is presented in Section 4.2.2.
+
+ALEATORIC AND EPISTEMIC UQ
+
+641
+
+Remark 3.1. In problems of regulatory assessment epistemic uncertainty can pose a unique set of challenges. The collection of data and model validation are often particularly diﬃcult or expensive, while at the same time stringent bounds on performance might be demanded. In these circumstances, the framework presented here, wherein tight bounds are obtained for a known family of alternative models, would seem very natural. Prior to the collection of data or testing of samples to determine compliance, all critical elements of the model, including selection of the nominal model, size of the family of alternative models allowed by the relative entropy bounds, and the performance measures that would be required to hold uniformly for this family, would all be determined by negotiation among the interested parties. This would allow various competing needs (e.g., expense of model validation versus adequate protection of consumers) to be balanced according to the interests of the participants.
+
+3.2. Properties of the risk-sensitive forms
+
+In this section we prove properties of the two hybrid risk-sensitive forms. In particular we derive an inequality relating the two, and study the limit as c → ∞. For the results to hold as stated we often need F be bounded from below. This is a mild assumption. Indeed, standard measures of performance such as second moments and error probabilities satisfy this condition.
+The ﬁrst proposition shows the inequality between the two hybrid forms.
+
+Proposition 3.2. Assume that F is bounded from below and consider the functionals deﬁned in (3.3)–(3.9). Then the inequalities (3.10) hold.
+
+Proof. The only inequality which does not follow from Jensen’s inequality is Λ1c ≤ Λ2c. The relative entropy duality as stated in (3.1) applied to Λ1c gives
+
+Λ1c = sup
+θ∈P (Y )
+
+F (x, y)μ(dx)θ(dy) − 1 R (θ(dy) γ(dy) ) ,
+
+YX
+
+c
+
+where P(Y) is the space of probability measures on Y. The same representation applied to
+
+1 log
+
+ecF (x,y)γ(dy)
+
+c
+
+Y
+
+gives
+
+1 log
+
+ecF (x,y)γ(dy) = sup
+
+F
+
+(x,
+
+y)θ(dy)
+
+−
+
+1 R
+
+(θ(dy)
+
+γ(dy) )
+
+.
+
+c
+
+Y
+
+θ∈P(Y) Y
+
+c
+
+The supremum operation in the last display can be done in such a way that an optimizing (or near optimizing) θ is a Borel measurable function of x, i.e., a stochastic kernel θ(dy|x) on Y given X [2]. Let P(Y|X ) denote the space of such stochastic kernels. Integrating the last display with respect to μ gives
+
+Λ2c = sup
+θ∈P(Y|X )
+
+F (x, y)θ(dy|x)μ(dx) − 1 R (θ(dy|x) γ(dy) ) μ(dx) .
+
+XY
+
+cX
+
+Since P(Y) ⊂ P(Y|X ), Λ2c ≥ Λ1c follows.
+
+The next proposition shows how to obtain bounds on the performance over a family of distributions deﬁned in terms of a maximum relative entropy B.
+
+Proposition 3.3. Consider the functionals deﬁned in (3.5)–(3.9), and let D = {c : Λc < ∞} (resp., Di = c : Λic < ∞ , i = 1, 2). Assume that the interior of D (resp., Di) is nonempty. Then Λc (resp., Λic) is diﬀeren-
+tiable on the interior of D (resp., Di). Assume also that F is bounded from below by zero. Then c → Λc (resp., c → Λic) is nondecreasing for c ≥ 0. Let B > 0 be given. Then there is a unique c ∈ (0, ∞] at which
+
+c
+
+→
+
+1 B
+c
+
++
+
+Λc
+
+resp.,
+
+1 c
+
+B
+
++
+
+Λic
+
+642
+
+K. CHOWDHARY AND P. DUPUIS
+H (c)
+
+cH (c) − H(c)
+
+c c
+
+Figure 1. f (c) is monotone increasing.
+
+attains a local minimum, where the statement that the minimum occurs at c = ∞ means that Λc + B/c > Λ∞ for a well deﬁned limit Λ∞ and all c < ∞.
+
+Proof. To simplify we give the proof only for the case of Λc and omit the y variable. Thus we consider
+
+Λc
+
+=
+
+1 c
+
+log
+
+X ecF (x)μ(dx).
+
+Proofs for the
+
+other
+
+functionals
+
+are
+
+analogous. It
+
+is
+
+well
+
+known that H(c)
+
+=
+
+log X ecF (x)μ(dx) is a convex function taking values in R ∪ {∞}, and strictly convex and inﬁnitely diﬀerentiable
+
+on the interior of {c : H(c) < ∞} (see, e.g., [6]).
+
+Next we prove the monotonicity. Diﬀerentiating gives
+
+H (c) = X F (x)ecF (x)μ(dx) · X ecF (x)μ(dx)
+
+Since F ≥ 0 the derivative is non-negative, and convexity implies it is non-decreasing. Using
+
+1 H (c)
+
+=
+
+1
+
+(H (c)
+
+−
+
+H (0))
+
+=
+
+1
+
+c
+H (s)ds,
+
+c
+
+c
+
+c0
+
+it
+
+fFoilrloswt sastshuamt eΛtch=atHM(c=)./csuisp
+
+nondecreasing for c ≥ 0. D = ∞, and observe that
+
+d dc
+
+11 B + H(c)
+cc
+
+1 = c2
+
+−B + cH (c) − H(c) .
+
+Since H is strictly convex and H (0) ≥ 0, the mapping f (c) → cH (c) − H(c) is monotone increasing and takes the value 0 at c = 0 (see Fig. 1).
+Let K denote the limit of f (c) as c → ∞. If K = ∞ then there is a unique solution to
+
+cH (c) − H(c) = B,
+
+and we are done. The same is true if 0 ≤ B < K. Hence the only case left is when B ≥ K. In this case (B + H(c))/c is monotone decreasing for all c ∈ [0, ∞). Since H(c)/c ≥ H (0) ≥ 0, there is a well-deﬁned limit Λ∞ that is necessarily the minimum.
+
+ALEATORIC AND EPISTEMIC UQ
+
+643
+
+Next assume that M =. sup D ∈ (0, ∞). We claim that in this case cH (c) − H(c) ↑ ∞ as c ↑ M , and therefore we can argue just as before. By monotone convergence it must be that H(c) ↑ ∞ as c ↑ M , which implies that necessarily H (c) ↑ ∞ as c ↑ M . To prove the claim, let 0 < β < c < M . Then since H (s) is increasing
+
+This implies
+
+c
+H(c) = H (s)ds ≤ βH (β) + (c − β)H (c).
+0
+cH (c) − H(c) ≥ β H (c) − H (β) .
+
+Letting c ↑ M and using that β > 0, the claim is proved, thus completing the proof of the theorem.
+
+Next, we consider the sense in which the inﬁmum over c of right hand side of (3.2) provides a tight bound on the performance measure. To simplify we give the proof only for the case of Λc and omit the y variable. The proofs for the hybrid forms (e.g., (3.8)) are analogous.
+
+Theorem 3.4. Consider the functional deﬁned in (3.1) and assume the conditions of Proposition 3.3. Suppose that L ∈ R, B ∈ [0, ∞) are given, and that c∗ < ∞ minimizes
+
+c
+
+→
+
+1 c Bc
+
++
+
+Λc
+
+so
+
+that
+
+1 c∗
+
+B
+
++
+
+Λc∗
+
+<
+
+∞.
+
+Deﬁne
+
+FB
+
+=.
+
+{γ ∈ P(X ) : R(γ
+
+μ ) ≤ B}, i.e., the family of alternative distributions
+
+on X . Then for all ν ∈ FB,
+
+X
+
+F (x)ν(dx)
+
+≤
+
+L
+
+⇔
+
+1 c∗ B
+
++
+
+Λc∗
+
+≤
+
+L.
+
+Proof.
+
+If
+
+1 c∗
+
+B
+
++
+
+Λc∗
+
+≤ L then, by (3.2),
+
+X F (x)ν(dx) ≤ L for all ν ∈ FB.
+
+For the other direction, we will show
+
+that there exists a ν(dx) ∈ FB such that
+
+1 X F (x)ν(dx) = c∗ B + Λc∗.
+
+Hence,
+
+if
+
+1 c∗
+
+B
+
++ Λc∗
+
+>
+
+L,
+
+then,
+
+for
+
+at
+
+least
+
+one
+
+ν(dx)
+
+∈
+
+FB ,
+
+X F (x)ν(dx) > L.
+
+First, recall from (3.1) that for any given c ∈ (0, ∞)
+
+Λc = sup
+ν∈P(X )
+
+− 1 R(ν c
+
+μ) +
+
+F (x)ν(dx)
+X
+
+.
+
+The supremum is achieved at νc(dx) = ecF (x)μ(dx)/Z(c), where Z(c) = X ecF (x)μ(dx) [2], Proposition 1.4.2.
+
+Thus
+
+X
+
+F (x)νc∗ (dx)
+
+=
+
+1 c∗
+
+R(ν
+
+c∗
+
+μ ) + Λc∗.
+
+By the previous proposition, c∗ with respect to c, and we get that
+
+< c∗
+
+∞ must satisﬁes
+
+lie
+
+in
+
+the
+
+interior
+
+of
+
+D.
+
+Therefore,
+
+we
+
+can
+
+diﬀerentiate
+
+1 c
+
+B
+
++ Λc
+
+Also,
+
+−
+
+1 (c∗)2
+
+log
+
+X
+
+ec∗F (x)μ(dx)
+
++
+
+1 c∗
+
+1 Z (c∗ )
+
+X
+
+F (x)ecF (x)μ(dx) −
+
+B (c∗)2
+
+= 0.
+
+R(ν c∗
+
+μ) =
+
+X
+
+[c∗
+
+F
+
+(x) − log Z (c∗ )
+
+Z
+
+(c∗
+
+)]
+
+ec∗
+
+F
+
+μ(dx)
+
+1 = Z(c∗)
+
+c∗F (x)ec∗F (x)μ(dx) − log Z(c∗),
+X
+
+(3.11)
+
+644
+
+K. CHOWDHARY AND P. DUPUIS
+
+and so
+
+1 (c∗)2
+
+R(ν
+
+c∗
+
+1 μ ) = Z(c∗)
+
+c∗F ec∗F
+
+dμ
+
+−
+
+1 (c∗)2
+
+log
+
+Z (c∗ ).
+
+Comparing (3.11) and (3.12) we have R(νc∗ μ ) = B and therefore νc∗ ∈ FB.
+
+(3.12)
+
+In the context of regulatory assessment, it may be required that the performance measure of interest be no greater than a particular value, e.g., L. What this theorem tells us is that the performance measure will pass the regulatory criteria for a given family of alternative distributions, if and only if the upper bound also passes the regulatory criteria. If the upper bound fails to pass the regulatory requirement, all we can say is that there exists at least one distribution in the given family of alternative distributions that fails this criteria. It may very well be that there are distributions within the family that actually pass the regulatory criteria, but, as a whole, the family fails to satisfy the requirement.
+One of the situations of interest when aleatoric and epistemic variables appear simultaneously is the case where all that is known regarding the epistemic variables are bounds. It turns out that this problem is well posed (i.e., the relevant performance criteria are ﬁnite) essentially in those cases where Λ1∞ < ∞. In fact, when this is the case the value of Λ1∞ can be used to establish optimal bounds subject to the constraint on the epistemic variables. For simplicity, we assume that the set A appearing in the statement of the following theorem is bounded and that γ, the nominal distribution for the epistemic variables, is the uniform distribution (in the limit c → ∞ the precise form of the nominal distribution is not important, and in fact it is only the support of the distribution that matters in the limit (see the remark after the Theorem)). If A is not bounded one can use an appropriate distribution whose support is all of A (e.g., the exponential distribution could be used for A = [0, ∞). The choice of γ as uniform when A is bounded is simplest and also one that is convenient for most uses. A related statement holds for Λ2∞, but it is not as useful (at least in this setting), since Λ1∞ ≤ Λ2∞.
+
+Theorem 3.5. Let X and Y be subsets of a ﬁnite dimensional Euclidean space. Suppose that A ⊂ Y is bounded and the closure of its interior and that γ is the uniform distribution on A. Assume that F is lower semicontinuous in y for each x ∈ X and bounded from below. Deﬁne the risk-sensitive functional Λ1c by (3.7) and let Λ1∞ = limc→∞ Λ1c. Then
+sup F (x, y)μ(dx) = Λ1∞.
+y∈A X
+
+Proof. Since cΛ1c is convex the limit of Λ1c is well deﬁned, though it might take the value ∞. We give the proof for the case Λ1∞ < ∞. The extension to the case Λ1∞ = ∞ is straightforward.
+We ﬁrst prove that the left side of the last display is bounded above by the right side. Fix any y¯ ∈ A◦, the interior of A. For small ε > 0 let Bε be the ball in A about y¯ of volume ε, and let M be the volume of A. Let θ(dy) be the measure whose density with respect to Lebesgue measure is 1/ε on Bε, and zero elsewhere. Then
+
+R (θ(dy) γ(dy) ) = log [(1/ε)/(1/M )] θ(dy)
+Bε
+= (1/ε) log [(1/ε)/(1/M )] .
+
+Then (3.8) gives
+
+X
+
+Bε
+
+F (x, y)θ(dy)μ(dx)
+
+≤
+
+1 c
+
+(1/ε) log [(1/ε)/(1/M )]
+
++
+
+Λ1c .
+
+Since y → F (x, y) is lower semicontinuous
+
+(3.13)
+
+lim inf F (x, y)θ(dy) ≥ F (x, y¯).
+ε→0 Bε
+
+ALEATORIC AND EPISTEMIC UQ
+
+645
+
+Letting ﬁrst c → ∞ and then ε → 0 in (3.13), Fatou’s lemma gives X F (x, y¯)μ(dx) ≤ Λ1∞. Since y¯ ∈ A◦ is arbitrary, the lower semicontinuity and another use of Fatou give the bound for all y ∈ A.
+For the reverse inequality, we use the fact that the minimizing measure in the deﬁnition of Λ1c exists. In fact,
+
+Y
+
+X
+
+F (x, y)μ(dx)θc∗(dy)
+
+=
+
+1 c
+
+R
+
+(θc∗(dy)
+
+γ(dy) ) + Λ1c
+
+precisely at θ∗ deﬁned by
+
+dθc∗(·) (y) dγ(·)
+
+=
+
+e
+
+X
+
+cF (x,y)μ(dx)
+
+e X cF (x,y)μ(dx)γ(dy)
+A
+
+(see [2], Prop. 1.4.2). By the non-negativity of relative entropy
+
+Λ1∞
+
+=
+
+lim
+c→∞
+
+Λ1c
+
+≤ lim sup
+
+F (x, y)μ(dx)θc∗(dy)
+
+c→∞ Y X
+
+≤ sup F (x, y)μ(dx).
+y∈A X
+
+Remark 3.6. The set A need not be bounded, nor must the uniform distribution be used. Indeed, assume only that γ(dy) has a density f (y) such that f (y) ≥ α > 0 for y ∈ Bε. Then
+
+and the result still holds.
+
+R (θ(dy) γ(dy) ) ≤ log [(1/ε)/α] θ(dy)
+Bε
+= (1/ε) log [1/(εα)] ,
+
+4. Examples and computational methods
+To indicate how the robust performance bounds might be used in practice, we present some numerical examples, which illustrate the relationship between the diﬀerent risk sensitive integrals and the relevant techniques and computational issues. We ﬁrst review the polynomial chaos techniques that are used to compute the risksensitive integrals. The reader familiar with this material can skip to the next section.
+Remark 4.1. Although previously the random variables with known and unknown distributions were denoted by X and Y , in the rest of the paper these random variables will be denoted by Z1 and Z2. This is done to free up x and y to be spatial variables in various PDE and related equations that might be used to deﬁne the mapping F .
+4.1. Review of polynomial chaos methods
+This Section reviews the polynomial chaos method that we use to compute the risk-sensitive integrals. The reader familiar with this material can skip to Section 4.2, or refer to [5] for a more comprehensive treatment. It should also be noted that one need not use polynomial chaos methods for the calculation of the risk-sensitive integrals. Various Monte Carlo type techniques can certainly be applied. However, for the examples in this paper, we found that polynomial chaos methods worked better (higher accuracy with a smaller number of sample points) than straightforward Monte Carlo integration.
+To calculate risk sensitive integrals, one could use Monte Carlo integration, which requires evaluating F (Z1, Z2) for many replicas of (Z1, Z2). Because the order of convergence for Monte Carlo integration is
+
+646
+
+K. CHOWDHARY AND P. DUPUIS
+
+O(N −1/2), where N is the number of sample points, this method can take a long time to converge(though
+not necessarily for the given examples), and so we utilize generalized polynomial chaos (gPC) methods to ap-
+proximate F (z1, z2) and evaluate various statistical properties of F (Z1, Z2) (see, for example [11]). We brieﬂy recall the mathematical framework of polynomial chaos methods, along with a simple example in one dimension.
+Let (Ω, A , P) be a probability space where Ω is the sample space, A the associated σ-algebra, and P the probability measure on A. Deﬁne a random vector Z(ω) =. (Z1(ω), . . . , ZN (ω)) ∈ RN on this probability space. Consider a d-dimensional bounded domain D ⊂ Rd with boundary ∂D and let t ∈ [0, T ], T ∈ (0, ∞). We consider random ﬁelds u(t, x; Z(ω)) : D¯ × [0, T ] × Ω → R that are deﬁned by requiring that for a.e. ω ∈ Ω
+
+L(t, x, u; Z(ω)) = f (t, x; Z(ω)), (x, t, ω) ∈ D × [0, T ] × Ω,
+
+subject to the boundary and initial conditions
+
+B(t, x, u; Z(ω)) = g(t, x; Z(ω)), (x, t, ω) ∈ ∂D × [0, T ] × Ω,
+
+u(t, x; Z(ω)) = u0(x; Z(ω)), (x, t, ω) ∈ D × {0} × Ω.
+
+Here x = (x1, ..., xd) ∈ Rd, L is a linear or nonlinear diﬀerential operator, and B is a boundary operator. We assume for simplicity that a unique classical sense solution exists to the diﬀerential equation and/or boundary
+
+conditions. Note that for the ﬁrst two examples of the last Section the problem involves only time dependence,
+
+and hence there is neither a spatial variable nor a boundary condition.
+
+We assume that {Zi}Ni=1 are independent random variables, with support {Γi}Ni=1 and with probability density
+
+functions {ρi(zi)}Ni=1, respectively. Hence the joint density is ρ(z) =
+
+N i=1
+
+ρi
+
+(zi).
+
+Let
+
+Ω
+
+be
+
+the
+
+canonical
+
+space
+
+N i=1
+
+Γi,
+
+in
+
+which
+
+case
+
+Z(ω)
+
+=
+
+ω
+
+and
+
+we
+
+identify
+
+ω
+
+with
+
+z.
+
+Thus
+
+the
+
+equations
+
+above
+
+become
+
+L(t, x, u; z) = f (t, x; z), (x, t, z) ∈ D × [0, T ] × Ω,
+
+(4.1)
+
+subject to the boundary and initial conditions
+
+B(t, x, u; z) = g(t, x; z), u(t, x; z) = u0(x; z),
+
+(x, t, z) ∈ ∂D × [0, T ] × Ω, (x, t, z) ∈ D × {0} × Ω.
+
+(4.2)
+
+We consider approximating the mapping as a function of the stochastic variable, i.e., z → u(t, x; z) at some
+particular (t, x), via a ﬁnite sum of orthogonal basis functions. We ﬁrst deﬁne ﬁnite dimensional subspaces for L2(Γi) according to
+
+WiPi = v : Γi → R : v ∈ span {φi,m(zi)}Pmi=0 ,
+
+i = 1, ..., N.
+
+Here Pi is the highest degree of the polynomial basis function, and {φi,m(zi)} are a set of orthonormal polynomials with respect to the weight ρi, i.e., for m = n
+
+φi,m(zi)φi,n(zi)ρi(zi)dzi = 0
+Γi
+and φ2i,n(zi)ρi(zi)dzi = 1.
+Γi
+The orthonormal basis representation is determined by the probability density function ρi. For example, if the density is uniform or Gaussian, then Legendre or Hermite orthogonal polynomials, respectively, are used. A table of polynomial basis functions and their respective distributions is listed at the end of this section (also see [8]). A ﬁnite dimensional subspace for L2(Γ ), where Γ =. Γ1 × · · · × ΓN = Ω, can either be deﬁned as
+
+WNP =
+
+WiPi
+
+|P|≤P
+
+ALEATORIC AND EPISTEMIC UQ
+
+647
+
+where the tensor product is over all combinations of the multi-index P = (P1, . . . , PN ) ∈ NN0 with |P| =
+
+N i=1
+
+Pi
+
+≤
+
+P,
+
+or
+
+N
+
+W˜ NP = WiP .
+
+i=1
+
+Thus, WNP is the space of N -variate orthogonal polynomials of total degree at most P , whereas W˜ NP is the full
+
+tensor product of the one-dimensional polynomial spaces with each highest degree P . Note that dim(WNP ) =
+
+N +P P
+
+and dim(W˜ NP ) = (P + 1)N , and that for large N ,
+
+N +P P
+
+(P + 1)N . Since our examples only consider
+
+N = 2, we will use the full tensor product space, W˜ NP . Let Φj (z), j = 1, . . . , M denote the elements of W˜ NP ,
+
+where M = dim(W˜ NP ).
+
+There are two standard methods for constructing gPC approximations, referred to as the stochastic Galerkin
+
+method (see, e.g., [8]) and the stochastic collocation method (see, e.g., [9]). Since the calculations presented
+
+below use only the collocation method, we restrict discussion to this method. With stochastic collocation, we
+
+ﬁrst consider an approximation to the solution u(t, x; z) in terms of a Lagrange interpolant of the form
+
+Np
+v(t, x; z) = v(t, x; zk)Lk(z),
+k=1
+
+(4.3)
+
+where Lk(z) is a Lagrange polynomial of degree dim(WNP ), satisﬁes Lk(zl) = δkl, and {zk}Nk=p1 are a set of prescribed nodes in the N -dimensional space Γ . We require that the residuals
+
+R(t, x; z) =. L(t, x, v; z) − f (t, x; z) RBC (t, x; z) =. B(t, x, v; z) − g(t, x; z)
+RIC (x; z) =. v(0, x; z) − u0(x; z)
+
+vanish at the collocation points {zk}Nk=p1, i.e.,
+
+L(t, x, v(t, x; zk); zk) − f (t, x; zk) = 0, for k = 1, . . . , Np
+
+B(t, x, v(t, x; zk); zk) − g(t, x; zk) = 0, for k = 1, . . . , Np
+
+v(0, x; zk) − u0(x; zk) = 0, for k = 1, . . . , Np.
+
+Thus, the stochastic collocation method produces a set of Np decoupled equations, where each value of v(t, x; zk)
+coincides with the exact solution u(t, x; z) for the given zk, since both satisfy the same equations. Once the values of {v(t, x; zk)}Nk=p1 have been determined at the collocation points, one can construct a gPC
+approximation in the orthogonal basis representation in the form
+
+M
+v(t, x; z) = vˆj(t, x)Φj (z),
+j=1
+
+(4.4)
+
+which, under certain conditions, will be equivalent to the Lagrange basis formulation. The coeﬃcients {vˆj }M j=1 can be determined by inverting a Vandermonde matrix, where invertibility is dependent on the choice of col-
+location points. If one chooses quadrature or cubature4 points for the collocation points, then invertibility
+
+4cubature points just refers to quadratures in more than one dimension.
+
+648
+
+K. CHOWDHARY AND P. DUPUIS
+
+is guaranteed. Furthermore, if the cubature rule is exact up to polynomials of degree 2M , inversion of the Vandermonde matrix is not necessary5, and the coeﬃcients {vˆj}M j=1 can be computed by evaluating
+
+Np
+vˆj(t, x) = v(t, x; zk)Φj (zk)wk,
+k=1
+
+where {wk}Nk=p1 are the respective weights according to the choice of quadrature or cubature points. Statistical information is easy to obtain from the form (4.4). For example,
+
+⎛
+
+⎞
+
+M
+
+Ez[v(t, x; z)] = ⎝ vˆj(t, x)Φj (z)⎠ ρ(z)dz = vˆ1(t, x)
+
+Γ j=1
+
+(4.5)
+
+and
+
+⎛
+
+⎞2
+
+M
+
+M
+
+Ez[(v(t, x; z))2] = ⎝ vˆj(t, x)Φj (z)⎠ ρ(z)dz = vˆj(t, x)2
+
+Γ j=1
+
+j=1
+
+as a consequence of the orthonormality. Other statistical information, such as higher moments and sensitivity coeﬃcients, are also easily calculated (see [8]). The ease with which one can calculate such moments explains why orthogonal representation (4.4) is preferred over the Lagrange form (4.3).
+To illustrate the approach, we look at a simpliﬁed version of Example 4.2. Let g(z2) = u0, so that the only uncertainty is in the decay rate k, which depends on the random variable Z. The simpliﬁed problem becomes
+
+d u(t) = −k(z)u(t), dt
+
+u(0) = u0,
+
+where u(t; z) denotes the solution parameterized by z, with z a point in the range of Z. Requiring that the residuals vanish at the collocation points {zn}Nn=p 1 gives
+
+d R(t; zn) = dt v(t; zn) + k(zn)v(t; zn) = 0
+
+and RIC (zn) = v(0; zn) − u0 = 0.
+
+Note that there are indeed Np decoupled equations, which are solved independently for each n. Here the solutions
+are exact: v(t; zn) = u0e−k(zn)t, f or = 1, . . . , Np.
+
+One can then obtain the approximation (4.4) with respect to the orthogonal basis, assuming that the appropriate
+
+collocation points and weights have been chosen.
+
+We illustrate this example with k(z) = polynomials, which are orthonormal with
+
+z and Z ∼ N respect to the
+
+(μ = 0, σ2 weighting
+
+= 1). Here the function ρ(z) =
+
+{Φj }M j=1 are e−(z−μ)2 /2σ2
+
+the√Hermite /σ 2π with
+
+support Γ = (−∞, +∞). Figure 2 shows the stochastic collocation approximation v(1, z) at t = 1 as a function of z, with Np = 2, 3, 4, 5, versus the exact solution uexact(1, z) = e−z. Note that the collocation approximation
+is an interpolation of the exact solution at Np points. Figure 3 shows the relative error between the exact and approximated mean and variance in a semilog plot.
+
+The linear decrease in relative error on the semilog plot implies an exponential decay in the error. Errors become
+
+a constant at the limits of the accuracy of the numerical scheme.
+
+5This is especially useful if the Vandermonde matrix is ill-conditioned.
+
+u(t=1,z)
+
+ALEATORIC AND EPISTEMIC UQ
+
+N=2
+
+N=3
+
+6 4 2 0 −2
+20
+
+collocation points Interpolated solution exact solution
+
+−1
+
+0
+
+1
+
+2
+
+z
+
+N=4
+
+u(t=1,z)
+
+6 4 2
+
+−2
+
+−1
+
+0
+
+1
+
+z
+
+N=5 20
+
+15
+
+15
+
+u(t=1,z)
+
+10
+
+10
+
+5
+
+5
+
+0
+
+−3
+
+−2
+
+−1
+
+0
+
+1
+
+2
+
+3
+
+z
+
+0
+
+−3
+
+−2
+
+−1
+
+0
+
+1
+
+2
+
+z
+
+Figure 2. Interpolated solutions versus the exact solution at t = 1.
+
+649
+2 3
+
+u(t=1,z)
+
+error
+
+100
+mean error
+variance error 10−1
+
+10−2
+
+10−3
+
+10−4
+
+10−5
+
+10−6
+
+10−7
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+10
+
+11
+
+P
+
+Figure 3. Relative errors.
+
+4.2. Numerical examples and interpretation
+We now discuss numerical calculation of the risk-sensitive integrals. For convenience, we recall the three types of risk-sensitive integrals introduced in Section 3.1, the ordinary risk sensitive cost Λc and the two hybrid
+
+650
+
+K. CHOWDHARY AND P. DUPUIS
+
+integrals Λ1c and Λ2c:
+
+1 Λc = c log
+
+Z1
+
+ecF (z1,z2)γ(dz2)μ(dz1),
+Z2
+
+Λ1c
+
+=
+
+1 c
+
+log
+
+e Z1 cF (z1,z2)μ(dz1)γ(dz2),
+Z2
+
+Λ2c
+
+=
+
+1 c
+
+Z1
+
+log
+
+ecF (z1,z2)γ(dz2)
+Z2
+
+μ(dz1),
+
+(4.6)
+
+where Z1, Z2 are the range spaces for the random variables Z1, Z2, respectively. Recall the relationships Λ1c ≤
+
+Λ2c ≤ Λc. It is assumed that the distribution of Z1 is known, but this is not true for Z2. Instead, we assume
+
+there is a nominal distribution, or best guess, for Z2, i.e, γ(dz2).
+
+In the stochastic collocation approach, we replace F (z1, z2) in (4.6) with a polynomial interpolant, F˜(z1, z2),
+
+determined
+
+by
+
+the
+
+full
+
+tensor
+
+product
+
+of
+
+the
+
+one
+
+dimensional
+
+collocation
+
+points,
+
+{z1,i}Ni=11,q
+
+⊗
+
+{z2,i
+
+}N2,q
+i=1
+
+in
+
+Z1 ×Z2.
+
+Thus
+
+M
+F˜(z1, z2) = Fˆj(t, x)Φj (z1, z2),
+
+j=1
+
+where M = N1,q · N2,q , Φj is the full tensor product basis, and Fˆj(t, x) is computed using (4.5). From here, one can eﬃciently compute the risk sensitive integrals (4.6) via either Monte Carlo sampling or quadrature. For both
+
+methods, once the samples or quadrature points have been chosen, one can calculate the risk sensitive integrals
+
+for diﬀerent values of c without resampling or choosing diﬀerent quadrature points. Hence, it is computationally
+
+inexpensive to compute the risk sensitive integral for diﬀerent values of c. Note that for higher dimensions, a
+
+sparse grid is preferred and, in most cases, necessary for these types of computations. It is typical to use the
+
+Smolyak algorithm to generate these sparse grids, which are based on a one dimensional quadrature rule (for
+
+example, see Sect. 4.1.2 in [7] for a more detailed explanation and further references). In this paper, we opt for the numerical quadrature approach. Since F˜(z1, z2) can be evaluated very quickly, we
+can compute the risk sensitive integrals with high accuracy and eﬃciency using a high order quadrature rule. The
+
+number of quadrature points chosen to compute the risk sensitive integrals need not be the same as the number
+
+of collocation points used in computing the coeﬃcients of the gPC expansion, though the type of quadrature
+
+points is the same. For example, if we were to use Legendre-Gauss quadrature points to evaluate the gPC
+
+coeﬃcients, we would again use Legendre-Gauss quadrature points to calculate the risk sensitive integrals. In
+
+the examples presented below a much larger number of quadrature points are used to compute the risk sensitive
+
+integrals. To avoid confusion, to the set of quadrature points used to evaluate the risk sensitive integrals is
+
+denoted
+
+by
+
+{z˜1,i
+
+}N˜1,q
+i=1
+
+⊗
+
+{z˜2,i
+
+}N˜2,q
+i=1
+
+,
+
+i.e.,
+
+the
+
+full
+
+tensor
+
+product
+
+of
+
+one
+
+dimensional
+
+quadrature
+
+points.
+
+In
+
+the
+
+examples, N˜1,q and N˜2,q equal 28, while N1,q and N2,q are 8 for smooth F and 12 when F is an indicator
+
+functions.
+
+We also implemented the Monte Carlo approach, but observed that numerical quadrature gave a much
+
+better approximation for the same computational eﬀort, at least for our examples. It should also be noted
+
+that a variation on traditional Monte Carlo is needed for the hybrid forms of the risk sensitive integrals.
+
+For the original risk-sensitive cost function (3.5), the standard approach is to use many independent samples of the pair (Z1, Z2). This produces an estimate which has a mean square error of O(N −1/2), where N is the
+total number of Monte Carlo samples. However, for the ﬁrst hybrid form (3.7), one must approximate the
+
+inner integral X cF (z1, z2)μ(dz1) for every ﬁxed sample of Z2. Thus one has to simulate more Z1 samples than Z2 samples. Similarly, to compute the second form of the hybrid (3.9), one must approximate the inner
+integral Y ecF (z1,z2)γ(dz2) for every ﬁxed Z1. In particular, for both hybrid forms one does not simply choose independent samples of (Z1, Z2).
+
+ALEATORIC AND EPISTEMIC UQ
+
+651
+
+4.2.1. Independent aleatoric and epistemic uncertainties
+When the aleatoric and nominal epistemic variables are independent, the numerical quadrature approach would evaluate the risk sensitive integrals via the formulas
+
+⎛
+
+⎞
+
+Λc
+
+≈
+
+1 c
+
+N˜1,q N˜2,q
+
+log ⎝
+
+ecF (z˜1,i,
+
+z˜2,j )w˜1,iw˜2,j ⎠
+
+i=1 j=1
+
+⎛
+
+⎞
+
+Λ1c
+
+≈
+
+1 c
+
+N˜2,q
+log ⎝ e
+
+w˜ ⎠ N˜1,q
+i=1
+
+cF (z˜1,i,
+
+z˜2,j )w˜1,i
+
+2,j
+
+j=1
+
+⎛
+
+⎞
+
+Λ2c
+
+≈
+
+1 c
+
+N˜1,q
+
+N˜2,q
+
+⎝log
+
+ecF (z˜1,i,z˜2,j )w˜2,j ⎠ w˜1,i.
+
+i=1
+
+j=1
+
+(4.7)
+
+where
+
+{z˜1,i
+
+,
+
+w˜1,i
+
+}N˜1,q
+i=1
+
+,
+
+{z˜2,i
+
+,
+
+w˜2,i
+
+}N˜2,q
+i=1
+
+are
+
+the
+
+pairs
+
+of
+
+quadrature
+
+points
+
+and
+
+weights
+
+chosen
+
+based
+
+on
+
+the
+
+under-
+
+lying distribution.6
+
+The ﬁrst example is taken from [10] and involves a simple ODE. The example is convenient because analytic
+
+solutions to the risk-sensitive integrals can be obtained, and then compared with the numerical approximations
+
+described in the next section. The second example is a random oscillator, where the stochastic parameters are
+
+the spring and dampening coeﬃcients. The third example involves a heat equation with random heat capacity
+
+and thermal conductivity.
+
+Example 4.2. We consider F (Z1, Z2) deﬁned in terms of the solution of the ODE
+
+d dt
+
+u(t)
+
+=
+
+−k(z1)u(t),
+
+u(0) = g(z2),
+
+where k and g are known functions. Letting u(t; z1, z2) denote the solution parameterized by (z1, z2), set F (Z1, Z2) = h(u(t; Z1, Z2)), where typical choices of h are h(u) = u, h(u) = u2, h(u) = 1{a ≤ u ≤ b}.
+
+Here we take k(z1) = z1, g(z2) = z2, let Z1 ∼ U [0, 1], Z2 ∼ U [0, 1], and compute risk sensitive integrals for F (z1, z2) = [u(1; z1, z2)]2, and F (z1, z2) = 1 {0.8 ≤ u(1; z1, z2) ≤ 1}. Hence the goal is to obtain robust bounds on the second moment and the probability that the solution to the stochastic ODE falls within the interval
+[0.8, 1] at time t = 1, respectively. Note that the indicator function is not smooth, and thus more collocation
+points are required to obtain an accurate approximation. We choose a Legendre polynomial basis for both Z1 and Z2 and use the Legendre–Gauss quadrature points and weights for each dimension.
+Figures 4 and 5 show the approximations as a function of c for F (u) = u2 and F (u) = 1{0.8 ≤ u ≤ 1}, respectively. As expected Λ1c gives the best bounds, while the original form Λc gives the worst upper bounds of the three.
+The plots also suggest what happens as c → ∞. The measure Λc is expected to yield robust bounds if one is uncertain regarding the distributions of both random variables Z1 and Z2, and limc→∞ Λc represents the tightest upper bound on performance if we know nothing about these random variables except for their support. In this
+case, the limit in Figure 5 appears to be 1, which means that for some choice of z1 and z2, u(1; z1, z2) ∈ [0.8, 1].
+Hence without more information on the distributions of Z1, Z2 we do not obtain information other than this from this performance bound. On the other hand, limc→∞ Λic for i = 1, 2 is strictly less than 1 and thus by Theorem 3.5 gives a meaningful performance bound when the only information available about Z2 is its support. Note also that while Λ1c and Λ2c seem close for F (u) = u2, the diﬀer considerably for F (u) = 1{0.8 ≤ u ≤ 1}.
+
+6In some of the examples below, the function of interest, F , is more easy to evaluate than surrogate F˜. In these cases, the point is merely to illustrate the use and accuracy of gPC surrogate models.
+
+652
+
+K. CHOWDHARY AND P. DUPUIS
+
+0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1
+0
+
+Λ
+c
+Λc2
+Λc1
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+c
+
+Figure 4. Example 4.2, Λc,
+
+Λic
+
+2 i=1
+
+for
+
+F (u)
+
+=
+
+u2.
+
+1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1
+0 0
+
+Λc Λ2
+c
+Λ1
+c
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+c
+
+Figure 5. Example 4.2, Λc,
+
+Λic
+
+2 i=1
+
+for
+
+F (u)
+
+=
+
+1{0.8
+
+≤
+
+u
+
+≤
+
+1}.
+
+In Figures 6 and 7 we display the relative error |Λic − Λic,exact|/ Λic,exact between the three risk sensitive integrals and the exact solution at c = 30 and c = 60 as a function of the number of quadrature points, N q.
+The exact solutions were calculated by reducing the risk-sensitive integrals to one-dimensional integrals, and
+then using an adaptive quadrature method. We note that the rate of convergence is signiﬁcantly slower for F (u) = 1{0.8 ≤ u ≤ 1} than F (u) = u2. This is not surprising since the former is discontinuous. Also, the calculation of risk-sensitive integrals for F (u) = 1{0.8 ≤ u ≤ 1} is not as sensitive to large c values when compared to F (u) = u2. In the former case, because 0 ≤ F (u) ≤ 1, large values of c do not signiﬁcantly aﬀect the growth of the exponents in the risk-sensitive integrals which could cause large round-oﬀ errors. However, with F (u) = u2, this is not the case, and Figure 7 shows that there is a reduction in accuracy between c = 30 and
+c = 60 for the same number of quadrature points. Finally, Figure 7 also reveals which risk-sensitive integrals are are the slowest to converge, for a ﬁxed c. In order from slowest to fastest convergence, we have Λc, Λ2c, and Λ1c. The reason that Λ1c converges more quickly than Λc or Λ2c is due to the summation of the exponential terms
+
+|Λ − Λexact| / Λexact
+
+ALEATORIC AND EPISTEMIC UQ
+
+653
+
+c = 30 1
+0.8
+0.6
+0.4
+
+c = 60
+
+1
+
+Λc
+
+0.8
+
+Λc2
+
+0.6
+
+Λc1
+
+0.4
+
+|Λ − Λexact| / Λexact
+
+0.2
+
+0.2
+
+0
+
+0
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+Nq
+
+Nq
+
+Figure 6. Example 4.2, relative error for Λc,
+
+Λic
+
+2 i=1
+
+with
+
+F (u)
+
+=
+
+1{0.8
+
+≤
+
+u
+
+≤
+
+1}
+
+for
+
+c
+
+=
+
+30
+
+(left) vs. c = 60 (right) for diﬀerent values of N q = 5, . . . , 60.
+
+c = 30 0.3 0.25 0.2 0.15
+
+c = 60
+
+0.3
+
+Λc
+
+0.25
+
+Λc2
+
+0.2
+Λc1 0.15
+
+|Λ − Λexact| / Λexact
+
+0.1
+
+0.1
+
+0.05
+
+0.05
+
+0 3 4 5 6 7 8 9 10 11 12 13 14 15 Nq
+
+0 3 4 5 6 7 8 9 10 11 12 13 14 15 Nq
+
+Figure 7. Example 4.2, relative error for Λc,
+
+Λic
+
+2 i=1
+
+with F (u) = u2
+
+for
+
+c = 30 (left)
+
+vs.
+
+c = 60 (right) for diﬀerent values of N q = 3, . . . , 15.
+
+|Λ − Λexact| / Λexact
+
+in (4.7) for large values of c. The calculation of Λ1c involves half as many computations of exponential terms (since the summation is in the exponent), which is the main source of the loss in accuracy for large values of c.
+
+Next we consider the problem of computing the value of c which minimizes c →
+
+1 c
+
+B
+
++
+
+Λic for i = 0, 1, 2.7
+
+Here B is a maximum relative entropy distance that will be allowed between the “true” distribution, θ(dz2), and
+
+the nominal distribution, γ(dz2), and the minimization produces the tightest possible bounds. For the example,
+
+suppose that the family 1.5), which implies B ≈
+
+of distributions for which bounds 0.0484. In this example B ≤ f (c)
+
+a=.rec
+
+to be valid includes
+
+d dc
+
+H
+
+i(c)
+
+−
+
+H (c)
+
+for
+
+θ(dz2) ∼ beta(α some c, where H
+
+= 1.5, i(c) =.
+
+β= cΛic.
+
+As shown in Proposition 3.3, this implies there is a unique local minimum for c ∈ (0, ∞). See Figures 8 and 9.
+
+Alternatively, if B > f (c) for all c, then Proposition 3.3 implies the minimum is achieved in the limit as c → ∞.
+
+7Note that the risk sensitive integrals are inﬁnite for c = 0. Thus in the numerical calculations, we actually compute c starting from 0.01.
+
+654
+
+K. CHOWDHARY AND P. DUPUIS
+
+(B+Λi )/c
+c
+
+0.65
+
+0.6
+
+Λ
+c
+
+0.55
+
+Λc2
+
+0.5
+
+Λc1
+
+0.45
+
+0.4
+
+0.35
+
+0.3
+
+0.25
+
+0.2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+12
+
+14
+
+16
+
+18
+
+20
+
+c
+
+Figure 8. Example 4.2,
+
+1 c
+
+(B
+
++
+
+Λc),
+
+1 c
+
+(B
+
++
+
+Λic)
+
+2 i=1
+
+with
+
+F (u)
+
+=
+
+u2.
+
+B/c+Λic
+
+0.9
+
+0.8
+
+Λc
+
+0.7
+
+Λ2
+c
+
+0.6
+
+Λ1
+
+c
+
+0.5
+
+0.4
+
+0.3
+
+0.2
+
+0.1
+
+0
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+12
+
+14
+
+16
+
+18
+
+20
+
+c
+
+Figure 9. Example 4.2,
+
+1 c
+
+(B
+
++
+
+Λc),
+
+1 c
+
+(B
+
++
+
+Λic)
+
+2 i=1
+
+with
+
+F (u)
+
+=
+
+1{0.8
+
+≤
+
+u
+
+≤
+
+1}.
+
+From Figure 9 we ﬁnd a minimum for
+
+1 c
+
+B
+
++
+
+Λ1c of approximately 0.04 at c ≈ 5.12. Thus for all distributions
+
+on Z2 whose relative entropy distance to U [0, 1] is less than 0.0484, the probability that the solution to the
+
+random ODE falls between 0.8 and 1 at time 1 is less than 0.04.
+
+Note that the minimum is at diﬀerent values of c for the three diﬀerent integrals, but the minimum is always the smallest for the ﬁrst form of the hybrid. In the case when the minimum occurs at some c < ∞, the minimum
+
+is easily calculated, since this is a one-dimensional unconstrained minimization problem (for example, one can
+
+use a golden method search algorithm, such as MATLAB’s fminbnd function). In the case when the minimum occurs in the limit as c → ∞, in order to ﬁnd the minimum, one can iterate Λic until the successive iterations diﬀer by less than a prescribed tolerance.
+
+The second example is a random oscillator, where the stochastic parameters are the spring and dampening
+
+coeﬃcients.
+
+ALEATORIC AND EPISTEMIC UQ
+
+655
+
+1 0.95
+0.9 0.85
+0.8 0.75
+0.7 0.65
+0.6 0.55
+0
+
+Λc Λ2
+c
+Λ1
+c
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+c
+
+Figure 10. Example 4.3, Λc,
+
+Λic
+
+2 i=1
+
+for
+
+F (u)
+
+=
+
+1{u
+
+≤
+
+2}.
+
+Example 4.3. We consider F (Z1, Z2) deﬁned in terms of the solution of the ODE
+
+d2
+
+d
+
+dt2 u(t) + γ(z2) dt u(t) + k(z1)u(t) = f (t), u(0) = u0, u (0) = u0,
+
+where k and γ are known functions, which represent the spring and dampening coeﬃcients, respectively. The outcome of interest is whether or not the position of the random oscillator falls within a speciﬁed range, [a, b], at a speciﬁed time, tcritical. Letting u(t; z1, z2) denote the solution parameterized by (z1, z2), set F (Z1, Z2) = 1{a ≤ u(tcritical; Z1, Z2) ≤ b}.
+
+Here we consider the random oscillator with k(z1) = 4z1, γ(z2) = z2/5, and f (t) = 10 cos(10t) + 3, and choose Z1 ∼ beta(α = 5, β = 5), Z2 ∼ beta(α = 5, β = 5), tcritical = 4, and [a, b] = (−∞, 2]. Here we use
+
+the Gauss–Jacobi quadrature points and weights. In this example we are concerned with the position of the
+
+oscillator at a critical time. Figure 10 plots the risk sensitive integrals for Example 4.3 with F (u) = 1{u ≤ 2}.
+
+Figure
+
+11
+
+depicts
+
+c
+
+→
+
+1 c
+
+(B
+
++
+
+Λic),
+
+where
+
+B
+
+=
+
+R (θ(dz2)
+
+γ(dz2) ) ≈ .0587, with θ(dz2) ∼ beta(α = 10, β = 10).
+
+Finally, the third example involves a heat equation with random heat capacity and thermal conductivity.
+
+Example 4.4. We consider F (Z1, Z2) deﬁned in terms of the solution of the PDE
+
+d u(t, x)
+dt
+
+=
+
+k(u; z1) m(z2)
+
+d2 dx2 u(t, x),
+
+u(0, x) = u0(x)
+
+on x ∈ (0, L) with boundary conditions
+
+−k(u;
+
+z1)
+
+d dx
+
+u(t,
+
+0)
+
+=
+
+q,
+
+d u(t, L) = 0.
+dx
+
+Here k and m are the thermal conductivity and heat capacity, respectively. Note that in this example, the
+randomness aﬀects the diﬀusivity and the boundary conditions. We are interested in the probability that the material exceeds a particular temperature, Tcritical, at the time tﬁnal and at some point x ∈ [0, L]. Letting u(t; z1, z2) denote the solution parameterized by (z1, z2), set F (Z1, Z2) = 1{u(tﬁnal, x ; Z1, Z2) ≥ Tcritical}.
+
+Here we consider the random heat equation with (nonlinear) Neumann boundary conditions. We use k(u, z1) = z1 + (1.5 × 10−7)u, m(z2) = (10−6)z2, q = 0.35, L = 1.90, u0(x) = 25, and Tcritical = 980, x = 0, tﬁnal = 1000,
+
+656
+
+K. CHOWDHARY AND P. DUPUIS
+
+1.3
+
+Λc
+
+1.2
+
+Λc2
+
+Λc1 1.1
+
+1
+
+0.9
+
+0.8
+
+0.7
+
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+8
+
+9
+
+10
+
+c
+
+Figure 11. Example 4.3,
+
+1 c
+
+(B
+
++
+
+Λc),
+
+1 c
+
+(B
+
++
+
+Λic)
+
+2 i=1
+
+with
+
+F (u)
+
+=
+
+1{u
+
+≤
+
+2}.
+
+1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1
+0 0
+
+Λ
+c
+Λ2
+c
+Λc1
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+70
+
+80
+
+90
+
+100
+
+c
+
+Figure 12. Example 4.4,
+
+1 c
+
+(B
+
++
+
+Λc),
+
+1 c
+
+(B
+
++
+
+Λic)
+
+2 i=1
+
+for
+
+F (u)
+
+=
+
+1{u
+
+≥
+
+Tcritical}.
+
+and set F (Z1, Z2) = 1{u(tﬁnal, x ; Z1, Z2) ≥ Tcritical}. For the random variables, we introduce two independent
+
+random variables Z˜1 ∼ beta(α = 5, β = 5), Z˜2 ∼ beta(α = 5, β = 5) and let Z1 = (2 × 10−3)Z˜1 + 3 × 10−3,
+
+Z2 = (0.11)Z˜2 + 0.30. Figures 12 and 13 plot the risk sensitive integrals as a function of c and illustrate
+
+c
+
+→
+
+1 c
+
+(B
+
++ Λic),
+
+where
+
+B
+
+=
+
+R (θ(dz2)
+
+γ(dz2) ) ≈ 0.0587. and with θ(dz2) ∼ beta(α = 10, β = 10). Again, we
+
+use the Gauss–Jacobi quadrature points and weights.
+
+4.2.2. Dependent aleatoric and epistemic uncertainties
+In this section we consider problems where the distribution of Z1 can depend on the value of Z2, or vice versa. In the case when Z1 depends on Z2, we use the following inequality, which holds for the alternative of the ﬁrst hybrid form (see the discussion in Sect. 3.1):
+
+Z2
+
+Z1
+
+F (z1, z2)μ(dz1|z2)θ(dz2)
+
+≤
+
+1 c R (θ(dz2)
+
+γ(dz2) ) + Λ¯1c,
+
+ALEATORIC AND EPISTEMIC UQ
+
+657
+
+1 0.9 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1
+0 0
+
+Λc Λ2
+c
+Λ1
+c
+
+10
+
+20
+
+30
+
+40
+
+50
+
+60
+
+70
+
+80
+
+90
+
+100
+
+c
+
+Figure
+
+13.
+
+Example
+
+4.4,
+
+1 c
+
+(B
+
++ Λc),
+
+1 c
+
+(B
+
++
+
+Λic)
+
+2 i=1
+
+with
+
+F (u)
+
+=
+
+1{u
+
+≥
+
+Tcritical}.
+
+where
+
+Λ¯1c
+
+=
+
+1 c
+
+log
+
+exp
+Z2
+
+cF (z1, z2)μ(dz1|z2) γ(dz2).
+Z1
+
+Recall
+
+that
+
+the
+
+relative
+
+entropy
+
+term
+
+1 c
+
+R
+
+(θ(dz2)
+
+γ(dz2) ) represents our lack of knowledge about the distribution
+
+of Z2, i.e., the epistemic uncertainty where we want robustness, whereas Z1 represents aleatoric uncertainty.
+
+A question that now arises is whether or not it is still possible to use gPC methods to evaluate this integral.
+
+Consider the example with Z2 ∼ U [0, 1] and Z1 ∼ N (Z2, 1), so that Z1 is Gaussian with variance 1 and mean Z2.
+
+Certainly Z1 and Z2 random variable Z ∼
+
+are not N (0, 1),
+
+independent and write Z1
+
+random variables. However, we can introduce an auxiliary normal =. Z + Z2, where Z2 and Z are independent random variables. Now
+
+we consider G(Z, Z2) instead of F (Z1, Z2), and note that G(Z, Z2) = F (Z + Z2, Z2). Furthermore, Λ¯1c can be
+
+written as
+
+Λ¯1c
+
+=
+
+1 c
+
+log
+
+exp
+Z2
+
+cG(z, z2)μ(dz) γ(dz2).
+Z
+
+Hence, Λ¯1c can be calculated just like Λ1c via a gPC approximation. Similar results hold for the case when Z2 depends on Z1, but the epistemic uncertainty is in Z2.
+In general, as long as we can ﬁnd a smooth, invertible mapping from (Z1, Z2) to an independent pair of random variables, one can evaluate the integrals as before. Figures 14 and 15 show the performance of risk sensitive integrals for dependent random variables as above for Example 4.2 and with F (u) = 1{1/2 ≤ u ≤ 1}.
+
+4.3. Discussion and Conclusion
+There exist alternative methods for integrating aleatoric and epistemic variation in uncertainty quantiﬁcation. The most straightforward techniques amount to treating the aleatoric and epistemic variables separately, and perform nested iterations, iterating over a ﬁnite collection of epistemic parameters on the outer loop, then sampling over aleatoric variables on the inner loop [4]. From this, one can plot the ensemble of cumulative distribution functions to visualize the family of distributions, sometimes called horsetail plots. For example, suppose the aleatoric random variable is Gaussian with an epistemic mean, where all we know about this epistemic variable is its support (X ∼ N (Y, 1), Y ∈ [a, b]). Then, for a set of N values contained within the known support (outer iteration), {Yi = yi : yi ∈ [a, b]}Ni=1, one can compute the performance (inner iteration) based on the corresponding set of input distributions, {Xi : Xi ∼ N (yi, 1)} Ni=1.
+
+658
+
+K. CHOWDHARY AND P. DUPUIS
+
+r−s costs
+
+0.65
+
+0.6
+
+Λc1
+
+0.55
+
+0.5
+
+0.45
+
+0.4
+
+0.35
+
+0.3
+
+0.25
+
+0.2
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10
+
+12
+
+14
+
+16
+
+18
+
+20
+
+c
+
+Figure 14. Example 4.2, Λ¯1c for F (u) = 1{1/2 ≤ u ≤ 1}.
+
+3.5
+
+3
+
+Λc1
+
+2.5
+
+r−s costs
+
+2
+
+1.5
+
+1
+
+0.5
+
+0
+
+0
+
+2
+
+4
+
+6
+
+8
+
+10 12 14 16 18 20
+
+c
+
+Figure
+
+15.
+
+Example
+
+4.2,
+
+1 c
+
+(B
+
++ Λ¯1c)
+
+F (u)
+
+=
+
+1{1/2 ≤
+
+u
+
+≤
+
+1},
+
+and
+
+θ
+
+∼
+
+N (0.8, 1).
+
+Alternatively, one can consider a Bayesian approach, and introduce hyperparameters (epistemic uncertainties) on known distributions (aleatoric uncertainties) in order to integrate both types into system modeling. For example, suppose the aleatoric random variable is Gaussian with an epistemic mean, where now we assume this epistemic variable takes on a uniform distribution (X ∼ N (Y, 1), Y ∼ U [a, b]). In the parametric Bayesian approach, if one wants bounds for a collection of distributions on the epistemic variables each joint distribution must be sampled separately. In contrast to the nested iteration approach, the Bayesian hyperparameter approach produces a quantity that averages the epistemic uncertainty. Our approach gives tight upper bounds on performance measures under alternative distributions, without sampling under the various alternative joint distributions.
+Most recently, in a paper by Xiu et al. [10], an approach to dealing with epistemic uncertainty via polynomial chaos methods was developed. In [10], epistemic uncertainty meant that the true distribution of the underlying stochastic parameters was not known precisely. Here we compare our method of handling this type of epistemic uncertainty to theirs.
+
+ALEATORIC AND EPISTEMIC UQ
+
+659
+
+The approach taken in [10] is based on stochastic collocation approximation. Speciﬁcally, the diﬀerential equation of interest was solved on a generic collocation grid on the sample space of the random variables. This is in contrast to standard uses of stochastic collocation for uncertainty quantiﬁcation, where the collocation grid is chosen in accordance with the (assumed known) underlying distribution. Of course the reason for the particular choice of basis polynomials and quadrature points is to obtain optimal (spectral) convergence with respect to the L2 weighted error. In the approach of [10], regardless of what is the “true” (and assumed unknown) distribution, one chooses grid points with respect to the L2 weighted norm with constant weight (e.g., LegendreGauss quadrature weights), even if the original space is unbounded. One then solves the diﬀerential equation at these collocation points and constructs the interpolating polynomial of the approximation. Hence, the gPC approximation converges optimally in the L2 norm only if the underlying distribution is uniform. For nonuniform random variables the approximation will still converge point-wise as the number of collocation points increases (see Sect. 5 in [10]).
+Once the interpolated approximation is obtained, one can determine the mean, variance, probabilities, and so on with respect to various underlying distributions on the parameters via Monte Carlo or other methods. The beneﬁts are still large, in that one need not evaluate the diﬀerential equation for every Monte Carlo sample, but instead evaluates a much simpler approximation via a ﬁnite sum of polynomial basis functions. However, information can be obtained only by ﬁxing a choice for the underlying distribution. Also, depending on which underlying distribution is used, the errors in the function approximation will have a greater or smaller eﬀect.
+In this paper we have developed an approach in which performance bounds can be calculated for the mean, variance, probabilities, and so on with respect to all distributions that are within a particular relative entropy distance from the nominal distribution, and the bounds are optimal for that class of distributions. In addition to providing performance bounds on a class of distributions deﬁned by their relative entropy distance, the limit c → ∞ is particularly interesting in that it gives tight bounds on epistemic uncertainties where one assumes nothing about the underlying distribution of certain variables except their support. In addition, the method one can eﬃciently handle both aleatoric and epistemic uncertainty simultaneously. More precisely, by computing certain hybrid forms of a risk-sensitive expectation we obtain tight performance bounds that distinguish between variables with known distribution and variables with unknown distribution or other forms of epistemic uncertainty. In particular, the scenarios to which the method applies include (i) aleatoric with known distribution; (ii) aleatoric with partly known distribution (mingled aleatoric and epistemic); (iii) epistemic for which one is willing to model by a family of aleatoric uncertainties, and (iv) epistemic where one is only willing to place bounds on the uncertainties. For all the examples we have considered (including those presented in the paper), approximation of the required risk-sensitive integrals can be done via gPC methods using roughly the same computational eﬀort as would be required to compute the corresponding ordinary performance measures using the nominal probability distributions.
+
+Appendix A. Distribution for Polynomial Basis
+Here we list some of the most common distributions, both continuous and discrete, and their corresponding gPC basis representations (see [8]).
+
+Distribution Gaussian Gamma Beta Uniform Poisson Binomial
+Negative Binomial Hypergeometric
+
+gPC polynomial basis Hermite Laguerre Jacobi Legendre Charlier
+Krawtchouk Meixner Hahn
+
+660
+
+K. CHOWDHARY AND P. DUPUIS
+
+Appendix B. Relative Entropy Formulas
+
+In this section we evaluate relative entropies for some of the most common types of distributions listed in
+
+Table 4.3. Since most of the distributions listed in this table fall within the exponential family, we start with
+
+the general form
+s
+
+fX (x; θ) = h(x) exp
+
+ηi(θ)Ti(x) − A(η1(θ), ..., ηs(θ)) ,
+
+(B.1)
+
+i=1
+
+where Ti(x), h(x), ηi(θ), and A(θ) are known functions, θ = (θ1, ..., θd)T is the parameter of the family.
+
+Example B.1. For Gaussian distributions θ = (μ, σ)T , where μ is the mean and σ is the variance. This is put in the general form by setting
+
+θ = (μ, σ)T ,
+
+η=
+
+μ −1 T σ2 , 2σ2 ,
+
+h(x) = √1 , 2π
+
+T (x) = (x, x2)T ,
+
+producing
+
+A(η(θ))
+
+=
+
+μ2 2σ2
+
++
+
+log |σ|
+
+=
+
+− η12 4η2
+
++
+
+1 2
+
+log
+
+1 2η2
+
+,
+
+fX(x; μ, σ)
+
+=
+
+√ 1 e−(x−μ)2/2σ2 . 2πσ2
+
+We now state the relative entropy formula for distributions which have a probability density function given by the form of exponential family in (B.1). The relative entropy between a probability measure P with density p(x) and another probability measure Q with density q(x) is given by
+
+p(x)
+
+R(P Q ) = p(x) log dx
+
+Γ
+
+q(x)
+
+(B.2)
+
+whenever P is absolutely continuous with respect to Q, where Γ is the support of p and q. In all other cases it is deﬁned to be ∞.
+A simpliﬁed version of the relative entropy formula for distributions from the same exponential family type is available. Suppose that q(x) and p(x) have the same h, ηi, Ti, A, but with diﬀerent parameters θ1 and θ2 (note that θ1 and θ2 are vectors). If we associate q(x) with θ1 and p(x) with θ2, then it can be shown that the relative entropy formula reduces to
+
+s
+
+R(P Q ) = (ηi(θ2) − ηi(θ1)) Ti(x)p(x)dx − A(η(θ2)) + A(η(θ1)).
+
+i=1
+
+Γ
+
+(B.3)
+
+Gaussian. If Q = N (μ1, σ1) and P = N (μ2, σ2), then using the fact that T2(x)p(x)dx = μ22 + σ22, we get
+
+R(P
+
+1 Q ) = 2σ12
+
+(μ21 − μ22) + (σ2 − σ1)
+
++ log σ1 . σ2
+
+T1(x)p(x)dx = μ2 and (B.4)
+
+Beta. For the beta distribution, the parameters in the exponential family are given by
+
+η = (α − 1, β − 1)T ,
+
+T = (log(x), log(1 − x))T ,
+
+h(x) = 1,
+
+Γ (α)Γ (β) A = log
+
+Γ (α + β)
+
+ALEATORIC AND EPISTEMIC UQ
+
+661
+
+where
+
+fX (x; α, β)
+
+=
+
+Γ (α)Γ (β) xα−1(1 Γ (α + β)
+
+−
+
+x)β−1,
+
+0 < x < 1, α, β > 1.
+
+Another form of the beta distribution, which is more closely related to the Jacobi polynomials, is given by
+
+f˜X (k; α˜, β˜)
+
+=
+
+(1 − x)α˜ (1 + x)β˜ 2α˜+β˜+1B(α˜ + 1, β˜ +
+
+, 1)
+
+−1 < x < 1, α˜, β˜ > −1,
+
+where B(α, β) = Γ (α)Γ (β)/Γ (α + β) is the beta function. Note that the relation between the two is simply a rescaling and a variable substitution given by α˜ = β − 1, β˜ = α − 1. We will use the primary form to determine
+the relative entropy formula. Letting P = beta(α2, β2) and Q = beta(α1, β1),
+
+1
+
+T1(x)p(x)dx = ψ(α2) − ψ(α2 + β2), T2(x)p(x)dx = ψ(β2) − ψ(α2 + β2),
+
+0
+
+Γ
+
+where ψ(x) is known as the digamma function, or the zeroth order of the polygamma function. Then,
+
+R(P Q ) = (α2 − α1)(ψ(α2) − ψ(α2 + β2))
+
++ (β2 − β1)(ψ(β2) − ψ(α2 + β2))
+
++
+
+log B(α1, β1) · B(a2, β2)
+
+Gamma. Here we have
+
+η = (−β, α − 1)T , T = (x, log(x))T , h(x) = 1, A = log Γ (α) − α log β
+
+If P = gamma(α2, β2), Q = gamma(α1, β1), where αi, βi are the so-called shape parameters, then
+
+R(P
+
+Q) =
+
+α1 β1
+
+(β2
+
+−
+
+β1)
+
++
+
+(α1
+
+−
+
+α2 )(ψ(α1 ))
+
+−
+
+log(β1))
+
++
+
+log
+
+Γ (α2)β1α1 Γ (α1)β2a2
+
+·
+
+Binomial. Here η = (−β, α − 1)T , T = (x, log(x))T , h(x) = 1, A = log Γ (α) − α log β.
+
+If P = binomial(n, p2), Q = binomial(n, p1), then
+
+R(P
+
+Q)
+
+=
+
+log
+
+pμ1 1 (1 pμ2 1 (1
+
+− −
+
+p2 )μ1 −n p1 )μ1 −n
+
+,
+
+μ1 = np1.
+
+Poisson. In this case
+
+1 η = log λ, T = x, h(x) = , A = λ
+x!
+
+If P = Poisson(λ2), Q = Poisson(λ1), then the relative entropy distance is
+
+R(P
+
+Q ) = λ1 − λ2
+
++
+
+λ2
+
+log
+
+λ2 λ1
+
+.
+
+Note that relative entropy formula is invariant under shifting and scaling of both distributions simultaneously.
+In fact, suppose that ψ and its inverse are both well deﬁned and measurable, X and Y have distributions P and Q, and that ψ(X) and ψ(Y ) have distributions P¯ and Q¯. Then [2], Lemma E.2.1 R(P¯ Q¯ ) = R(P Q ). A
+list of relative entropy formulas follows.
+
+662
+
+K. CHOWDHARY AND P. DUPUIS
+
+Distribution Gaussian Beta/Uniform
+Gamma Binomial Poisson
+
+R((·)2 (·)1 )
+
+1 2σ12
+
+(μ21 − μ22) + (σ2 − σ1)
+
++
+
+log
+
+σ1 σ2
+
+(α2 − α1) [ψ(α2) − ψ(α2 + β2)]
+
++(β2
+
+−
+
+β1)
+
+[ψ(β2)
+
+−
+
+ψ(α2
+
++
+
+β2)]
+
++
+
+log
+
+B(α1 ,β1 ) B(α2 ,β2 )
+
++αβ11l(oβg2[Γ−(βα12))β+1α1(α/1Γ−(αα12)β) 2[αψ2(]α1) − log β1]
+
+log pμ1 1 (1 − p2)μ1−n pμ2 1 (1 − p1)μ1−n
+
+λ1
+
+−
+
+λ2
+
++
+
+λ2
+
+log
+
+λ2 λ1
+
+.
+
+References
+[1] R.K. Boel, M.R. James and I.R. Petersen, Robustness and risk sensitive ﬁltering. IEEE Trans. Auto. Control 3 (2002) 451–461. [2] P. Dupuis and R.S. Ellis, A Weak Convergence Approach to the Theory of Large Deviations. John Wiley & Sons, New York
+(1997). [3] P. Dupuis, M.R. James and I.R. Petersen, Robust properties of risk–sensitive control. Math. Control Signals Syst. 13 (2000)
+318–332. [4] M. Eldred and L. Swiler, Eﬃcient algorithms for mixed aleatory-epistemic uncertainty quantiﬁcation with applications to
+radiation-hardened electronics. Technical report, Sandia National Laboratories (2009). [5] O.P. Le Maitre and O.M. Knio, Spectral Methods for Uncertainty Quantiﬁcation. Springer, New York (2010). [6] S.R.S. Varadhan, Large Deviations and Applications. CBMS-NSF Regional Conference Series in Mathematics. SIAM, Philadel-
+phia (1984). [7] D. Xiu, Eﬃcient collocational approach for parametric uncertianty analysis. J. Comput. Phys. 2 (2007) 293–309. [8] D. Xiu, Fast numerical methods for stochastic computations. Commun. Comput. Phys. 5 (2009) 242–272. [9] D. Xiu and J. Hesthaven, High-order collocation methods for diﬀerential equations with random inputs. Soc. Industrial Appl.
+Math. 27 (2005) 1118–1139. [10] D. Xiu, J. Jakeman and M. Eldred, Numerical approach for quantiﬁcation of epistemic uncertainty. Commun. Comput. Phys.
+229 (2010) 4648–4663. [11] D. Xiu and G. Karniadakis, The Weiner-Askey polynomial chaos for stochastic diﬀerential equations. SIAM J. Sci. Comput.
+24 (2002) 619–644.
+

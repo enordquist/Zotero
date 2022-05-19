@@ -1,0 +1,213 @@
+Available online at www.sciencedirect.com
+
+Targeting biomolecular ﬂexibility with metadynamics Vanessa Leone1,2,3, Fabrizio Marinelli1,2,3, Paolo Carloni1,2,4 and Michele Parrinello5
+
+Metadynamics calculations allow investigating structure, plasticity, and energetics in a variety of biological processes spanning from molecular docking to protein folding. Recent theoretical developments have led to applications to increasingly complex systems and processes stepping up the biological relevance of the problem solved. Here, after summarizing recent technical advances and applications, we give a perspective of the method as a tool for enzymology and for the prediction of NMR and other spectroscopic data.
+Addresses 1 International School for Advanced Studies (SISSA-ISAS) and DEMOCRITOS, Trieste, Italy 2 Italian Institute of Technology (IIT), Trieste, Italy 3 Theoretical Molecular Biophysics Group, Max-Planck Institute of Biophysics, Frankfurt am Main, Germany 4 German Research School for Simulation Science, FZ-Juelich and RWTH, Germany 5 Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, USI Campus, via G. Bufﬁ 13, 6900 Lugano, Switzerland
+Corresponding author: Carloni, Paolo (carloni@sissa.it) and
+Current Opinion in Structural Biology 2010, 20:148–154
+This review comes from a themed issue on Theory and simulation Edited by Chandra Verma and Juan Ferna´ ndez Recio
+Available online 18th February 2010
+0959-440X/$ – see front matter # 2010 Elsevier Ltd. All rights reserved.
+DOI 10.1016/j.sbi.2010.01.011
+
+Discovering these relevant degrees of freedom, often referred to as collective variables (CVs), and quantifying their relevance by calculating how the free energy depends on them, is a decisive step toward the problem solution.
+Therefore much attention has been given to develop statistical mechanics methods aimed at estimating the free energy along such variables [8,9]. These include: umbrella sampling [10], adaptive force bias [11,12], conformational ﬂooding [13], steered molecular dynamics (MD) [14], blue moon ensemble [15,16] and metadynamics [17]. In the latter approach, a history dependent potential is added in the space of the CVs. This forces the dynamics to explore conformations that were not previously visited and discourages the system from returning to these regions. Therefore, it allows the system escaping minima along low free energy paths and exploring other minima in the free energy landscape. The free energy surface can be obtained as the negative of the bias potential added during the simulation (Figure 1). This scheme has in common with umbrella sampling [10] based methodologies the usage of a bias potential to enhance barrier crossing. However metadynamics has the crucial advantage that the bias potential recursively compensate the free energy allowing ﬁrst the automatic exploration of low free energy regions. In the adaptive force bias [11,12] a similar behavior is achieved by adding to the simulation a history dependent external force that acts on the CVs. More detailed comparisons among these methodologies can be found in Refs. [5,18].
+
+Introduction Most biological functions depend in an essential way on biomolecular plasticity [1–3]. This is however very difﬁcult to study both experimentally and theoretically. The experimental data are related to the underlying dynamics in an indirect way while atomistic simulation can explore only a rather limited time scale. In fact, in spite of recent remarkable progress [4], the time scale of functionally relevant motions (>ms) exceeds by far present day capabilities. These limitations are even stronger for the complex systems that are of biological interest and also if a more accurate description of the interatomic forces is required. On top of that, the need arises to condense the simulation results in easy to understand and interpret terms. There is a growing body of evidence that this is possible [5–7] and that biomolecular plasticity involves only a restricted number of degrees of freedom.
+
+Method advances Metadynamics was shown to give an unbiased estimation of the free energy if the dynamics of the CVs can be approximated by a diffusion along a free energy landscape [19].
+A recent formally pleasing evolution of metadynamics is its well-tempered variant [20] (M Bonomi, M Parrinello, Enhanced sampling in the well-tempered ensemble. Unpublished data, Available at http://arxiv.org/abs/ 0910.4914v2, [21]). In this method the variations on time of the bias potential are decreased with a speciﬁc law, this avoids the exploration of unphysical high free energy regions. Furthermore for well-tempered metadynamics the convergence of the free energy was analytically demonstrated for a general Hamiltonian system and standard metadynamics is included as a special case.
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+www.sciencedirect.com
+
+Biomolecular flexibility and metadynamics Leone et al. 149
+
+Figure 1
+Time evolution of the metadynamics bias potential, VG(s, t). From time to time VG(s, t) compensates the underlying free energy (solid line) until the latter is flattened. When this occurs the free energy can be estimated as FðsÞ ﬃ À VGðs; tÞ. The evolution of VG(s, t) (thin lines) is labeled by integers that are proportional to the simulation time. The simulation starts from the minimum on the left and as the time goes on VG(s, t) fills first this minimum (labels 1 and 2) allowing the system to jump to the other minimum on the right (label 3). Then, also this minimum is filled (labels 3–8) and at the end of the simulation the free energy is fully compensated (labels 9 and 10) by VG(s, t). The values reported on both axes are in arbitrary units.
+As in any other CV based method, if the CVs are not chosen correctly or one important CV is missing the process will be not described correctly. However a careful study of the system behavior when incorrect CVs are used often allows the correct variables to be discovered [22]. This is a consequence of the way in which metadynamics bias growth and dynamics are entangled.
+A strategy for ensuring a correct description is to enlarge the number of CVs and intriguing suggestions have been made to this effect [23,24]. Unfortunately this number cannot grow beyond say three since exploring a high dimensional free energy surface is just too costly. Thus, other strategies have been recently proposed in which: ﬁrstly, a path sampling method [25–33] is used to construct an optimal reaction coordinate [34], secondly, metadynamics is combined with other techniques like parallel tempering [35] or bias exchange [36]. An important advantage of metadynamics is also its availability in several MD codes since its algorithm is easy to implement. Recently a plugin has been developed that allows metadynamics algorithm and its variants to be added to several MD programs [37].
+Applications
+Molecular docking Docking methodologies are fast, powerful, and extremely useful to predict ligand poses but, in most cases, have
+
+limitations; their predictive power may be modest when large conformational rearrangements occur upon binding and the selection of the best docking poses relies on a scoring function whose accuracy depends on the system studied [38]. Furthermore, they are not appropriate for investigating binding mechanisms and predict their associated free energy proﬁles. Metadynamics does not suffer from these limitations, although as expected, this advantage comes at a much higher computational cost. The method is more accurate and can be used to ﬁnd a binding spot even if binding pockets are not present [38,39] or protein ﬂexibility is important [39,40], thus suggesting alternative drug design strategies. So far, the method has provided structural predictions, mechanism and energetics of ligands dissociation/binding to soluble proteins [38–43], and one membrane receptor [44].
+Docking protocols that include metadynamics [38,39] involve guessing the ligand poses using standard docking programs, relaxing the ligand/target complex by MD, and sorting out the poses by their binding energy using metadynamics [38,39]. These protocols have been able to identify the correct poses in few benchmarks (four in total) even in challenging cases (in two of the benchmark the ligands bind to a surface and in the others protein ﬂexibility is important for docking) [38,39]. In view of these early results, combined strategies are promising docking protocols that might be further tested.
+The binding free energy of the process can also be quantitatively predicted [38]. In Ref. [38], light was also shed on some intriguing NMR data [45]. A challenge for the future is to obtain the correct docking pose without any prior knowledge of a putative binding site.
+Metadynamics may also help shedding insight into the intricate dissociation mechanisms of ligand–DNA/protein complexes [42,46]. These studies allowed discovering novel pathways [42] and unknown intermediates [46].
+Studying the association processes is more challenging since very extensive sampling is needed. Bias exchange metadynamics have been used to study a small peptide binding mechanism to the HIV-1 protease [47]. This simulation indicates that the main binding pathway of this small substrate does not require full opening of the ﬂap in contrast to what it is expected for the entire substrate. Although this mechanism was previously suggested by steered MD, these simulations characterized only the drug dissociation but not the association process [48] as it was possible using bias exchange metadynamics [47].
+Furthermore, metadynamics has been used to investigate how different ligands may change the folding of a protein [49] (see Figure 2). In particular it has been studied how
+
+www.sciencedirect.com
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+150 Theory and simulation
+
+Figure 2
+
+design a drug that may permeate efﬁciently along the channel by interacting with these sites in the porin.
+K+ ions may pass across membrane selectively using namesake ion channels. The selectivity ﬁlter of these channels controls its permeation and selectivity. Umbrella sampling simulations combined with experiments strongly suggested that a conformational change of selectivity ﬁlter between a conductive and nonconductive state may function as a second gate for the conduction of K+ ions in KcsA and KircBac [57,58].
+
+An extensive computational study combining metadynamics and umbrella sampling on KicBac channel supports the existence of this physical gate in the selectivity ﬁlter [59]. Moreover, the simulations showed that the transition from conductive to nonconductive state involves cooperative conformational change between K+ ions and the ﬁlter residues and yield to a novel nonconducting conformation of the ﬁlter [59].
+
+Influence of the bound nucleotide state (ATP, ADP-Pi, or ADP) in the conformational landscape of the DNase-I binding loop of actin as studied in ref [37]. (a) The conformational change of the DNase-I binding loop emerging from the calculations. (b) The structure of actin monomer (in blue) and its DNase-I binding loop (red). The nucleotide at the binding cleft of actin is shown.
+
+The metadynamics method has been also used to study the recognition of a ligand (tetramethylammonium) [23] and the entrance of cations in acetylcholinesterase gorge [60]. These results were consistent with experimental kinetic data [60].
+
+different states of nucleotide (ATP, ADP-Pi, or ADP) bound to the DNase binding site of actin may change the protein conformation. Previous MD simulations studied the nucleotide binding cleft in the open and closed conformations but they have not been able to simulate the opening and closing events due to sampling limitations [50–52]. Metadynamics simulations suggest that in both actin monomeric and trimeric forms, bound ATP and ADP-Pi favor the closure of its binding cleft, whereas bound ADP favors the opening of the cleft [49].
+Ligand and ion permeation across the cell membrane and enzyme gorges Metadynamics has also been used to investigate drug permeation across cellular membrane and/or membrane porins, usually characterized by long time scales (0.1 ms or more [53]). Recent studies helped understanding the mechanistic features of antibiotic translocation across porins [53–56]. Importantly, metadynamics simulations gave a molecular explanation to the pH dependency of two penicillin drugs, ampicillin and amoxicillin, to permeate along Omp porin. This study showed that the drug molecule occludes the pore in the zwitterionic form, by interacting simultaneously with negative and positive residues of porin extracellular loop and barrel, respectively [55]. Contrary, another drug, a dianionic carbenicillin, does not share this binding to the constriction zone of the pore [55]. These observations may be useful to
+
+Peptide folding/misfolding The time required for a medium-sized peptide to fold from a random coil conformation may be much longer than that commonly reachable by molecular dynamics (i.e. ms) [61] and involves several CVs. In addition most of the times, the nature of the unfolded conformation is not known. Metadynamics, in combination with other techniques, such as parallel tempering, bias exchange, or transition path sampling, have allowed identifying the folded state starting from an arbitrary conformation [34,62–64,65,66], and, in two cases the folding kinetic mechanism was predicted [65,66]. This allowed ﬁnding and characterizing metastable unfolded conformations that are intermediates of the folding process.
+Outlook Although metadynamics simulations have already provided essential insight in a variety of systems, their reliability has to be constantly checked by comparison with the experiments. Here NMR is the key technique since it allows investigating dynamical processes that take place in the subms to ms range [67]. Since NMR observables are motionally averaged parameters, their correct estimation has to include an accurate Boltzmann population analysis. Similar arguments may be applied to FRET experiments, which can be used to detect conformational ﬂuctuations of biomolecules [68,69], or to isotopic fractionation that measure the residues exposure to the solvent [70]. So far extracting these quantities from metadynamics has been hampered by the fact that the
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+www.sciencedirect.com
+
+Figure 3
+
+Biomolecular flexibility and metadynamics Leone et al. 151
+
+Metadynamics simulation of peptidyl prolyl isomerization of a peptide by cyclophilin A [58]. Left: The complex between cyclophilin and the His-AlaGly-Pro-Ile-Ala peptide. Right: A calculation of the free energy (kcal/mol) as a function of the dihedral angles z and c [82] of the peptide (in degrees) allows identifying several transition state and minima regions. The enzyme sequesters the most abundant conformation in water, trans0, that is rapidly interconverted into the most abundant conformer trans180. Then, cyclophilin A catalyzes the isomerization of the peptide along TS2, producing the mostly populated minimum, cis180. The peptide may be detached from the enzyme in its product form, cis180 or cis0 conformations. Most probably, it interconverts to cis0, and then it is released to the aqueous solution.
+
+bias distorts the statistical distribution of the degrees of
+freedom not included in the CV. Recently reweighing procedures [65,71] have been proposed that allow making contact with experiments; in particular in Ref. [65]
+this was used to predict NMR and ﬂuorescence data. Any
+other experimental quantity can be similarly addressed
+greatly enhancing the role of metadynamics simulations.
+
+Thus, the impact of metadynamics is limited by the slowness in the calculation of the QM/MM forces, especially when a nonempirical QM method is used. Therefore, to study an enzymatic process that involves a bona ﬁde chemical reaction it is necessary to speed up the QM/MM approaches, or to parameterize the force-ﬁeld on the basis of QM/MM calculation, or use semi-empirical methods.
+
+An exciting area of application is the study of enzymatic processes. Hybrid Car-Parrinello QM/MM metadynamics investigations [72,73,74] have allowed shedding light on some of the reaction steps. Force-ﬁeld based metadynamics calculations allowed, the entire enzymatic mechanism of the peptidyl prolyl isomerization catalyzed by cyclophilin A (Figure 3) [75] to be qualitatively characterized. Previous umbrella sampling calculations pointed to the existence of a network of protein vibrations coupled with the catalysis [76] and suggested a speciﬁc role for a key residue at the active site [77]. However they were not able to explain the role of few residues whose mutations decrease the enzymatic kcat/KM. On the basis of metadynamics calculations a new catalytic mechanism was proposed [75]. Those residues that affect enzyme catalysis stabilize exclusively one of the conformations along this pathway. Therefore, this novel mechanism is in agreement with all available molecular biology data. In this speciﬁc case, it was possible to study the entire mechanism because a force-ﬁeld and a not much more expensive ﬁrst principle QM/MM description was used. In other cases, where covalent bonds are broken and/or formed the use of a classic potential is questionable.
+
+In a longer time horizon, the issue of the quality of force ﬁelds has to be posed even in the case in which no enzymatic process takes place, especially in systems characterized by very high electric ﬁelds. An important case is that of ion channels, in which force ﬁelds, that neglect electronic polarization effects, might be not adequate for understanding the microscopic basis of ion selectivity [78,79]. A longer term solution could be to use ab-initio MD. While this is not imminent, one can draw some encouragement from: ﬁrstly, the ability of some practicable electronic structure approximation to describe very accurately the H-bond in water (R. Car private communication), secondly, the development of new algorithms (for example by introducing van der Waals interaction [80]), thirdly, the ability to introduce quantum effects at low computational cost [81].
+This makes us hopeful that with the advent of exascale computing some of the calculations described here could be performed fully ab-initio. This will also enhance the applicability of recently proposed methods such as the well-tempered ensemble which is based on metadynamics and may speed up sampling by orders of magnitude
+
+www.sciencedirect.com
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+152 Theory and simulation
+
+(M Bonomi, M Parrinello, Enhanced sampling in the welltempered ensemble. Unpublished data, Available at http:// arxiv.org/abs/0910.4914v2, [21]).
+Conﬂict of interest The authors declare that no conﬂicts of interests exist.
+Acknowledgements
+Several people have been involved in the development of metadynamics and its more recent variants and also encouraged its application in biological systems. The authors are grateful to (in alphabetic order): Alessandro Barducci, Xevi Biarne´ s, Massimiliano Bonomi, Davide Branduardi, Ricardo A Broglia, Giovanni Bussi, Carlo Camilloni, Matteo Ceccarelli, Davide Donadio, Francesco L. Gervasio, Marcella Iannuzzi, Alessandro Laio, Stefano Piana, Fabio Pietrucci, Davide Provasi, Paolo Raiteri, Paolo Ruggerone, Attilio V Vargiu. PC thanks IIT for ﬁnancial support.
+References and recommended reading
+Papers of particular interest, published within the period of review, have been highlighted as:
+ of special interest  of outstanding interest
+1. Frauenfelder H, Sligar SG, Wolynes PG: The energy landscapes and motions of proteins. Science 1991, 254:1598-1603.
+2. Karplus M, Kuriyan J: Molecular dynamics and protein function. Proc Natl Acad Sci U S A 2005, 102:6679-6685.
+3. Markwick PR, Bouvignies G, Salmon L, McCammon JA, Nilges M, Blackledge M: Toward a uniﬁed representation of protein structural dynamics in solution. J Am Chem Soc 2009, 131:16968-16975.
+4. Klepeis JL, Lindorff-Larsen K, Dror RO, Shaw DE: Long-timescale molecular dynamics simulations of protein structure and function. Curr Opin Struct Biol 2009, 19:120-127.
+5. Laio A, Gervasio FL: Metadynamics: a method to simulate rare events and reconstruct the free energy in biophysics, chemistry and material science. Rep Prog Phys 2008, 71:126601.
+6. Parrinello M: Eppur si muove. In Physical Biology: From Atoms to Medicine. Edited by Zewail Ahmed HmdH. 2008:247-266.
+7. Clementi C, Cheung M, Nymeyer H, Onuchic JN: Topological and energetic factors: what determines the structural details of the transition state ensemble and ‘‘en-route’’ intermediates for protein folding? An investigation for small globular proteins. J Mol Biol 2000, 298:937-953.
+8. Brooks BR, Brooks CL 3rd, Mackerell AD Jr, Nilsson L, Petrella RJ, Roux B, Won Y, Archontis G, Bartels C, Boresch S et al.: CHARMM: the biomolecular simulation program. J Comput Chem 2009, 30:1545-1614.
+9. de Oliveira CA, Hamelberg D, McCammon JA: Coupling accelerated molecular dynamics methods with thermodynamic integration simulations. J Chem Theory Comput 2008, 4:1516-1525.
+10. Patey GN, Valleau JP: Monte-Carlo method for obtaining interionic potential of mean force in ionic solution. J Chem Phys 1975, 63:2334-2339.
+11. Darve E, Pohorille A: Calculating free energies using average force. J Chem Phys 2001, 115:9169-9183.
+12. Rodriguez-Gomez D, Darve E, Pohorille A: Assessing the efﬁciency of free energy calculation methods. J Chem Phys 2004, 120:3563-3578.
+13. Grubmu¨ ller H: Predicting slow structural transitions in macromolecular systems: conformational ﬂooding. Phys Rev E 1995, 52:2893-2906.
+14. Gullingsrud J, Braun R, Schulten K: Reconstructing potentials of mean force through time series analysis of steered molecular dynamics simulations. J Comput Phys 1999, 151:190-211.
+
+15. Carter EA, Ciccotti G, Hynes JT, Kapral R: Constrained reaction coordinate dynamics for the simulation of rare events. Chem Phys Lett 1989, 156:472-477.
+16. Sprik M, Ciccotti G: Free energy from constrained molecular dynamics. J Chem Phys 1998, 109:7737-7744.
+17. Laio A, Parrinello M: Escaping free-energy minima. Proc Natl Acad Sci U S A 2002, 99:12562-12566.
+18. Ensing B, De Vivo M, Liu Z, Moore P, Michael L, Klein: Metadynamics as a tool for exploring free energy landscapes of chemical reactions. Acc Chem Res 2006, 39:73-81.
+19. Bussi G, Laio A, Parrinello M: Equilibrium free energies from nonequilibrium metadynamics. Phys Rev Lett 2006, 96:090601.
+20. Barducci A, Bussi G, Parrinello M: Well-tempered  metadynamics: a smoothly converging and tunable free-
+energy method. Phys Rev Lett 2008, 100:020603. In the hands of the expert metadynamics can deliver excellent results but it requires care in deciding when to terminate the run and in avoiding that the bias potentials disrupts the macromolecular structure. In well-tempered metadynamics the deposited Gaussians height is progressively reduced with a prescribed law and it converges to a well deﬁned limit. Furthermore its parameters can be tuned so as to explore only physically relevant regions of the free energy surface. Its elegant and transparent formulation has allowed successive important developments ensemble.
+21. It is shown that if one performs a well-tempered metadynamics that  uses the potential energy as a CV one recovers a deﬁned statistical mechanics ensemble. By tuning the metadynamics parameters the distribution changes from canonical to multicanonical. In the intermediate regime one approximately ﬁnds the expectation values of the energy are not changed but its ﬂuctuations can be greatly enhanced, with a considerable boost in sampling power. This sampling power is further enhanced if this scheme is combined with parallel tempering, leading to several orders of magnitude efﬁciency improvement.
+22. Branduardi D, Gervasio FL, Cavalli A, Recanatini M, Parrinello M: The role of the peripheral anionic site and cation-pi interactions in the ligand penetration of the human AChE gorge. J Am Chem Soc 2005, 127:9147-9155.
+23. Li H, Min D, Liu Y, Yang W: Essential energy space random walk via energy space metadynamics method to accelerate molecular dynamics simulations. J Chem Phys 2007, 127:094101.
+24. Zheng L, Yang W: Essential energy space random walks to accelerate molecular dynamics simulations: convergence improvements via an adaptive-length self-healing strategy. J Chem Phys 2008, 129:014105.
+25. Huo S, Straub JE: The MaxFlux algorithm for calculating variationally optimized reaction paths for conformational transitions in many body systems at ﬁnite temperature. J Chem Phys 1997, 107:5000-5006.
+26. Henkelman G, Jonsson H: Improved tangent estimate in the nudged elastic band method for ﬁnding minimum energy paths and saddle points. J Chem Phys 2000, 113:9978-9985.
+27. Weinan E, Ren WQ, Vanden-Eijnden E: Finite temperature string method for the study of rare events. J Phys Chem B 2005, 109:6688-6693.
+28. Maragliano L, Fischer A, Vanden-Eijnden E, Ciccotti G: String method in collective variables: minimum free energy paths and isocommittor surfaces. J Chem Phys 2006, 125:024106.
+29. Dellago C, Bolhuis PG, Csajka FS, Chandler D: Transition path sampling and the calculation of rate constants. J Chem Phys 1998, 108:1964-1977.
+30. Dellago C, Bolhuis PG, Geissler PL: Transition path sampling. Adv Chem Phys 2002, 123:1-78.
+31. van Erp TS, Moroni D, Bolhuis PG: A novel path sampling method for the calculation of rate constants. J Chem Phys 2003, 118:7762-7774.
+32. Faradjian AK, Elber R: Computing time scales from reaction coordinates by milestoning. J Chem Phys 2004, 120:10880-10889.
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+www.sciencedirect.com
+
+Biomolecular flexibility and metadynamics Leone et al. 153
+
+33. Allen RJ, Warren PB, Wolde T, Rein P: Sampling rare switching events in biochemical networks. Phys Rev Lett 2005, 94:018104.
+34. Branduardi D, Gervasio FL, Parrinello M: From A to B in free energy space. J Chem Phys 2007, 126:054103.
+35. Bussi G, Gervasio FL, Laio A, Parrinello M: Free-energy landscape for beta hairpin folding from combined parallel tempering and metadynamics. J Am Chem Soc 2006, 128:13435-13441.
+36. Piana S, Laio A: A bias-exchange approach to protein folding. J Phys Chem B 2007, 111:4553-4559.
+37. Bonomi M, Branduardi D, Bussi G, Camilloni C, Provasi D, Raiteri P, Donadio D, Marinelli F, Pietrucci F, Broglia RA, Parrinello M: PLUMED: a portable plugin for free-energy calculations with molecular dynamics. Comput Phys Commun 2009, 180:1961-1972.
+38. Kranjc A, Bongarzone S, Rossetti G, Biarnes X, Cavalli A, Bolognesi ML, Roberti M, Legname G, Carloni P: Docking ligands on protein surfaces: the case study of prion protein. J Chem Theory Comput 2009, 5:2565-2573.
+39. Masetti M, Cavalli A, Recanatini M, Gervasio FL: Exploring complex protein-ligand recognition mechanisms with coarse metadynamics. J Phys Chem B 2009, 113:4807-4816.
+40. Kranjc A, Grillo FW, Rievaj J, Boccaccio A, Pietrucci F, Menini A, Carloni P, Anselmi C: Regulation of bestrophins by Ca2+: a theoretical and experimental study. PLoS One 2009, 4:e4672.
+41. Gervasio FL, Laio A, Parrinello M: Flexible docking in solution using metadynamics. J Am Chem Soc 2005, 127:2600-2607.
+42. Ceccarelli M, Anedda R, Casu M, Ruggerone P: CO escape from myoglobin with metadynamics simulations. Proteins 2008, 3:1231-1236.
+43. Bocahut A, Bernad S, Sebban P, Sacquin-Mora S: Relating the diffusion of small ligands in human neuroglobin to its structural and mechanical properties. J Phys Chem B 2009, 113:16257-16267.
+44. Provasi D, Bortolato A, Filizola M: Exploring molecular mechanisms of ligand recognition by opioid receptors with metadynamics. Biochemistry 2009, 48:10020-10029.
+45. Kuwata K, Nishida N, Matsumoto T, Kamatari YO, HosokawaMuto J, Kodama K, Nakamura HK, Kimura K, Kawasaki M, Takakura Y et al.: Hot spots in prion protein for pathogenic conversion. Proc Natl Acad Sci U S A 2007, 104:11921-11926.
+46. Vargiu AV, Ruggerone P, Magistrato A, Carloni P: Dissociation of minor groove binders from DNA: insights from metadynamics simulations. Nucleic Acids Res 2008, 36:5910-5921.
+47. Pietrucci F, Marinelli F, Carloni P, Laio A: Substrate binding  mechanism of HIV-1 protease from explicit-solvent atomistic
+simulations. J Am Chem Soc 2009, 131:11811-11818. This work characterizes the thermodynamics and kinetics of a peptideenzyme binding process using the model presented in Ref. [48]. This study suggests that a small model substrate binds into the enzyme cavity at a lateral channel without a large opening of protease ﬂaps. This may contrast with the natural polyprotein substrate which is expected to bind by opening the ﬂaps.
+48. Sadiq SK, Wan S, Coveney PV: Insights into a mutation-assisted  lateral drug escape mechanism from the HIV-1 protease active
+site. Biochemistry 2007, 46:14865-14877. Steered molecular dynamics simulations were used to study the expulsion mechanism of saquinavir drug from the active site of wildtype and several mutants HIV-1 protease. These simulations suggest that the drug may escape laterally, without opening completely the enzyme ﬂaps.
+49. Pfaender J, Branduardi D, Parrinello M, Pollard TD, Voth GA:  Nucleotide-dependent conformational states of actin. Proc
+Natl. Acad Sci U S A 2009, 106:12723-12728. The inﬂuence of the bound nucleotide state (ATP, ADP-Pi, or ADP) in the conformational landscape of the DNase-I binding loop of actin monomeric and trimeric forms is explored by metadynamics simulations. Interestingly the folded and unfolded states in the ADP-bound monomer are similarly populated. In contrast ADP-bound actin trimer is stable. Furthermore, these simulations showed that nucleotide states inﬂuence
+
+the DNase-I binding loop conformation: if it is bound to ATP and ADP-Pi it is closed, if it is bound to ADP it is open.
+50. Chu JW, Voth GA: Allostery of actin ﬁlaments: molecular dynamics simulations and coarse-grained analysis. Proc Natl Acad Sci U S A 2005, 102:13111-13116.
+51. Dalhaimer P, Pollard TD, Nolen BJ: Nucleotide-mediated conformational changes of monomeric actin and Arp3 studied by molecular dynamics simulations. J Mol Biol 2007, 376:166-183.
+52. Pfaendtner J, Voth GA: Molecular dynamics simulation and coarse-grained analysis of the Arp2/3 complex. Biophys J 2008, 95:5324-5333.
+53. Ceccarelli M, Ruggerone P: Physical insights into permeation of and resistance to antibiotics in bacteria. Curr Drug Targets 2008, 9:779-788.
+54. Ceccarelli M, Danelon C, Laio A, Parrinello M: Microscopic mechanism of antibiotics translocation through a porin. Biophys J 2004, 87:58-64.
+55. Danelon C, Nestorovich EM, Winterhalter M, Ceccarelli M, Bezrukov SM: Interaction of zwitterionic penicillins with the OmpF channel facilitates their translocation. Biophys J 2006, 90:1617-1627.
+56. Mach T, Neves P, Spiga E, Weingart H, Winterhalter M, Ruggerone P, Ceccarelli M, Gameiro P: Facilitated permeation of antibiotics across membrane channels–interaction of the quinolone moxiﬂoxacin with the OmpF channel. J Am Chem Soc 2008, 130:13301-13309.
+57. Cordero-Morales JF, Jogini V, Lewis A, Va´ squez V, Cortes DM, Roux B, Perozo E: Molecular driving forces determining potassium channel slow inactivation. Nat Struct Mol Biol 2007, 14:1062-1069.
+58. Berne` che S, Roux B: A gate in the selectivity ﬁlter of potassium channels. Structure 2005, 13:591-600.
+59. Domene C, Klein ML, Branduardi D, Gervasio FL, Parrinello M: Conformational changes and gating at the selectivity ﬁlter of potassium channels. J Am Chem Soc 2008, 130:9474-9480.
+60. Petraglio G, Bartolini M, Branduardi D, Andrisano V, Recanatini M, Gervasio FL, Cavalli A, Parrinello M: The role of Li+, Na+, and K+ in the ligand binding inside the human acetylcholinesterase gorge. Proteins 2008, 70:779-785.
+61. Naganathan AN, Doshi U, Fung A, Sadqi M, Mun˜ oz V: Dynamics, energetics, and structure in protein folding. Biochemistry 2006, 45:8466-8475.
+62. Bonomi M, Branduardi D, Gervasio FL, Parrinello M: The unfolded ensemble and folding mechanism of the C-terminal GB1 betahairpin. J Am Chem Soc 2008, 130:13938-13944.
+63. Piana S, Laio A, Marinelli F, Van Troys M, Bourry D, Ampe C, Martins JC: Predicting the effect of a point mutation on a protein fold: the villin and advillin headpieces and their Pro62Ala mutants. J Mol Biol 2008, 375:460-470.
+64. Pietrucci F, Laio A: A collective variable for the efﬁcient exploration of protein beta-sheet structures: application to SH3 and GB1. J Chem Theory Comput 2009, 5:2197-2201.
+65. Marinelli F, Pietrucci F, Laio A, Piana S: A kinetic model of Trp cage folding from multiple biased molecular dynamics
+simulations. PLoS Comput Biol 2009, 5:e1000452 doi: 10.1371/ journal.pcbi.1000452. The article shows a manner to extract metastable kinetic basins that are intermediates of the folding process and derive a folding mechanism of the Trp-cage, in agreement with the available experimental data.
+66. Todorova N, Marinelli F, Piana S, Yarovsky I: Exploring the folding free energy landscape of insulin using bias exchange metadynamics. J Phys Chem B 2009, 113:3556-3564.
+67. Akke M: NMR methods for characterizing microsecond to millisecond dynamics in recognition and catalysis. Curr Opin Struct Biol 2002, 12:642-647.
+68. Luker GD, Luker KE: Optical imaging: current applications and future directions. J Nucl Med 2008, 49:1-4.
+
+www.sciencedirect.com
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+154 Theory and simulation
+
+69. Rasnik I, McKinney SA, Ha T: Surfaces and orientations: much to FRET about? Acc Chem Res 2005, 38:542-548.
+70. Dziembowska T, Hansen PE, Rozwadowski Z: Studies based on deuterium isotope effect on C-13 chemical shifts. Prog Nucl Magn Reson Spectrosc 2004, 45:1-29.
+71. Bonomi M, Barducci A, Parrinello M: Reconstructing the equilibrium Boltzmann distribution from well-tempered metadynamics. J Comput Chem 2009, 30:1615-1621.
+72. Alfonso-Prieto M, Biarne´ s X, Vidossich P, Rovira C: The molecular  mechanism of the catalase reaction. J Am Chem Soc 2009,
+131:11751-11761. QM/MM metadynamics simulations gave insights into the mechanism of two bacteria catalase, showing few differences between them. More importantly, they solve an open question of how these enzymes may reduce heme iron and give place to water and oxygen molecule. Both bacteria catalase mechanism proceed by two one-electron transfer as peroxidases.
+73. Petersen L, Arde` vol A, Rovira C, Reilly PJ: Mechanism of cellulose hydrolysis by inverting GH8 endoglucanases: a QM/MM metadynamics study. J Phys Chem B 2009, 113:7331-7339.
+74. Min D, Josephine HR, Li H, Lakner C, MacPherson IS, Naylor GJP,  Swofford D, Hedstrom L, Yang W: An enzymatic atavist revealed
+in dual pathways for water activation. PLoS Biol 2008, 6:e206 doi: 10.1371/journal.pbio.0060206. QM/MM metadynamics simulations revealed a previously unrecognized reaction pathway of the enzyme inosine monophosphate dehydrogenase.
+75. Leone V, Lattanzi G, Molteni C, Carloni P: Mechanism of action  of cyclophilin a explored by metadynamics simulations.
+
+PLoS Comput Biol 2009, 5:e1000309 doi: 10.1371/ journal.pcbi.1000309. The authors provide a mechanistic basis for the whole enzymatic cycle of a prolyl-isomerase enzyme. Such mechanism is consistent with the available molecular biology data.
+76. Agarwal PK: Role of protein dynamics in reaction rate enhancement by enzymes. J Am Chem Soc 2005, 127:15248-15256.
+77. Li G, Cui Q: What is so special about Arg 55 in the catalysis of cyclophilin A? Insights from hybrid QM/MM simulations. J Am Chem Soc 2003, 125:15028-15038.
+78. Allen TW, Andersen OS, Roux B: Energetics of ion conduction through the gramicidin channel. Proc Natl Acad Sci U S A 2004, 101:117-122.
+79. Bucher D, Raugei S, Guidoni L, Dal Peraro M, Rothlisberger U, Carloni P, Klein ML: Polarization effects and charge transfer in the KcsA potassium channel. Biophys Chem 2006, 124:292-301.
+80. Lin IC, Seitsonen AP, Coutinho-Neto MD, Tavernelli I, Rothlisberger U: Importance of van der Waals interactions in liquid water. J Phys Chem 2009, 113:1127-1131.
+81. Ceriotti M, Bussi G, Parrinello M: Nuclear quantum effects in solids using a colored-noise thermostat. Phys Rev Lett 2009, 103:030603.
+82. Fischer S, Dunbrack RL, Karplus M: Cis–trans imide isomerization of the proline dipeptide. J Am Chem Soc 1994, 116:11931-11937.
+
+Current Opinion in Structural Biology 2010, 20:148–154
+
+www.sciencedirect.com
+

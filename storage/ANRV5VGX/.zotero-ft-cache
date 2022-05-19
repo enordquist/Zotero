@@ -1,0 +1,1401 @@
+Article pubs.acs.org/JCTC
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on October 26, 2018 at 15:37:43 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Polarizable Atomic Multipole-Based AMOEBA Force Field for Proteins
+Yue Shi,† Zhen Xia,† Jiajing Zhang,† Robert Best,‡ Chuanjie Wu,§ Jay W. Ponder,§ and Pengyu Ren*,†
+†Department of Biomedical Engineering, The University of Texas at Austin, Austin, Texas 78712, United States ‡Laboratory of Chemical Physics, NIDDK, National Institute of Health, Bethesda, Maryland 20892, United States §Department of Chemistry, Washington University, St. Louis, Missouri 63130, United States
+*S Supporting Information
+
+ABSTRACT: Development of the AMOEBA (atomic multipole optimized energetics for biomolecular simulation) force ﬁeld for proteins is presented. The current version (AMOEBA2013) utilizes permanent electrostatic multipole moments through the quadrupole at each atom, and explicitly treats polarization eﬀects in various chemical and physical environments. The atomic multipole electrostatic parameters for each amino acid residue type are derived from high-level gas phase quantum mechanical calculations via a consistent and extensible protocol. Molecular polarizability is modeled via a Thole-style damped interactive induction model based upon distributed atomic polarizabilities. Inter- and intramolecular polarization is treated in a consistent fashion via the Thole model. The intramolecular polarization model ensures transferability of electrostatic parameters among diﬀerent conformations, as demonstrated by the agreement between QM and AMOEBA electrostatic potentials, and dipole moments of dipeptides. The backbone and side chain torsional parameters were determined by comparing to gas-phase QM (RI-TRIM MP2/CBS) conformational energies of dipeptides and to statistical distributions from the Protein Data Bank. Molecular dynamics simulations are reported for short peptides in explicit water to examine their conformational properties in solution. Overall the calculated conformational free energies and J-coupling constants are consistent with PDB statistics and experimental NMR results, respectively. In addition, the experimental crystal structures of a number of proteins are well maintained during molecular dynamics (MD) simulation. While further calculations are necessary to fully validate the force ﬁeld, initial results suggest the AMOEBA polarizable multipole force ﬁeld is able to describe the structure and energetics of peptides and proteins, in both gasphase and solution environments.
+
+■ INTRODUCTION
+Proteins are a ubiquitous class of biopolymers, whose functionalities depend on the details of their 3D structures, which are in turn encoded by their speciﬁc amino acid sequences. Computer modeling and simulations are widely utilized in the study of protein structure, function, dynamics, and interactions with other synthetic or biological molecules. In molecular mechanics (MM) approaches, interactions among atoms are described by classical empirical potentials often referred to as force ﬁelds. Unlike ab initio quantum mechanical (QM) methods, the classical MM models treat atoms as rigid particles with electronic degrees of freedom averaged out, thereby lowering the computational cost and allowing simulation of biological events for larger systems and longer time scales. On the other hand, high level ab initio theory is becoming more aﬀordable and is now heavily utilized during the development of classic potentials for proteins, such as Amber,1 CFF,2 CHARMM,3 GROMOS,4 MM3,5 and OPLSAA.6 This class of force ﬁeld typically utilizes ﬁxed atomic charges, point dispersion-repulsion, and simple empirical functions for valence interactions. The current generation of force ﬁeld has enjoyed much success in many areas of biological
+
+and materials science; however, there remains signiﬁcant room for future improvement.
+Eﬀorts to advance molecular mechanics force ﬁelds to the “next-generation” have largely focused on introducing explicit electronic polarization into the electrostatic model. A number of comprehensive reviews on the history and development of polarizable force ﬁelds have detailed the signiﬁcance of polarization eﬀects.7−15 A wide range of studies on water,16−18 organic molecules,19−23 peptides,24,25 protein− ligand binding,26−33 ions,34−38 and ion channels39 using polarizable force ﬁelds have demonstrated various beneﬁts of directly treating polarization eﬀects. In addition to oﬀering more accurate thermodynamic properties, a polarizable force ﬁeld is more transferable, in principle, and can be more robustly parametrized by direct comparison with high-level ab initio quantum mechanical calculations in the gas phase.
+Several diﬀerent methods for incorporation of many-body eﬀects have been explored. The ﬂuctuating charge approach accounts for polarization by varying the magnitude of atomic charges based on electronegativity equalization.40−47 It has
+Received: May 6, 2013 Published: July 25, 2013
+
+© 2013 American Chemical Society
+
+4046
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+been argued that ﬂuctuating charge models fail for speciﬁc geometric situations, such as out of plane polarization and bifurcated hydrogen bonding, since charge ﬂow is limited to bond directions.48 Alternatively, the Drude oscillator or shell model, where a point charge moves about the nuclear position, has been applied to modeling of the induced dipole response in water and small molecule systems.17,49−53 Compared to the classical induced dipole method,16,19,48,54−57 these schemes involve less complex numerical algorithms since the point charge framework is retained. However, the interactive atomic induced dipole model58,59 is superior in terms of reproducing anisotropy and nonadditivity of molecular polarization response across many diﬀerent types of compounds. Moreover, intramolecular polarization assumes a critical role upon moving from small molecules to larger peptides and proteins possessing alternative conformational states. The conformational dependence of electrostatics can be signiﬁcant,60,61 and has received attention in the design and development of both polarizable and nonpolarizable force ﬁelds.60,62−64 As we have previously shown,24 the interactive induction model used in AMOEBA can accurately reproduce this property.
+In addition to polarization eﬀects, we also want to stress the atomic partial charge-based representation of permanent electrostatics is itself inadequate. It has been shown that the error in a molecular electrostatic potential can be reduced by orders of magnitudes upon complementing atomic monopoles with dipole and quadrupole moments.65−67 The incorporation of higher order atomic multipoles has been shown to greatly improve the quality of crystal structure predictions for simple organic molecules.68,69 One may argue additional oﬀ-center charges are an alternative to point multipoles, as they can enable the same level of ﬁdelity in description of electron density. For example, the use of charges at lone-pair sites of oxygen atoms can improve the ability of a water model to reproduce properties such as the density anomaly with temperature, and the dielectric constant.70 Nevertheless, the determination of both position and magnitude of the charges at such extra sites is a nontrivial task, requiring ﬁtting to the experimental density−temperature proﬁle. In contrast, the distributed multipole analysis of Stone71,72 provides relatively unambiguous sets of atomic multipoles directly from molecular orbital calculations.
+In this work, we present the development of a protein potential based upon a polarizable atomic multipole representation of electrostatics. The intramolecular polarization scheme formulated previously allows us to obtain the permanent atomic multipoles, directly from ab initio calculations on blocked dipeptides. A new protocol is applied to combine Distributed Multipole Analysis (DMA) and electrostatic potential ﬁtting to derive conformation-independent “permanent” multipoles. The valence and van der Waals parameters have been derived from liquid simulations of small organic molecules containing similar functional groups. Merging of inter- and intramolecular interactions at short separation, including electrostatics, vdW, and torsional contribution, is determined via comparison to gas phase QM data for di- and tetrapeptides. The resulting potential is examined and validated by dynamics simulation of a number of peptides and proteins in solution and comparison with experimental data. Compared to the preliminary AMOEBA protein force ﬁeld parameters described in a previous article,73 the current paper reports a completely new protein AMOEBA2013 force ﬁeld that is systematically developed using a newly
+
+improved strategy to parametrize permanent electrostatics and torsions, coupled with substantial validation against experimental data.
+■ POTENTIAL ENERGY MODEL
+The potential energy model has been explained in detail in several previous publications.18,23 Here, we will brieﬂy summarize the key features. The total energy of the system is given by
+
+U = Ubond + Uangle + Ucross + Uoop + Utorsion + UvdW
+
++ Uepleerm + Ueinled
+
+(1)
+
+The ﬁrst ﬁve terms are the valence contributions corresponding
+to the bond, angle, bond-angle cross coupling, out-of-plane, and
+torsional energy, respectively. Common functional forms are
+used for these terms, and the detailed equations have been given previously.73 Earlier versions of the AMOEBA protein force ﬁeld included a torsion−torsion coupling term, implemented via a cMAP-style74 two-dimensional bicubic
+spline. This term is essentially a grid-based correction to match the force ﬁeld ϕ−ψ conformational energies to those of
+a target QM-based potential surface. In the current version, however, the “traditional” 3-term Fourier expansion function is
+used for all torsion angles, except for the backbone of glycine.
+The pairwise additive vdW interaction in AMOEBA is described by Halgren’s buﬀered 14−7 function.75 The buﬀered 14−7 function yields a slightly “softer” repulsive region than the Lennard-Jones 6−12 function, but a steeper repulsive wall than
+typical Buckingham exp-6 formulations. For a hydrogen atom
+connected to a heavy atom X, the vdW site is placed along the
+HX bond such that the distance between the atom X and vdW
+site of H is a percentage of the full bond length, referred to as the “reduction factor”. This allows incorporation of some vdW
+anisotropy along the bond direction.
+The permanent electrostatic energy in AMOBEA arises from
+atomic multipole-multipole interactions. Each atomic center
+consists of a point monopole (partial charge), a dipole vector and a quadrupole tensor. Note there are only ﬁve independent
+quadrupole components due to symmetry and use of traceless moments. The dipole and quadrupole are deﬁned with respect
+to local reference frames formed by neighboring atoms.
+Examples of such local frames are illustrated in Figure 1. As the molecules rotate and diﬀuse over the course of a simulation, each atom’s atomic multipoles maintain a constant orientation
+
+Figure 1. Local frame deﬁnitions for (a) a protein backbone Cα, (b) backbone amide N, (c) carboxylate carbon, and (d) amine nitrogen. The Cα and amide N use the “Z-then-X” convention, where a ﬁrst neighboring atom is selected to deﬁne the Z-axis, and a second neighbor deﬁnes the ZX-plane and the positive X-direction. The carboxylate example uses the “Bisector” convention, where the bisector of two neighboring atoms deﬁnes Z-axis. This is typically used in
+structures with local 2-fold symmetry. The amine N is represented by the “Z-Bisector” convention, where the N−R bond deﬁnes the Z-axis, and the bisector between the two N−H bonds deﬁnes the ZX-plane. In all cases, the Y-axis is then deﬁned according to the right-hand rule.
+
+4047
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+with respect to their local frame. The equation for calculating interaction energies and gradients (forces and torques) between permanent multipoles, including a traditional Ewald summation method, was presented previously.18
+Electronic polarization accounts for the majority of the many-body eﬀects experienced in biomolecular systems although there are situations where many-body aspects of the dispersion and repulsion energies may be important as well.76,77 AMOEBA utilizes an interactive atomic dipole induction scheme where the ﬁeld produced by permanent multipoles and induced dipoles induces a dipole at each polarizable site, and each such induced dipole then further polarizes other atoms. As a result, anisotropic molecular polarizability can be eﬀectively described by isotropic distributed atomic polarizabilities. On the basis of Thole’s model,59 polarization at very short-range is damped, yielding energies in better agreement with ab initio results and avoiding the so-called polarization catastrophe. The same polarization model is used for both intermolecular and intramolecular polarization. A group-based scheme, where permanent multipoles do not polarize other atoms within their group, but induced−induced mutual polarization occurs between all atoms, allow us to merge molecular fragments to represent a larger chain molecule such as a protein. We have previously described the procedure used to extract intramolecular polarization from ab initio quantum mechanical calculations, resulting in “true” permanent atomic multipoles.24 The computation of the polarization energy and gradient in molecules containing multiple polarization groups is detailed in our previous report on the AMOEBA force ﬁeld for general organic molecules.23
+The masking of short-range intermolecular interactions is implemented by means of scale factors, which were determined by optimizing the transferability of conformational energies from alanine dipeptide to tetrapeptide, as discussed in the parametrization section. The ﬁnal set of scale factors for interactions between permanent multipoles is 0.4 for the 1−4 interactions (separated by three bonds), 0.8 for 1−5 interactions, and zero (completely neglected) for any closer pair of atoms (1−2 and 1−3 interactions). The polarization energy between induced dipoles and permanent multipole moments is computed fully between atoms separated by three (1−4) or more bonds, and completely neglected for any closer separation. The analytical gradient of the polarization energy is nontrivial because the intramolecular “scaling” used in computing polarization interaction energies diﬀers from the group-based scheme used during induced dipole generation. A derivation of the analytical polarization force resulting from the above masking scheme is detailed in the appendix our previous publication.23
+A particle-mesh Ewald (PME) treatment of polarizable multipole interactions has been developed78 and implemented in TINKER,73 Amber,79 and OpenMM80 for AMOEBA calculations. The latest version of TINKER has OpenMP shared-memory parallelization of AMOEBA simulations, AMBER (PMEMD) has the MPI parallel capability, while OpenMM is accelerated for GPU-based calculations. For typical systems, roughly half of the computational expense of AMOEBA is due to iterative calculation of the induced dipoles. For highly charged systems, the relative cost of dipole iteration can be higher (e.g., containing divalent ions). Recently, we have implemented a new induced dipole solver modiﬁed from a conjugated-gradient method,81 which signiﬁcantly improves eﬃciency when tightly converged induced dipoles (<10−5
+
+Debye RMS change) are required. In addition, we have introduced into TINKER a multiple time step (MTS) algorithm for AMOEBA molecular dynamics, in which nonbonded interactions including polarization are updated every 2−2.5 fs. This simple MTS algorithm allows use of longer MD time steps and yields improved computational throughput.
+■ COMPUTATIONAL DETAILS
+Ab initio calculations were performed using Gaussian 0982 and Q-Chem 4.0.83 Geometry optimization was carried out at the MP2/6-31G* level, which is computationally eﬃcient and gives reliable molecular geometries. Initial atomic multipoles for dipeptide model compounds were derived at the MP2/6311G** level using Stone’s original DMA procedure.71 Basis sets containing diﬀuse functions are avoided in the initial DMA determination as they lead to spurious multipole values, especially for buried atoms.84 Note the original DMA procedure can be achieved in the current version of the GDMA program (version 2.0 and above)85 by setting “switch” to 0, and the “radius factor” to 0.65 for all atom types. The resulting atomic multipole values were then optimized against MP2/aug-cc-pVTZ electrostatic potential values computed on a grid of points around each model compound. MP2/aug-ccpVTZ was used because our previous studies indicate inclusion of diﬀuse basis functions is important for capturing intermolecular interactions and reproducing experimental hydration free energy.23 Partial charge values (monopoles) are held ﬁxed during the potential optimization. All single point conformational energies were obtained with complete basis set (CBS) extrapolation from RI-TRIM MP2/cc-pVTZ and ccpVQZ results.86 These CBS calculations provide highly accurate conformational energies while still being computationally aﬀordable. The TINKER, version 6, and Amber, version 10, molecular modeling packages were used for all the molecular mechanics calculations. Particle−mesh Ewald summation78,87,88 was applied to treat electrostatic interactions, including polarization, with a real-space cutoﬀ distance of 7.0 Å, a grid spacing of 0.8 Å, and ﬁfth-order B-splines. A cutoﬀ with a switching window at 12 Å was applied to the vdW interactions. Induced dipoles were iterated to convergence, until the rootmean-square (RMS) change between interations fell below 0.01 D per atom. All molecular dynamics simulations were performed using a Velocity Verlet MTS integration algorithm89 with a 2.5 fs time step. The system temperature was controlled via the Nose−Hoover chain thermostat method.90
+For alanine, glycine, proline, and some terminal capping groups (Ala-COOH, Gly-COOH, Gly-COO−), the minimum energy map of the dipeptide was calculated on a uniform 15° grid in ϕ−ψ space. At each of the 576 points, MP2/6-31G* geometry optimization with constrained ϕ and ψ values was performed prior to a single point energy calculation at the RITRIM/MP2 CBS level. For proline, fewer grid points were available for QM calculations because of the limited conformational freedom. For the chain terminal amino acids, a single point ab initio energy was also calculated for each optimized structure using the Polarizable Continuum Model (PCM) solvation model. The torsion parameters for model compounds were initially ﬁt to gas-phase ab initio conformational energies, and then adjusted to agree with statistical populations sampled from the Protein Data Bank (PDB). For the residue side chain torsions, geometry optimization was performed at the MP2/631G* level with each torsional angle constrained at 30°
+
+4048
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+increments from 0° to 360°, followed by single point RI-TRIM
+MP2/CBS energy calculations. The potential of mean force (PMF) of a solvated alanine
+tripeptide, NH3+-Ala-Ala-Ala-COO−, with respect to ϕ and ψ angles of the central Ala residue was computed using the two-
+dimensional weighted histogram analysis method (2D WHAM).91−93 A total of 576 independent molecular dynamics
+simulations of an alanine dipeptide and 206 water molecules in
+a 26.6 Å truncated octahedral box were carried out at 298 K,
+using the same grid as for the gas phase map. In each simulation, the ϕ and ψ angles were restrained to a grid point
+on the Ramachandran map using weak harmonic potentials with a force constant of 0.01 kcal/mol-deg2. The resulting conformer populations, sampled from the 576 × 70 ps
+production trajectories were utilized to construct the PMF
+and the relative free energy map via the 2D WHAM procedure. An experimentally derived PMF was calculated from −ln(P),
+where P is the torsion distribution as sampled from PDB statistics.94 For the alanine backbone, the PDB PMF was
+obtained by averaging the data for tripeptides with a central
+alanine and either the right- or left-neighboring residue being
+alanine (i.e., Ala-Ala-X or X-Ala-Ala, where X represents any
+residue type). For proline, PDB data with either a right- or left-
+neighbor residue being glycine (i.e., Gly-Pro-X or X-Pro-Gly)
+was averaged. Similarly, the glycine PMF was calculated by
+averaging the PDB data for Pro-Gly-X and X-Gly-Gly. For peptide systems, including unblocked and protonated
+(Ala)5, NH3+-Gly-Pro-Gly-Gly-COO− and Ac-(Ala-Ala-GluAla-Ala)3-NH2, replica exchange molecular dynamics (REMD)95,96 simulations were performed using 36 replicas at
+temperatures between 278 and 620 K. The (Ala)5 peptide was unblocked, protonated at the N-terminus (−NH3+) and neutral at the C-terminus (−COOH), corresponding to the experimental conditions of pH 2.97,98 For each system, the peptide
+was placed in a truncated octahedral box with approximately
+800 water molecules. REMD simulations were performed under
+the NVT ensemble for at least 30 ns/per replica, using the PMEMD program from Amber 10.79 with snapshots saved
+every 0.5 ps for analysis. Protein molecular dynamics simulations were performed
+using the Amber10 software package. The proteins simulated include: crambin (PDB 1EJG, 46 residues),99 Trp cage (PDB 1L2Y, 20 residues),100 villin headpiece (PDB 1VII, 35 residues),101 ubiquitin (PDB 1UBQ, 76 residues),102 GB3 domain (PDB 2OED, 56 residues),103 RD1 antifreeze protein (PDB 1UCS, 64 residues),104 SUMO-2 domain (PDB 1WM3, 72 residues),103 BPTI (PDB 1BPI, 58 residues),105 FK binding protein (PDB 2PPN, 107 residues),106 and lysozyme (PDB 6LYT, 129 residues).107 For each system, a single protein
+molecule was placed in a truncated octahedral water cell chosen
+to provide a minimum distance of 8 Å between protein and cell
+wall. Simulations were performed in the NPT ensemble at a
+temperature of 298 K. Approximately 10 ns of MD trajectory
+were generated for each system. The initial 500 ps portion of
+each trajectory was discarded corresponding to equilibration,
+and structural information was saved every 0.5 ps during the
+subsequent production phase. Analysis of the dynamics
+trajectories, including computation of RMSD values and
+average structures, was performed via the Amber Ptraj module.79
+
+■ PARAMETER DERIVATION
+
+Article
+
+Electrostatic Parameters. Permanent atomic multipoles
+
+for glycine, alanine and proline residues were derived from
+
+capped Ac-X-NMe dipeptides with X = Gly, Ala, and Pro, with
+
+the goal of deriving conformationally independent electrostatic parameters for the central residue X from QM. A critical ﬁrst step is deﬁnition of intramolecular direct polarization groups
+
+since the intramolecular polarization contribution needs to be
+
+extracted from the DMA multipole values as described in the Potential Energy Model section. Recall that an atom’s
+
+permanent atomic multipoles (PAMs) only polarize atoms
+
+outside its polarization group. Figure 2 shows the group
+
+Figure 2. Illustration of the intramolecular polarization group deﬁnition. Each group consists of a functional group or cluster of atoms with limited conformational ﬂexibility. The permanent multipole moments on each atom only polarize atoms of other groups, while induced dipoles on all atoms polarize all other atoms regardless of group membership.
+deﬁnition for alanine. For side chains of other residues, the groups are chosen in the same spirit, that is, no freely rotatable bonds within the group. For example, the −CH2−, phenyl ring, and hydroxyl group are each classiﬁed as a single group for purposes of direct polarization. Next, the initial multipole parameters were derived by via DMA at the MP2/6-311G** level, and these parameters were then optimized against the MP2/aug-cc-pVTZ electrostatic potential computed on a set of grid points around the dipeptide compounds. Multiple grid layers were chosen at 0.35 Å intervals, beginning at a 1.0 Å distance from the vdW surface. Multipole parameters are iterated until the RMS diﬀerence from the target QM potential falls below 0.5 kcal/mol, and the RMS gradient is less than 0.5 kcal/mol/Å. Note the point charges are ﬁxed at the original DMA values during the optimization process, while the dipole and quadrupole moments are allowed to relax. The point charges at the boundary between the middle and capping residues, and between the backbone and side chain atoms are then manually adjusted to ensure an integral net charge for each residue. This adjustment is usually very small and the ESP optimization process ensures that charge adjustments are compensated by dipole and quadrupole changes. The resulting PAMs for the central residue are the “conformation independent” PAMs included in the AMOEBA-2013 parameter ﬁle. When connected to other residues in proteins, intramolecular polarization due to the PAMs takes place according to the polarization group deﬁnition. For alanine, we selected ﬁve local minima (αL, α′, C5, C7a, and C7e conformers) and used all ﬁve conformers simultaneously in the above procedure. The multipoles from this multiple-structure potential ﬁtting were used as the ﬁnal set of permanent multipole parameters, and one additional conformer (β2) was used as validation by computing its electrostatic potential and dipole moments with the ﬁnal parameters and comparing to QM results. PAMs for glycine and proline were obtained via an analogous protocol.
+For all other residues, capped (Ac-X-NMe) dipeptides were chosen as the model compounds. For each amino acid, three conformations were selected for use in permanent multipole
+
+4049
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+(monopole, dipole, and quadrupole) parametrization and another three for validation. The conformers have either an extended backbone or represent compact structures with internal hydrogen bonds corresponding to gas phase minima. The backbone atoms were constrained to have the same PAM values as alanine, while side chain PAMs were derived using the procedure outlined above. When the side chain parameters were merged with alanine backbone parameters, charge neutralization (typically on the order of one-hundredth of an electron) was performed at the Cβ atom. Dipole and quadrupole moments were ﬁt to MP2/aug-cc-pVTZ electrostatic potentials for the three conformers in the parametrization set, allowing only the side chain values to vary. ESP ﬁtting and validation results are discussed in detail in the Simulation and Validation section. In addition to Ac (CH3CO−) and NMe (−NHCH3) terminal groups, other N-termini (−NH3+ and −NH2) and C-termini (−COOH and −COO−) were also parametrized. Note glycine requires a separate parametrization for −NH3+ and −COOH termini because of its use of a diﬀerent Cα atom type. Due to the amount of data involved, most parameters, including the PAMs and direct polarization group deﬁnitions, are not given in the text, but are included in the AMOEBA-2013 parameter ﬁles, which are publicly available from the TINKER web site at http://dasher.wustl.edu/tinker/.
+vdW and Valence Parameters. The van der Waals and valence parameters were transferred from the AMOEBA parameters for small organic molecules, as reported in a previous publication.23 The parametrization for these terms follows essentially the approach used for water18 and ions,34 where the vdW parameters were optimized to gas phase cluster structures and energetics as well as condensed-phase properties. A critical strategy in deriving the vdW parameters, due to their empirical nature, is to ensure chemical consistency among diﬀerent elements. This was achieved by simultaneously parametrizing multiple compounds sharing the same vdW “classes” to improve transferability. The “atom classes” (super set of “atom types” used for electrostatics) in AMOEBA are subdivided beyond the simple chemical element types, largely to take into account diﬀerent hybridizations, such as sp2 versus sp3. A selection containing the most common vdW parameters is provided in Table . The valence parameters, including bond, angle, bond-angle cross term and out-of-plane parameters, were transferred from small organic molecules with minor modiﬁcations to improve agreement with ab initio (MP2/631G*) geometries and protein PDB structures.
+Torsional Parameters. The valence parameters (bond stretching, angle bending, bond-angle cross terms, out-of-plane bending) were transferred from organic small molecules, which were derived by matching the QM geometry and vibrational frequency of small moelcules.108 The last step was then to derive the torsional parameters by comparing AMOEBA (everything but the to-be-ﬁt torsion) and ab initio conformational energy values. Note that the molecular mechanics conformational energy depends not only on the torsional energy term, but also on the treatment of nonbonded intramolecular interactions − in particular on the treatment of 1−4 interactions across each torsion. In this work, the scaling factors for the intramolecular electrostatic and vdW interactions have been chosen to minimize the contribution of the explicit torsional terms and ensure maximal transferability of parameters between dipeptides and tetrapeptides.
+The alanine dipeptide is used to parametrize backbone torsional terms for all amino acids, with the exception of glycine
+
+Article
+
+Table 1. vdW Parameters for Protein Backbone Atomsa
+
+atom class
+
+2r (Å) ε (kcal/mol) H-reduction factor
+
+Cα
+
+3.650
+
+0.101
+
+Hα
+
+2.940
+
+0.026
+
+0.91
+
+Cβ
+
+3.820
+
+0.101
+
+Hβ
+
+2.980
+
+0.024
+
+0.92
+
+N (amide)
+
+3.710
+
+0.110
+
+H (amide)
+
+2.590
+
+0.022
+
+0.90
+
+C (carbonyl)
+
+3.820
+
+0.106
+
+O (carbonyl) O− (in −COO−)
+
+3.300 3.700
+
+0.112 0.129
+
+S
+
+4.005
+
+0.355
+
+S−
+
+4.200
+
+0.355
+
+aAMOEBA uses “atom classes” to deﬁne vdW and valence parameters, while more ﬁnely-grained “atom types” are used for electrostatic parameters. Several diﬀerent atom types may belong to the same atom class. r is the atomic radius; ε is the potential well depth; H-reduction
+
+factor accounts for the distance reduction that moves H vdW sphere oﬀ its nuclear center toward the heavy atom (X) it attaches to. The number represents the percentage of H−X bond length where the H
+
+atom vdW sphere is located at. Note that 2r (diameter) is used here to be consistent with TINKER parameter format.
+
+Table 2. Comparison of Side Chain Conformational Energy (kcal/mol) as Calculated by AMOEBA and QM (RI-TRIM MP2/CBS)a
+
+side chain torsion RMSD
+
+side chain torsion RMSD
+
+Cys χ1
+
+0.67 Asn χ1
+
+1.35
+
+χ2
+
+0.10
+
+χ2
+
+1.06
+
+Met χ1 same as Glu and 0.40 Glu χ1 from Met
+
+0.79
+
+Gln
+
+χ2 χ3 Ser χ1
+
+0.52
+
+χ2 from Gln
+
+1.86
+
+0.10
+
+χ3 from Asp χ2
+
+0.42
+
+0.84 Leu χ1
+
+0.32
+
+χ2
+
+0.22
+
+χ2 averaged over
+
+0.31
+
+Leu/Ile
+
+Thr χ1 same as Ser and 0.96 Val χ1
+
+0.58
+
+Val
+
+His χ1
+
+1.24 Phe χ1
+
+0.65
+
+χ2
+
+1.31
+
+χ2
+
+0.54
+
+Hid χ1 χ2
+Hie χ1 χ2
+
+0.83 Tyr χ1 from Phe
+
+0.55
+
+0.67
+
+χ2
+
+0.44
+
+1.10 Trp χ1
+
+0.54
+
+1.00
+
+χ2
+
+0.55
+
+Ile χ1 from Val
+
+0.53 Asph χ1
+
+1.39
+
+χ2 averaged over
+
+0.34
+
+χ2
+
+0.97
+
+Leu/Ile
+
+Arg χ1 from Met
+
+1.63 Lys χ1 from Asn
+
+0.74
+
+χ2 same as Lys
+
+1.08
+
+χ2
+
+0.95
+
+χ3
+
+1.76
+
+χ3
+
+0.96
+
+χ4
+
+0.80
+
+χ4
+
+0.73
+
+Asp χ1 from Asph χ2
+
+1.22 Gln χ1 from Met
+
+0.79
+
+1.01
+
+χ2
+
+1.86
+
+χ3 from Asn χ2
+
+0.42
+
+aThe conformational energies were obtained by rotating each listed side chain torsion from 0 to 360° at 30° intervals. For all RMSD
+
+calculations, data from two backbone conformations, α-helical and β-
+
+sheet, were combined.
+
+and proline. The ab initio (RI-TRIM MP2/CBS) energy of alanine dipeptide was systematically evaluated at diﬀerent backbone torsion angles over a 24 × 24 grid (15° intervals in both ϕ and ψ) as described in the Computational Details. The
+
+4050
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 3. Gas-phase energy contours for alanine dipeptide from RI-TRIM MP2/CBS calculations (a) and the AMOEBA protein force ﬁeld (b).The energies were computed on a 24 × 24 grid and then contoured.
+
+AMOEBA energy without the ϕ/ψ torsional contribution was
+computed for the same conformation, while enforcing torsion constraints. The diﬀerence between AMOEBA and RI-TRIM MP2/CBS energy is taken as the ﬁtting target for the torsional
+parameters, using a standard three-term Fourier expansion.
+Subsequently 2D WHAM simulations of an Ala-Ala-Ala
+tripeptide in explicit water were performed to obtain the Ramachandran potential of mean force (PMF) for the middle
+residue. The backbone torsion parameters were further
+improved by comparing the AMOEBA PMF in solution to a
+statistically derived alanine backbone PMF derived from the PDB database.94 We note that the torsion parameters were not directly ﬁt to the PDB PMF. Instead, the parameter reﬁnement
+was achieved by assigning relatively higher weight factors to the
+QM energy of gas-phase conformers located in the polyproline II (PII), α-helical and β-sheet regions, while still ﬁtting to the
+whole QM gas phase energy map. Torsional parameters were manually reﬁned over 3−4 iterations to balance the relative
+populations of solvated peptide in these minimum energy
+regions. The gas phase Ramachandran potential energy from RI-TRIM MP2/CBS and AMOEBA with the ﬁnal torsion
+parameters are compared in Figure 3. The simulated solution
+phase AMOEBA PMF and the PDB-derived statistical PMF
+maps for the alanine backbone are shown in Figure 4a. The parametrization of proline backbone torsions followed
+essentially the same procedure as for alanine, except that fewer
+grid points were used because of the limited conformational freedom. For glycine, a torsion−torsion spline term is introduced in addition to the Fourier torsional terms for ϕ and ψ. After the Fourier torsional parameters were ﬁt to the gas-phase ab initio RI-TRIM MP2/CBS energy, the diﬀerence
+between the ab initio and AMOEBA energy was used to determine the torsion−torsion grid based correction table. (See Potential Energy Model for deﬁnition). These 2D values were ﬁxed in the subsequent reﬁnement of the Fourier torsional parameters. Use of the torsion−torsion term improves the ﬁt to
+both ab initio data and solution phase properties. Similar to the
+parametrization of alanine backbone torsions, the torsional parameters for proline and glycine backbones were reﬁned to
+match the statistical PMF for proline and glycine residues in the
+
+PDB database, respectively. REMD simulations were performed with a model tetrapeptide, GPGG (NH3+-Gly-Pro-Gly-GlyCOO−), to obtain the simulated backbone torsion angle distribution of proline and glycine. All other residues share the same backbone torsion parameters (together with valence, vdW, and electrostatic parameters) as alanine. Parameterization of the −COOH C-terminal form of alanine (and other nonGly/Pro residues), and the −COOH and −COO− terminal forms of glycine were ﬁt to RI-TRIM MP2/CBS energies on a 12 × 12 torsional grid. Since there are limited PDB data available for terminal residues, we optimized these parameters by matching AMOEBA energies in implicit solvent (based on Generalized Kirkwood model109) with QM PCM energies at the MP2/6-311G(2d,2p) level.
+In addition, conformation energies for a benchmark set of 27 alanine tetrapeptides110 have been assessed. This comparison was made to validate transferability and to adjust the scale factors for short-range intramolecular nonbonded interactions. The AMOEBA results are compared with those from MP2, LMP2, DFT, and RI MP2 calculations in Table 3. All the ab initio calculations are single point energy evaluations at the same HF/6-31G** geometries. AMOEBA calculations were performed with both full geometry optimization, and with ϕ and ψ angles constrained to the HF geometry. All comparison is made against RI MP2/CBS results. While the AMOEBAoptimized structures deviate only slightly from those at HF/631G** (average SRMS = 0.47 Å), the RMS diﬀerence between AMOEBA and RI MP2/CBS energies is 1.15 kcal/mol, similar to those of LMP2/cc-pVTZ(-f) and MP2/6-311+G2d2p. Note that the relative conformational energies of the ﬁrst two conformers (extended) versus the third conformer (a compact structure) given by RI MP2/CBS lies between the canonical MP2 and LMP2 results, as do the AMOEBA results. The relative energy of extended and folded conformations is an important measure of the strength of intramolecular dispersion attraction is such systems.
+For the side-chain torsions for all other residues, the parameters were obtained by ﬁtting to the RI-TRIM MP2/ CBS conformational energy of the corresponding dipeptides. To derive parameters independent of the backbone con-
+
+4051
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 4. Comparison of Ramachandran map potentials of mean force for alanine. (a) Ala-2 residue of (Ala)3 as predicted by 2D-WHAM simulations. (b) Average of Ala-2, Ala-3, and Ala-4 residues in replica exchange molecular dynamics simulation of the (Ala)5 peptide. The trajectory at 298 K was used. (c) The PDB data are from ref 94.
+formation and to verify the transferability of the backbone torsional parameters for alanine, two or more dipeptide
+
+conformations with backbone ϕ/ψ values ﬁxed at α-helix and β-sheet values were used simultaneously to ﬁt the parameters of side chain χ torsions. For each conformer, the side chain torsional angle of interest was rotated in increments of 30°. At each point, the dipeptide structure was optimized with ϕ, ψ, and χ angles constrained to the same values in both ab initio level and AMOEBA calculations. Examples of conformational energy proﬁles for isoleucine and serine side chains are plotted in Figure 5. The former has an aliphatic side chain, and a single set of torsional parameters performs well across both conformers. The energy order of the local minima is also captured by AMOEBA. The situation for serine is a slightly worse because of the additional complication of intramolecular hydrogen bonding between the side chain and backbone. In both cases, the torsional energy contribution accounts for about 15% of the total conformational energy. In Table 2, the average RMS error from the conformational energy ﬁtting for each residue is listed.
+■ SIMULATION AND VALIDATION
+For small molecules, it is possible to systematically compare force ﬁeld calculations over a range of ab initio data and experimental properties, which allows us to optimize the individual components in the potential energy model, such as the relative contributions from electrostatics and vdW interactions. For larger biomolecules, however, one can only compare detailed simulations with limited data such as database-derived statistical populations, NMR J coupling constants, and atomic structures of native proteins from X-ray or NMR experiments. Such comparison, while absolutely necessary, is most useful for inspecting the torsional parameters, and provides less feedback for other force ﬁeld components (e.g., vdW or electrostatics). It will require more extensive investigation across a wide range of proteins research areas, such as protein folding, ligand binding, pKa shifts and mutant stability, to fully validate the diﬀerent components and aspects of our proposed force ﬁeld. Here, we provide initial results through examination of the electrostatic parameters against QM for multiple conformations of each amino acid in the gas phase, and assessment of peptide conformational properties and protein structures in solution.
+Electrostatic Properties in the Gas Phase. One of the important advantages of a polarizable force ﬁeld is its transferability from gas phase to solution. Therefore, it is to our advantage that the gas phase electrostatic properties can be rigorously compared to QM ab initio results. It is especially important to ensure transferability of the alanine backbone electrostatic multipoles to other residues (except glycine and proline), as well as transferability among diﬀerent conformations of each amino acid. We have validated the electrostatic properties of the AMOEBA protein model by computing the x-, y-, and z-components of the dipole moment and the electrostatic potential of dipeptide model compound for each amino acid. For each amino acid dipeptide, three conformations were chosen as the validation set, and these structures were excluded from use in the parametrization process. In Figure 6, we compare the AMOEBA and QM molecular dipole moments of the dipeptide conformers in the validation set. The dipole moment xyz components of all the dipeptides are accurately reproduced, regardless of conformation and residue type, resulting in a correlation coeﬃcient of 0.998. To the best of our knowledge, no other force ﬁeld has demonstrated to be able to represent peptide electrostatic properties at diﬀerent con-
+
+4052
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Table 3. Comparison of Alanine Tetrapeptide Conformational Energy (kcal/mol)a
+
+RI MP2/CBS LMP2/cc-pVTZ(-f) MP2/6-311+G2d2p DFT B3LYP/6-31G* AMOEBA struct. RMS (Å) AMOEBA (ϕ/ψ restrained)
+
+4.13
+
+2.50
+
+4.61
+
+1.62
+
+3.07
+
+0.30
+
+2.54
+
+4.19
+
+2.60
+
+4.21
+
+1.71
+
+3.62
+
+0.42
+
+0.74
+
+0.57
+
+0.00
+
+−0.70
+
+−1.00
+
+0.00
+
+0.21
+
+0.33
+
+5.73
+
+3.87
+
+5.50
+
+3.61
+
+4.07
+
+0.37
+
+3.82
+
+5.26
+
+3.88
+
+5.14
+
+4.25
+
+3.96
+
+0.30
+
+2.27
+
+2.90
+
+2.19
+
+2.10
+
+2.10
+
+2.45
+
+0.53
+
+0.14
+
+6.67
+
+5.73
+
+5.61
+
+6.56
+
+7.64
+
+0.45
+
+0.65
+
+4.64
+
+4.17
+
+3.32
+
+4.99
+
+5.45
+
+0.44
+
+1.06
+
+7.92
+
+6.93
+
+6.98
+
+5.20
+
+10.01
+
+0.25
+
+3.14
+
+7.79
+
+6.99
+
+6.57
+
+7.24
+
+6.34
+
+0.34
+
+0.62
+
+0.00
+
+−0.19
+
+−1.41
+
+0.14
+
+0.75
+
+0.68
+
+0.58
+
+0.29
+
+0.50
+
+−1.07
+
+1.73
+
+0.75
+
+0.91
+
+0.22
+
+3.66
+
+1.77
+
+3.20
+
+1.14
+
+3.56
+
+0.62
+
+0.02
+
+4.68
+
+3.68
+
+4.14
+
+3.89
+
+4.66
+
+0.71
+
+0.00
+
+2.19
+
+2.07
+
+0.65
+
+3.47
+
+2.28
+
+0.59
+
+0.08
+
+3.55
+
+2.83
+
+2.33
+
+3.31
+
+2.93
+
+0.48
+
+0.24
+
+3.42
+
+2.78
+
+2.02
+
+2.00
+
+2.32
+
+0.28
+
+1.09
+
+1.91
+
+0.52
+
+1.15
+
+−0.87
+
+2.19
+
+0.56
+
+0.20
+
+3.82
+
+2.83
+
+2.90
+
+1.13
+
+4.25
+
+0.56
+
+0.19
+
+1.76
+
+0.87
+
+0.88
+
+0.80
+
+3.18
+
+0.47
+
+2.91
+
+2.92
+
+2.11
+
+1.59
+
+1.78
+
+0.00
+
+0.92
+
+8.51
+
+5.82
+
+4.82
+
+4.59
+
+4.84
+
+6.87
+
+0.59
+
+1.60
+
+5.82
+
+4.82
+
+4.57
+
+4.84
+
+6.84
+
+0.33
+
+1.46
+
+3.98
+
+2.98
+
+2.89
+
+3.59
+
+4.11
+
+0.30
+
+0.19
+
+2.50
+
+1.59
+
+1.54
+
+1.92
+
+2.87
+
+0.50
+
+0.35
+
+0.67
+
+0.18
+
+−0.41
+
+1.40
+
+1.60
+
+0.37
+
+1.51
+
+4.02
+
+3.18
+
+3.04
+
+3.53
+
+6.26
+
+0.38
+
+5.57
+
+RMS deviation
+
+1.05
+
+1.06
+
+1.54
+
+1.15
+
+0.47
+
+1.22
+
+aThis set conformers were used in previous studies.110,86 The RI MP2/CBS and other QM results are taken from taken from ref 86. Two sets of AMOEBA results are listed. Both are from energy minimization of QM structures, one with backbone ϕ/ψ torsional angles restrained at QM optimal
+
+values and the other fully relaxed in the AMOEBA model. The RMSD was computed using RI MP2/CBS energies as the reference.
+
+formations with one set of electrostatic parameters to such accuracy. The comparison between ab initio and AMOEBA electrostatic potential for all dipeptide model compounds is detailed in the Supporting Information, for both the parametrization and validation sets. The average RMSE is 0.45 kcal/ mol per unit charge on a grid surrounding the neutral amino acids, and only slightly higher (0.64) for charged dipeptides, with the absolute value of the potential for the latter being orders of magnitude higher. Thus, thanks to the intramolecular polarization model in AMOEBA, the transferability of backbone and side chain electrostatic multipoles of AMOEBA is quite satisfactory. We believe the test performed here, while not commonly used in force ﬁeld development, is important and necessary for validating the electrostatics of a candidate force ﬁeld model before other components, such as the torsional parameters are empirically adjusted.
+Polyalanine Conformational Free Energy in Solution.
+Several recent studies have used oligopeptide conformational properties in solution to calibrate force ﬁeld torsional parameters.98,111−117 Simulation results can be directly compared to experimental nuclear magnetic resonance (NMR) data for the corresponding peptides. Building on this prior work, we have performed a series of simulations on Ala/ Gly/Pro-based peptides using the AMOEBA protein force ﬁeld.
+For alanine, we have ﬁrst examined the solvation of the unblocked and protonated (Ala)5 peptide using REMD. Conformational preference is presented as a potential of mean force with respect to ϕ and ψ angles in Figure 4b, which
+
+is calculated from the averaged torsional population distribu-
+tions of Ala-2, Ala-3, and Ala-4 residues. A distinct global
+minimum is located around the PII conformation. Two other
+basins with energies approximately 0.5 kcal/mol higher in energy lie in the β-sheet and α-helix regions. The energy
+barriers separating the global basin from the two local minima are about 1−2 kcal/mol. Overall, the upper left region of the Ramachandran map is relatively ﬂat compared to the rest of the
+conformational space. The distribution within this highly
+populated region of the map agrees well with the statistical PMF drawn from the PDB database (Figure 4c),94 suggesting
+transferability of the overall model from (Ala)3 to (Ala)5. The ϕ/ψ torsional angle distributions for (Ala)5 have been
+probed experimentally by NMR.98 The spin−spin coupling (Jcoupling) constants reﬂect the ensemble character of the
+conformational distribution, and were compared with those
+calculated form REMD simulation trajectories of (Ala)5 via Karplus relations.116,118 In total, eight NMR J-coupling constants were reported: ﬁve for the backbone angle ϕ [3J(HN,Hα), 3J(HN,C′), 3J(Hα,C′), 3J(C,C′), 3J(HN,Cβ)], two for the backbone angle ψ [1J(N,Cα), 2J(N,Cα)], and one value for both ϕ and ψ, [3J(HN,Cα)].98 The trajectory at 298K from REMD simulation of (Ala)5 was extracted, and used to compute predicted J-coupling values. Twenty-seven predicted
+J-coupling values are compared to those measured by NMR in
+Table 4. The J-coupling constants involving the N- and C-
+termini were also included. The predicted values are in
+excellent agreement with those probed by experiment. The
+
+4053
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+Figure 5. Comparison of (a) isoleucine and (b) serine conformational energy about χ1 angle. The solid lines are TRIM MP2/CBS energy, while the dashed lines are AMOEBA values. The AMOEBA curve is shifted to minimize the overall RMS diﬀerence between AMOEBA and QM. The top set of curves (with higher energy at 0 degree) corresponds to a backbone conformation of (−60.0, −45.0), and the other corresponds to (−140.0, 135.0).
+
+Article
+
+Table 4. Comparison of J-Coupling Values (Hz) from
+
+AMOEBA Peptidea
+
+Simulations
+
+with
+
+Experimental
+
+Data
+
+for
+
+the
+
+(Ala)5
+
+residue index
+
+J-coupling type
+
+J-simulation
+
+J-expt.98
+
+Ala-2 Ala-3 Ala-4 Ala-2 Ala-3 Ala-4 Ala-5 Ala-2
+
+1J(N,Cα) 1J(N,Cα) 1J(N,Cα) 2J(N,Cα) 2J(N,Cα) 2J(N,Cα) 2J(N,Cα) 3J(C′,C′)
+
+11.066 10.923 10.922 8.448 8.170 8.232 8.250 0.866
+
+11.36 11.26 11.25 9.20 8.55 8.40 8.27 0.19
+
+Ala-2
+
+3J(Hα,C′)
+
+1.729
+
+1.85
+
+Ala-3
+
+3J(Hα,C′)
+
+1.705
+
+1.86
+
+Ala-4
+
+3J(Hα,C′)
+
+1.713
+
+1.89
+
+Ala-5
+
+3J(Hα,C′)
+
+1.929
+
+2.19
+
+Ala-2
+
+3J(HN,C′)
+
+1.087
+
+1.13
+
+Ala-4
+
+3J(HN,C′)
+
+1.315
+
+1.15
+
+Ala-5
+
+3J(HN,C′)
+
+1.216
+
+1.16
+
+Ala-2
+
+3J(HN,Cβ)
+
+1.819
+
+2.30
+
+Ala-3
+
+3J(HN,Cβ)
+
+1.833
+
+2.24
+
+Ala-4
+
+3J(HN,Cβ)
+
+1.743
+
+2.14
+
+Ala-5
+
+3J(HN,Cβ)
+
+1.584
+
+1.96
+
+Ala-2
+
+3J(HN,Hα)
+
+6.269
+
+5.59
+
+Ala-3
+
+3J(HN,Hα)
+
+5.988
+
+5.74
+
+Ala-4
+
+3J(HN,Hα)
+
+6.079
+
+5.98
+
+Ala-5
+
+3J(HN,Hα)
+
+6.607
+
+6.54
+
+Ala-2
+
+3J(HN,Cα)
+
+0.421
+
+0.67
+
+Ala-3
+
+3J(HN,Cα)
+
+0.614
+
+0.68
+
+Ala-4
+
+3J(HN,Cα)
+
+0.648
+
+0.69
+
+Ala-5
+
+3J(HN,Cα)
+
+0.663
+
+0.73
+
+X2 = 0.994
+
+RMS = 0.33
+
+aThe peptide was unblocked and protonated at both the N- and Ctermini, corresponding to experimental conditions of pH = 2. Replica exchange molecular dynamics (REMD) simulations were performed using 32 replicas at temperatures between 278 and 620 K (30-ns of MD for each replica). The trajectory at 298 K was extracted and used for the J-coupling calculation.
+
+Figure 6. Comparison of amino acid molecular dipole moments predicted by AMOEBA and QM (MP2/aug-cc-pVTZ). The AMOEBA permanent atomic multipoles were derived from a set of dipeptides and validated on additional conformations (three for each amino acid). Only the results for the validation sets are shown. The actual data can be found in the Supporting Information.
+chi-square (χ2) diﬀerence between simulation and experiment, computed using the experimental uncertainties,98 is about 0.994, while the overall RMS diﬀerence is 0.33 (Table 4). Note
+
+when using torsional parameters directly ﬁt to the gas-phase QM energy of alanine dipeptide, the χ2 is 3 or 4 times higher. Torsion reﬁnement based on both QM (gas-phase) and the PDB PMF (in solution) thus plays a signiﬁcant role in
+improving the calculated J-coupling constants. A notable consequence of the reﬁnement is that the location of the α-
+helix population from simulations shifts lower and to the right, toward the average (φ, ψ) angles in the PDB distribution. In contrast, with torsional terms ﬁt to QM gas-phase energies alone, the simulated α-helical population was broader than that from the PDB and centered at a more negative φ and less negative ψ value. A similar eﬀect has recently been discussed for
+the CHAMRMM22/CMAP, CHARMM36-MP2, and CHARMM36 force ﬁelds, and it was suggested empirical correction to CMAP approach is important.113,114 Improving agreement with PDB φ/ψ angle distribution in terms of shape
+and location, especially for residues not in actual helices, led to thermodynamic properties, and helix−coil transition coopera-
+tivity more consistent with experimental data.
+Proline and Glycine Conformational Free Energies in Solution. The ϕ/ψ torsional angle distributions for proline
+and glycine backbones were validated through REMD
+
+4054
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 7. Comparison of Ramachandran potential of mean force maps for proline and glycine. (a) Pro-2 residue of GPGG from AMOEBA simulations. (b) The PDB data for proline. (c) Gly-3 residue of GPGG from AMOEBA simulations. (d) PDB data for glycine. All PDB PMFs were computed using data from Dunbrack et al.94.
+
+Table 5. Comparison of J-Coupling Values (Hz) from AMOEBA Simulations and NMR Experimental Data for the GPGG Tetrapeptidea
+
+residue J-coupling J-simulation (B972 J-simulation
+
+index
+
+type
+
+EPR-III)
+
+(B3LYP EPR-III) J-expt.119
+
+Pro-2 J(Hα,C′)
+
+1.75
+
+1.88
+
+1.30
+
+Gly-3 J(Hα,HN)
+
+4.94
+
+Gly-3 J(Hα,C′)
+
+6.07
+
+3.67
+
+4.10
+
+6.76
+
+6.30
+
+RMS = 0.44
+
+RMS = 0.39
+
+aTwo sets of simulated J-coupling using diﬀerent Karplus coeﬃcients
+
+are shown. Replica exchange molecular dynamics (REMD) simulations
+
+were performed using 32 replicas at temperatures between 278 and
+
+620 K (30-ns of MD for each replica). The trajectory at 298 K was
+
+extracted and used for the J-coupling calculation.
+
+CsimOuOla−t)io. nFsoor fbtohtehGpProGlGinete(tPrarpoe-2ptirdeesid(NueH) 3a+n-Gdlyg-lPycroin-eGl(yG-Glyl-y3residue), the simulated PMF maps with respect to the ϕ/ψ
+angles show good agreement with the PDB statistical PMF
+
+Figure 8. Fraction of helix ⟨hi⟩ for each residue in Ac-(AAQAA)3-NH2 from replica exchange MD simulations and NMR chemical shifts at
+303 K.
+
+4055
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 9. Time evolution of backbone RMSDs from the X-ray structures for ten simulated proteins. For each protein, 30 ns MD simulations were performed with the AMOEBA force ﬁeld in explicit water. The X-axis represents time (ns) and the Y-axis is the RMSD values in Å. (a) Crambin (PDB 1EJG), (b) Trp cage (PDB 1L2Y), (c) villin headpiece (PDB 1VII), (d) ubiquitin (PDB 1UBQ), (e) GB3 domain (PDB 2OED), (f) RD1 antifreeze protein (PDB 1UCS), (g) SUMO-2 domain (PDB 1WM3), (h) BPTI (PDB 1BPI), (i) FK binding protein (PDB 2PPN), (j) and lysozyme (PDB 6LYT).
+
+maps as shown in Figure 7. For Pro-2, the relative free energy of the α-helix and PII regions from the PDB data are well reproduced in our simulations, with the α-helical local
+minimum about 1 kcal/mol higher in energy than the global
+minimum in the PII region (Figure 7a). The simulated
+torsional distributions for the Gly-3 residue are also consistent
+with PDB data, with global minima located at the right- and left-handed α-helix regions. Two other local minima, about 1
+kcal/mol higher in energy, are located at the PII structure and its mirror reﬂection (Figure 7c).
+Similar to alanine, the J-coupling constants were also
+calculated for the Pro-2 and Gly-3 residues. Three J-coupling constants, J(Hα,C′) for Pro-2, J(Hα,HN), and J(Hα,C′) for Gly-
+
+3 were evaluated using the Karplus coeﬃcients obtained from B972/EPR-III and B3LYP/EPR-III (methods for DFT investigations of electron paramagnetic resonance) level calculations.119 Table 5 compares the J-coupling values obtained from AMOEBA simulation and experiment for the GPGG tetrapeptide. The RMS diﬀerence between the calculated and experimental J-constants is 0.44 (with B972) and 0.39 (with B3LYP).
+Secondary Structure Distribution for the Ac(AAQAA)3-NH2 Peptide. It is important for a protein force ﬁeld to accurately reproduce ϕ/ψ structural distributions and correctly balance peptide secondary structure, as these metrics are directly related to phenomena such as folding, misfolding,
+
+4056
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 10. Superimposition of the ﬁnal structures from AMOEBA simulations (green) and the experimental X-ray crystal structures (gray). (a) Crambin (PDB 1EJG), (b) Trp cage (PDB 1L2Yb), (c) villin headpiece (PDB 1VII), (d) ubiquitin (PDB 1UBQ), (e) GB3 domain (PDB 2OED), (f) RD1 antifreeze protein (PDB 1UCS), (g) SUMO-2 domain (PDB 1WM3), (h) BPTI (PDB 1BPI), (i) FK binding protein (PDB 2PPN), (j) and lysozyme(PDB 6LYT).
+
+aggregation and conformational change. The REMD simulation
+of the small peptide (Ala)5, described above, provides the sensitive test of the “intrinsic” secondary structure preferences of the AMOEBA force ﬁeld. However, the (Ala)5 peptide is too short to form a stable α-helix, and a more extended PII
+backbone conformation is found more favorable than the helix in the Ramachandran free energy map.97,98,116,120−124 We have
+further simulated a longer helix-forming peptide, Ac(AAQAA)3-NH2,125,126 to investigate the helix−coil transition. Because the helical population of Ac-(AAQAA)3-NH2 has been determined from NMR chemical shift data,127 we can directly
+compare the AMOEBA helical-fractions calculated from REMD simulations. We use the same deﬁnition of the helical state as a previous study,97 namely, φ in the range [−160°, −20°] and ψ in [−120°, 50°]. The fraction of helix was evaluated as the
+frequency of the individual residues existing in the helical states during the whole trajectory at 303 K. Figure 8 shows the fraction of helix, ⟨hi⟩, for each residue from our simulation and NMR chemical shift data. Reasonable agreement is seen
+between the simulated values and those obtained from NMR experiments at 303 K, where both ﬂuctuated between 10 to
+30% for most residues. The error was estimated using block
+averages derived from six 5-ns simulation windows. In addition,
+the lower helical propensity trend at the C-terminus was well
+captured, while AMOEBA seems to underestimate the helix
+fraction for residues 3, 4, and 7. Molecular Dynamics Simulations of Protein Systems.
+Ten well-studied proteins were chosen as the validation set to
+evaluate the new parameters. While limited, this set is representative of several diﬀerent types of protein structures.
+For example, Trp cage (1L2Y) and villin headpiece (1VII)
+mainly consist of alpha helices; GB3 domain (2OED) and FK binding protein (2PPN) contain a signiﬁcant proportion of β
+sheet structure; crambin (1EJG) and lysozyme (6LYT) are disulﬁde bond-rich domains; the remaining proteins are mixtures of diﬀerent motifs.
+The stability of each protein was characterized by its backbone RMSD value relative to the PDB structure over 10
+ns MD simulation, as summarized in Figure 9. The overall
+average RMSD of the ten simulated protein structures is 1.33 Å, and seven of them are close to 1.0 Å. The ﬁnal MD trajectory
+snapshot for each protein is superposed on its PDB structure in
+Figure 10. We can see that helical and sheet motifs are well maintained, and do not signiﬁcantly drift from the experiment
+structures. For many of the proteins, the large deviations arise
+from the terminal regions. For example, inspection of the PDB entry for ubiquitin shows the ﬁnal ﬁve residues have signiﬁcantly higher temperature factors than the rest of the
+molecule. Flexibility near the C-terminus is also observed in the
+MD results, particularly for the two glycine residues at positions
+75 and 76. Elimination of just these two residues from the data
+analysis results in a backbone structural RMSD of 1.16 Å
+against the PDB structure. Calculation of NMR Order Parameters. The order
+parameter (S2) indicates the ﬂexibility of each residue, with lower S2 values corresponding to greater ﬂexibility. We have
+compared simulated order parameters for ubiquitin and hen egg white lysozyme to NMR relaxation experiments128,129 which measure the relaxation of amide 15N−1H dipolar interaction.130,131 Relaxation is caused by ﬂuctuations of interaction
+energies as the internuclear interaction vectors are reoriented
+by thermal motion, and therefore allows the observation of anisotropic local residue motions.132 The isotropic reorienta-
+
+4057
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 11. Order parameters (S2) derived from experimental NMR128,129 (dash lines) and calculated from MD simulations in explicit water using AMOEBA. (a) Ubiquitin and (b) lysozyme.
+
+Table 6. Comparison (RMSD) of J-Coupling Values (Hz) from AMOEBA Simulations and Experiments for BPTI, GB3, Ubiquitin, and Lysozymea
+
+BPTI GB3 ubiquitin lysozyme
+
+AMOEBA
+
+1.741 1.44
+
+1.41
+
+2.23
+
+AMBER FF99SB138
+
+1.779 1.48
+
+1.89
+
+2.60
+
+AMBER FF99SB-ILDN138 1.448 0.89
+
+1.43
+
+2.12
+
+aResults from the Amber ﬀ99SB force ﬁeld, and the reﬁned Amber ﬀ99SB-ILDN force ﬁeld are included for comparison.
+
+tional eigenmode dynamics (iRED) matrix was extracted from the MD trajectories, and order parameters (S2) were then computed from the eigenvalues of this matrix.133
+Figure 11 compares of S2 values computed from the 10 ns
+MD simulations with the corresponding NMR measurements. The calculated and experimental S2 curves are generally well-
+correlated; the RMSDs between the two sets of values are 0.04
+and 0.12 for ubiquitin and lysozyme, respectively. For ubiquitin, the high ﬂexibility near turn 1 (residues 7−10), turn 3 (residues 37−40), turn 6 (residues 62−65), and the C-terminus was nicely reproduced. For lysozyme, ﬂexibility at turn 1 (residues 46−49), long loop 2 (residues 61−78), loop 3 (residues 85− 89), loop 4 (residues 100−107), loop 5 (residues 116−119),
+and the termini are in general agreement, although the
+computed values are somewhat higher than experiment. All
+the large deviations come from loop residues exposed to water. Speciﬁcally, the greater ﬂexibility than what the experimental
+order parameters have indicated seems to suggest that the
+interactions between the 48D/61R and 101D/103N were
+underestimated by the model. However, the same types of residues give reasonable S2 values at other sites in lysozyme and
+ubiquitin. Additional evidence is necessary to decide whether
+
+we need to and how to improve the parameters for these residues. But overall, the AMOEBA force ﬁeld appears able to reproduce protein structures and ﬂexibilities.
+Calculation of Side Chain J-Couplings. Amino acid side
+chain distributions were evaluated by comparing the simulated
+side chain J-couplings to the experimental NMR values for four
+protein systems: BPTI, GB3 domain, ubiquitin, and hen egg lysozyme.129,134−137
+Table 6 shows the side-chain RMSD between the
+experimentally derived and simulation-based scalar couplings.
+Also listed for comparison are the RMSD values obtained from the Amber ﬀ99SB force ﬁeld and Amber ﬀ99SB-ILDN,138 which were reﬁned against the side chain NMR data of the four
+proteins. Note the side chain parameters for AMOEBA were directly from ﬁtting to QM energy proﬁle and were not
+optimized against the experimental data. Overall, the performance of AMOEBA force ﬁeld is comparable to Amber ﬀ99SB-
+ILDN. Although a few outliers are evident for each protein
+system, most of the experimental scalar couplings are
+reasonably reproduced. The correlation between the calculated
+and experimental J-couplings of all the four protein systems is summarized in Figure 12. The overall R2 correlation coeﬃcient
+is 0.75. Details of the J-coupling values for each protein can be
+found in the Supporting Information. Within high scalar-
+coupling regions, AMOEBA failed to distinguish subtle diﬀerences observed in experiments. For example, most AMOEBA-predicted J-coupling values were ∼10.8 Hz, while
+experimental data range from 8.0 to 15.0 Hz. We further
+subdivided the RMSD values by amino acid residue. The values ranged from ∼0.7 to 3.3 (Figure 12). For residues with
+relatively high RMSDs, like Ile and Gln, we did not attempt force ﬁeld modiﬁcations since the sample size for these residues
+is small in the four proteins studied. The side chain J-coupling
+
+4058
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 12. (a) Correlation of the experimental NMR J-couplings and the calculated J-coupling values from the MD simulations of BPTI, GB3 domain, ubiquitin, and lysozyme. (b) The RMSDs between the experimental and AMOEBA calculated J-coupling constants for each residue.
+data suggests the AMOEBA force ﬁeld, derived from gas-phase QM energy proﬁles, reasonably captures side chain conformational properties in solution. Further improvement would require additional reliable experimental data for individual residue types.
+■ CONCLUSIONS
+The development and parametrization of the AMOEBA-2013 protein force ﬁeld is been reported. A distinct feature of the force ﬁeld is its use of atomic multipole-based electrostatics and explicit treatment of dipole polarization. A mutual induction model with Thole damping is applied to describe both intraand intermolecular polarization in a consistent manner. The polarization among permanent multipoles is handled via a group-based scheme while induced−induced dipole polarization occurs among all polarizable sites. By extracting the intramolecular polarization as deﬁned by the force ﬁeld, we are able to derive conformation-independent electrostatic multipole parameters from high-level ab initio calculations using a combination of distributed multipole analysis and electrostatic potential ﬁtting. This rigorously derived electrostatic model will be important for accurate description of protein interactions with other biomolecules as well as electrostatic forces within protein molecules.
+
+After determination of vdW parameters, largely obtained by transferred from liquid simulations of small organic molecules,23 the AMOEBA model was applied to simulation of several peptides and proteins. In addition to the nonbonded electrostatic and vdW forces, the “torsional” energy also plays an important role in setting relative conformational energies. The torsion term is essentially an error function in most classical force ﬁelds, and yet it plays a crucial role in determining the detailed conformational properties of peptides and proteins. Recent improvements to the Amber111,138 and CHARMM force ﬁelds113,114 have demonstrated that conformational populations of small peptides are extremely sensitive to subtle changes (involving fractions of a kcal/mol) in the torsional parameters. In developing the AMOEBA force ﬁeld, we have resorted to both high-level ab initio (MP2/CBS) peptide energetics and PDB structural statistics in deriving the backbone torsion parameters. The resulting force ﬁeld performs well in the reproduction of NMR J coupling constants and S2 order parameters of several peptide and protein systems. Nonetheless, these are limited validations focusing on conformational properties and torsional parameters. Further extensive investigations involving more proteins and a broad range of thermodynamic properties will be necessary to fully explore various aspects of the potential energy model, and to determine the overall success and possible deﬁciencies of the force ﬁeld.
+As previously noted,113,139 a CMAP-style splined 2D torsional potential allows a force ﬁeld to reproduce gas-phase ab initio conformational energies exactly. Such CMAP terms may also exacerbate unphysical features in the rest of the force ﬁeld and therefore are not transferable. For example, the QM and force ﬁeld diﬀerence could result from an incorrect valence energy bin classical force ﬁeld at extremely stressed conformations, an eﬀect which has little to do with the “torsion” energy. We plan to revisit use of CMAP correction terms in the future. However, with the exception of Gly, we have removed such terms from the AMOEBA-2013 protein model. While we have strived to derive a balanced and physical force ﬁeld, better understanding of the limitations of molecular mechanics force ﬁelds is essential for continued systematic improvement. Accurate modeling of short-range electrostatic and vdW components, as well as their coupling to valence interactions, will be the key to achieving still greater accuracy and transferability in a future protein force ﬁeld that performs well in various physical and chemical environments.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+Tables showing electrostatic dipole moments for individual amino acids, RSME between AMOEBA and ab initio electrostatic potentials, HA-CA-CB-HB J-coupling data, N/ C′-CA-CB-CG J-coupling data, N/C-CA-CB-CG J-coupling data, and C-CA-CB-CG J-coupling data. This information is available free of charge via the Internet at http://pubs.acs.org/.
+■ AUTHOR INFORMATION
+Corresponding Author *E-mail: pren@mail.utexas.edu.
+Author Contributions
+Y.S. and Z.X. contributed equally.
+Notes The authors declare no competing ﬁnancial interest.
+
+4059
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+■ ACKNOWLEDGMENTS
+The authors are grateful to the support by the National
+Institute of General Medical Sciences (R01GM079686 and
+R01GM106137) and Robert A. Welch Foundation (F-1691).
+J.W.P. wishes to acknowledge support from National Science
+Foundation awards NSF CHE-1152823.
+■ REFERENCES
+(1) Cornell, W. D.; Cieplak, P.; et al. A 2nd Generation Force-Field for the Simulation of Proteins, Nucleic-Acids, and Organic-Molecules. J. Am. Chem. Soc. 1995, 117 (19), 5179−5197. (2) Maple, J. R.; Hwang, M. J.; et al. Derivation of Class-II ForceFields 0.1. Methodology and Quantum Force-Field for the Alkyl Functional-Group and Alkane Molecules. J. Comput. Chem. 1994, 15 (2), 162−182. (3) MacKerell, A. D.; Bashford, D.; et al. All-Atom Empirical Potential for Molecular Modeling and Dynamics Studies of Proteins. J. Phys. Chem. B 1998, 102 (18), 3586−3616. (4) Wang, D. Q.; Freitag, F.; et al. Validation of the GROMOS 54A7 Force Field Regarding Mixed α/β-Peptide Molecules. Helv. Chim. Acta 2012, 95, 2562−2577. (5) Allinger, N. L.; Yuh, Y. H.; et al. Molecular Mechanics. The MM3 Force Field for Hydrocarbons. J. Am. Chem. Soc. 1989, 111 (23), 8551−8566. (6) Jorgensen, W. L.; Maxwell, D. S.; et al. Development and Testing of the OPLS All-Atom Force Field on Conformational Energetics and Properties of Organic Liquids. J. Am. Chem. Soc. 1996, 118 (45), 11225−11236. (7) Rick, S. W.; Stuart, S. J. Potentials and Algorithms for Incorporating Polarizability in Computer Simulations. Rev. Comput. Chem. 2002, 18, 89−146. (8) Ponder, J. W.; Case, D. A. Force Fields for Protein Simulations. Adv. Protein Chem. 2003, 66, 27−85. (9) Warshel, A.; Kato, M.; et al. Polarizable Force Fields: History, Test Cases, and Prospects. J. Chem. Theory Comput. 2007, 3 (6), 2034−2045. (10) Lopes, P. E. M.; Roux, B.; et al. Molecular Modeling and Dynamics Studies with Explicit Inclusion of Electronic Polarizability: Theory and Applications. Theor. Chem. Acc. 2009, 124 (1−2), 11−28. (11) Cieplak, P.; Dupradeau, F. Y.; et al. Polarization Effects in Molecular Mechanical Force Fields. J. Phys.: Condens. Mater. 2009, 21 (33), 3331021−21. (12) Gresh, N.; Cisneros, G. A.; et al. Anisotropic, Polarizable Molecular Mechanics Studies of Inter- And Intramoecular Interactions and Ligand-Macromolecule Complexes. A Bottom-up Strategy. J. Chem. Theory Comput. 2007, 3 (6), 1960−1986. (13) Soderhjelm, P.; Ryde, U. How Accurate Can a Force Field Become? A Polarizable Multipole Model Combined with Fragmentwise Quantum-Mechanical Calculations. J. Phys. Chem. A 2009, 113 (3), 617−627. (14) Soderhjelm, P.; Ohrn, A. Accuracy of Typical Approximations in Classical Models of Intermolecular Polarization. J. Chem. Phys. 2008, 128 (1), No. 014102. (15) Holt, A.; Bostrom, J.; et al. A NEMO Potential that Includes the Dipole−Quadrupole and Quadrupole−Quadrupole Polarizability. J. Comput. Chem. 2010, 31 (8), 1583−1591. (16) Stern, H. A.; Rittner, F.; et al. Combined Fluctuating Charge and Polarizable Dipole Models: Application to a Five-Site Water Potential Function. J. Chem. Phys. 2001, 115 (5), 2237−2251. (17) Lamoureux, G.; MacKerell, A. D.; et al. A Simple Polarizable Model of Water based on Classical Drude Oscillators. J. Chem. Phys. 2003, 119 (10), 5185−5197. (18) Ren, P. Y.; Ponder, J. W. Polarizable Atomic Multipole Water Model for Molecular Mechanics Simulation. J. Phys. Chem. B 2003, 107 (24), 5933−5947. (19) Kaminski, G. A.; Stern, H. A.; et al. Development of an Accurate and Robust Polarizable Molecular Mechanics Force Field from Ab Initio Quantum Chemistry. J. Phys. Chem. A 2004, 108 (4), 621−627.
+
+Article
+(20) Anisimov, V. M.; Vorobyov, I. V.; et al. Polarizable Empirical Force Field for the Primary and Secondary Alcohol Series Based on the Classical Drude Model. J. Chem .Theory Comput. 2007, 3 (6), 1927−1946. (21) Lopes, P. E. M.; Lamoureux, G.; et al. Polarizable Empirical Force Field for Aromatic Compounds based on the Classical Drude Oscillator. J. Phys. Chem. B 2007, 111 (11), 2873−2885. (22) Harder, E.; Anisimov, V. M.; et al. Understanding the Dielectric Properties of Liquid Amides from a Polarizable Force Field. J. Phys. Chem. B 2008, 112 (11), 3509−3521. (23) Shi, Y.; Wu, C.; et al. Multipole Electrostatics in Hydration Free Energy Calculations. J. Comput. Chem. 2011, 32 (5), 967−977. (24) Ren, P. Y.; Ponder, J. W. Consistent Treatment of Inter- and Intramolecular Polarization in Molecular Mechanics Calculations. J. Comput. Chem. 2002, 23 (16), 1497−1506. (25) Jiang, J. L.; Wu, Y. B.; et al. Assessing the Performance of Popular Quantum Mechanics and Molecular Mechanics Methods and Revealing the Sequence-Dependent Energetic Features Using 100 Tetrapeptide Models. J. Chem. Theory Comput. 2010, 6 (4), 1199− 1209. (26) Jiao, D.; Golubkov, P. A.; et al. Calculation of Protein-Ligand Binding Free Energy by Using a Polarizable Potential. Proc. Natl. Acad. Sci. U.S.A. 2008, 105 (17), 6290−6295. (27) Jiao, D.; Zhang, J. J.; et al. Trypsin-Ligand Binding Free Energies from Explicit and Implicit Solvent Simulations with Polarizable Potential. J. Comput. Chem. 2009, 30 (11), 1701−1711. (28) Shi, Y.; Zhu, C. Z.; et al. Probing the Effect of Conformational Constraint on Phosphorylated Ligand Binding to an SH2 Domain Using Polarizable Force Field Simulations. J. Phys. Chem. B 2012, 116 (5), 1716−1727. (29) Zhang, J.; Shi, Y.; et al., Polarizable Force Fields for Scoring Protein−Ligand Interactions. In Protein−Ligand Interactions; WileyVCH Verlag GmbH & Co. KGaA: Weinheim, Germany, 2012; pp 99− 120. (30) Harder, E.; MacKerell, A. D.; et al. Many-Body Polarization Effects and the Membrane Dipole Potential. J. Am. Chem. Soc. 2009, 131 (8), 2760−2761. (31) Bauer, B. A.; Lucas, T. R.; et al. Water Permeation Through DMPC Lipid Bilayers using Polarizable Charge Equilibration Force Fields. Chem. Phys. Lett. 2011, 508 (4−6), 289−294. (32) de Courcy, B.; Piquemal, J. P.; et al. Polarizable Water Molecules in Ligand-Macromolecule Recognition. Impact on the Relative Affinities of Competing Pyrrolopyrimidine Inhibitors for FAK Kinase. J. Am. Chem. Soc. 2010, 132 (10), 3312−3320. (33) Gresh, N.; de Courcy, B.; et al. Polarizable Water Networks in Ligand-Metalloprotein Recognition. Impact on the Relative Complexation Energies of Zn-Dependent Phosphomannose Isomerase with DMannose 6-Phosphate Surrogates. J. Phys. Chem. B 2011, 115 (25), 8304−8316. (34) Grossfield, A.; Ren, P. Y.; et al. Ion Solvation Thermodynamics from Simulation with a Polarizable Force Field. J. Am. Chem. Soc. 2003, 125 (50), 15671−15682. (35) Jiao, D.; King, C.; et al. Simulation of Ca2+ and Mg2+ Solvation Using Polarizable Atomic Multipole Potential. J. Phys. Chem. B 2006, 110 (37), 18553−18559. (36) Yu, H. B.; Whitfield, T. W.; et al. Simulating Monovalent and Divalent Ions in Aqueous Solution Using a Drude Polarizable Force Field. J. Chem. Theory Comput. 2010, 6 (3), 774−786. (37) Wu, J. C.; Piquemal, J. P.; et al. Polarizable Molecular Dynamics Simulation of Zn(II) in Water Using the AMOEBA Force Field. J. Chem. Theory Comput. 2010, 6 (7), 2059−2070. (38) Zhang, J.; Yang, W.; et al. Modeling Structural Coordination and Ligand Binding in Zinc Proteins with a Polarizable Potential. J. Chem. Theory Comput. 2012, 8, 1314−1324 PMCID: PMC3383645. (39) Patel, S.; Davis, J. E.; et al. Exploring Ion Permeation Energetics in Gramicidin A Using Polarizable Charge Equilibration Force Fields. J. Am. Chem. Soc. 2009, 131 (39), 13890−1. (40) Rappe,́ A. K.; Goddard, W. A., III Charge Equilibration for Molecular Dynamics Simulations. J. Phys. Chem. 1991, 95, 3358−3363.
+
+4060
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+(41) Rick, S. W.; Stuart, S. J.; et al. Dynamical Fluctuating Charge Force-Fields: Application to Liquid Water. J. Chem. Phys. 1994, 101 (7), 6141−6156. (42) Banks, J. L.; Kaminski, G. A.; et al. Parametrizing a Polarizable Force Field from ab Initio Data. I. The Fluctuating Point Charge Model. J. Chem. Phys. 1999, 110 (2), 741−754. (43) Ando, K. A Stable Fluctuating-Charge Polarizable Model for Molecular Dynamics Simulations: Application to Aqueous Electron Transfers. J. Chem. Phys. 2001, 115 (11), 5228−5237. (44) Yoshii, N.; Miyauchi, R.; et al. A Molecular-Dynamics Study of the Equation of State of Water Using a Fluctuating-Charge Model. Chem. Phys. Lett. 2000, 317 (3−5), 414−420. (45) Patel, S.; Brooks, C. L. CHARMM Fluctuating Charge Force Field for Proteins: I Parameterization and Application to Bulk Organic Liquid Simulations. J. Comput. Chem. 2004, 25 (1), 1−15. (46) Patel, S.; Brooks, C. L. Fluctuating Charge Force Fields: Recent Developments and Applications from Small Molecules to Macromolecular Biological Systems. Mol. Simul. 2006, 32 (3−4), 231−249. (47) Bauer, B. A.; Patel, S. Recent Applications and Developments of Charge Equilibration Force Fields for Modeling Dynamical Charges in Classical Molecular Dynamics Simulations. Theor. Chem. Acc. 2012, 131 (3), No. 1153. (48) Stern, H. A.; Kaminski, G. A.; et al. Fluctuating Charge, Polarizable Dipole, and Combined Models: Parameterization from ab Initio Quantum Chemistry. J. Phys. Chem. B 1999, 103, 4730−4737. (49) Sprik, M.; Klein, M. L. A Polarizable Model for Water Using Distributed Charge Sites. J. Chem. Phys. 1988, 89 (12), 7556−7560. (50) van Maaren, P. J.; van der Spoel, D. Molecular Dynamics Simulations of Water with Novel Shell-Model Potentials. J. Phys. Chem. B 2001, 105 (13), 2618−2626. (51) Yu, H. B.; Hansson, T.; et al. Development of a Simple, SelfConsistent Polarizable Model for Liquid Water. J. Chem. Phys. 2003, 118 (1), 221−234. (52) Anisimov, V. M.; Lamoureux, G.; et al. Determination of Electrostatic Parameters for a Polarizable Force Field Based on the Classical Drude Oscillator. J. Chem. Theory Comput. 2005, 1 (1), 153− 168. (53) Zhu, X.; Lopes, P. E.; et al. Recent Developments and Applications of the CHARMM Force Fields. Wiley Interdiscip. Rev.: Comput. Mol. Sci. 2012, 2 (1), 167−185. (54) Caldwell, J. W.; Kollman, P. A. Structure and Properties of Neat Liquids Using Nonadditive Molecular Dynamics: Water, Methanol, and N-Methylacetamide. J. Phys. Chem. 1995, 99, 6208−6219. (55) Dang, L. X.; Chang, T. M. Molecular Dynamics Study of Water Clusters, Liquid, and Liquid-Vapor Interface of Water with ManyBody Potentials. J. Chem. Phys. 1997, 106 (19), 8149−8159. (56) Brdarski, S.; Åstrand, P.-O.; et al. The Inclusion of Electron Correlation in Intermolecular Potentials: Applications to the Formamide Dimer and Liquid Formamide. Theor. Chem. Acc. 2000, 105 (1), 7−14. (57) Kaminski, G. A.; Stern, H. A.; et al. Development of a Polarizable Force Field for Proteins via ab Initio Quantum Chemistry: First Generation Model and Gas Phase Tests. J. Comput. Chem. 2002, 23 (16), 1515−1531. (58) Applequist, J.; Carl, J. R.; et al. An Atom Dipole Interaction Model for Molecular Polarizability. Application to Polyatomic Molecules and Determination of Atom Polarizabilities. J. Am. Chem. Soc. 1972, 94 (9), 2952−2960. (59) Thole, B. T. Molecular Polarizabilities Calculated with a Modified Dipole Interaction. Chem. Phys. 1981, 59, 341−350. (60) Faerman, C. H.; Price, S. L. A Transferable Distributed Multipole Model for the Electrostatic Interactions of Peptides and Amides. J. Am. Chem. Soc. 1990, 112, 4915−4926. (61) Price, S. L.; Faerman, C. H.; et al. Toward Accurate Transferable Electrostatic Models for Polypeptides: A Distributed Multipole Study of Blocked Amino Acid Residue Charge Distributions. J. Comput. Chem. 1991, 12 (10), 1187−1197. (62) Rogalewicz, F.; Ohanessian, G.; et al. Interaction of Neutral and Zwitterionic Glycine with Zn2+ in Gas Phase: Ab Initio and SIBFA
+
+Molecular Mechanics Calculations. J. Comput. Chem. 2000, 21 (11), 963−973. (63) Tiraboschi, G.; Fournie-Zaluski, M. C.; et al. Intramolecular Chelation of Zn(2+) by α- and β-Mercaptocarboxamides. A Parallel Ab Initio and Polarizable Molecular Mechanics Investigation. Assessment of the Role of Multipole Transferability. J. Comput. Chem. 2001, 22 (10), 1038−1047. (64) Gresh, N.; Shi, G. B. Conformation-Dependent Intermolecular Interaction Energies of the Triphosphate Anion with Divalent Metal Cations. Application to the ATP-Binding Site of a Binuclear Bacterial Enzyme. A Parallel Quantum Chemical and Polarizable Molecular Mechanics Investigation. J. Comput. Chem. 2004, 25 (2), 160−168. (65) Williams, D. E. Representation of the Molecular Electrostatic Potential by Atomic Multipole and Bond Dipole Models. J. Comput. Chem. 1988, 9 (7), 745−763. (66) Vignemaeder, F.; Claverie, P. The Exact Multicenter Multipolar Part of a Molecular Charge-Distribution and Its Simplified Representations. J. Chem. Phys. 1988, 88 (8), 4934−4948. (67) Day, P. N.; Jensen, J. H.; et al. An Effective Fragment Method for Modeling Solvent Effects in Quantum Mechanical Calculations. J. Chem. Phys. 1996, 105 (5), 1968−1986. (68) Mooij, W. T. M.; Leusen, F. J. J. Multipoles versus Charges in the 1999 Crystal Structure Prediction Test. Phys. Chem. Chem. Phys. 2001, 3 (22), 5063−5066. (69) Lommerse, J. P. M.; Motherwell, W. D. S.; et al. A Test of Crystal Structure Prediction of Small Organic Molecules. Acta Crystallogr., B 2000, 56, 697−714. (70) Mahoney, M. W.; Jorgensen, W. L. A Five-Site Model for Liquid Water and the Reproduction of the Density Anomaly by Rigid, Nonpolarizable Potential Functions. J. Chem. Phys. 2000, 112 (20), 8910−8922. (71) Stone, A. J. Distributed Multipole Analysis: Methods and Applications. Mol. Phys. 1985, 56 (5), 1047−1064. (72) Stone, A. J. Distributed Multipole Analysis, or How to Describe a Molecular Charge Distribution. Chem. Phys. Lett. 1981, 83 (2), 233− 239. (73) Ponder, J. W.; Wu, C. J.; et al. Current Status of the AMOEBA Polarizable Force Field. J. Phys. Chem. B 2010, 114 (8), 2549−2564. (74) MacKerell, A. D.; Feig, M.; et al. Improved Treatment of the Protein Backbone in Empirical Force Fields. J. Am. Chem. Soc. 2004, 126 (3), 698−699. (75) Halgren, T. A. Representation of van der Waals (vdW) Interactions in Molecular Mechanics Force Fields: Potential Form, Combination Rules, and vdW Parameters. J. Am. Chem. Soc. 1992, 114, 7827−7843. (76) Stone, A. J. The Theory of Intermolecular Forces, 2nd ed.; Oxford University Press: Oxford, U.K., 2013. (77) Chaudret, R.; Gresh, N.; et al. Many-Body Exchange-Repulsion in Polarizable Molecular Mechanics. I. Orbital-Based Approximations and Applications to Hydrated Metal Cation Complexes. J. Comput. Chem. 2011, 32 (14), 2949−2957. (78) Sagui, C.; Pedersen, L. G.; et al. Towards an Accurate Representation of Electrostatics in Classical Force Fields: Efficient Implementation of Multipolar Interactions in Biomolecular Simulations. J. Chem. Phys. 2004, 120 (1), 73−87. (79) Pearlman, D. A.; Case, D. A.; et al. Amber, A Package of Computer-Programs for Applying Molecular Mechanics, NormalMode Analysis, Molecular-Dynamics and Free-Energy Calculations to Simulate the Structural and Energetic Properties of Molecules. Comput. Phys. Commun. 1995, 91 (1−3), 1−41. (80) Friedrichs, M. S.; Eastman, P.; et al. Accelerating Molecular Dynamic Simulation on Graphics Processing Units. J. Comput. Chem. 2009, 30 (6), 864−872. (81) Wang, W.; Skeel, R. D. Fast Evaluation of Polarizable Forces. J. Chem. Phys. 2005, 123 (16), No. 164107. (82) Frisch, M. J.; Trucks, G. W.; Schlegel, H. B.; Scuseria, G. E.; Robb, M. A.; Cheeseman, J. R.; Scalmani, G.; Barone, V.; Mennucci, B.; Petersson, G. A.; Nakatsuji, H.; Caricato, M.; Li, X.; Hratchian, H. P.; Izmaylov, A. F.; Bloino, J.; Zheng, G.; Sonnenberg, J. L.; Hada, M.;
+
+4061
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Ehara, M.; Toyota, K.; Fukuda, R.; Hasegawa, J.; Ishida, M.; Nakajima, T.; Honda, Y.; Kitao, O.; Nakai, H.; Vreven, T.; Montgomery, J. A., Jr.; Peralta, J. E.; Ogliaro, F.; Bearpark, M.; Heyd, J. J.; Brothers, E.; Kudin, K. N.; Staroverov, V. N.; Kobayashi, R.; Normand, J.; Raghavachari, K.; Rendell, A.; Burant, J. C.; Iyengar, S. S.; Tomasi, J.; Cossi, M.; Rega, N.; Millam, J. M.; Klene, M.; Knox, J. E.; Cross, J. B.; Bakken, V.; Adamo, C.; Jaramillo, J.; Gomperts, R.; Stratmann, R. E.; Yazyev, O.; Austin, A. J.; Cammi, R.; Pomelli, C.; Ochterski, J. W.; Martin, R. L.; Morokuma, K.; Zakrzewski, V. G.; Voth, G. A.; Salvador, P.; Dannenberg, J. J.; Dapprich, S.; Daniels, A. D.; Farkas, O.; Foresman, J. B.; Ortiz, J. V.; Cioslowski, J.; Fox, D. J. Gaussian 09; Gaussian, Inc.: Wallingford, CT, 2009. (83) Kong, J.; White, C. A.; et al. Q-Chem 2.0: A High-Performance ab Initio Electronic Structure Program Package. J. Comput. Chem. 2000, 21 (16), 1532−1548. (84) Stone, A. J. Distributed Multipole Analysis: Stability for Large Basis Sets. J Chem. Theory Comput. 2005, 1, 1128−1132. (85) Stone, A. J. GDMA; Cambridge University Technical Services: Cambridge, England, 1998. (86) DiStasio, R. A.; Jung, Y. S.; et al. A Resolution-of-the-Identity Implementation of the Local Triatomics-in-Molecules Model for Second-Order Moller-Plesset Perturbation Theory with Application to Alanine Tetrapeptide Conformational Energies. J. Chem. Theory Comput. 2005, 1 (5), 862−876. (87) Essmann, U.; Perera, L.; et al. A Smooth Particle Mesh Ewald Method. J. Chem. Phys. 1995, 103 (19), 8577−8593. (88) Darden, T.; York, D.; et al. Particle Mesh EwaldAn N·log(N) Method for Ewald Sums in Large Systems. J. Chem. Phys. 1993, 98 (12), 10089−10092. (89) Verlet, L. Computer Experiments on Classical Fluids .I. Thermodynamical Properties of Lennard-Jones Molecules. Phys. Rev. 1967, 159 (1), 98−104. (90) Martyna, G. J.; Tuckerman, M. E.; et al. Explicit Reversible Integrators for Extended Systems Dynamics. Mol. Phys. 1996, 87, 1117−1157. (91) Roux, B. The Calculation of the Potential of Mean Force Using Computer-Simulations. Comput. Phys. Commun. 1995, 91 (1−3), 275−282. (92) Kumar, S.; Bouzida, D.; et al. The Weighted Histogram Analysis Method for Free-Energy Calculations on Biomolecules 0.1. The Method. J. Comput. Chem. 1992, 13 (8), 1011−1021. (93) Kumar, S.; Rosenberg, J. M.; et al. Multidimensional FreeEnergy Calculations Using the Weighted Histogram Analysis Method. J. Comput. Chem. 1995, 16 (11), 1339−1350. (94) Ting, D.; Wang, G. L.; et al. Neighbor-Dependent Ramachandran Probability Distributions of Amino Acids Developed from a Hierarchical Dirichlet Process Model. PLOS Comput. Biol. 2010, 6 (4), No. e100763. (95) Patriksson, A.; van der Spoel, D. A Temperature Predictor for Parallel Tempering Simulations. Phys. Chem. Chem. Phys. 2008, 10 (15), 2073−2077. (96) Sugita, Y.; Okamoto, Y. Replica-Exchange Molecular Dynamics Method for Protein Folding. Chem. Phys. Lett. 1999, 314 (1−2), 141− 151. (97) Best, R. B.; Hummer, G. Optimized Molecular Dynamics Force Fields Applied to the Helix−Coil Transition of Polypeptides. J Phys Chem B 2009, 113 (26), 9004−9015. (98) Graf, J.; Nguyen, P. H.; et al. Structure and Dynamics of the Homologous Series of Alanine Peptides: A Joint Molecular Dynamics/ NMR Study. J. Am. Chem. Soc. 2007, 129 (5), 1179−1189. (99) Jelsch, C.; Teeter, M. M.; et al. Accurate Protein Crystallography at Ultra-high Resolution: Valence Electron Distribution in Crambin. Proc. Natl. Acad. Sci. U.S.A. 2000, 97 (7), 3171−3176. (100) Neidigh, J. W.; Fesinmeyer, R. M.; et al. Designing a 20Residue Protein. Nat. Struct. Biol. 2002, 9 (6), 425−430. (101) McKnight, C. J.; Matsudaira, P. T.; et al. NMR Structure of the 35-Residue Villin Headpiece Subdomain. Nat. Struct. Biol. 1997, 4 (3), 180−184.
+
+(102) Vijaykumar, S.; Bugg, C. E.; et al. Structure of Ubiquitin Refined at 1.8 a Resolution. J. Mol. Biol. 1987, 194 (3), 531−544. (103) Ulmer, T. S.; Ramirez, B. E.; et al. Evaluation of Backbone
+Proton Positions and Dynamics in a Small Protein by Liquid Crystal NMR Spectroscopy. J. Am. Chem. Soc. 2003, 125 (30), 9179−9191. (104) Ko, T. P.; Robinson, H.; et al. The Refined Crystal Structure of
+an Eel Pout Type III Antifreeze Protein RD1 at 0.62-Ang Resolution Reveals Structural Microheterogeneity of Protein and Solvation. Biophys. J. 2003, 84 (2), 1228−1237. (105) Parkin, S.; Rupp, B.; et al. Structure of Bovine Pancreatic
+Trypsin Inhibitor at 125 K: Definition of Carboxyl-Terminal Residues Gly57 and Ala58. Acta Crystallogr. D 1996, 52, 18−29. (106) Szep, S.; Park, S.; et al. Structural Coupling between FKBP12 and Buried Water. Proteins 2009, 74 (3), 603−611. (107) Young, A. C. M.; Dewan, J. C.; et al. Comparison of Radiation-
+Induced Decay and Structure Refinement from X-Ray Data Collected from Lysozyme Crystals at Low and Ambient-Temperatures. J. Appl. Crystallogr. 1993, 26, 309−319. (108) Ren, P.; Wu, C.; et al. Polarizable Atomic Multipole-Based
+Molecular Mechanics for Organic Molecules. J. Chem. Theory Comput. 2011, 7 (10), 3143−3161 PMCID: PMC3196664. (109) Schnieders, M. J.; Ponder, J. W. Polarizable Atomic Multipole
+Solutes in a Generalized Kirkwood Continuum. J. Chem. Theory Comput. 2007, 3 (6), 2082−2097. (110) Beachy, M. D.; Chasman, D.; et al. Accurate Ab Initio Quantum Chemical Determination of the Relative Energetics of
+Peptide Conformations and Assessment of Empirical Force Fields. J. Am. Chem. Soc. 1997, 119 (25), 5908−5920. (111) Hornak, V.; Abel, R.; et al. Comparison of Multiple Amber
+Force Fields and Development of Improved Protein Backbone Parameters. Proteins 2006, 65 (3), 712−725. (112) Hegefeld, W. A.; Chen, S. E.; et al. Helix Formation in a Pentapeptide Experiment and Force-Field Dependent Dynamics. J. Phys. Chem. A 2010, 114 (47), 12391−12402. (113) Best, R. B.; Mittal, J.; et al. Inclusion of Many-Body Effects in
+the Additive CHARMM Protein CMAP Potential Results in Enhanced Cooperativity of α-Helix and β-Hairpin Formation. Biophys. J. 2012, 103 (5), 1045−1051. (114) Best, R. B.; Zhu, X.; et al. Optimization of the Additive CHARMM All-Atom Protein Force Field Targeting Improved Sampling of the Backbone φ, ψ, and Side-Chain χ(1) and χ(2) Dihedral Angles. J. Chem. Theory Comput. 2012, 8 (9), 3257−3273. (115) Best, R. B.; Mittal, J. Balance between Alpha and Beta
+Structures in Ab Initio Protein Folding. J. Phys. Chem. B 2010, 114 (26), 8790−8798. (116) Best, R. B.; Buchete, N. V.; et al. Are Current Molecular Dynamics Force Fields Too Helical? Biophys. J. 2008, 95 (1), L7−L9. (117) Lindorff-Larsen, K.; Maragakis, P.; et al. Systematic Validation of Protein Force Fields against Experimental Data. PLOS One 2012, 7
+(2), e32131. (118) Karplus, M. Contact Electron-Spin Coupling of Nuclear Magnetic Moments. J. Chem. Phys. 1959, 30 (1), 11−15. (119) Aliev, A. E.; Courtier-Murias, D. Experimental Verification of
+Force Fields for Molecular Dynamics Simulations Using Gly-Pro-GlyGly. J. Phys. Chem. B 2010, 114 (38), 12358−12375. (120) Shi, Z. S.; Olson, C. A.; et al. Polyproline II Structure in a
+Sequence of Seven Alanine Residues. Proc. Natl. Acad. Sci. U.S.A. 2002, 99 (14), 9190−9195. (121) Chen, K.; Liu, Z.; et al. Spin Relaxation Enhancement Confirms Dominance of Extended Conformations in Short Alanine Peptides. Angew. Chem., Int. Ed. 2007, 46 (47), 9036−9039. (122) Schweitzer-Stenner, R.; Measey, T. J. The Alanine-Rich XAO
+Peptide Adopts a Heterogeneous Population, Including Turn-like and
+Polyproline II Conformations. Proc. Natl. Acad. Sci. U.S.A. 2007, 104 (16), 6649−6654. (123) Schweitzer-Stenner, R.; Gonzales, W.; et al. Conformational Manifold of α-Aminoisobutyric Acid (Aib) Containing Alanine-Based
+Tripeptides in Aqueous Solution Explored by Vibrational Spectrosco-
+py, Electronic Circular Dichroism Spectroscopy, and Molecular
+
+4062
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+
+Journal of Chemical Theory and Computation
+Dynamics Simulations. J. Am. Chem. Soc. 2007, 129 (43), 13095− 13109. (124) Mukhopadhyay, P.; Zuber, G.; et al. Characterizing Aqueous Solution Conformations of a Peptide Backbone Using Raman Optical Activity Computations. Biophys. J. 2008, 95 (12), 5574−5586. (125) Marqusee, S.; Robbins, V. H.; et al. Unusually Stable Helix Formation in Short Alanine-Based Peptides. Proc. Natl. Acad. Sci. U.S.A. 1989, 86 (14), 5286−5290. (126) Spek, E. J.; Olson, C. A.; et al. Alanine is an Intrinsic α-Helix Stabilizing Amino Acid. J. Am. Chem. Soc. 1999, 121 (23), 5571−5572. (127) Shalongo, W.; Dugad, L.; et al. Distribution of Helicity within the Model Peptide Acetyl(AAQAA)(3)Amide. J. Am. Chem. Soc. 1994, 116 (18), 8288−8293. (128) Buck, M.; Boyd, J.; et al. Structural Determinants of Protein Dynamics: Analysis of 15N NMR Relaxation Measurements for MainChain and Side-Chain Nuclei of Hen Egg White Lysozyme. Biochemistry 1995, 34 (12), 4041−4055. (129) Tjandra, N.; Feller, S. E.; et al. Rotational Diffusion Anisotropy of Human Ubiquitin from N-15 NMR Relaxation. J. Am. Chem. Soc. 1995, 117 (50), 12562−12566. (130) Lipari, G.; Szabo, A. Model-Free Approach to the Interpretation of Nuclear Magnetic-Resonance Relaxation in Macromolecules 0.2. Analysis of Experimental Results. J. Am. Chem. Soc. 1982, 104 (17), 4559−4570. (131) Lipari, G.; Szabo, A. Model-Free Approach to the Interpretation of Nuclear Magnetic-Resonance Relaxation in Macromolecules 0.1. Theory and Range of Validity. J. Am. Chem. Soc. 1982, 104 (17), 4546−4559. (132) Fischer, M. W.; Zeng, L.; et al. Characterizing semilocal motions in proteins by NMR relaxation studies. Proc. Natl. Acad. Sci. U.S.A. 1998, 95 (14), 8016−9. (133) Prompers, J. J.; Bruschweiler, R. General Framework for Studying the Dynamics of Folded and Nonfolded Proteins by NMR Relaxation Spectroscopy and MD Simulation. J. Am. Chem. Soc. 2002, 124 (16), 4522−4534. (134) Smith, L. J.; Sutcliffe, M. J.; et al. Analysis of φ and χ 1 Torsion Angles for Hen Lysozyme in Solution from 1H NMR Spin−Spin Coupling Constants. Biochemistry 1991, 30 (4), 986−996. (135) Grimshaw, S. B. Novel Approaches to Characterizing Native and Denatured Proteins by NMR. Doctoral Thesis, University of Oxford, Oxford, U.K., 1999. (136) Miclet, E.; Boisbouvier, J.; et al. Measurement of Eight Scalar and Dipolar Couplings for Methine−Methylene Pairs in Proteins and Nucleic Acids. J. Biomol. NMR 2005, 31 (3), 201−216. (137) Berndt, K. D.; Guntert, P.; et al. Determination of a HighQuality Nuclear Magnetic Resonance Solution Structure of the Bovine Pancreatic Trypsin Inhibitor and Comparison with Three Crystal Structures. J. Mol. Biol. 1992, 227 (3), 757−775. (138) Lindorff-Larsen, K.; Piana, S.; et al. Improved Side-Chain Torsion Potentials for the Amber ff99SB Protein Force Field. Proteins 2010, 78 (8), 1950−1958. (139) Mackerell, A. D.; Feig, M.; et al. Extending the Treatment of Backbone Energetics in Protein Force Fields: Limitations of Gas-Phase Quantum Mechanics in Reproducing Protein Conformational Distributions in Molecular Dynamics Simulations. J. Comput. Chem. 2004, 25 (11), 1400−1415.
+
+Article
+
+4063
+
+dx.doi.org/10.1021/ct4003702 | J. Chem. Theory Comput. 2013, 9, 4046−4063
+

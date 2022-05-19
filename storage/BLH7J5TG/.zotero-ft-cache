@@ -1,0 +1,404 @@
+Article pubs.acs.org/JCTC
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on October 2, 2019 at 14:57:58 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Simultaneous Optimization of Biomolecular Energy Functions on Features from Small Molecules and Macromolecules
+Hahnbeom Park,†,‡ Philip Bradley,‡,§ Per Greisen, Jr.,†,‡,# Yuan Liu,†,‡,▽ Vikram Khipple Mulligan,†,‡ David E. Kim,‡,⊥ David Baker,†,‡,⊥ and Frank DiMaio*,†,‡
+†Department of Biochemistry, ‡Institute for Protein Design, and ⊥Howard Hughes Medical Institute, University of Washington, Seattle, Washington 98195, United States §Division of Public Health Sciences, Fred Hutchinson Cancer Research Center, 1100 Fairview Avenue N., Seattle, Washington 98019, United States
+*S Supporting Information
+
+ABSTRACT: Most biomolecular modeling energy functions for structure prediction, sequence design, and molecular docking have been parametrized using existing macromolecular structural data; this contrasts molecular mechanics force ﬁelds which are largely optimized using small-molecule data. In this study, we describe an integrated method that enables optimization of a biomolecular modeling energy function simultaneously against small-molecule thermodynamic data and high-resolution macromolecular structural data. We use this approach to develop a next-generation Rosetta energy function that utilizes a new anisotropic implicit solvation model, and an improved electrostatics and Lennard-Jones model, illustrating how energy functions can be considerably improved in their ability to describe large-scale energy landscapes by incorporating both small-molecule and macromolecule data. The energy function improves performance in a wide range of protein structure prediction challenges, including monomeric structure prediction, protein−protein and protein−ligand docking, protein sequence design, and prediction of the free energy changes by mutation, while reasonably recapitulating small-molecule thermodynamic properties.
+
+■ INTRODUCTION
+Accurate biomolecular energy functions are important for a wide range of challenges in computational structural biology, including protein structure prediction, protein structure determination from sparse data, protein design, protein small molecule docking and simulation of protein folding.1−6 Energy functions play a central role in guiding conformational search and providing quantitative estimation of the likelihood of sampled conformations. Achieving high precision for biomolecular energy functions is one of the long-standing challenges in the area, as other challenges, particularly conformational search, are being addressed with advances in computing technology.7−9
+Full ﬁrst principle quantum chemistry calculations on macromolecular systems are infeasible, and hence classical mechanics approximations are almost always used in which the energy is written as a sum of generally pairwise additive functions representing diﬀerent interactions. Two quite diﬀerent approaches have been taken to setting the values for the parameters in these functions. In the ﬁrst approach, typically adopted in the development of molecular mechanics force ﬁelds, small molecule data are used to guide parameter optimization. The parameters in these molecular mechanics force ﬁelds are obtained by ﬁtting thermodynamic and
+
+spectroscopic data on small molecules and by attempting to match quantum chemistry results on small molecule systems.10−12 The second approach uses the large number of experimentally determined ground states of biomolecules that have been determined by X-ray crystallography and NMR to guide parameter optimization.13−15 Parameters are set such that the experimentally observed state (both structure and sequence) has a lower energy than other states. This approach has been used to develop energy functions for biomolecular modeling studies such as protein structure prediction or docking.
+Both approaches have limitations in applicability to macromolecule modeling studies. Molecular mechanics force ﬁelds derived by ﬁtting to small molecule properties are limited by the accuracy of the approximations required for computational tractability;16−19 additionally, it is not clear how transferable an approximate energy model derived from small model systems is to macromolecules.17,20 However, structure-based approaches also have weaknesses: observed structural data only show relative preference for conformations and do not give quantitative estimations of energy diﬀerences, and in parameter
+Received: August 18, 2016 Published: October 21, 2016
+
+© 2016 American Chemical Society
+
+6201
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 1. A graphical overview of the parameter optimization procedure.
+
+ﬁtting, data sparsenessparticularly when large numbers of parameters are optimizedmay lead to incorrect estimation and overﬁtting. Therefore, it is also obvious that macromolecule data alone are insuﬃcient for deriving an energy function for macromolecular modeling.
+In this study, we show that an approach integrating both sources of data in biomolecular energy function optimization can bring signiﬁcant improvements to its performances on various protein structure prediction tasks. Our new optimization framework is capable of robust optimization of over a hundred parameters with respect to a large set of computationally expensive tasks, and is used to derive a next-generation Rosetta21,22 energy function for general protein structure prediction tasks, with improvements in the Lennard-Jones, implicit solvation, and electrostatic models. Similar ideas have
+been suggested to the development of modern molecular mechanics force ﬁelds16,23,24 for molecular dynamics simulations. However, to our knowledge, it is the ﬁrst time this approach has been used in the context of general structure prediction problems; furthermore, we show the applicability of this approach by testing on a variety of challenging structure prediction tasks including monomeric structure discrimination or conformational search, protein homology modeling, protein−protein and protein−ligand docking, sequence prediction at the protein core, protein−protein, and protein− ligand interfaces, and prediction of free energy changes brought about by mutations (ΔΔG), supported by massive amount of state-of-the-art structural modeling techniques. Finally, we show the robustness of this optimization, even when ﬁtting >100 parameters, which allows us to assess the tightness of convergence of atomic-level parameters.
+■ METHODS Overview of the Approach. We set out to parametrize an energy function based on experimental thermodynamic data of small molecules, and high-resolution structural data of
+
+macromolecules (shortly “structural data”), with the broader aim of better recapitulating the large-scale energy landscape of protein folding or complex formation, high-resolution structural features, and the balance between natural amino acid preferences. The experimental thermodynamic data consist of the liquid properties of small molecules containing functional groups from natural amino acids12 and vapor-to-water transfer free energies of protein side-chain analogues.25 The structural data consists of large numbers (>1000 cluster centers) of alternative conformations (decoys) for protein structures and complexes of known structure, and high-resolution crystallographic data. The agreement of an energy function with these data is represented by a target function Ftotal:
+
+Ftotal[E(Θ)] = wthermodynamicFthermodynamic[E(Θ)]
+
++ wstructuralFstructural[E(Θ)]
+
+(1)
+
+where the target functions Fthermodynamic and Fstructural are f unctionals of a biomolecular energy function E(Θ), which is a function of a set of parameters Θ (see the sections below for the details of E(Θ) in the study), and their relative contributions are adjusted by weights w. Fthermodynamic[E(Θ)] and Fstructural[E(Θ)] are themselves a weighted linear sum of target functions evaluating performance on speciﬁc tasks; their exact composition varies depending on the aim of optimization, and is described in the following paragraphs and sections.
+The energy parameters Θ subject to optimization consist of atom-type-dependent parameters, for example, the LennardJones (LJ) radius and well-depth of each atom type. The total
+number of parameters simultaneously optimized in a single run is on the order of 100. A key advantage of the ability to simultaneously optimize a large number of parameters is that the introduction of signiﬁcant changes to the physical models of energy terms (for example, an anisotropic solvation model, or change in LJ model of hydrogen atoms) may considerably shift the balance between the energy terms and require large-scale
+
+6202
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+reparameterization. Optimization of these large parameter sets, with respect to a wide range of thermodynamic and structural data, is performed by a newly developed parameter optimization protocol named dualOptE that uses the Nelder− Mead simplex optimization26 (Figure 1, details in following section).
+We found several factors to be critical for energy function training to robustly transferrable to independent data sets. First, the training data need to be diverse; consequently, energy function performance is trained on a wide variety of subtasks, including recapitulation of sequence and side-chain rotamers, native monomeric structure discrimination, protein−protein docking, and the aforementioned thermodynamic recapitulation tasks. Second, the structure discrimination training sets must be dynamic; it is all too easy to train an energy function to consistently recognize the native structure in a sea of static decoys, but much more challenging when all structures are relaxed in the new energy function.27 In dualOptE, all tests involve some reoptimization against the current energy function: for example, the test measuring the ability to discriminate near-native monomeric conformations or protein−protein interfaces ﬁrst optimizes a pregenerated set of structures against the current parametrization before assessing discrimination quality. Third, each cycle of parameter optimization must be carried out in a limited amount of computer time. Since we need to assess hundreds or thousands of parametrizations in the course of an optimization trajectory, each test has to run on the order of several minutes. For example, during parameter optimization, a full liquid MC simulation to estimate liquid phase properties of small molecules at each step is not computationally tractable; we instead use static sets of snapshots from MC simulations. Following completion of a given parameter optimization run we carried out full liquid MC simulations and found that the static approximation was fairly accurate as long as there were not large changes in the energy function.
+We employed multiple iterations of this dual energy function optimization approach. The ﬁrst iteration, yielding the energy function opt-july15, introduced a new anisotropic implicit solvent model into the Rosetta energy function. Rosetta has previously used the Lazaridis−Karplus (LK) isotropic occlusion-based implicit solvation model,28 where the occluded volume of each atom is proportional to the fractional desolvation energy. The new anisotropic solvation model combines the isotropic part from the original LK model with a newly introduced anisotropic polar term,29 which accounts for anisotropic interactions between polar heavy atoms and solvent: occlusion of water binding sites is made more energetically disfavorable than occlusion away from such sites. A second series of optimizations follows the introduction of attractive dispersion forces to hydrogens (originally pseudounited-atom) as well as a reworked electrostatic model, yielding the energy function opt-nov15. For both energy function “snapshots”, following optimization, the resulting energy functions were validated on a set of independent structure prediction tasks too computationally intensive to be used in optimization.30 Details of energy functions (opt-july15 and optnov15) and energy terms, and a list of the tests used for optimization are described in following sections, a full list of atomic parameters determined by dualOptE appear in the Supplementary Tables S3 and S4, and details of the tests and data sets for optimization or independent validation appear in the Supporting Information.
+
+The resulting next-generation Rosetta energy function (optnov15) outperforms the previous energy function (talaris2014)13 on a wide range of structure prediction tests independent of the training set data. In contrast to opt-nov15, talaris2014 had been optimized solely relying on a similar set of structural data to the set which we incorporate in this study, without the use of small molecule data. We brieﬂy summarize the energy function changes; full details are again provided below. First, there are changes in the physical models, notably the new anisotropic solvation model, a sigmoidal dielectric model, and explicit modeling of the eﬀects of proline on the backbone torsion angles of the preceding residue. Second, there are changes in the representation; in previous Rosetta energy functions hydrogens are purely repulsive to speed computation (much shorter range distance cutoﬀs were required), whereas in the new energy function hydrogens also make attractive LJ interactions. Third, there are changes in the overall balance of forces: compared to talaris2014, both solvation and electrostatic forces are considerably stronger relative to other nonbonded interactions. Fourth, there are changes in many energy function parameters: the attractive interactions of sulfur and aliphatic carbons are stronger (which bring better agreement with smallmolecule liquid phase data), and the partial charges of charged chemical groups are more evenly distributed (rather than being primarily on the tip atoms).
+Parameter Optimization Using dualOptE. The aim of the parameter optimization method dualOptE is to explore a high (100+) dimensional parameter space, identifying a parameter setting that minimizes a target function (e.g., eq 1). Parameters to be optimized generally consist of atomic parameters from multiple energy terms, resulting in a parameter space of dimension around 100. Given the relatively large number of parameters and the complexity of the target function, the most reasonable choice of optimization method is a derivative-free approach. In this study, Nelder−Mead simplex optimization26 is applied. The method has several desirable features: it is derivative-free and generally requires relatively few function evaluations to converge.
+The overall minimization process took around 5 days for optjuly15 and opt-nov15 using hundreds of computer cores in parallel (typically 160 cores in the study). Each minimization step took ∼12 min, and the process was terminated when optimization converged; this generally occurred after ∼600 iterations. To keep the optimization computationally tractable, each individual test needed to run in, at most, 4−6 min total. In doing so, this allowed the roughly 800 individual tests to run on a cluster in ∼12 min.
+While developing the dualOptE protocol, a key computational challenge related to the sequence recovery test was to synchronize amino-acid type reference weights (corresponding to unfolded state energy) with the current energy function parametrization at every single iteration. Reference weights in the energy model balance the relative occurrences of amino acids, and hence are very speciﬁc for a particular parametrization of the energy function. Adding reference weights as additional parameters to optimization adds signiﬁcant complexity to the parameter space. To address this issue, we developed a method that ﬁts reference energies on-the-ﬂy at each iteration, treating them as independent implicit parameters from the optimization. Given a set of target structures, the method considers each possible mutation at each position. For each mutation, all side chain rotamers within 8 Å of the mutated residue are reoptimized, and a reference-energy-free score is
+
+6203
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+computed. Then the same Nelder−Mead simplex optimization is used to ﬁnd the reference weights that maximize sequence recovery. Because all energies are precomputed, this is very quick to evaluate, taking about 45 s total.
+Optimization Procedure. As an initial proof of concept, we applied our optimization scheme dualOptE to the current energy function, talaris2014. Optimization allowed per-atomtype solvation model and Lennard-Jones parameters to change, as well as a small set of parameters related to the electrostatic model. The total number of parameters for this initial experiment was about 80. The target optimization function (Ftotal), which is functional of the energy function E(Θ), used took the form:
+
+Ftotal[E(Θ)] = wstaticliquidFstaticliquid[E(Θ)]
+
++ wwater‐to‐vaporFwater‐to‐vapor[E(Θ)]
+
++ wsidechain−coreFsidechain−core[E(Θ)] + wsidechain−interfaceFsidechain−interface[E(Θ)] + wsequenceFsequence[E(Θ)]
+
++ wmonomeric,staticFmonomeric,static[E(Θ)]
+
++ wmonomeric‐minFmonomeric‐min[E(Θ)] + wprotein−proteinFprotein−protein[E(Θ)]
+
++ watompairFatompair[E(Θ)]
+
+(2)
+
+The ﬁrst two terms evaluate the energy function against small molecule thermodynamic data, while the remainders are guided by high-resolution protein structural data. More speciﬁcally, staticliquid term evaluates thermodynamic liquid properties12 using static “snapshot” evaluation; water-to-vapor recapitulates the solvation free-energy change of side-chain analogues upon transferring from vapor to water; side chain-core and side chain-interface predict the rotameric state of side-chains at the core and interfaces of native proteins, respectively; sequence predicts the amino acid identity of core residues of natural wildtype proteins; monomer, static, and monomer-min evaluate monomeric structure discrimination on a presampled conformation set, both before and after a short energy minimization, respectively; protein−protein evaluates the discrimination of presampled protein−protein complex conformations; and atompair evaluates the atom-pair distance distribution observed from crystal structures. Further details of individual tests, including protocols for using small-molecule thermodynamic data for the parametrization, are described in Supplementary Methods.
+This initial optimization revealed improvements on all tests, however, the improvements were quite subtle. Generally, the changes tended to slightly increase the contribution of solvation energy compared to other nonbonded energies. However, the small magnitude of improvement suggests that the current energy function, which has been heavily developed over the past dozen years, is close to optimally parametrized. Thus, it seems likely that the introduction of more dramatic changes to the energy model are necessary to see improvements in both structure prediction and recovery of small molecule thermodynamic properties.
+Consequently, our next optimization experiment introduced several broad improvements to the underlying physical model, most notably, the introduction of anisotropy to the implicit
+
+solvation model,29 and a sigmoidal dielectric Coulombic model.31 Additionally, we introduce a few more minor changes, outlined in the Supplementary Methods section. The parameters optimized are the same as before: (i) two LJ parameters (radius and well-depth) for all LJ atom types, (ii) one parameter (ΔGfree) for all solvation atom types,28 (iii) hydrogen bonding weights for individual donor or acceptor types, and (iv) three parameters describing the shape of the dielectric as a function of distance. Prior to the dualOptE run, we manually adjusted the initial LJ parameters for certain atom types (CH3, CH2, CH1, and S) to improve the agreement with the liquid property data. Several rounds of optimization were carried out, ﬁrst optimizing polar parameters (∼50), than optimizing all parameters (∼100). The resulting optimized energy function is referred to as opt-july15.
+In the second round of optimization, we further extended the energy function by introducing several more large-scale changes and subsequently reoptimizing. First, we introduce Erama_prepro as a replacement of Erama to take into account of speciﬁc Φ/ψ angle preferences of pre-Proline residues. Second, we incorporated a more reasonable description of LJ interactions by converting our previous pseudounited atom representation (where hydrogens only have a short-ranged repulsive contribution) to an all-atom representation. The LJ parameters for aﬀected atoms were initially borrowed from the OPLS force ﬁeld12 followed by manual adjustment (due to diﬀerence in LJ model) using liquid simulations prior to optimization. The parameter set subject to optimization consists of all the parameters optimized in the ﬁrst round, plus a set of parameters describing the partial charges of all amino acids, for a total of ∼115 parameters. While optimizing atomic partial charges, we applied a grouped optimization scheme: partial charges are grouped together based on their physical relations (similar to the grouped charge concept in CHARMM force ﬁelds10) and their magnitudes are scaled such that the overall strength of a group changes but its net charge does not vary. This scheme is advantageous not only in reducing the number of parameters, but also in keeping partial charges within a physically reasonable range (e.g., maintaining balance between atoms with a dipole). Nonpolar groups were scaled together, leading to a total of 17 group parameters describing partial charges. Drawing oﬀ expertise from our ﬁrst experiments, the target function for second run was modiﬁed:
+
+Ftotal[E(Θ)] = wwater‐to‐vaporFwater‐to‐vapor[E(Θ)]
+
++ wsidechain−coreFsidechain−core[E(Θ)] + wsidechain−interfaceFsidechain−interface[E(Θ)] + wsequenceFsequence[E(Θ)]
+
++ wmonomeric,staticFmonomeric,static[E(Θ)]
+
++ wmonomeric‐minFmonomeric‐min[E(Θ)] + wprotein−proteinFprotein−protein[E(Θ)]
+
++ wxtal‐gradFxtal‐grad[E(Θ)]
+
++ watompairFatompair[E(Θ)]
+
+(3)
+
+Compared to the previous optimization (eq 2), one test (staticliquid) was dropped while another (xtal-grad) was added. The reason for dropping the static evaluation test of liquid properties is that (a) unlike the previous optimization, the
+
+6204
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Table 1. Performance of the Energy Functions on Various Tasks Independent from Traininga
+
+Tasks
+
+talaris2014
+
+opt-july15
+
+opt-nov15
+
+structure prediction molecular docking sequence design
+high-resolution geometry
+
+decoy discrimination, set1b decoy discrimination, set2b parallel loophash samplingb homology modelingc protein−protein dockingb protein−ligand dockingb protein monomerd protein−protein interfaced protein−ligand interfaced full sequence designe mutational ΔΔGf atom-pair distributiong Xtal gradienth
+
+0.580 (36.3) 0.686 (53.1) 0.639 (30.6) 63.9 0.717 (73.0) 0.863 (82.1) 0.258 (45.1) 0.283 (49.0) 0.390 (58.4) 38.9 0.704 (71.3) 0.00991 0.230
+
+0.648 (45.5) 0.725 (64.1) 0.666 (47.2)
+0.762 (76.0) 0.865 (88.1) 0.270 (46.3) 0.304 (51.3) 0.411 (59.6) 39.6 0.750 (72.6) 0.00972 0.174
+
+0.705 (57.1) 0.781 (67.2) 0.752 (63.9) 65.1 0.794 (81.0) 0.941 (92.5) 0.282 (47.0) 0.316 (51.0) 0.425 (60.3) 40.6 0.743 (72.9) 0.00796 0.128
+
+aShown are weighted metrics, ranging from 0 to 1 and greater the better, with success rates (in percent) in parentheses, unless speciﬁed. Best value in each of the tasks is shown in bold. Details of the independent tests are described in Supplementary Materials. bValues are reported in average “Boltzmann-weighted discrimination” (see Supplementary Methods) over tested targets. Boltzmann-weighted discrimination measures the extent of
+
+discrimination of native-like conformation against non-native conformations, ranging from 0 (no discrimination) to 1 (complete discrimination). cValues are reported in average GDT-HA (global distance test-high accuracy)35 of 69 tested targets. dValues are reported in entropy-weighted proﬁle recovery (see Supplementary Methods). Higher values indicate better performance. eSuccess rate is shown only. fValues are reported in Pearson correlation coeﬃcients, with classiﬁcation rates in parentheses. gKL-divergence of the atom-pair distance distribution after relaxation of structures against that from crystal structures. Weighted average for 93 most frequent atom pairs are reported. Lower values indicate better agreement. hValues
+
+are reported in normalized gradient (arbitrary unit). Lower values indicate better agreement. Data directly brought from optimization run.
+
+initial model shows relatively good agreement with these properties, (b) the test was relatively time-consuming computationally, and (c) the accuracy of the estimation using static snapshots was limited. We decided instead to use liquid properties as an independent validation measure. Meanwhile, a new test, xtal-grad, was added, which assesses the magnitude of energy-function gradients following crystallographic reﬁnement, enhancing the accuracy of the energy function at high resolution.
+Following optimization with the nonbonded parameters above, optimization was also carried out on bonded parameters (spring constants for bond distance, angle, and improper torsion angles) while other parameters were ﬁxed. Similar to partial charge optimization, parameters were grouped into about 29 sets and each set was scaled together. We applied a simpler target function here, as changes in bonded parameters are expected to give minimal eﬀects to the excluded tests:
+
+Ftotal[E(Θ)] = wsidechain−coreFsidechain−core[E(Θ)] + wsidechain−interfaceFsidechain−interface[E(Θ)]
+
++ wsequenceFsequence[E(Θ)]
+
++ wmonomeric,staticFmonomeric,static[E(Θ)]
+
++ wmonomeric‐minFmonomeric‐min[E(Θ)] + wxtal‐gradFxtal‐grad[E(Θ)]
+
++ watompairFatompair[E(Θ)]
+
+(4)
+
+The ﬁnal optimized energy function E(Θ) using this target optimization function is referred to as opt-nov15.
+Opt-nov15 Energy Model. The Rosetta energy model is specialized for macromolecular modeling studies, which means there are relatively strict requirements on functional representation and eﬃciency. An implicit description of solvent molecules (as opposed to explicit solvent representation) is necessary for instantaneous evaluation of the energetics of a
+
+single conformation. Additionally, solvation and electrostatics, which generally are the rate-limiting steps in total energyfunction evaluation, are restricted to be pairwise decomposable at the residue level, ensuring that rotamer and sequence optimization can be carried out eﬃciently; these terms must also be evaluated in a runtime that is of similar order-ofmagnitude to Lennard-Jones (LJ) interactions.
+The energy models used in this study (opt-july15 and optnov15) are represented as a weighted linear sum of multiple energy terms meeting the aforementioned restrictions:
+
+Etotal = ELJ_atr + WLJ_repELJ_rep + ECoulomb + EHbond
+
++ Esolv_iso + Esolv_aniso + WdunEdun + WramaErama
+
++ Wp_aa_ppEp_aa_pp + WbondedEbonded + Eref
+
+(5)
+
+For each component, “w” and “E” represent weight and energy value of each component, respectively. In this study, nonbonded terms shown in the ﬁrst row of eq 5 (LJ_atr, Coulomb, Hbond, solv_iso, solv_aniso) are weightless except for LJ repulsion; its weight (wLJ_rep) is ﬁxed to 0.55 to address the overestimation of the exclusion eﬀect by the 12th-order repulsive term. In Rosetta, energy function torsion terms (dun, rama (with consideration of pre-Pro preference in optnov15), p_aa_pp) are derived from statistics of macromolecule data and hence have arbitrary units with respect to nonbonded terms having physical interpretations. Their weights are used by adjusting values from talaris2014: wdun = 0.7, wrama = 0.45, and wp_aa_pp = 0.6. Many of the energy components share the same functional form with talaris2014 energy function,13 including LJ (LJ_atr and LJ_rep, except that hydrogens only have repulsive part in talaris2014), isotropic Lazaridis−Karplus (LK) solvation model (solv_iso),28 orientation-dependent hydrogen bonding (Hbond),32 bonded terms (bonded), and amino acid reference weight term (ref). For these terms, a subset of parameters are optimized, while maintaining the original functional form. For backbone-dependent side-chain torsion preference (dun) and preference of amino acid given Φ/ψ angles (p_aa_pp), we
+
+6205
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 2. Improvements in monomeric structure prediction from independent tests. In each scatter plot, a dot above the diagonal line indicates improvement to a target. (A) Decoy discrimination test. On the left, Boltzmann-weighted discrimination values are compared between talaris2014 (X-axis) and opt-nov15 (Y-axis) on 64 protein targets from validation set 2. (B) Parallel loophash sampling (PLS) test. Boltzmann-weighted discrimination values are compared between talaris2014 (X-axis) and opt-nov15 (Y-axis) on 36 protein targets. (C) Improved homology modeling on 69 CAMEO34 targets using RosettaCM.2 A comparison of homology model global distance test-high accuracy (GDT-HA)35 from talaris2014 (Xaxis) and opt-nov15 is shown on the left. GDT-HA is a measure of agreement (in %) of a model to its native structure in high-resolution. An example of a highlight target is shown on the right (pointed out as a black arrow): the structures generated and selected by talaris2014 (magenta) and optnov15 (blue) are overlaid on native (green) structure.
+
+brought a more-recent parameters.14 Other terms, either newly introduced (solv_aniso) or with change in energy models (Coulomb and rama), are described in Supplementary Methods.
+■ RESULTS Improvements in Monomeric Structure Prediction.
+We describe the improved performance of the new energy function on a battery of protein and small molecule tests evaluated on a set of proteins distinct f rom those used in optimization, as compared to the current Rosetta energy function, talaris2014. All results are summarized in Table 1, which shows energy function performance using two diﬀerent metrics: a “weighted evaluation metric” that estimates the Boltzmann probability of the native-like conformations, and a “success-rate based” metric, which simply measures if the lowest-energy conformation is near-native (details of metrics are in Supplementary Methods). The most striking improvement was seen in monomeric structure prediction tasks, particularly in three subtests: near-native structure discrimination following reoptimization (Figure 2), structure prediction with parallel loophash sampling (PLS),30 and homology modeling with RosettaCM.2
+The ﬁrst of these tests, decoy discrimination in Table 1, evaluates the ability of the energy function to pick out near-
+
+native structures (up to 200 residues in length) from a set of presampled compact structures broadly covering conformational space.33 To address the dynamic aspect of the energy landscape (that is, local energy minima may vary greatly following parameter changes), a structural relaxation is carried out with a given energy function prior to evaluation. The test is further divided into structures for which the native conformation was used in optimization (set1) and structures for which the native was not seen by optimization (set2). Remarkable and consistent improvement is found as optimization proceeds from talaris2014 to opt-july15 to optnov15 (Figure 2A), increasing the success rate of decoy discrimination by 20.8% (36.3% to 57.1%) and 14.1% (53.1% to 67.2%) on set1 and set2, respectively, when compared between talaris2014 and opt-nov15; the fact that the improvement is consistent on set2 (containing structures independent of those used in optimization) suggests that the energy function is not simply memorizing features from a small set of native structures. A few examples of energy landscapes and structures in Figure 3 show that improvements happen in various ways, discriminating structural variations from subtle local level (1aaj, 1xmt, blue in 1luz and 1igd) to secondary structure orientations (2i4s, 1l8r, 1if b, yellow in 1igd) to diﬀerent fold-level (2y4x, orange in 1luz). Also, improved secondary structure balance is observed in many cases (1aaj, 1luz, 1igd).
+
+6206
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 3. Examples of proteins with successful recapitulation of energy landscapes. Eight cases from decoy discrimination set2 are shown (labeled in Figure 2A). For each case, energy landscapes by talaris2014 and opt-nov15 are shown on the left, talaris2014 on left, and opt-nov15 on right; at the top of it, Boltzmann-weighted discrimination values are shown with gray italic text. Each point in the energy landscape plots indicates a particular protein conformation, with the X-axis indicating the structural deviation from the native conformation, and the Y-axis indicating energy; in a good energy landscape the lowest energy conformations have lowest structural deviation. On the right, comparisons of conformations are shown with diﬀerent colors: the near-native conformation in green, and low-energy false conformations in blue or orange. Energy values and RMSD for these conformations are shown as arrows with corresponding colors on the energy landscape.
+
+As relaxation of presampled structures may still limit the conformational space considered, we ran a more extensive validation where the new energy function is directly used to guide fold-level conformational sampling. The test is carried out using the parallel loophash sampling (PLS) protocol.30 This highly parallelized and CPU-intensive protocol maintains a pool of low-energy structures, which it continually perturbs by replacing local portions of each protein with fragments randomly taken from alternate structures; new low-energy structures are continually added to the pool as they are discovered. Our previous studies have shown that the protocol serves as a powerful tool for identifying local minima of a given energy function. As shown in Figure 2B, the results of the PLS conformational sampling search follow a similar trend to that of decoy discrimination; the average Boltzmann-weighted discrimination over 36 targets improves from 0.639 to 0.752 and success rates from 30.6% to 63.9%, after running PLS with talaris2014 and opt-nov15, respectively.
+Finally, we show how the energy function performs on homology modeling, by using RosettaCM2 to predict protein conformations from a set of known high-resolution homologous structures. A comparison of the energy functions on 69 homology modeling cases since August 2014 of the CAMEO
+
+continuous evaluation benchmark34 is shown in Figure 2C. There is small but consistent improvement across this set with the new energy function; this is because structural sampling is strongly restricted by homologous information, hence improvements can be mostly found from high-resolution structural features like secondary structure packing.
+Improvements in Protein−Protein and Protein− Ligand Docking. The new energy function improves both protein−protein and protein−ligand docking (Figure 4) on independent tests. The improvement in protein−ligand docking is particularly notable, as no tests of this nature are used in optimization, again suggesting that our optimized energy function has fundamentally improved the underlying physical model. Various presampled conformations using independent tools (Supporting Information) are relaxed in the same manner as in the monomeric tests prior to evaluation. Successful docking requires that (a) nonbonded interaction terms correctly estimate the magnitude of the attractive interactions upon complex formation, and (b) they are properly balanced against the desolvation energy. Speciﬁc protein− protein (Figure 4A) and protein−ligand (Figure 4B) docking examples illustrate how opt-nov15 recovers this delicate balance. In the protein−protein interaction case, talaris2014 favors a
+
+6207
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 4. Improvements in docking energy landscape recovery from independent tests. In each scatter plot, a dot above a diagonal line means improvement to a target. (A) Protein−protein docking and (B) protein−ligand docking. In each panel, a scatter plot of the Boltzmann-weighted discrimination values for targets is plotted on the top left; an example energy landscape is shown at the top right, talaris2014 on the left and optnov15 on the right; and the corresponding structure pointed out as a black arrow is on the bottom. (A) Protein receptor is colored in gray, and alternative conformations of the partners are colored in green (near-native) or blue (false conformer). Favorable native interactions are highlighted in the inset. (B) Ligands are colored in gray, and protein is in green or cyan.
+
+non-native conformation, with larger buried surface area but fewer highly favorable interactions (blue), over the native conformation with smaller buried surface area but a greater number of highly favorable interactions (green, inset in Figure 4A). The protein−ligand interaction example shows another balancing issue: the native interface is larger but features more electrostatically favorable interactions. In this example, talaris2014 fails because the strength of these favorable electrostatic interactions is not great enough to overcome the greater desolvation penalty incurred by the larger interface.
+Improvements on Protein Design Tasks. We tested the prediction ability of the energy function on independent protein design tasks by performing ﬁxed-backbone sequence design27 and measuring the agreement to native sequence proﬁles. Evaluating the ability of an energy function on design tasks is a critical part of our assessment as the Rosetta suite has been broadly used for computational protein sequence designs. These results (Table 1) suggest opt-nov15 also improves in balancing energetic preferences among diﬀerent amino acids. This test is somewhat orthogonal to other structure prediction tasks in that every amino acid is considered at every context, so the penalty for burying, for example, an arginine, has to be properly balanced against all other amino acids at that position. Two diﬀerent types of test are considered: in the ﬁrst (protein monomer, protein−protein interface, and protein−ligand interface), each residue is designed independently while neighboring side-chains are only allowed to reorganize (not change identity); in the second (full sequence design), all
+
+sequence information is removed from the protein chain and full sequence optimization calculations are carried out. In both cases, both recovery rates and sequence-proﬁle-weighted recovery metric values (see Supplementary Methods) see a consistent improvement of around 2%.
+Free Energy Changes Accompanying Mutations.
+Computation of free energy change brought about by sequence mutations (ΔΔG) is both a fundamental test of modeling accuracy and an increasingly relevant problem as highthroughput sequencing reveals sequence polymorphisms at an increasing rate.36 This problem is related to design problems described above, but more challenging as it requires accurate prediction of changes in the structure resulting from single amino acid substitutions for successful estimation of the free energy changes. Despite eﬀorts made in conformational sampling,37−39 it is clear there is signiﬁcant room for improvement in both problems. We used a previously published benchmark set37 containing 1211 mutations on monomeric proteins with high-resolution structural data available. We not only use the new energy function, also a new sampling protocol that takes advantage of recently developed Cartesian space sampling methods (more details in Supplementary Methods). Using this new protocol, the Pearson correlation between estimated versus experimentally measured ΔΔG improves from 0.703 to 0.743; classiﬁcation accuracy of stabilizing/destabilizing mutations also improves from 71.3% to 72.9%, compared to talaris2014 (Figure S1). Compared to previous published protocols,37 the combination of the new
+
+6208
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 5. Our optimized energy function reasonably recapitulates thermodynamic liquid properties of small molecules. (A, B) Fractional errors in heat of vaporization (A) and density (B). Negative values indicate underestimation of reference experimental value, and positive overestimation. Colors indicate the energy function used: talaris2014 (black), opt-july15 (red), and opt-nov15 (blue). Each bar corresponds to a small molecule in Figures S3. Most of the molecules represent functional groups in natural amino acids: aliphatic (Group 1), aromatic (Group 2), alcohol (Group 3), sulﬁde or thiol (Group 4), and amide (Group 5); several polar molecules contain functional groups not found in natural amino acids (Group 6).
+
+energy function and protocol produces a nontrivial improvement in correlation with comparable accuracy in simple classiﬁcation.
+Improvements in Recapitulation of High-Resolution
+Structural Information. We also measure the ability of the energy function to recapitulate high-resolution structural data, on a set of structures not used in optimization. Here, we use two metrics: the recapitulation of atom-pair distance distributions from high-resolution structures, and the energy function gradients following crystallographic reﬁnement with the target energy function (see Supplementary Methods). Results are shown in Table 1 and Figure S2. The most signiﬁcant improvement found in atom-pair distance distributions are from aliphatic carbons; for instance, the error (as assessed by KL-divergence) is reduced by half for CH2−CH3 and CH3− CH3, the fourth and ﬁfth most abundant atom pairs found in protein structures. Furthermore, the normalized energy function gradients following crystallographic reﬁnement are reduced from 0.150 to 0.077, indicating that there are much weaker forces moving the structure away from a minimum consistent with high-resolution crystallographic data. These results are quite consistent; all 49 cases tested show a reduction in the normalized gradient.
+Agreement of the Energy Function to Thermody-
+namic Data. Although thermodynamic data from small molecules was largely used as a regularizer in our optimization, restricting optimization to a physically realistic subspace of the high-dimensional parameter space, there were still signiﬁcant
+
+improvements in the energy function’s ability to recapitulate thermodynamic data of small molecules; this is not surprising since this is ﬁrst time to train our energy function on smallmolecule thermodynamic data. Figure 5 summarizes the results comparing liquid phase properties computed using full Monte Carlo simulation (simulation details in Supplementary Methods) over experimentally measured data on a set of small molecules (Figure S3). Optimization reduces the relative error from 19.5% to 6.3% for Hvap (heat of vaporization), and from 5.7% to 5.1% for density. Interestingly, the error in Cp,l (latent heat capacity)which was not used for optimization at any pointwas also reduced from 14.6% to 11.3%. Errors found in Hvap estimation identify issues in the atomic parameters of talaris2014 that were not identiﬁed from the macromolecular tests alone, such as underestimation of nonbonded interaction strength of aliphatic and sulfurcontaining functional groups, which led to underestimation of hydrophobic interactions and a bias to aromatic side-chains at the protein core. The errors are still larger than what are observed from molecular mechanics force ﬁelds; however, it is notable that reasonable estimation of liquid phase small molecule properties is possible while improving performance of the energy function on protein structure prediction tasks. Parameters could have been more tightly constrained to better match liquid properties, however, it is questionable whether a perfect ﬁt to a limited set of liquid properties accurately reﬂects the physical relevance of an energy model.40,41 Finally, waterto-vapor transfer energy of protein-side chain analogues is in
+
+6209
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+good agreement in all the energy functions (Figure S4). This is because in talaris2014 all the solvation parameters were directly brought from the original LK model, while in opt-july15 and opt-nov15 the data was used as a regularizer of parametrization.
+■ DISCUSSION A Subspace of Equivalently Good Parametrizations.
+Important questions arising are (i) how closely the parameters optimized on structural data would match to those of a molecular mechanics force ﬁeld, and (ii) how conﬁdent we can be of parameter sets following optimization in dualOptE for structure prediction tasks. To address these questions, we set up two additional experiments: opt-f rom-XX (with XX either CHARMM or OPLS), which runs optimization starting with the LJ and partial charge parameters from other molecular mechanics force ﬁelds; and opt-f rom-random, where we start optimization by randomly perturbing opt-nov15 parameters. Following optimization, all runs achieved similarly good scores on the target function, and showed similar performance on independent decoy discrimination tests (Supplementary Table S2), though the ﬁnal parameter sets slightly diﬀered from optnov15 as well as from each other. As shown in Table 2, each
+
+Table 2. Diﬀerences in Partial Charges, LJ Radii, and Well-
+Depths between Various Force Fields. Mean Absolute Diﬀerences Are Reported
+
+opt-from-
+
+opt-from-
+
+CHARMMa CHARMMb OPLSc OPLSd AMBERe
+
+Partial Charges
+
+opt-nov15
+
+0.049
+
+0.038
+
+0.088 0.049 0.093
+
+CHARMM
+
+0.020
+
+0.056 0.080 0.078
+
+opt-fromCHARMM
+
+0.065 0.057 0.073
+
+OPLS
+
+0.044 0.118
+
+opt-fromOPLS
+
+0.092
+
+LJ Radii
+
+opt-nov15
+
+0.062
+
+0.046
+
+0.061 0.082 0.071
+
+CHARMM
+
+0.027
+
+0.066 0.065 0.096
+
+opt-fromCHARMM
+
+0.047 0.049 0.077
+
+OPLS
+
+0.081 0.081
+
+opt-fromOPLS
+
+0.122
+
+LJ Well-Depths
+
+opt-nov15
+
+0.015
+
+0.009
+
+0.014 0.013 0.024
+
+CHARMM
+
+0.018
+
+0.018 0.025 0.035
+
+opt-fromCHARMM
+
+0.016 0.011 0.038
+
+OPLS
+
+0.011 0.024
+
+opt-fromOPLS
+
+0.019
+
+aCHARMM3616. bOptimized parameters, started from CHARMM36 partial charges and LJ parameters. cOPLS-allatom12. dOptimized parameters, started from OPLS-allatom partial charges and LJ parameters. eAMBER14ﬀSB24.
+
+opt-f rom-MM parameter set converged on a slightly diﬀerent optimum than opt-nov15 as well as from the values from CHARMM or OPLS; still, overall variation stays close to the variations observed among diﬀerent molecular mechanics force ﬁelds. Regarding the second question, parameters obtained from multiple opt-f rom-random also show small deviations from opt-nov15; when 10 representative parameters are collected
+
+from each of three independent runs (for a total of 30 equivalent good parametrizations), mean deviations from optnov15 are 0.018 in partial charges, 0.040 Å in LJ radii, 0.013 kcal/mol in LJ well-depth, and 1.20 kcal/mol in solvation ΔGfree (per-parameter values and standard deviations reported in Supplementary Table S3 and S4). Measuring the correlation between parameters clariﬁes that deviations mainly originate from covariation of strongly coupled parameters rather than ambiguities within each of the values (Supplementary Table S5): for instance, LJ radii of aromatic hydrogen (Haro) and carbon (aroC) largely vary in a strongly coupled manner (Pearson correlation −0.866). The ability to systematically estimate the precision with which individual energy function parameters are determined is an advantage of our approach over conventional force ﬁeld optimization approaches.
+Combining Two Diﬀerent Data Sources Simultaneously Helps Parameter Optimization in a Complicated
+Space. One of the most challenging parts in energy function optimization is maintaining the delicate balance between individual components of a composite energy function. We show that by training on a wide range of macromolecular data sets and challenges, together with small-molecule thermodynamic data, we can robustly optimize on the order of 100 parameters, allowing both discovery and maintenance of this balance. The importance of this balance is illustrated through the results on individual structure prediction tests: balancing nonbonded and torsional interactions is key in avoiding secondary structure biases in structure prediction (Figure 3); balancing solvation energies with other nonbonded energies is important in protein−protein docking tests; and balancing Lennard-Jones and electrostatic contributions is important in matching small molecule thermodynamic properties.
+The eﬀectiveness of our dual optimization approach in optimizing many hundreds of parameters without overﬁtting likely stems from several factors. First, each of the smallmolecule tests constraints a diﬀerent subset of parameters, and so, despite the large parameter space, each test conceptually subdivides parameter space into lower-dimensional subspaces, which leads to a tractable optimization process even though the overall dimensionality is quite high. Second, the relative sparsity of the small molecule features (compared to the number of parameters) leads to a large space of possible parametrizations satisfying the data;40−42 this is additionally supported by variations found in atomic parameters among molecular mechanics force ﬁelds (Table 2). By optimizing in this space against the macromolecular structural data, we are less prone to get stuck in local minima of the structure−prediction target functions in physically unrealistic parts of parameter space. Indeed, optimized LJ parameters and partial charges stay similar to those of popular molecular mechanics force ﬁelds (Table 2). Finally, unlike previous approaches in energy function optimization,27 our framework readily handles structure prediction tests of a more dynamic nature, ensuring the tests give reasonable results even as we move far away from the starting point in parameter space.
+Our approach is more generalizable than previous eﬀorts combining small molecule and macromolecular data in optimization. In modern molecular mechanics force ﬁelds, adaptive corrections derived from macromolecule simulations signiﬁcantly enhanced the recapitulation of local structural features, such as backbone or side-chain torsional preferences,16,24 or folding energy landscapes of small proteins (less than 100 residues).43 Still, the impact of corrections to
+
+6210
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+
+Article
+
+molecular mechanics force ﬁelds has been tested on a limited set of structure prediction tasks, not the global energy landscape properties over a broad set of protein structure prediction tasks considered in this manuscript. Our study from a structure prediction perspective is oﬀering a complementary view to general biomolecular energy function optimization problem.
+Finally, the presented optimization scheme is quite general, and allows for fast reparameterization following large-scale changes to the functional form of the energy function. One key weakness of the current energy function is the separation of hydrogen bonding and Coulomb electrostatics. While this oﬀers some advantages, for example, preventing the overestimation of LJ well-depth for hydrogen bonding atoms, its weakness arises from the under-representation of electrostatics between non-hydrogen bonding partners such as electrostatic repulsion or multipole eﬀects (e.g., π−π interaction), as supported by liquid simulation results (Figure 5). One future direction will be developing a uniﬁed electrostatic model that can address these issues. Another weakness concerns the solvation model; the current formulation poorly describes the screening eﬀect of electrostatic interactions by water or ions, in contrast to the more computationally expensive Poisson− Boltzmann (PB) or generalized Born (GB) solvation models. Incorporating such properties in an eﬃcient pairwise decomposable manner is a diﬃcult but potentially valuable future research eﬀort.44 Lastly, a more profound challenge in an implicit solvation model will be describing eﬀects from wellordered waters that form an essential part of biomolecular structures and interfaces.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jctc.6b00819.
+Figures: S1, improvements in the prediction of experimentally measured free energy changes by single site mutations; S2, atomic pair distances distributions after the relaxation of crystallographic protein structures (related to atompair test); S3, list of small molecules used in liquid simulation; S4, ﬁt to small molecule water-tovapor transfer energy. Tables: S1, list of small molecules for independent docking test; S2, independent decoy discrimination results with alternative optimum parameters (related to Discussion); S3−S5, atomic parameters for opt-nov15 energy functions. Supplementary methods texts on solvation and electrostatic models of opt-nov15, evaluation metric, and details of tests for staticliquid, water-to-vapor, xtal-grad, and mutational ΔΔG; data sets used in optimization and for independent evaluation, and an example of running liquid simulation in Rosetta suite (PDF)
+■ AUTHOR INFORMATION
+Corresponding Author
+*E-mail: dimaio@u.washington.edu.
+Present Addresses #Global Research, Novo Nordisk A/S, DK-2760 Mal̊ øv, Denmark. ▽Center for Life Science, Academy for Advanced Interdisciplinary Studies, Peking University, Beijing, 100871, China.
+
+Author Contributions
+H.P., P.B., D.B., and F.D. designed research; H.P. and F.D. performed research; P.B., P.G., Y.L., V.K.M., and D.K. contributed new analytic tools; H.P. and F.D. analyzed data; H.P., P.B., D.B., and F.D. wrote the paper.
+Funding
+This work was supported by US National Institutes of Health under Award Nos. R01GM092802 (H.P., D.E.K., and D.B.).
+Notes
+The authors declare no competing ﬁnancial interest.
+■ ACKNOWLEDGMENTS
+We thank to Dr. Roland Dunbrack Jr. and Maxim Shapovalov at Fox Chaser Cancer Center for their work on development of torsional potential used in this study. We also thank Dr. Andrew Leaver-Fay and Dr. Brian Kuhlman at University of North Carolina, and Dr. Shane O’Connor and Dr. Tanja Kortemme at University of California, San Fransisco for helpful discussions. An award of computer time was provided by the Innovative and Novel Computational Impact on Theory and Experiment (INCITE) program. This research used resources of the Argonne Leadership Computing Facility, which is a DOE Oﬃce of Science User Facility supported under Contract DEAC02-06CH11357.
+■ REFERENCES
+(1) Wang, R. Y.-R.; Kudryashev, M.; Li, X.; Egelman, E. H.; Basler, M.; Cheng, Y.; Baker, D.; DiMaio, F. Nat. Methods 2015, 12 (4), 335− 338. (2) Song, Y.; DiMaio, F.; Wang, R. Y.-R.; Kim, D.; Miles, C.; Brunette, T.; Thompson, J.; Baker, D. Structure 2013, 21 (10), 1735− 1742. (3) Ovchinnikov, S.; Park, H.; Kim, D. E.; Liu, Y.; Yu-Ruei Wang, R.; Baker, D. Proteins: Struct., Funct., Genet. 2016, 84 (S1), 181−188. (4) Kamisetty, H.; Ovchinnikov, S.; Baker, D. Proc. Natl. Acad. Sci. U. S. A. 2013, 110 (39), 15674−15679. (5) Lyskov, S.; Gray, J. J. Nucleic Acids Res. 2008, 36 (Web Server), W233−W238. (6) Meiler, J.; Baker, D. Proteins: Struct., Funct., Genet. 2006, 65 (3), 538−548. (7) Shaw, D. E.; Chao, J. C.; Eastwood, M. P.; Gagliardo, J.; Grossman, J. P.; Ho, C. R.; Ierardi, D. J.; Kolossvaŕ y, I.; Klepeis, J. L.; Layman, T.; McLeavey, C.; Deneroﬀ, M. M.; Moraes, M. A.; Mueller, R.; Priest, E. C.; Shan, Y.; Spengler, J.; Theobald, M.; Towles, B.; Wang, S. C.; Dror, R. O.; Kuskin, J. S.; Larson, R. H.; Salmon, J. K.; Young, C.; Batson, B.; Bowers, K. J. In Proceedings of the 34th annual international symposium on Computer architecture - ISCA ’07; ACM Press: New York, New York, USA, 2007; p 1. (8) Shaw, D. E. J. Comput. Chem. 2005, 26 (13), 1318−1328. (9) Salomon-Ferrer, R.; Götz, A. W.; Poole, D.; Le Grand, S.; Walker, R. C. J. Chem. Theory Comput. 2013, 9 (9), 3878−3888. (10) MacKerell, A. D., Jr; Bashford, D.; Bellott, M.; Dunbrack, R. L., Jr; Evanseck, J. D.; Field, M. J.; Fischer, S.; Gao, J.; Guo, H.; Ha, S.; et al. Others. J. Phys. Chem. B 1998, 102 (18), 3586−3616. (11) Ponder, J. W.; Case, D. A. Adv. Protein Chem. 2003, 66, 27−85. (12) Jorgensen, W. L.; Maxwell, D. S.; Tirado-Rives, J. J. Am. Chem. Soc. 1996, 118 (45), 11225−11236. (13) O’Meara, M. J.; Leaver-Fay, A.; Tyka, M. D.; Stein, A.; Houlihan, K.; DiMaio, F.; Bradley, P.; Kortemme, T.; Baker, D.; Snoeyink, J.; Kuhlman, B. J. Chem. Theory Comput. 2015, 11 (2), 609− 622. (14) Shapovalov, M. V.; Dunbrack, R. L., Jr. Structure 2011, 19 (6), 844−858. (15) Xu, D.; Zhang, Y. Proteins 2012, 80 (7), 1715−1735.
+
+6211
+
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+
+Journal of Chemical Theory and Computation
+(16) Best, R. B.; Zhu, X.; Shim, J.; Lopes, P. E. M.; Mittal, J.; Feig, M.; Mackerell, A. D., Jr. J. Chem. Theory Comput. 2012, 8 (9), 3257− 3273. (17) MacKerell, A. D.; Feig, M.; Brooks, C. L. J. Comput. Chem. 2004, 25 (11), 1400−1415. (18) Ren, P.; Wu, C.; Ponder, J. W. J. Chem. Theory Comput. 2011, 7 (10), 3143−3161. (19) Lopes, P. E. M.; Huang, J.; Shim, J.; Luo, Y.; Li, H.; Roux, B.; Mackerell, A. D., Jr. J. Chem. Theory Comput. 2013, 9 (12), 5430− 5449. (20) Raval, A.; Piana, S.; Eastwood, M. P.; Dror, R. O.; Shaw, D. E. Proteins: Struct., Funct., Genet. 2012, 80 (8), 2071−2079. (21) Leaver-Fay, A.; Tyka, M.; Lewis, S. M.; Lange, O. F.; Thompson, J.; Jacak, R.; Kaufman, K. W.; Renfrew, P. D.; Smith, C. A.; Sheﬄer, W.; Davis, I. W.; Cooper, S.; Treuille, A.; Mandell, D. J.; Richter, F.; Ban, Y.-E. A.; Fleishman, S. J.; Corn, J. E.; Kim, D. E.; Lyskov, S.; Berrondo, M.; Mentzer, S.; Popovic,́ Z.; Havranek, J. J.; Karanicolas, J.; Das, R.; Meiler, J.; Kortemme, T.; Gray, J. J.; Kuhlman, B.; Baker, D.; Bradley, P. In Computer Methods, Part C; Methods in Enzymology; Elsevier, 2011; Vol. 487, pp 545−574. (22) Das, R.; Baker, D. Annu. Rev. Biochem. 2008, 77, 363−382. (23) Nguyen, H.; Roe, D. R.; Simmerling, C. J. Chem. Theory Comput. 2013, 9 (4), 2020−2034. (24) Maier, J. A.; Martinez, C.; Kasavajhala, K.; Wickstrom, L.; Hauser, K. E.; Simmerling, C. J. Chem. Theory Comput. 2015, 11 (8), 3696−3713. (25) Radzicka, A.; Wolfenden, R. Biochemistry 1988, 27 (5), 1664− 1670. (26) Nelder, J. A.; Mead, R. Comput. J. 1965, 7 (4), 308−313. (27) Leaver-Fay, A.; O’Meara, M. J.; Tyka, M.; Jacak, R.; Song, Y.; Kellogg, E. H.; Thompson, J.; Davis, I. W.; Pache, R. A.; Lyskov, S.; Gray, J. J.; Kortemme, T.; Richardson, J. S.; Havranek, J. J.; Snoeyink, J.; Baker, D.; Kuhlman, B. Methods Enzymol. 2013, 523, 109−143. (28) Lazaridis, T.; Karplus, M. Proteins: Struct., Funct., Genet. 1999, 35 (2), 133−152. (29) Yanover, C.; Bradley, P. Nucleic Acids Res. 2011, 39 (11), 4564− 4576. (30) Tyka, M. D.; Jung, K.; Baker, D. J. Comput. Chem. 2012, 33 (31), 2483−2491. (31) Hingerty, B. E.; Ritchie, R. H.; Ferrell, T. L.; Turner, J. E. Biopolymers 1985, 24 (3), 427−439. (32) Kortemme, T.; Morozov, A. V.; Baker, D. J. Mol. Biol. 2003, 326 (4), 1239−1259. (33) Conway, P.; Tyka, M. D.; DiMaio, F.; Konerding, D. E.; Baker, D. Protein Sci. 2014, 23 (1), 47−55. (34) Haas, J.; Roth, S.; Arnold, K.; Kiefer, F.; Schmidt, T.; Bordoli, L.; Schwede, T. Database 2013, 2013, bat031. (35) Kryshtafovych, A.; Monastyrskyy, B.; Fidelis, K. Proteins: Struct., Funct., Genet. 2014, 82 (Suppl 2), 7−13. (36) Morozova, O.; Marra, M. A. Genomics 2008, 92 (5), 255−264. (37) Kellogg, E. H.; Leaver-Fay, A.; Baker, D. Proteins: Struct., Funct., Genet. 2011, 79 (3), 830−838. (38) Yin, S.; Ding, F.; Dokholyan, N. V. Nat. Methods 2007, 4 (6), 466−467. (39) Benedix, A.; Becker, C. M.; de Groot, B. L.; Caflisch, A.; Böckmann, R. A. Nat. Methods 2009, 6 (1), 3−4. (40) Jorgensen, W. L.; Chandrasekhar, J.; Madura, J. D.; Impey, R. W.; Klein, M. L. J. Chem. Phys. 1983, 79 (2), 926−935. (41) Wang, L.-P.; Head-Gordon, T.; Ponder, J. W.; Ren, P.; Chodera, J. D.; Eastman, P. K.; Martinez, T. J.; Pande, V. S. J. Phys. Chem. B 2013, 117 (34), 9956−9972. (42) Mahoney, M. W.; Jorgensen, W. L. J. Chem. Phys. 2000, 112 (20), 8910−8922. (43) Nguyen, H.; Maier, J.; Huang, H.; Perrone, V.; Simmerling, C. J. Am. Chem. Soc. 2014, 136 (40), 13959−13962. (44) Gaillard, T.; Simonson, T. J. Comput. Chem. 2014, 35 (18), 1371−1387.
+6212
+
+Article
+DOI: 10.1021/acs.jctc.6b00819 J. Chem. Theory Comput. 2016, 12, 6201−6212
+

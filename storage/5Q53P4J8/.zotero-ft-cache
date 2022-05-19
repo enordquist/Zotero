@@ -1,0 +1,1010 @@
+This is an open access article published under an ACS AuthorChoice License, which permits copying and redistribution of the article or any adaptations for non-commercial purposes.
+Article pubs.acs.org/JCTC
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on January 25, 2021 at 02:10:20 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Balanced Protein−Water Interactions Improve Properties of Disordered Proteins and Non-Speciﬁc Protein Association
+Robert B. Best,*,† Wenwei Zheng,† and Jeetain Mittal*,‡
+†Laboratory of Chemical Physics, National Institute of Diabetes and Digestive and Kidney Diseases, National Institutes of Health, Bethesda, Maryland 20892, United States ‡Department of Chemical and Biomolecular Engineering, Lehigh University, Bethlehem, Pennsylvania 18015, United States
+*S Supporting Information
+
+ABSTRACT: Some frequently encountered deﬁciencies in all-atom molecular simulations, such as nonspeciﬁc protein−protein interactions being too
+strong, and unfolded or disordered states being too collapsed, suggest that proteins are insuﬃciently well solvated in simulations using current state-ofthe-art force ﬁelds. To address these issues, we make the simplest possible change, by modifying the short-range protein−water pair interactions, and leaving all the water−water and protein−protein parameters unchanged. We ﬁnd that a modest strengthening of protein−water interactions is suﬃcient to
+recover the correct dimensions of intrinsically disordered or unfolded
+proteins, as determined by direct comparison with small-angle X-ray scattering (SAXS) and Förster resonance energy transfer (FRET) data. The modiﬁcation also results in more realistic protein-protein aﬃnities, and average solvation free energies of model compounds which are more consistent with experiment. Most importantly, we show that this scaling is small enough not to aﬀect adversely the stability of the folded state, with only a modest eﬀect on the stability of model peptides forming α-helix and β-sheet structures. The proposed adjustment opens the way to more accurate atomistic simulations of proteins, particularly for intrinsically disordered proteins, protein−protein association, and crowded
+cellular environments.
+
+■ INTRODUCTION
+Atomistic models with explicit solvent ought to provide the ultimate accuracy for simulations of biomolecular folding, association, and function.1−3 Current energy functions have now been reﬁned over many years to the point where they may often be used in a predictive manner. Nonetheless, progressively increasing computational power is exposing their remaining deﬁciencies. For example, recent work has shown that small errors in backbone4−9 and side-chain9,10 torsion parameters may accumulate to have a detrimental eﬀect on
+protein folding. Clearly, one of the major shortcomings of current additive
+force ﬁelds is the quality of the water model used, since current force ﬁelds are generally developed in conjunction with an earlier generation of water models, most commonly TIP3P.11 However, more accurate additive water models have sub-
+sequently been developed, carefully parametrized against available experimental and quantum chemical data, the best examples being the four-site TIP4P-Ew12 and TIP4P/200513
+models, and more recently the TIP3P-FB and TIP4P-FB models.14 For example, the TIP4P/2005 water model can
+capture many features of liquid water, including the temperature of maximum density. Having a water model which is accurate for pure water may not appear to oﬀer a direct
+improvement in the properties of biomolecules. However, the hydrophobic eﬀect is strongly determined by the properties of the solvent.15−17 Since this eﬀect is widely recognized to be of
+
+central importance in describing biomolecular association and folding, an improved water model should, in principle, enhance overall force ﬁeld accuracy. In addition, water-mediated interactions are believed to be critical for protein−protein recognition.18,19 At the very least, biomolecular force ﬁelds based on these improved water models, should allow exploration of protein behavior over a larger range of thermodynamic parameters, such as temperature and pressure. Several groups have taken a step in this direction, by making minimal changes to protein force ﬁelds in order to combine them with optimized water models.20,21 For example, the Amber ﬀ03w protein model, used with TIP4P/2005 water,13 improves the cooperativity of helix formation, and results in more expanded unfolded states,20 when compared with its parent Amber ﬀ03* protein model,6 used with TIP3P. This can be beneﬁcial when seeking to model the properties of intrinsically disordered proteins.22−24
+Nonetheless, there remain a number of outstanding discrepancies with current force ﬁelds (including Amber ﬀ03w), which consistently suggest that proteins are too poorly solvated. The best examples are (i) the dimensions of unfolded proteins in explicit solvent simulations are still too small, relative to experiment,25 (ii) solvation free energies of amino acid side-chain analogs are generally slightly too unfavorable,26
+Received: July 3, 2014 Published: October 16, 2014
+
+© 2014 American Chemical Society
+
+5113
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+and (iii) protein association is in general too favorable.27 The poor solvation could arise from either indirect eﬀects due to an inadequate representation of solvent structure (aﬀecting the
+free energy cost of cavity formation in the solvent) or direct eﬀects due to protein−solvent interactions. Since we know that
+recent water models accurately reproduce the structure of liquid water,12,13 the indirect mechanism is unlikely to play a
+role; indeed, both the TIP4P-Ew and TIP4P/2005 water
+models capture quite well the temperature-dependence of the solubility of hydrophobic solutes.28,29 However, Ashbaugh et al.
+showed that although TIP4P/2005 best captures the temper-
+ature-dependence of the solvation free energy for methane out
+of a range of water models, there was still a systematic shift of the solvation free energies from the experimental values.29 This
+shift could be corrected by changing the Lennard-Jones parameters of the methane, eﬀectively modifying the
+contribution of direct solute-water interactions to the solvation
+free energy. Inspired by this result, we have sought a similar adjustment of the protein−water interaction parameters in protein force ﬁelds.
+In this Article, we show that a speciﬁc modiﬁcation of protein−water Lennard-Jones parameters in Amber ﬀ03w can
+address the shortcomings described above, while not having detrimental eﬀects on folded proteins, or the stability of small,
+autonomously folding peptides. The resulting parameters result
+in dimensions of unfolded proteins consistent with FRET and SAXS measurements, realistic nonspeciﬁc protein-protein
+association, solvation free energies in better agreement with
+experiment, and stabilities of folded peptides consistent with
+experiment at room temperature. The resulting protein force ﬁeld, Amber ﬀ03ws, should facilitate accurate simulations of
+unfolded and disordered proteins, protein association, and
+protein folding.
+■ METHODS Molecular Simulation Methods. Molecular dynamics was
+propagated via the Langevin dynamics integrator in GROMACS (version 4.5.5 or 4.6.5),30 using a time step of 2 fs, and a friction coeﬃcient of 1 ps−1. Langevin dynamics was used because it is a very eﬀective thermostat and correctly samples
+the canonical ensemble. The friction used here will have only a small eﬀect on the dynamics,31 and no eﬀect on most of the
+observables we are concerned with, because these are almost all equilibrium conﬁgurational averages. Lennard-Jones pair interactions were cut oﬀ at 1.4 nm, electrostatic energies were computed via particle-mesh Ewald32 with a grid spacing of ∼0.1 nm and a real-space cutoﬀ of 0.9 nm. The force ﬁeld in all cases was a derivative of Amber ﬀ03:33 either Amber ﬀ03*6 in conjunction with the TIP3P water model11 or Amber ﬀ03w20 in conjunction with the TIP4P/2005 water model.13 The force ﬁeld for the chromophores Alexa 488 and Alexa 594 will be
+described in a future publication, and has been extensively
+validated against experimental data.
+In certain cases, temperature replica exchange simulations
+were performed (for Csp M34, ACTR, Ac-(AAQAA)3-NH2, GB1 hairpin, chignolin, and Trp cage). The protocol for these
+is the same as above, with exchanges attempted every 1 ps.
+Further details on the temperature ranges and simulation
+lengths for each case are included in the Results section. We eliminate from the analysis any conﬁgurations in which the
+proteins make van der Waals contact with their periodic image, deﬁned by a closest approach of any atom with an image atom of less than 0.3 nm.22
+
+Nativeness of proteins and peptides was assessed by computing the dRMS over native contacts, deﬁned as the mean-square diﬀerence between the distances di0j between residue pairs (i,j) in contact in the reference (native) state, and the corresponding distance dij(x) in a given conﬁguration x
+
+⎛
+
+⎞1/2
+
+∑ dRMS(x)
+
+=
+
+⎜1 ⎝⎜ Nij
+
+(i , j) ∈ {native}
+
+(dij(x)
+
+−
+
+di0j )2
+
+⎟ ⎠⎟
+
+(1)
+
+The list of the Nij native contacts, {native}, is deﬁned as all pairs of heavy atoms (i,j) within 4.5 Å in the native structure, excluding pairs for which |Res(i) − Res(j)| ≤ 2, where the
+function Res(k) gives the residue number of atom k. Protein Association. For the villin headpiece HP36
+fragment,34 we calculate association rates and dissociation
+rates from the mean residence times in bound and unbound
+states. The proteins are considered to bind when the minimum
+distance between a pair of heavy atoms from each protein falls
+below 0.2 nm, and to have dissociated when this minimum
+distance exceeds 1.0 nm. The unbinding rate is koff = 1/toff where toff is the average residence time before unbinding, while the average binding rate is given as kon = 1/(tonc0), where ton is the average residence time before binding and c0 is the total protein concentration. The residence times in unbound/bound
+are the maximum likelihood times assuming an exponential
+distribution, that is, the total time in unbound/bound divided
+by the number of binding/unbinding events. Then, the
+dissociation constant is obtained as Kd = koff/kon. Solvation Free Energies. We compute solvation free
+energies for amino acid side-chain analogues using the standard
+alchemical perturbation, in which the interactions between the solute and the solvent are turned oﬀ via a coupling parameter approach35 (see below). Since these analogues are not part of the standard force ﬁeld, we have manually constructed them,
+keeping all parameters as close as possible to those of the original force ﬁeld for the full residue. Speciﬁcally, we cut the
+bond between Cα and Cβ, and add an extra hydrogen atom to the Cβ with exactly the same parameters as the other Hβ atoms. The charge on the Cβ is then adjusted to obtain an overall neutral charge, keeping all other charges the same. A similar procedure has been used in previous studies.26,36
+The solvation free energy is obtained by switching between a
+system in which the solute and solvent are fully interacting to one in which all solute−solvent interactions are turned oﬀ. That is, the potential energy V(x) is parametrized, for conﬁguration
+x, as
+
+V(x) = V ww(x) + V pp(x) + (1 − λ)VLpJw(x)
+
++ (1 − μ)Veplewc(x)
+
+(2)
+
+where Vww(x) are all pairwise energy terms involving solvent (water) only, Vpp(x) are energy terms involving solute (protein) only, and VLpwJ (x) and Veplwec(x) are respectively the Lennard-Jones and Coulomb pair interactions between protein and water atoms. Separate coupling parameters μ and λ are used to switch oﬀ the Lennard-Jones and Coulomb
+interactions. A soft-core potential was used to smoothly switch oﬀ the Lennard-Jones term. For all cases, a simple 9-window protocol was used with respective values of μ = 0.0, 0.2, 0.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 and λ = 0.0, 0.0, 0.0, 0.0, 0.2, 0.4, 0.6, 0.8, 1.0. Note that the charges are switched oﬀ fully before the LJ
+parameters are scaled to avoid charge singularities. We have
+
+5114
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+veriﬁed that this approach gives the same results, within
+statistical error, as an alternative protocol using 38 windows, and to published simulation data.36 The results from all windows were combined using the M-BAR estimator37 to obtain ﬁnal solvation free energies.
+■ RESULTS Parametrization Strategy. Our aim is to obtain a physicsbased transferable protein force ﬁeld which can be used to
+study unfolded and disordered proteins in solution, while still
+suitable for studying folded proteins and ab initio protein folding. Therefore, as a starting point, we use the Amber ﬀ03w force ﬁeld, which already comes close to meeting these requirements,20,22−24,38−40 although with some deﬁciencies as
+noted in the introduction. Clearly, the nonbonded parameters will have the most eﬀect
+on the properties of interest, that is, the atom-centered partial
+charges and the parameters of the Lennard-Jones potential.
+Given the number of atoms and atom-types involved, there is
+potentially a large number of degrees of freedom in the
+parametrization. Moreover, these parameters, particularly those
+for the Lennard-Jones potential, are coupled to the bonded
+parameters, such as those for the torsion terms. Therefore, a
+reparametrization of the nonbonded parameters really amounts to ﬁtting a completely new force ﬁeld, while our goal is to address a speciﬁc deﬁciency. Recently, a full parametrization of
+protein Lennard-Jones parameters to reproduce solvation free
+energies showed some promising results, but unfortunately resulted in very unstable folded proteins.41 In this work, we seek only the minimal change to an existing force ﬁeld to obtain
+also reasonable properties for unfolded proteins and protein-
+protein interactions, while maintaining the integrity of folded
+proteins, and the folding stability of fast-folding peptides.
+Although there is some degeneracy in the optimal choice of charges in an additive force ﬁeld,42 a thorough study of
+solvation free energies of model compounds found relatively
+little dependence of the accuracy of the solvation free energies on the method used for deriving the charges,43 and studies of
+amino acid side-chain analogs have also found little dependence on the details of charge derivation.26,36
+Therefore, we focus on the Lennard-Jones (LJ) parameters.
+We do not want to alter the properties of the water model,
+which are already in excellent agreement with experiment for
+the pure solvent. Furthermore, it has been shown theoretically that changing solvent−solvent interactions should not alter solvation free energies,44 while ideally we would like to do so.
+We also would prefer to avoid modifying the protein
+parameters, due to the aforementioned coupling with the torsion parameters, and possible detrimental eﬀects on protein structure. We have therefore focused on making a speciﬁc change to protein−water LJ interactions only, rather than relying on the standard Lorentz−Berthelot (LB) mixing rules employed by Amber force ﬁelds. Since there is not a strong
+theoretical basis for these rules, and they have previously been independently adjusted during force ﬁeld development,45 we chose to scale the Lennard-Jones εOi, between the water oxygen and all protein atoms, that is
+
+εOi = γεOLiB = γ(εOεi)1/2
+
+(3)
+
+where εO and εi are the Lennard-Jones ε on the water oxygen and atom i, εOLBi is result generated by the LB combination rule, and γ is the adjustable scaling parameter. Note that the
+
+interactions between the water and ions are not adjusted, and take their default values from the Lorentz−Berthelot rules. Interactions between water and prosthetic groups such as chromophores are rescaled as for the protein. We are thus left with only a single tuning parameter γ to optimize the protein behavior. Our choice of tuning an Amber force ﬁeld is partly driven by the fact that the original parametrization did not explicitly consider protein−water interactions,33 unlike, for example, the CHARMM force ﬁelds,9,46 and therefore, we have more freedom to change these interactions.
+Parameter Optimization: Csp M34. Since we have only a single parameter to optimize, there is no risk of overﬁtting. We, therefore, use a single system to optimize the parameter, and then validate this choice by testing against a variety of other systems.
+For computational convenience, we have chosen a relatively short 34-residue fragment of Cold-shock protein (Csp M34) for our initial parametrization. Single molecule Förster resonance energy transfer experiments on this peptide by Sorranno et al.47 and Wuttke et al.48 provide an accurate source of distance information as a function of temperature. Csp M34 is labeled at one terminus with the extrinsic chromophore AlexaFluor 488 and at the other terminus with AlexaFluor 594, via coupling of cysteine thiol groups to maleimide groups on the chromophores; the version of the dyes with a 5-carbon linker is used. In the simulations, we have placed AlexaFlour 488 at the N-terminus and AlexaFlour 594 at the C-terminus (in experiment, the order of attachment is not controlled, but has been found not to aﬀect the results when tested49,50). A complicating factor in such simulations is clearly the accuracy of the force ﬁeld for the dye molecules, which we have recently optimized to reproduce the correct time-scales for chromophore dynamics and interaction energies between the dye and protein.
+We have determined the temperature dependence of the Csp M34 properties via replica-exchange molecular dynamics (REMD) at constant temperature and pressure, using 42 replicas spanning a temperature of 275−423 K and a 6.5 nm truncated octahedron periodic cell. Each run was for 100 ns, discarding the ﬁrst 50 ns as “equilibration”. In Figure 1 we show a comparison with the temperature-dependent experimental data, both the average FRET eﬃciency measured (Figure 1C), as well as the radius of gyration (Rg) inferred from these FRET eﬃciency measurements (Figure 1A). From the simulation data, we have computed the mean FRET eﬃciency via a simple average over the distance between the chromophores, assuming that the distribution of chromophore orientations is isotropic at all separations R (i.e., the orientational factor κ2 in the FRET transfer rate is ∼2/351,52), and that chromophore dynamics is fast relative to chain dynamics:
+
+E = ⟨(1 + (R/R0)6)−1⟩
+
+(4)
+
+The Rg is determined from the simulations, using only the protein atoms (even though the simulation includes the dye
+molecules and linkers). Using the Amber ﬀ03w force ﬁeld, the Rg values are
+underestimated with respect to experiment at all temperatures,
+even though the TIP4P/2005 water model is known to yield
+unfolded states which are more expanded relative to the TIP3P water model20): the radius of gyration at 300 K is ∼1.3 nm,
+around 20% smaller than the experimental estimate. More importantly, the FRET eﬃciency is >0.9, and thus clearly
+inconsistent with experiment. The average distance between the
+
+5115
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 1. Temperature-dependent collapse of the M34 fragment of CspTm. (A) Radius of gyration (excluding chromophores) for ﬀ03w (black symbols) and ﬀ03ws (red symbols). Blue line indicates values estimated from FRET measurements.48 Red dot-dashed and dashed lines indicate the results obtained by reweighting at γ = 1.05 and 1.15, respectively. (inset) Dependence of radius of gyration on the water− protein scaling factor γ at 300 K; horizontal blue line indicates the value from FRET and vertical red line the “optimal” choice of γ ≡ 1.10. (B) Separation of chromophores as given by the distance between the gamma sulfur atom of the cysteines to which they are linked (empty symbols) or by the distance between center of mass of the chromophores themselves (solid symbols). Color code as in panel A. (C) FRET eﬃciency as computed from the distances in panel B, meaning of symbols is the same. Blue line indicates experimental FRET measurements or derived quantities.48
+center of the chromophores is systematically shorter than between the cysteine Sγ atoms, which may be a consequence of the chromophores being too buried within the unfolded chain.
+We, therefore, experimented with a range of possible protein−water scaling parameter values, and eventually settled on γ = 1.10 as a near-optimal value. Using this scaling, the agreement with experiment is much improved, both for Rg and FRET eﬃciency; the temperature-induced collapse noted in previous studies25,48,53 is also qualitatively captured. Interestingly, we obtain almost identical results, regardless of whether we use the distance between a central atom (C1) of each chromophore, or between the Sγ of the cysteine residue to which they are attached.
+To conﬁrm that the choice γ = 1.10 is close to optimal, we have performed a simple reweighting, using values of γ ranging from 1.05 to 1.15, with weights for each snapshot i given by wi ∝ exp[−β(Vγ − V1.10)], where Vγ, V1.10, and β are respectively the energy with the γ of interest, the energy with γ = 1.10, and the inverse temperature. In all cases, we determine the eﬀective fraction of snapshots contributing to the reweighted average as
+
+f RW = exp[Sshannon]/N, where N is the total number of snapshots and the Shannon entropy is deﬁned as Sshannon = −∑iwi ln wi, where the sum runs over the normalized weights wi of the N snapshots. We ﬁnd that f RW is generally in the range of 10−40%, so we are not overemphasizing individual trajectory
+frames in the reweighting. The reweighted radius of gyration at
+300 K, shown in Figure 1A, inset, reveals the expected collapse transtion in the Rg with decreasing γ.54 As a consequence, the Rg are very sensitive to the scaling, and only a rather narrow range of γ close to γ = 1.10 could be considered acceptable. We
+therefore proceed with this choice for the remainder of this
+work. Parameter Validation. Having chosen γ = 1.10, we then
+conﬁrmed that this choice is reasonable, by applying it to a variety of test cases probing diﬀerent aspects of the force ﬁeld. We ﬁrst present the results where this scaling leads to a
+substantial improvement in relation to experiment: the
+dimensions of disordered proteins (ACTR), the solvation free
+energies of amino acid analogues, and protein self-association (villin HP36). We then demonstrate that the modiﬁcation does not detrimentally aﬀect a range of other systems: intrinsic structure propensity in short peptides, the helix−coil transition,
+the folding of mini-proteins and the structure of folded proteins. The force ﬁeld with γ = 1.10 is referred to as Amber ﬀ03ws to distinguish it from the Amber ﬀ03w, parametrized with unscaled protein−water interactions (γ = 1).20
+Small-Angle X-ray Scattering (SAXS) of ACTR. While the
+agreement for Csp M34 is good, it is a relatively short chain, and a speciﬁc case. A possible concern could be that we optimized our force ﬁeld for a particular chain length or
+sequence composition, while it may fail for others. This concern arises because of the fundamental diﬀerences in the hydrophobic eﬀect on diﬀerent length scales,17 and the known eﬀects of sequence composition and patterning on the dimensions of unfolded proteins.55−58 Kjaergaard et al.53 have
+measured the dimensions of the intrinsically disordered protein
+ACTR by SAXS at two temperatures. They found that the
+protein collapses slightly with increasing temperature, with the
+average Rg decreasing from 2.63 nm at 278 K to 2.39 nm at 318 K. We have performed replica-exchange molecular dynamics
+simulations on the same ACTR sequence, using the same
+system size and replica spacing as for the labeled Csp M34. The
+average radii of gyration from the replicas at 278 and 318 K are 2.13 (0.8) and 2.03 (0.4) nm, respectively using Amber ﬀ03ws
+and 1.56 (0.1) and 1.51 (0.2) nm at 278 and 318 K using Amber ﬀ03w. Since the experimental Rg is inferred from a model, we have also directly calculated the scattering intensity using CRYSOL,59 and averaged over the trajectory. In Figure 2,
+we show a comparison of the experimental and calculated scattering intensity proﬁles at the two temperatures studied in
+experiment, 278 and 318 K. The match to the experimental data (black curve) is much improved with the new force ﬁeld using scaled protein−water interactions (green curve) relative to the Amber ﬀ03w force ﬁeld (red curve), although the curves
+from the simulation data still indicate that the structural
+ensemble is slightly more compact relative to the experimental
+data. A likely reason for the this remaining discrepancy may be the excluded volume eﬀects due to the limited system size
+utilized to make the replica exchange simulations computa-
+tionally feasible. A simple calculation using a Gaussian chain model suggests that the magnitude of this eﬀect is comparable
+to the amount by which the simulation Rg is reduced, relative to the experimental estimate.
+
+5116
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 2. Properties of the intrinsically disordered protein ACTR. SAXS intensity proﬁles from experiment (black)53 and from simulations using Amber ﬀ03w (red) and Amber ﬀ03ws (green) are shown for (A) temperatures of 278 and (B) 318 K at an ionic strength of ∼250 mM (close to the experimental conditions.53 In panels C and D, we show the distributions of radius of gyration at 278 and 318 K, respectively. REMD simulations were performed for 100 ns per replica using a 6.5 nm truncated octahedron box. Prior to this, equilibration runs of 10 and 30 ns were performed for Amber ﬀ03w and ﬀ03ws, respectively.
+To check the backbone sampling for ACTR, we have also performed chemical shift calculations using SPARTA+60 to compare with the experimental shifts for this protein determined by Ebert et al.61 Within the error of the shift prediction, the shifts calculated from either the Amber ﬀ03w or ﬀ03ws simulations, using the replicas closest to the experimental temperature (Figure 3), are in agreement with
+Figure 3. ACTR secondary chemical shifts. Black line: experimental Cα secondary shifts computed by subtracting the SPARTA+ reference shift60 for a random-coil structure (δrc)from the experimental data.61 Blue symbols: simulated shifts computed using SPARTA+ from Amber ﬀ03w REMD simulations. Red symbols: corresponding results from Amber ﬀ03ws simulations. Shaded region lies outside of one σ of the shift prediction from experiment. All data are at ∼304 K.
+the experimental data. One can conclude that the peptide is rather disordered, with little persistent secondary structure. In this case, it appears that the shifts are not particularly sensitive to degree of collapse of the chain.
+Solvation Free Energies. Solvation free energies have long been used as a force ﬁeld benchmark, although only recently have the calculations been suﬃciently accurate to be discriminating. For example, Shirts et al. carried out solvation free energy calculations for all uncharged side-chain analogs, using a number of protein force ﬁelds26 and water models.62 They found that all force ﬁelds underestimated the solubility of
+
+most side-chain analogs. We have therefore determined solvation free energies using a standard alchemical method, with 9 windows bridging the uninserted and inserted states for a simulation time of 6 ns per window. The results are shown in Table 1.
+To gauge the overall impact of the solvation free energies on force ﬁeld properties, we would ideally perform a global comparison of the solvation free energies of all side-chain analogues with their experimental counterparts to determine the net diﬀerence. There are a few complications to such a comparison; ﬁrst, we have not determined the solvation free energies of all side-chain analogues. Speciﬁcally, we have neglected the charged analogues, whose solvation free energies are an order of magnitude larger48,64 and slightly more complicated to determine by simulation.65 Second, we do not consider the backbone contribution, due to the ambiguity of how to parametrize model compounds for the backbone with the Amber ﬀ03 force ﬁeld (all residues have diﬀerent backbone charges). Third, the values obtained should, in principle, be corrected for the energetic cost of polarization, which is absent in a prepolarized additive model.66 As we discuss below, there are many approximate ways to do this, and as in previous studies, we will merely present the uncorrected results and discuss the qualitative impact of corrections.36
+Nonetheless, we can derive some insights by comparing the average properties of the side-chain analogues which we have studied. In Table 2, we present various measures of the diﬀerence from experiment for diﬀerent combinations of force ﬁelds and water models. In addition to the standard global rootmean-square error from experiment, we also consider the mean signed error, which measures the net deviation from experiment, as well as weighted variants MSEX deﬁned via
+
+∑ MSEX = wX(i)(μseimx (i) − μeexxp t(i))
+
+i
+
+(5)
+
+where wX(i) is the weight of residue i for the set of weights X, and μseixm(i) and μeexxpt(i) are respectively the excess chemical potential of residue i in simulation and experiment. We consider two sets of weights, ﬁrst the normalized frequency of
+each residue in the protein data bank (PDB), and second the
+corresponding frequency of each residue in loop regions of the
+PDB, as a proxy for intrinsically disordered segments (residue
+frequncies taken from ref 67).
+Note that we have used Amber9x to refer to Amber94,
+Amber99, Amber99SB, etc., which are identical from the perspective of side-chain analogues, although diﬀerent parent force ﬁelds may be used to describe them in the literature.26,36
+Of particular interest for this study is the average signed
+error, which is a measure of whether the simulation solvation
+free energies are overall more or less favorable than the experimental data. This is because the modiﬁcation we make is not likely to have highly residue-speciﬁc eﬀects but should have a qualitatively similar eﬀect on all residues. The important
+deductions which can be made from Table 2 are that the RMS error of most force ﬁeld/water combinations is 1−2 kBT, with a mean signed error of around +1 kBT. Thus, over the set of residues studied here, the solvation free energies of these force ﬁelds are less favorable than in experiment. Of course, we have
+not explicitly considered a polarization correction, but this
+should make the simulation solvation free energies more
+unfavorable (as it is an energy cost incurred upon dissolution).42 Scaling the water interactions helps to improve the overall RMSE of the Amber ﬀ03ws model relative to Amber
+
+5117
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Table 1. Solvation Free Energies of Uncharged Amino Acid Side-Chain Anologs, with the Amber ﬀ03 Force Field and Diﬀerent Water Models at 298 Ka
+
+parent residue PDB frequency IDP frequency
+
+μex expt (kJ mol−1)
+
+μex ﬀ03* (kJ mol−1)
+
+μex ﬀ03w (kJ mol−1)
+
+μex ﬀ03ws (kJ mol−1)
+
+Ala
+
+0.13
+
+0.18
+
+8.12
+
+(0.08)
+
+10.14
+
+0.06
+
+10.62
+
+(0.07)
+
+9.25
+
+(0.07)
+
+Asn
+
+0.07
+
+0.06
+
+−40.5
+
+−29.39
+
+0.09
+
+−29.96
+
+(0.11)
+
+−32.45
+
+(0.11)
+
+Cys
+
+0.02
+
+0.02
+
+−5.19
+
+(0.21)
+
+−0.09
+
+0.07
+
+0.85
+
+(0.09)
+
+−1.49
+
+(0.09)
+
+Gln
+
+0.06
+
+0.08
+
+−39.2
+
+−44.86
+
+0.11
+
+−47.57
+
+(0.14)
+
+−50.46
+
+(0.14)
+
+Hid
+
+0.04
+
+0.03
+
+−43.0
+
+−49.99
+
+0.11
+
+−52.72
+
+(0.15)
+
+−56.25
+
+(0.15)
+
+Ile
+
+0.09
+
+0.05
+
+9.00
+
+(0.19)
+
+10.54
+
+0.12
+
+11.30
+
+(0.16)
+
+6.96
+
+(0.16)
+
+Leu
+
+0.14
+
+0.12
+
+9.54
+
+(0.11)
+
+9.88
+
+0.10
+
+10.99
+
+(0.15)
+
+6.52
+
+(0.15)
+
+Met
+
+0.03
+
+0.03
+
+−6.19
+
+0.69
+
+0.10
+
+1.87
+
+(0.14)
+
+−2.40
+
+(0.14)
+
+Phe
+
+0.06
+
+0.04
+
+−3.18
+
+(0.18)
+
+2.17
+
+0.12
+
+3.69
+
+(0.18)
+
+−1.61
+
+(0.18)
+
+Ser
+
+0.09
+
+0.15
+
+−21.2
+
+(0.1)
+
+−19.16
+
+0.07
+
+−19.56
+
+(0.08)
+
+−20.66
+
+(0.08)
+
+Thr
+
+0.09
+
+0.10
+
+−20.4
+
+(0.2)
+
+−14.38
+
+0.08
+
+−14.91
+
+(0.10)
+
+−17.04
+
+(0.10)
+
+Tyr
+
+0.02
+
+0.01
+
+−25.6
+
+(0.1)
+
+−14.90
+
+0.15
+
+−6.20
+
+(0.16)
+
+−10.81
+
+(0.17)
+
+Trp
+
+0.05
+
+0.03
+
+−24.6
+
+−7.87
+
+0.12
+
+−13.32
+
+(0.20)
+
+−20.33
+
+(0.21)
+
+Val
+
+0.11
+
+0.09
+
+8.33
+
+(0.10)
+
+9.84
+
+0.09
+
+10.34
+
+(0.12)
+
+6.96
+
+(0.12)
+
+aAll values in kJ mol−1. Experimental data were taken from Wolfenden.63 Numbers in brackets are, for the simulation data, the statistical error, and for the experimental data, the standard deviation over the experimental data sets collated by Shirts and Pande,26 where available.
+
+Table 2. Global Measures of Deviation from Experimental Solvation Free Energies (kJ mol−1)a
+
+protein//water force ﬁelds RMSE MSE MSEPDB MSEIDP
+
+OPLS//TIP3Pb Amber9x//TIP3Pb Amber9x//TIP4Pewb CHARMM//TIP3Pc
+
+3.11 2.5
+
+2.11
+
+2.21
+
+3.63 2.42
+
+1.86
+
+1.69
+
+4.08 2.87
+
+2.43
+
+2.05
+
+5.63 4.78
+
+3.73
+
+3.59
+
+Amber03*//TIP3P
+
+7.41 4.90
+
+3.81
+
+2.99
+
+Amber03w//TIP4P/2005
+
+8.25 5.32
+
+4.16
+
+3.11
+
+Amber03ws//TIP4P/2005
+
+6.12
+
+1.81
+
+0.95
+
+0.33
+
+aNote that these comparisons exclude histidine in all cases as it was not present in the data set of Hess.36 MSE: Mean signed error.
+MSEPDB: Mean signed error with PDB residue weighting. MSEIDP: Mean signed error with residue weighting based on unstructured regions of the PDB. bData from Hess.36 cData from Shirts and Pande.26
+
+ﬀ03w, but, more importantly, it reduces the mean signed error
+(with or without weighting). Thus, the average solvation free energy per side-chain is approximately 1−2 kBT more favorable than the other force ﬁeld models in Table 2. While this may be qualitatively expected, it helps to quantify the eﬀect of the chosen scaling of protein−water interactions. When the diﬀerences are weighted by the observed frequency of residues
+in the PDB (in either folded or disordered regions), the
+agreement improves still further, indicating that the most
+abundant residues also have the most accurate solvation free
+energies, so that the average solvation of natural sequences will
+generally exceed expectations based on a comparison of
+unweighted solvation free energies. Protein Association: Villin HP36. Association of villin HP36
+is an appealing test for nonspeciﬁc protein-protein aﬃnities,
+because of its modest size (36 residues) relative to other
+systems often used for studying weak protein association, such
+as Lysozyme. Villin HP36 has been shown to associate in a diﬀusion-limited manner in a recent computational study,27 while it is known to remain soluble up to ∼1.5 mM,68 based on the invariance of NMR-determined diﬀusion coeﬃcients up to
+that concentration. Therefore, we expect a dissociation constant
+Kd > 1.5 mM. On the other hand, there is evidence for weak protein association from a small change in chemical shifts at a concentration of ∼32 mM.69 To test the self-interactions of
+
+villin, we ran simulations of two villin HP36 molecules at a total protein concentration of ∼8.5 mM, starting from the same initial conﬁguration with the molecules spaced ∼1 nm apart.
+The simulations were run for 200 ns at 300 K. We observed
+binding and unbinding events from long equilbrium simulations, where we deﬁne a binding event as when the minimum
+distance between the molecules falls below 0.2 nm, and
+unbinding when it exceeds 1.0 nm. These distances were
+chosen based on the trajectory of minimum distances, shown in Figure 4. Using these cut-oﬀs, we can compute association and
+dissociation rates, and dissociation constants Kd for each force ﬁeld, shown in Table 3.
+It is clear from inspection of the simulation with the Amber ﬀ03* force ﬁeld (TIP3P water) that the association of the two
+proteins is extremely rapid, and, in spite of an early short
+dissociation event, the proteins essentially remain bound for the
+entire duration of the trajectory. Although the estimated Kd of 0.1 mM has a large associated error, it is also clearly much too small to be consistent with the NMR diﬀusion coeﬃcient measurements. On the other hand, with the Amber ﬀ03w (TIP4P/2005 water) or Amber ﬀ03ws (TIP4P/2005 water with scaled protein−water interactions), we ﬁnd dissociation constants of ∼15 and ∼22 mM respectively. These values are consistent with the lack of association at ∼1.5 mM in the diﬀusion experiments and may also be consistent with some
+weak association at the 32 mM concentration at which localized
+chemical shift changes were observed. Structure of Disordered Peptides: Ala5 3J Couplings. The
+determination of a comprehensive set of through-bond scalar
+couplings in short oligo-alanine peptides by Schwalbe and coworkers70 has provided a reference data set for the intrinsic
+sampling of backbone conformations in disordered peptides, which has been used to assess71−73 and optimize6,21 force ﬁelds. Here, our objective is to conﬁrm that altering the protein− water interactions does not have detrimental eﬀects on this
+sampling of backbone conformations. The approach we use here is similar to that adopted earlier,71 i.e., we measure the
+agreement with experiment using
+
+∑ χ 2 = 1
+N
+
+i
+
+(Jexpt(i) − Jcalc(i))2 σi2
+
+(6)
+
+5118
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Table 4. Summary of 3J Couplings (with New Karplus Equation) for Residue 4a
+
+Residue, Coupling Expt σ ﬀ03* CHARMM36 ﬀ03w ﬀ03ws
+
+A4 1JNCα (ψ4)
+A4 2JNCα (ψ4)
+A4 3JHαC (ϕ4)
+A4 3JHNC (ϕ4)
+A4 3JHNCβ (ϕ4)
+A4 3JHNHα (ϕ4)
+A4 3JHNCα (ϕ4, ψ3)
+χ2
+
+11.25 0.59 11.18 8.40 0.50 8.17 1.89 0.38 1.83 1.15 0.31 1.10 2.14 0.25 2.13 5.98 0.42 6.16 0.69 0.10 0.62
+0.36
+
+11.20 8.06 1.94 1.25 2.11 5.97 0.61 0.60
+
+11.35 11.34 8.26 8.22 1.85 1.85 1.13 1.20 2.03 1.98 6.29 6.26 0.64 0.64 0.31 0.38
+
+aNote that the reported χ2 is for all residues; however, a full listing is given in the Supporting Information.
+
+Figure 4. Association of villin. The minimum distance between two
+villin HP36 molecules at 8.5 mM total protein concentration is shown for (A) Amber ﬀ03*, (B) Amber ﬀ03w, and (C) Amber ﬀ03ws. Broken red lines indicate the boundaries used to deﬁne association and
+dissociation events. The dRMS from the native state is shown for (D) Amber ﬀ03*, (E) Amber ﬀ03w, and (F) Amber ﬀ03ws (black, blue
+curves correspond to the two chains in the system).
+
+Table 3. Kinetic and Equilibrium Parameters of Villin HP36 Association
+
+force ﬁeld
+Amber ﬀ03* Amber ﬀ03w Amber ﬀ03ws
+
+kon (M−1 ns−1) 49.4 (34.9) 8.3 (2.7) 3.5 (1.7)
+
+koff (ns−1) 0.005 (0.005) 0.128 (0.043) 0.077 (0.034)
+
+Kd (mM) 0.10 (0.07) 15.4 (1.7) 21.9 (4.9)
+
+where Jexpt(i) is the ith experimental J-coupling and Jcalc(i) is the corresponding ith coupling computed using a Karplus equation; σi is the estimated error in the predictions made by the Karplus equation. However, we have made some important revisions. First, we now use a more recent Karplus equation, ﬁtted to RDC-reﬁned NMR structures74 for the 3JHNHα, 3JHNC, and 3JHNCβ scalar couplings, which results in a smaller σi for the predictions; despite this, we still obtain a lower χ2 than with the
+previous Karplus equation for those same couplings. Second, we have now omitted the 3JCC measurements from the test data set. In all previous studies, these have resulted in a large contribution to the total χ2, and the experimental values are
+inconsistent with data for other alanine-rich, disordered
+sequences (Ad Bax, personal communication). Furthermore, since the 3JCC couplings report on the ϕ torsion angle, they are somewhat redundant as several other J-couplings are available
+that report on the same angle.
+The results, summarized in Table 4 show that overall, similar results are obtained with the original Amber ﬀ03w and with ﬀ03ws, with χ2 smaller than 1.0. If the force ﬁeld were perfect, an average χ2 of 1.0 is expected, since the deviation from
+experiment is then equal to the error in the Karplus prediction. Our χ2 < 1.0 most likely results from a slight overestimate of
+
+the experimental σi which is obtained from diverse sequences, not just oligo-alanine. This χ2 is also comparable to that for other state of the art protein force ﬁelds such as CHARMM 36.9
+Helix Formation in Ac-(AAQAA)3-NH2. Good sampling of intrinsic backbone propensity in unstructured peptides is clearly desirable, but it is also critical that a modiﬁcation of the water−
+protein interaction does not destabilize folded motifs such as
+helices, which may be weakly populated in unfolded states. As a
+model system, we use the 15-residue helix-forming peptide Ac(AAQAA)3-NH2, which forms ∼30% helix at 300 K, and for which the temperature-dependent helix propensity has been determined by NMR.75 We have previously used this as a probe for helix propensity in force ﬁelds.6,9,20 In Figure 5A, we show
+the temperature-dependent helix propensity for this peptide
+using Amber03ws, compared with the closely related forceﬁelds Amber03* and Amber03w. It is clear that even with the modiﬁed water interactions, stable helical structures are still formed. The overall helix stability is reduced in Amber ﬀ03ws, but since it was originally slightly too high in Amber ﬀ03w at
+low temperatures, the agreement with experiment is somewhat
+improved at 300 K (see per-residue helix populations in Figure
+5A, inset). Folding of Mini-Proteins: Trp Cage, GB1 Hairpin, and
+Chignolin. In addition to the simple helix-forming peptide
+above, we have also investigated the stability of small cooperatively folding motifs, or “mini-proteins”. These present
+the advantage that their folding equilibria can be sampled
+relatively easily and, due to their low stability, they are very sensitive to changes in force ﬁeld parameters.
+The mini-proteins we consider are the 20-residue Trp-cage,76 representative of α-helical and 310-helical structure, the 16residue β-hairpin GB1,78,79 and 10-residue β-hairpin chignolin,77 each representative of turn and β structure. In Figure 5B,
+we have determined melting curves for each of these systems
+from replica-exchange molecular dynamics simulations. Because
+obtaining fully converged equilibrium curves is challenging for
+such systems, in each case, we run two independent
+calculations, one starting from the native state, and another
+starting from an unfolded state.
+The melting curves for Trp cage (Figure 5B) show that it is stably folded using Amber ﬀ03ws, with the results of the two
+
+5119
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 5. Peptide folding equilibria. (A) Temperature-dependent helix formation in Ac-(AAQAA)3-NH2, (inset) per-residue fraction helix at 300 K. (B) Folded population of Trp Cage. (C) Folded population of
+GB1 hairpin. (D) Folded population of chignolin. Folded populations are deﬁned as those with dRMS from the experimental structure of less than 0.2 nm. Green symbols indicate Amber ﬀ03ws, and where applicable, red symbols indicate Amber ﬀ03w and blue symbols Amber ﬀ03* with TIP3P water. Experimental data are indicated by black lines (taken from Shalongo et al.75 for Ac-(AAQAA)3-NH2, from Muñoz et al. for GB1, from Neidigh et al. for Trp cage76 and from from Honda et al. for chignolin77). Up triangles and down triangles refer, respectively, to REMD simulations initiated from unfolded or folded structures. Simulation lengths were 150 ns (50 ns equilibration) for
+Ac-(AAQAA)3-NH2, 150 ns (75 ns equilibration) for Trp cage initiated from folded structures, 300 ns (150 ns equilibration) for Trp
+cage initiated from unfolded structures, 500 ns (200 ns equilibration) for GB1 initiated from folded structures, 400 ns (200 ns equilibration) for GB1 initiated from unfolded structures, and 100 ns (50 ns
+equilibration) for chignolin.
+
+REMD simulations (from folded, unfolded) in near agreement
+except at the lowest temperatures. The stability is slightly lower than with the earlier Amber ﬀ03* force ﬁeld and TIP3P water, but has similar stability to experiment at temperatures ∼300 K.
+It is more challenging to obtain converged melting curves for the GB1 hairpin because of its slower folding rate,80 but
+nonetheless the simulations starting from unfolded and folded
+conformations provide bounds on the true equilibrium curve. Diﬀerent estimates for the fraction folded at 300 K have been obtained in diﬀerent experiments, ranging from ∼30%81 to ∼50%.79 Our estimate of ∼10% is somewhat lower than these,
+however this still corresponds to a folded state destabilization of only ∼1.3 kBT.
+As a second example of a β-hairpin, we consider the designed β-hairpin chignolin, derived by taking a consensus sequence out
+of a large number of sequences which fold to a structure similar to GB1.77 In this case, because of the smaller size of the
+peptide, we can obtain converged results starting from folded or
+unfolded states (Figure 5D). The folded population near 300 K
+is remarkably close to the experimental estimate, but with a
+temperature dependence which is still too weak. This lack of
+cooperativity is also evident for the other model systems
+studied here, suggesting that the scaled water interactions do not help to address this known deﬁciency of current additive force ﬁelds.3
+Stability of Folded Proteins. Lastly, we consider the stability
+of native proteins: it might be anticipated that increasing the
+protein-water interaction strength may destabilize folded states. However, this is a diﬃcult issue to address computationally as
+computing the stability of native proteins is rather challenging. Instead, we show that a more limited condition is satisﬁed, i.e.
+that folded proteins stay close to the native state in simulations
+starting from the experimental structures. We have chosen a set of four proteins representative of diﬀerent structural classes so
+as to obtain a good coverage of protein structure space. These are the extensively characterized ubiquitin (α/β), spectrin R15 (all-α), the cold shock protein from Thermotoga maritima, CspTm (all-β), and human lysozyme (α/β) − the last being an example of a slightly larger protein with two distinct α and β
+domains. For each protein, we have run 200 ns simulations
+starting from the experimentally determined, folded structure.
+In all cases, using the Amber03ws model results in all-atom dRMS deviations of ∼0.2 nm from the X-ray structures. These deviations are comparable to, or in some cases (CspTm)
+slightly better than those obtained with the original Amber03w. (Figure 6 A-D). To further quantify the ﬂuctuations on a perresidue basis, we have computed root-mean-square ﬂuctuations
+(RMSF) averaged over each residue, after aligning the
+backbone to the experimental structure. The RMSF (Figure 6E−H) obtained with Amber03w and Amber03ws is also
+comparable. Lastly, we have calculated all-atom contact maps with a 0.6 nm cutoﬀ (i.e., for each pair of residues, we calculate
+the fraction of the time for which at least one pair of heavy
+atoms from the two residues is within 0.6 nm). These contact
+maps, shown in Figure 7, show that almost identical contacts are formed with the original and modiﬁed force ﬁeld; that is
+very few native contacts are broken and few non-native contacts are formed. We have also plotted the residue−residue contacts on the α-carbon trace of each protein, highlighting the contacts formed in the Amber ﬀ03w simulations and not in the Amber ﬀ03ws simulations, and vice versa. As can be seen there are generally very few diﬀerences. The largest changes are for CspTm, as already suggested by the diﬀerences in the dRMS
+
+5120
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 6. Stability of folded proteins. We show native distance matrix
+RMS (dRMS) calculated for all heavy atom pairs in contact in the native crystal structure, for (A) ubiquitin, (B) CspTm, (C) human lysozyme,
+and (D) spectrin R15 and residue-averaged root-mean-square ﬂuctuations (RMSF) for each of the proteins (E) ubiquitin, (F)
+CspTm, (G) human lysozyme, and (H) spectrin R15. Black and red
+curves correspond respectively to results obtained with the Amber ﬀ03w and Amber ﬀ03ws force ﬁelds in 200 ns simulations at 300 K. The experimental structures are presented as insets in E−H.
+
+plots; in this case, the ﬀ03ws is in fact closer to the experimental structure. Finally, we have directly calculated backbone amide order parameters for comparison with those measured by NMR, for the proteins where data is available (ubiquitin, human lysozyme).82 The results, shown in Figure 8 indicate that the Amber ﬀ03w and ﬀ03ws force ﬁelds yield similar values for the order parameters in regions of secondary structure, and are in both cases in good agreement with experiment. For ubiquitin, the loops are clearly more ﬂexible in Amber ﬀ03ws than in either Amber ﬀ03w or in experiment; in lysozyme, both ﬀ03w and ﬀ03ws exhibit some excess ﬂexibility in the loops over experiment. One caveat to this interpretation is that the method we have used to compute order parameters averages the internal dynamics over the entire simulation,82 whereas the ﬁt to experiment is sensitive only to dynamics shorter than the reorientational correlation time of the molecule. The calculated order parameters may therefore be an underestimate, but much longer simulations would be needed to calculate them in the analogous way to experiment.83
+Taken together, these results all suggest that folded proteins are indeed reasonably stable when using the ﬀ03ws force ﬁeld.
+Discussion. Current force ﬁelds have achieved remarkable successes in recent years, most notably the ab initio folding of a
+number of small proteins starting from fully unfolded conformations.86−91 Despite this success, however, these simulations did reveal some unexpected features, for example, that the unfolded state was too compact relative to experiment,3 and often contained highly structured states.92−95 The collapse was clearly inconsistent with SAXS and FRET measurements probing unfolded state dimensions,3 while structure-forming
+
+Figure 7. Contact diﬀerences in folded proteins. For each of the proteins shown in Figure 6, we present contact maps (left panels) computed with Amber ﬀ03w (above diagonal) and Amber ﬀ03ws (below diagonal): (A) ubiquitin, (B) CspTm, (C) human lysozyme, and (D) spectrin R15. In the right panels, we show the contacts overlaid on the structures: cyan contacts are common to both simulations, orange contacts are those for which Pij(ﬀ03ws) − Pij(ﬀ03w) < −0.5, that is, the contact is formed with ﬀ03w, but not ﬀ03ws; similarly dark blue contacts are those formed with ﬀ03ws, but not ﬀ03w Pij(ﬀ03ws) − Pij(ﬀ03w) > 0.5.
+propensity appears inconsistent with the general ﬁnding of little persistent residual structure in unfolded proteins, beyond the intrinsic structure of each residue.96 It has also been suggested that such non-native traps may be responsible for another artifact of all-atom folding simulations; namely, the extreme sensitivity of the folding rate to temperature93 (most successful
+
+5121
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 8. NMR order parameters for folded proteins: (A) ubiquitin and (B) lysozyme. Black lines are results using Amber ﬀ03w. Red lines using Amber ﬀ03ws and blue symbols are experimental data taken from Tjandra et al.84 for ubiquitin and Mine et al.85 for lysozyme.
+folding simulations have been done at high temperatures ∼350 K). In experiment, the folding rate is usually only weakly temperature-dependent. The slow rates at low temperature may result from an energy landscape which is too rugged as the result of non-native traps.
+Our work suggests that, with current force ﬁelds, peptides are insuﬃciently well solvated in water. This eﬀect, while it may help to stabilize the folded state, also clearly results in unfolded states which are too collapsed, and may result in additional ruggedness via stabilization of structured non-native states. In this paper, we have clearly shown that the dimensions of unfolded and intrinsically disordered proteins can be corrected by appropriately balancing protein−solvent interactions, and that such a correction also appears to improve the overall agreement of solvation free energies and nonspeciﬁc protein− protein interactions with experiment. Notably, even though the optimal correction was obtained from a speciﬁc set of data for one system (FRET data from Csp M34), the same parameter results in similar improvements for the other systems, that is, it is “transferable”.
+An obvious question, then, is to what extent the correction factor obtained, γ = 1.10, would be transferable to diﬀerent force ﬁelds (given that other force ﬁelds also result in unfolded states which are too collapsed3,25). Most likely, for completely diﬀerent protein force ﬁelds, such as CHARMM 369 or OPLS/ AA,97 a slightly diﬀerent factor may be needed since the Lennard-Jones parameters are independently determined. However, there is a variety of Amber force ﬁelds sharing the same Lennard-Jones parameters, notably Amber ﬀ99SB5 and its derivatives,10 for which the correction may be similar. In fact, our preliminary tests suggest that a scaling of factor of γ = 1.10 also appears to be near optimal for a force ﬁeld, Amber ﬀ99SBws, based on Amber ﬀ99SB*-ILDN-Q (details in Supporting Information Text): that is the Amber ﬀ99SB force ﬁeld,5 with a global backbone correction for helix propensity,6 modiﬁed torsion parameters for certain side-chains,10 and a uniform backbone charge model, found to more accurately reproduce helix propensities for diﬀerent residue types.40 In Supporting Information Figures S1−S3, we show data for the dimensions of Csp M34, villin association, and the helix fraction of AAQAA for the ﬀ99SBws analogue of ﬀ99SB.
+
+We have focused on a narrowly deﬁned tuning of the force ﬁeld aimed at achieving the desired improvements; since current force ﬁelds are very good for many purposes and
+represent many years of careful tuning, it makes sense to keep
+as much as possible of the original. Of course, the solvation free energy results suggest that more ﬁne-grained changes to the
+parameters may help to improve also the individual solvation free energies of diﬀerent side-chains, rather than just the global
+signed error; ultimately, such an approach would be desirable, but would represent a completely new force ﬁeld para-
+metrization. Future more comprehensive global optimization eﬀorts98−100 may be able to include the type of data used here
+as part of the optimization target, or for validation. The poor solvation of proteins in current force ﬁelds may tend to have an stabilizing eﬀect on folded structures. We ﬁnd that by
+improving the solvation, folded structures are still generally
+stable, although with larger amplitude dynamics in loop regions. Most likely, the properties of force ﬁelds with a good average
+balance of protein water interactions will depend more
+sensitively on the choice of other parameters in the protein
+energy function. One aspect we have not really addressed is the eﬀect of these
+changes on protein folding dynamics. As alluded to above, a poorly solvated protein force ﬁeld may result in deeper nonnative “trap” states, stabilized merely due to being collapsed. When protein−water interactions are more ﬁnely balanced, this could signiﬁcantly change the local features of the folding
+energy landscape. In future work, it will be interesting to test what eﬀect these changes might have on temperature-
+dependent protein folding dynamics.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+Supporting text describing details of the Amber ﬀ99SBws force ﬁeld, tables of all computed scalar couplings for Ala5 using various force ﬁelds, Karplus parameters used to compute Jcouplings, and three ﬁgures presenting results for the Amber ﬀ99SBws force ﬁeld combination. This material is available free
+of charge via the Internet at http://pubs.acs.org.
+■ AUTHOR INFORMATION
+Corresponding Authors
+*E-mail: robertbe@helix.nih.gov *E-mail: jeetain@lehigh.edu.
+Notes
+The authors declare no competing ﬁnancial interest.
+■ ACKNOWLEDGMENTS
+We thank Magnus Kjaergaard and Birthe Kragelund for kindly
+making available the original SAXS data for ACTR, and Kresten Lindorﬀ-Larsen for helpful comments on the manuscript. W. Z.
+and R. B. B. are supported by the Intramural Research Program
+of the National Institute of Diabetes and Digestive and Kidney
+Diseases of the National Insitutes of Health. This work was
+supported in part by the National Science Foundation grant
+CBET-1120399 (J.M.). This study utilized the high-perform-
+ance computational capabilities of the Biowulf Linux cluster at
+the National Institutes of Health, Bethesda, Md (http://
+biowulf.nih.gov). The use of the high-performance computing
+capabilities of the Extreme Science and Engineering Discovery
+Environment (XSEDE), which is supported by the National
+
+5122
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Science Foundation (TG-MCB-120014), is also gratefully
+acknowledged.
+■ REFERENCES
+(1) Guvench, O.; Mackerell, A. D. Methods Mol. Biol. 2008, 443, 63−
+88.
+(2) Freddolino, P. L.; Harrison, C. B.; Liu, Y.; Schulten, K. Nat. Phys. 2010, 6, 751−758.
+(3) Piana, S.; Klepeis, J. L.; Shaw, D. E. Curr. Opin. Struct. Biol. 2014, 24, 98−105.
+(4) Mackerell, A. D.; Feig, M.; Brooks, C. L. J. Am. Chem. Soc. 2004, 126, 698−699.
+(5) Hornak, V.; Abel, R.; Okur, A.; Strockbine, B.; Roitberg, A.; Simmerling, C. Proteins 2006, 65, 712−725. (6) Best, R. B.; Hummer, G. J. Phys. Chem. B 2009, 113, 9004−9015. (7) Da-Wei, Li; Brüschweiler, R. Angew. Chem., Int. Ed. 2010, 49, 6778−6780.
+(8) Piana, S.; Lindorff-Larsen, K.; Shaw, D. E. Biophys. J. 2011, 100, L47−L49.
+(9) Best, R. B.; Zhu, X.; Shim, J.; Lopes, P.; Mittal, J.; Feig, M.; Mackerell, A. D. J. Comp. Theor. Comput. 2012, 8, 3257−3273.
+(10) Lindorff-Larsen, K.; Piana, S.; Palmo, K.; Maragakis, P.; Klepeis, J. L.; Dror, R. O.; Shaw, D. E. Proteins 2010, 78, 1950−1958.
+(11) Jorgensen, W. L.; Chandrasekhar, J.; Madura, J. D. J. Chem. Phys. 1983, 79, 926−935.
+(12) Horn, H. W.; Swope, W. C.; Pitera, J. W.; Madura, J. D.; Dick, T. J.; Hura, G. L.; Head-Gordon, T. J. Chem. Phys. 2004, 120, 9665−
+9678.
+(13) Abascal, J. L. F.; Vega, C. J. Chem. Phys. 2005, 123, No. 234505.
+(14) Wang, L.-P.; Martinez, T. J.; Pande, V. S. J. Phys. Chem. Lett. 2014, 5, 1885−1891. (15) Pratt, L. R.; Chandler, D. J. Chem. Phys. 1977, 67, 3683−3704.
+(16) Hummer, G.; Garde, S.; García, A. E.; Pohorille, A.; Pratt, L. R. Proc. Natl. Acad. Sci. U. S. A. 1996, 93, 8951−8955. (17) Chandler, D. Nature 2005, 437, 640−647.
+(18) Papoian, G. A.; Ulander, J.; Wolynes, P. G. J. Am. Chem. Soc. 2003, 125, 9170−9178.
+(19) Thirumalai, D.; Reddy, G.; Straub, J. E. Acc. Chem. Res. 2012, 45, 83−92. (20) Best, R. B.; Mittal, J. J. Phys. Chem. B 2010, 114, 14916−14923.
+(21) Nerenberg, P. S.; Head-Gordon, T. J. Chem. Theory Comput. 2011, 7, 1220−1230.
+(22) Knott, M.; Best, R. B. PLoS Comp. Biol. 2012, 8, e1002605.
+(23) Miller, C; Zerze, G H.; Mittal, J. J. Phys. Chem. B 2013, 117, 16066−16075.
+(24) Mittal, J.; Yoo, T. H.; Georgiou, G.; Truskett, T. M. J. Phys. Chem. B 2013, 117, 118−124. (25) Nettels, D.; Müller-Spath, S.; Küster, F.; Hofmann, H.; Haenni, D.; Rüegger, S.; Reymond, L.; Hoffmann, A.; Kubelka, J.; Heinz, B.; Gast, K.; Best, R. B.; Schuler, B. Proc. Natl. Acad. Sci. U.S.A. 2009, 106, 20740−20745.
+(26) Shirts, M. R.; Pitera, J. W.; Swope, W. C.; Pande, V. S. J. Chem. Phys. 2003, 119, 5740−5761.
+(27) Petrov, D.; Zagrovic, B. PLoS Comput. Biol. 2014, 10,
+No. e1003638.
+(28) Krouskop, P. E.; Madura, J. D.; Paschek, D.; Krukau, A. J. Chem.
+Phys. 2006, 124, No. 016102.
+(29) Ashbaugh, H. S.; Collett, N. J.; Hatch, H. W.; Staton, J. A. J.
+Chem. Phys. 2010, 132, No. 124504.
+(30) Hess, B.; Kutzner, C.; van der Spoel, D.; Lindahl, E. J. Chem. Theory Comput. 2008, 4, 435−447.
+(31) Basconi, J. E.; Shirts, M. R. J. Chem. Theory Comput. 2013, 9, 2887−2899.
+(32) Darden, T.; York, D.; Pedersen, L. J. Chem. Phys. 1993, 98, 10089−10092.
+(33) Duan, Y.; Wu, C.; Chowdhury, S.; Lee, M. C.; Xiong, G.; Zhang,
+W.; Yang, R.; Cieplak, P.; Luo, R.; Lee, T.; Caldwell, J.; Wang, J.; Kollman, P. A. J. Comput. Chem. 2003, 24, 1999−2012.
+
+(34) Wang, M.; Tang, Y.; Sato, S.; Vugmeyster, L.; McKnight, C. J.; Raleigh, D. P. J. Am. Chem. Soc. 2003, 125, 6032−6033.
+(35) Chodera, J. D.; Mobley, D. L.; Shirts, M. R.; Dixon, R. W.; Branson, K.; Pande, V. S. Curr. Opin. Struct. Biol. 2011, 21, 150−160.
+(36) Hess, B.; van der Vegt, N. F. A. J. Phys. Chem. B 2006, 110, 17616−17626.
+(37) Shirts, M. R.; Chodera, J. D. J. Chem. Phys. 2008, 129,
+No. 124105. (38) De Sancho, D.; Best, R. B. J. Am. Chem. Soc. 2011, 133, 6809−
+6816. (39) De Sancho, D.; Best, R. B. Mol. Biosyst. 2011, 8, 256−267.
+(40) Best, R. B.; De Sancho, D.; Mittal, J. Biophys. J. 2012, 102, 1897−1906.
+(41) Nerenberg, P. S.; Jo, B.; So, C.; Tripathy, A.; Head-Gordon, T. J. Phys. Chem. B 2012, 116, 4524−4534.
+(42) Baker, C. M.; Best, R. B. J. Chem. Theory. Comput. 2013, 9, 2826−2837.
+(43) Mobley, D. L.; Dumont, E.; Chodera, J. D.; Dill, K. A. J. Phys. Chem. B 2007, 111, 2242−2254. (44) Yu, H.-A.; Karplus, M. J. Chem. Phys. 1988, 89, 2366−2379.
+(45) Baker, C. M.; Best, R. B. J. Chem. Theory. Comput. 2010, 6, 1181−1198. (46) Mackerell, A. D., Jr.; et al. J. Phys. Chem. B 2000, 102, 3586−
+3616. (47) Soranno, A.; Buchli, B.; Nettels, D.; Cheng, R. R.; Müller-Spaẗ h,
+S.; Pfeil, S. H.; Hoffmann, A.; Lipman, E. A.; Makarov, D. E.; Schuler, B. Proc. Natl. Acad. Sci. U. S. A. 2012, 109, 17800−17806.
+(48) Wuttke, R.; Hofmann, H.; Nettels, D.; Borgia, M. B.; Mittal, J.;
+Best, R. B.; Schuler, B. Proc. Natl. Acad. Sci. U. S. A. 2014, in press. (49) Schuler, B.; Pannell, L. K. Bioconjugate Chem. 2002, 13, 1039−
+1043. (50) Schuler, B.; Lipman, E. A.; Eaton, W. A. Nature 2002, 419, 743−
+747. (51) Schuler, B.; Eaton, W. A. Curr. Opin. Struct. Biol. 2008, 18, 16−
+26. (52) Zerze, G.; Best, R. B.; Mittal, J. Biophys. J. 2014, 107 (7), 1654−
+1660.
+(53) Kjaergaard, M.; Norholm, A.-B.; Hendus-Altenburger, R.;
+Pedersen, S. F.; Poulsen, F. M.; Kragelund, B. B. Protein Sci. 2010, 19, 1555−1564. (54) Flory, P. J. J. Chem. Phys. 1949, 17, 303−310. (55) Müller-Spaẗ h, S.; Sorrano, A.; Hirschfeld, V.; Hofmann, H.; Rüegger, S.; Reymond, L.; Nettels, D.; Schuler, B. Proc. Natl. Acad. Sci. U. S. A. 2010, 107, 14609−14614.
+(56) Mao, A. H.; Crick, S. L.; Vitalis, A.; Chicoine, C.; Pappu, R. V. Proc. Natl. Acad. Sci. U. S. A. 2010, 107, 8183−8188.
+(57) Hofmann, H.; Soranno, A.; Borgia, A.; Gast, K.; Nettels, D.; Schuler, B. Proc. Natl. Acad. Sci. U. S. A. 2012, 109, 16155−16160.
+(58) Das, R. K.; Pappu, R. V. Proc. Natl. Acad. Sci. U. S. A. 2013, 110, 13392−13397.
+(59) Svergun, D.; Barberato, C.; Koch, M. H. J. J. Appl. Crystallogr. 1995, 28, 768−773. (60) Shen, Y.; Bax, A. J. Biomol. NMR 2010, 48, 13−22.
+(61) Ebert, M.-O.; Bae, S.-H.; Dyson, H. J.; Wright, P. E. Biochemistry 2008, 47, 1299−1308.
+(62) Shirts, M. R.; Pande, V. S. J. Chem. Phys. 2005, 122, No. 134508.
+(63) Wolfenden, R.; Andersson, L.; Cullis, P. M.; Southgate, C. C. B. Biochemistry 1981, 20, 849−855. (64) Marcus, Y. J. Chem. Soc. Faraday Trans. 1991, 87, 2995−2999.
+(65) Hummer, G.; Pratt, L. R.; García, A. E. J. Phys. Chem. A 1998, 102, 7885−7895.
+(66) Berendsen, H. J. C.; Grigera, J. R.; Straatsma, T. P. J. Phys. Chem. 1987, 91, 6269−6271. (67) Coeytaux, K.; Poupon, A. Bioinformatics 2005, 21, 1891−1900.
+(68) Brewer, S. H.; Vu, D. M.; Tang, Y.; Li, Y.; Franzen, S.; Raleigh, D. P.; Dyer, R. B. Proc. Natl. Acad. Sci. U. S. A. 2005, 102, 16662−
+16667.
+(69) Harada, R.; Tochio, N.; Kigawa, T.; Sugita, Y.; Feig, M. J. Am. Chem. Soc. 2013, 135, 3696−3701.
+
+5123
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+
+Journal of Chemical Theory and Computation
+(70) Graf, J.; Nguyen, P. H.; Stock, G.; Schwalbe, H. J. Am. Chem. Soc. 2007, 129, 1179−1189.
+(71) Best, R. B.; Buchete, N.-V.; Hummer, G. Biophys. J. 2008, 95, L07−L09.
+(72) Wickstrom, L.; Okur, A.; Simmerling, C. Biophys. J. 2009, 97, 853−856.
+(73) Beauchamp, K. A.; Lin, Y.-S.; Das, R.; Pande, V. S. J. Chem. Theory Comput. 2012, 8, 1409−1414. (74) Vögeli, B.; Ying, J.; Grishaev, A.; Bax, A. J. Am. Chem. Soc. 2007, 129, 9377−9385.
+(75) Shalongo, W.; Dugad, L.; Stellwagen, E. J. Am. Chem. Soc. 1994, 116, 8288−8293.
+(76) Neidigh, J. W.; Fesinmeyer, R. M.; Andersen, N. H. Nat. Struct. Biol. 2002, 9, 425−430.
+(77) Honda, S.; Yamasaki, K.; Sawada, Y.; Morii, H. Structure 2004, 12, 1507−1518.
+(78) Blanco, F. J.; Rivas, G.; Serrano, L. Nat. Struct. Biol. 1994, 1, 584−590. (79) Muñoz, V.; Thompson, P. A.; Hofrichter, J.; Eaton, W. A. Nature 1997, 390, 196−199.
+(80) De Sancho, D.; Best, R. B. J. Chem. Theory Comput. 2013, 9, 1743−1753.
+(81) Fesinmeyer, R. M.; Hudson, F. M.; Andersen, N. H. J. Am. Chem. Soc. 2004, 126, 7238−7243. (82) Best, R. B.; Clarke, J.; Karplus, M. J. Mol. Biol. 2005, 349, 185−
+203.
+(83) Maragakis, P.; Lindorff-Larsen, K.; Eastwood, M. P.; Dror, R.
+O.; Klepeis, J. L.; Arkin, I. T.; Jensen, M. Ø.; Xu, H.; Trbovic, N.;
+Friesner, R. A.; Palmer, A. G.; Shaw, D. E. J. Phys. Chem. B 2008, 112, 6155−6158.
+(84) Tjandra, N.; Feller, S. E.; Paster, R. W.; Bax, A. J. Am. Chem. Soc. 1995, 117, 12562−12566.
+(85) Mine, S.; Ueda, T.; Hashimoto, Y.; Imoto, T. Protein Sci. 2000, 9, 1669−1684.
+(86) Shaw, D. E.; Maragakis, P.; Lindorff-Larsen, K.; Piana, S.; Dror,
+R. O.; Eastwood, M. P.; Bank, J. A.; Jumper, J. M.; Salmon, J. K.; Shan, Y.; Wriggers, W. Science 2010, 330, 341−346.
+(87) Voelz, V. A.; Bowman, G. R.; Beauchamp, K.; Pande, V. S. J. Am. Chem. Soc. 2010, 132, 1526−1528. (88) Best, R. B.; Mittal, J. J. Phys. Chem. B 2010, 114, 8790−8798. (89) Mittal, J.; Best, R. B. Biophys. J. 2010, 99, L26−L28.
+(90) Lindorff-Larsen, K.; Piana, S.; Dror, R. O.; Shaw, D. E. Science 2011, 334, 517−520.
+(91) Piana, S.; Lindorff-Larsen, K.; Shaw, D. E. Proc. Natl. Acad. Sci. U. S. A. 2012, 109, 17845−17850. (92) Best, R. B.; Mittal, J. Proteins 2011, 79, 1318−1328.
+(93) Best, R. B.; Mittal, J. Proc. Natl. Acad. Sci. U. S. A. 2011, 108, 11087−11092.
+(94) Piana, S.; Lindorff-Larsen, K.; Shaw, D. E. Proc. Natl. Acad. Sci. U. S. A. 2013, 110, 5915−5920.
+(95) Schwantes, C. R.; Pande, V. S. J. Chem. Theory Comput. 2013, 9, 2000−2009.
+(96) Vajpai, N.; Gentner, M.; Huang, J.-R.; Blackledge, M.; Grzesiek, S. J. Am. Chem. Soc. 2010, 132, 3196−3203.
+(97) Kaminski, G. A.; Friesner, R. A.; Tirado-Rives, J.; Jorgensen, W. L. J. Phys. Chem. B 2001, 105, 6474−6487. (98) DiPierro, M.; Elber, R. J. Chem. Theory Comput. 2013, 9, 3311−
+3320.
+(99) Wang, L.-P.; Chen, J.; van Voorhuis, T. J. Chem. Theory Comput. 2013, 9, 452−460.
+(100) Wang, L.-P.; Head-Gordon, T.; Ponder, J. W.; Ren, P.;
+Chodera, J. D.; Eastman, P. K.; Martinez, T. J.; Pande, V. S. J. Chem. Theory Comput. 2013, 9, 452−460.
+
+Article
+
+5124
+
+dx.doi.org/10.1021/ct500569b | J. Chem. Theory Comput. 2014, 10, 5113−5124
+

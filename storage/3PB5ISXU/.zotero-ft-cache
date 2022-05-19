@@ -1,0 +1,1864 @@
+Year: 2012
+
+Zurich Open Repository and Archive University of Zurich University Library Strickhofstrasse 39 CH-8057 Zurich www.zora.uzh.ch
+
+Real-World Predictions from Ab Initio Molecular Dynamics Simulations
+Kirchner, Barbara ; di Dio, Philipp J ; Hutter, Juerg
+
+Abstract: In this review we present the techniques of ab initio molecular dynamics simulation improved to its current stage where the analysis of existing processes and the prediction of further chemical features and real-world processes are feasible. For this reason we describe the relevant developments in ab initio molecular dynamics leading to this stage. Among them, parallel implementations, different basis set functions, density functionals, and van der Waals corrections are reported. The chemical features accessible through AIMD are discussed. These are IR, NMR, as well as EXAFS spectra, sampling methods like metadynamics and others, Wannier functions, dipole moments of molecules in condensed phase, and many other properties. Electrochemical reactions investigated by ab initio molecular dynamics methods in solution, on surfaces as well as complex interfaces, are also presented.
+DOI: https://doi.org/10.1007/128_2011_195
+
+Posted at the Zurich Open Repository and Archive, University of Zurich ZORA URL: https://doi.org/10.5167/uzh-65252 Book Section Accepted Version
+Originally published at: Kirchner, Barbara; di Dio, Philipp J; Hutter, Juerg (2012). Real-World Predictions from Ab Initio Molecular Dynamics Simulations. In: Kirchner, B; Vrabec, J. Multiscale molecular methods in applied chemistry. Springer: Springer, 109-153. DOI: https://doi.org/10.1007/128_2011_195
+
+REAL-WORLD PREDICTIONS FROM AB INITIO MOLECULAR DYNAMICS SIMULATIONS
+Philipp J. di Dio,1 Ju¨rg Hutter,2 and Barbara Kirchner1
+In this review we present the techniques of ab initio molecular dynamics simulations improved at it’s current stage where the analyzation of existing processes and the prediction of further chemical features and real-world processes are feasible. For this reason we describe the relevant developments in ab initio molecular dynamics leading to this stage. Among them parallel implementations, different basis set functions, density functionals, and van der Waals corrections are discussed. Discussed chemical features accessible through AIMD are IR, Raman, ESR, NMR, and EXAFS spectra as well as technical methods like metadynamics, other sampling methods, and Wannier functions etc. to gain structural and thermodynamic information about reactions, transition states, dipole moments of molecules in condensed phase, and many other properties. Electrochemical reactions investigated by ab initio molecular dynamics methods in solution, on surfaces as well as complex interfaces are especially discussed in detail.
+Keywords. Ab initio molecular dynamics simulations • aqueous systems • associated liquids • basis set • basis set superposition error • benchmark calculations • Born–Oppenheimer approximation • Born–Oppenheimer molecular dynamics simulations • catalysis • collective variable • effective core potential • electrochemistry • enhanced sampling • EPR • EPR • EXAFS • ﬁrst-principles molecular dynamics simulations • free energy surface • Fukui function • Gaussian function • grid point method • half cell reaction • harmonic approximation • Hartree–Fock exchange • high performance computing • integrator • IR spectra • ionic liquids • Liouville– von Neumann molecular dynamics • liquid structure • local basis set • London dispersion forces • metadynamics • metal-organic reaction • minimum free energy path • NMR • nucleus independent shift map • parallelization • plane waves • pseudopotential • rare event problem • redox reaction • relativistic electronic structure • simulations time • spin density • Wannier orbitals • wavelets • van der Waals interaction • water.
+1Wilhelm-Ostwald Institute of Physical and Theoretical Chemistry, Linne´str. 2, D-04103 Leipzig, Germany, University of Leipzig bkirchner@uni-leipzig.de ·2Physical Chemistry Institute, Winterthurerstr. 190, CH-8057 Zu¨rich, University of Zu¨rich hutter@pci.uzh.ch
+
+2
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+1 Introduction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 2 2 Ab initio Molecular Dynamics Simulations in a Nutshell . . . . . . . . . . . . . . . . . . . . . . . . . 3
+2.1 Molecular Dynamics Simulations: Basics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 3 2.2 Obtaining the Forces and Integrating the Equations of Motion . . . . . . . . . . . . . 4 2.3 Born–Oppenheimer Molecular Dynamics Simulations . . . . . . . . . . . . . . . . . . . 5 2.4 Car–Parrinello Molecular Dynamics Simulations . . . . . . . . . . . . . . . . . . . . . . . . 6 3 Generalization of the Car–Parrinello and Born–Oppenheimer Molecular Dynamics Approaches . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8 4 Faster, Better, and More Accurate: Recent Developments . . . . . . . . . . . . . . . . . . . . . . . . 10 4.1 Massively Parallel Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10 4.2 Basis Sets . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11 4.2.1 Plane Wave and Gaussian Functions as Basis Sets . . . . . . . . . . . . . . . . . . . . . . . 11 4.2.2 Wavelets: From Non-Local to Local Basis Sets . . . . . . . . . . . . . . . . . . . . . . . . . . 12 4.2.3 Finite Difference, Grid Point, and Discrete Variable Representation Methods 14 4.3 New Developments in Accuracy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15 4.3.1 New Functionals . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16 4.3.2 Correcting for van der Waals Interaction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18 4.3.3 Explicit Relativistic Description . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 21 4.4 New Integration Schemes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22 4.5 Metadynamics . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 23 4.6 Enhanced Sampling . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24 4.7 Properties: IR, Raman, ESR, NMR, EXAFS etc. . . . . . . . . . . . . . . . . . . . . . . . . 25 4.7.1 Wavefunction Analysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 25 4.7.2 IR and Raman Spectra . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 27 4.7.3 NMR and ESR/EPR . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29 4.7.4 EXAFS . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29 5 Applications in Chemical Engineering . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30 5.1 Properties of the Vapor Phase, Liquids, Mixtures, and Solvent Effects . . . . . . 30 5.1.1 The Vapor Phase . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 5.1.2 From Gas Phase to Liquid Phase . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31 5.1.3 Liquids: Water, Ionic Liquids, and Others . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33 5.1.4 Properties of Mixtures and Solvent Effects . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 34 5.2 Chemical Reactions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36 5.2.1 Metal-Free Organic Reactions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 36 5.2.2 Metal-Organic Reactions and Catalysis . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37 5.3 Electrochemistry . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38 5.3.1 Metal-Liquid Interfaces . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39 5.3.2 Redox-Reactions in Solution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 39 5.3.3 Complex Electrochemical Interfaces and Electrochemical Reactions on
+Surfaces . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 40 6 Conclusion . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 42 References . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 43
+
+1 Introduction
+Ab initio molecular dynamics simulations combine classical molecular dynamics simulations with electronic structure calculations on the ﬂy. The theoretical foundations for ab initio molecular dynamics were laid with the work of Ehrenfest [1] and Dirac [2] at the beginning of the 20th century. Dirac developed the theory of time-dependent self consistent ﬁeld equations for nuclear and electronic motion and
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+3
+
+Ehrenfest derived mixed classical-quantum mechanical (time-dependent electronic structure) equations [3]. In 1985, it was the seminal article of Roberto Car and Michele Parrinello [4] which initiated the use and further development of ab initio molecular dynamics simulations. The authors intended to derive a new method which is able to “(i) compute ground-state electronic properties of large and/or disordered systems at the level of state-of-the-art electronic structure calculations; (ii) perform AIMD simulations where the only assumptions are the validity of classical mechanics to describe ionic motion and the Born–Oppenheimer (BO) approximation to separate nuclear and electronic coordinates.” [4] For this purpose Car and Parrinello made use of the extended Lagrangian technique, previously invented to simulate systems under constant pressure [5, 6]. This ingenious method solved the problem of the expensive self-consistent solution of the electronic structure problem along the molecular dynamics trajectory. By showing a feasible route to extensive ab initio molecular dynamics simulations of condensed systems, Car and Parrinello kick started and dominated the ﬁeld. Their method stays at the beginning of all new developments in the ﬁeld.
+Outline: The next section 2 provides a brief overview of the AIMD methodology mainly in the representation of Car–Parrinello molecular dynamics simulations. Born–Oppenheimer molecular dynamics (BOMD) simulations (time-independent electronic structure) are also introduced. A generalization based on the work by Niklasson [7, 8] is given next. This will be followed (section 4) by some recent methodological advancements which allow for computationally more efﬁcient simulations with better statistical sampling and using more accurate electronic structure methods. After this, some examples from applied chemistry that were investigated with AIMD will be given in section 5.
+
+2 Ab initio Molecular Dynamics Simulations in a Nutshell
+
+2.1 Molecular Dynamics Simulations: Basics
+
+Molecular dynamics (MD) is an application of classical mechanics using computer simulations. A good introduction can be found in the excellent textbook by Mark Tuckerman [9]. In order to carry out MD, equations describing the motion of molecules are needed. These equations of motion can be derived for example from the classical Lagrangian L, a function of the kinetic (K) and the potential energy (U ):
+
+L(RI , pI ) =
+
+K(pI )
+
+− U (RI ) =
+
+N
+
+1 2
+
+MI
+
+R˙ 2I
+
+−
+
+U
+
+(RI
+
+)
+
+(1)
+
+kin. energy potential I=1
+
+with RI and MI being position and mass of particle I. The momentum pI is related to the velocity R˙ = pI /MI . The equations of motion are then obtained from the
+
+4
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+Euler–Lagrange relation:
+
+d ∂L dt ∂R˙ I
+
+∂L = ∂RI
+
+.
+
+(2)
+
+This means that the movement of the nuclei (atoms) are treated as classical particles, a well founded and tested approximation [10, 11]. Applying the Euler– Lagrange equation (eq. 2) to the Lagrangian L (eq. 1) leads to Newton’s second law (eq. 3):
+
+MI R¨ I = FI .
+
+(3)
+
+Using Newton’s 2nd law (eq. 3) the acceleration (R¨ I ) of the particles can be obtained from the forces FI acting on the particles.
+
+2.2 Obtaining the Forces and Integrating the Equations of Motion
+
+Traditional molecular dynamics simulations uses pre-deﬁned analytical potentials. The potentials most commonly use the pairwise additivity approximation (U MD(RIJ )). This means that an analytical expression of the pair potential, a potential between each set of atoms I and J, is parametrized such that good structural and/or thermodynamics quantities can be expected [12]. Alternatively, electronic structure calculations are carried out for a pair of particles as a function of distance and the analytical expression has to be ﬁtted to these energy points on the potential energy surface [12]. It also means that the Born–Oppenheimer approximations has to be valid, i.e. a separation of nuclear and electronic variables is possible and coupling terms (non-diagonal and diagonal) can be neglected [13, 14]. From the analytical potentials the forces are then obtained by taking the derivatives with respect to the positions:
+
+FI
+
+=
+
+−
+
+∂
+
+U ∂
+
+(RI RI
+
+)
+
+=
+
+−
+
+∂U
+
+MD(RIJ ∂RIJ
+
+)
+
+.
+
+(4)
+
+In order to propagate the atoms, a small discrete time step ∆t is introduced and a numerical step-by-step integration of the equations of motion is carried out. Taking the Taylor series expansion in ∆t gives
+
+RI (t
+
++
+
+∆t)
+
+=
+
+RI (t)
+
++
+
+∆t
+
+R˙ I (t)
+
++
+
+1 ∆t2 2
+
+R¨ I (t)
+
++
+
+1 ∆t3 6
+
+BI (t)
+
++
+
+·
+
+·
+
+·
+
+(5)
+
+and
+
+R˙ I (t
+
++
+
+∆t)
+
+=
+
+R˙ I (t)
+
++
+
+∆t
+
+R¨ I (t)
+
++
+
+1 2
+
+∆t2BI
+
+(t)
+
++
+
+·
+
+·
+
+·
+
+.
+
+(6)
+
+The time evolution of the system is followed by applying integration algorithms (the so called integrator) into an MD computer program. One can obtain these in-
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+5
+
+tegrators from the Taylor expansion around t + ∆t and t − ∆t and by combining the resulting equations. The following form is the velocity Verlet (Stro¨mer–Verlet) integrator:
+
+RI (t
+
++
+
+∆t)
+
+=
+
+RI (t)
+
++
+
+R˙ I (t)∆t
+
++
+
+FI (t) 2MI
+
+∆t2
+
+,
+
+(7)
+
+R˙ I (t
+
++
+
+∆t)
+
+=
+
+R˙ I (t)
+
++
+
+FI (t
+
++
+
+∆t) + 2MI
+
+FI (t) ∆(t).
+
+(8)
+
+It is apparent how the new positions RI (t + ∆t) can be calculated from the current positions RI (t), velocities R˙ I (t) and forces FI (t). Similarly, the new velocities can be obtained from knowledge of current velocities and forces FI (t) as well as
+
+from the new forces which are available as soon as the new positions (eq. 7) are
+
+calculated. An overview over how integration algorithms are derived is provided in
+
+Ref. [10]. The consequences of different integration algorithms applied to AIMD
+
+are discussed in the review of Remler and Madden [15].
+
+In many molecular systems it is desirable to freeze fast degrees of motion. This
+
+can be necessary in order to allow the integration of the slower motions using larger
+
+time steps or if the quantum nature of such degrees of freedom (e.g. bond stretch
+
+vibrations including hydrogen atoms) cannot be neglected. A technique developed
+
+[10, 16] to properly handle such constraints to the molecular structure in molecular
+
+dynamics simulation is based on undetermined multipliers. The constraint condi-
+
+tions with the undetermined multipliers are added to the Lagrangian 1. The con-
+
+straint condition then give rise to additional (constraint) forces GI in the equation of motion
+
+MI R¨ I = FI + GI .
+
+(9)
+
+The constraint forces depend linearly on the multipliers which have to be determined in accordance with the numerical integration scheme. This usually leads to nonlinear equations which can in special cases be solved directly. However, the most common algorithm, called Shake [16], solves the equations iteratively, until self consistency between input and output multipliers is achieved.
+In order to avoid surface effects for condensed phase simulations, periodic boundary conditions are applied. The central computational box is replicated inﬁnitely in all dimensions. A detailed description can be found in the textbooks of Allen and Tildesley [10] as well as of Frenkel and Smit [11].
+
+2.3 Born–Oppenheimer Molecular Dynamics Simulations
+Instead of using a pre-parametrized potential, it can be calculated on the ﬂy using electronic structure theory within the Born–Oppenheimer approximation. In such calculations the potentials are obtained by solving a time-independent quantum chemical electronic structure problem
+
+U (RI ) = min E [{Ψ }; RI ] .
+
+(10)
+
+{Ψ }
+
+6
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+The Schro¨dinger equation with an optimized electronic wavefunction Ψ at current nuclear position RI is solved in order to provide the forces for calculating the next step.
+
+2.4 Car–Parrinello Molecular Dynamics Simulations
+The basic idea of Car–Parrinello molecular dynamics simulations can be expressed by: “A two-component quantum-classical problem is mapped onto a two-component purely classical problem with employing the constraints that quantum mechanics has to be fulﬁlled at all times.” [3]
+This leads to two separate energy scales at the expense of losing the physical time information of the quantum subsystem dynamics. The corresponding Lagrangian (eq. 1) reads
+
+L=
+
+N
+
+1 2
+
+MI
+
+R˙ 2I
+
++
+
+I =1
+
+i
+
+µ φ˙i | φ˙i − Eel [{φi}; RI ] .
+potential
+
+(11)
+
+kin. energy
+
+The second term of eq. 11 describes the ﬁctitious kinetic energy of the electrons. The term contains an arbitrary parameter (ﬁctitious mass parameter) µ with appropriate units of energy times a squared time. The explicit form used in eq. 11 is for orbital based methods.
+How this mass parameter has to be chosen is extensively discussed in Ref. [3]. A critical point of view about the ﬁctitious mass parameter and about arguments used for the justiﬁcation of the CPMD approach is given in Ref. [17]. The dot in this Lagrangian indicates the time derivative, thus it is apparent that the wavefunction fulﬁlls the same task as the nuclear position variable. The potential is now a functional of the electronic energy Eel plus the constraints which are enforced in order to satisfy quantum mechanics, i.e. the orbitals which are altered during time evolution are supposed to stay orthonormal, see second term of eq. 12. The additional constraint is introduced by the standard Lagrange multipliers approach, where the Λij are the Lagrange multipliers and δij is the Kronecker delta (eq. 12).
+
+E [{φi}; RI ] = Eel + Λij ( φi | φj − δij )
+
+(12)
+
+ij
+
+As the electronic energy is a function of the nuclear positions as well as function of the orbitals φi, its derivative is once taken with respect to the nuclear positions but also with respect to the wavefunction. The Euler–Lagrange equations then read
+
+d ∂L ∂L dt ∂R˙ I = ∂RI
+
+and
+
+d dt
+
+∂L ∂ φ˙i
+
+|
+
+=
+
+∂L ∂ φi
+
+|.
+
+(13)
+
+This leads again to the equations of motion, in this case to the Car–Parrinello equations of motion, given below.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+7
+
+MI R¨ I
+
+=
+
+−
+
+∂Eel ∂RI
+
++
+
+ij
+
+Λij
+
+∂ ∂RI
+
+φi | φj
+
+(14)
+
+µ | φ¨i
+
+=
+
+−
+
+δEel δ φi |
+
++
+
+j
+
+Λij | φj
+
+(15)
+
+The forces on the nuclei are given by
+
+F(RI )
+
+=
+
+−
+
+∂Eel ∂RI
+
++
+
+ij
+
+Λij
+
+∂ ∂RI
+
+φi | φj
+
+(16)
+
+and the forces on the electrons are given by
+
+fi
+
+=
+
+f (φi)
+
+=
+
+−
+
+δEel δ φi |
+
++
+
+j
+
+Λij | φij .
+
+(17)
+
+The integration algorithm for these equations of motion is given by the scheme below. The resemblance to eq.7 is immediately apparent. Because we follow the line of Ref. [3] these equations are valid for the special case of Kohn–Sham density functional theory in the plane wave basis set representation as electronic structure method. This leads to the simpliﬁcation that the second term of eq. 14 vanishes, because the orthonormality constraint depends now only on the orbitals but not on the nuclear positions. Furthermore, the wavefunction (now Kohn–Sham orbitals in the plane wave representation) are replaced by the expansion coefﬁcients ci of the plane waves. The possibility of different integrators for equations of motion was alluded above, the following scheme for the expansion coefﬁcients is also based on the velocity Verlet algorithm. The constraint is enforced by the Rattle algorithm, therefore, the new “positions” of the coefﬁcients without applying constraints ˜ci(t+ ∆t) read
+
+˜ci(t
+
++
+
+∆t)
+
+=
+
+ci(t)
+
++
+
+c˙ i (t)∆t
+
++
+
+fi(t) 2µ
+
+∆t2,
+
+(18)
+
+next the constraints are corrected which is expressed in the second term of
+
+ci(t + ∆t) = ˜ci(t + ∆t) +
+
+Λcij 2µ
+
+∆t2
+
+cj (t)
+
+.
+
+(19)
+
+j
+
+The Lagrange multipliers Λcij of the constraints depend now only on the electronic part. For their determination see Ref. [3]. Of course the nuclei are also propagated,
+their positions are obtained according to eq. 7. From these new “positions”, i.e. new
+nuclear positions and new coefﬁcients, we can get the forces on the nuclei F(RI ) and the ones on the electrons fi. Again, we start with deriving the “velocities” of the coefﬁcients as
+
+8
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+c˙ ′i(t
+
++
+
+∆t)
+
+=
+
+˜c˙ i(t
+
++
+
+∆t)
+
++
+
+fi
+
+(t
+
++ ∆t) 2µ
+
+∆t
+
+(20)
+
+and correct them afterwards by determining the constraints
+
+c˙ i(t + ∆t) = c˙ ′i(t + ∆t) +
+
+Λci˙j 2µ
+
+∆t
+
+cj (t
+
++
+
+∆t).
+
+(21)
+
+j
+
+The difference to classical force ﬁeld based simulations where the forces are calculated from pre-deﬁned pair potentials is that the forces are derived from the global potential energy surface of an electronic structure theory. The vastly higher computational costs of an electronic structure calculation restrict the system size and the length of trajectories accessible by ab initio molecular dynamics simulations. However, it becomes clear that CPMD and AIMD are important steps towards general predictive methods, due to their independence from parametrizations.
+
+3 Generalization of the Car–Parrinello and Born– Oppenheimer Molecular Dynamics Approaches
+
+In order to allow for higher order symplectic or geometric integration schemes, Anders Niklasson et al. introduced a Lagrangian generalization of the time-reversible Born–Oppenheimer molecular dynamics simulations [7, 8].
+Integrators in molecular dynamics simulations are supposed to be accurate, i.e. they should enforce that the exact trajectory is followed as closely as possible. They should provide stability, meaning that the constants of motion, e.g. the total energy in the microcanonical ensemble, is preserved. Nevertheless, the integrators should be efﬁcient, which means that a minimum of force calculations is needed in order to save computer time. The best numerical methods are based on symplectic and time-reversible intergators. For integrator algorithms see section 2.2 in which the Stro¨mer–Verlet integrator was introduced. However, in general, a long time stability is more important than a short time accuracy.
+For ab initio molecular dynamics simulations it is important to understand how the error in the forces affect the long term MD stability of the simulations. While the error in the energy (minφ E[{φ}, RI ], see eq. 10) is, due to the variational principle, of second order in the error δφ of the wavefunctions, the error in the force (dE[{φ}, RI ]/dRI ) is of ﬁrst order in δφ. This suggests that MD stability can only be achieved with numerically highly accurate wavefunctions.
+In the following the indices for the nuclei and the electrons will be omitted. Applying the extended Lagrangian method introduced by Niklasson [7, 8] a general expression for the AIMD Lagrangian can be written as
+
+L(q, q˙ , x, x˙ )
+
+=
+
+1 M q˙ 2 2
+
++
+
+1 µx˙ 2 2
+
+−
+
+E(q, y)
+
++
+
+kµG(||x
+
+−
+
+y||).
+
+(22)
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+9
+
+q and x are now generalized coordinates of the nuclei and electrons, respectively. The vector y expresses the wave function after complete or partial optimization
+
+y = F (q, x).
+
+(23)
+
+G(||x − y||) is a retention potential that ensures that the propagated wavefunction x stays close to the optimized wavefunction y and µ is a mass parameter, k = ω2 is the force constant of the retention potential.
+From the generalized Lagrangian follow the equations of motion
+
+M q¨
+
+=
+
+−
+
+∂E ∂q
+
+−
+
+∂E ∂y
+
+∂F ∂q
+
++
+
+kµ
+
+∂G ∂y
+
+∂F ∂q
+
+(24)
+
+and
+
+µx¨
+
+=
+
+−
+
+∂E ∂y
+
+∂F ∂x
+
++
+
+kµ
+
+∂G ∂q
+
++
+
+∂G ∂y
+
+∂F ∂x
+
+.
+
+(25)
+
+In this notation the Car–Parrinello molecular dynamics scheme is obtained with the condition
+
+y = x ⇒ G(||x − y||) = 0.
+
+(26)
+
+This leads directly to the Car-Parrinello Lagrangian (see eq. 11)
+
+L(q, q˙ , x, x˙ ) = 1 M q˙ 2 + 1 µx˙ 2 − E(q, x)
+
+(27)
+
+2
+
+2
+
+and accordingly the equations of motion, see eq. 14 and 15. The accuracy of CPMD simulations with respect to Born–Oppenheimer surface as well as the efﬁciency, through the maximal time step δt is controlled by the ﬁctitious mass µ. The two conditions, accuracy and efﬁciency, have conﬂicting requirements on the mass and usually a rather large µ value is selected. As the ﬁctitious mass changes the dynamics of the system a renormalization of all dynamic quantities, for example the vibrational spectrum, is needed. However, the stability of the CPMD trajectory is excellent, because the calculations of the forces can be carried out easily to high precision. The efﬁciency of CPMD calculations is strongly system dependent as the maximal time step is dictated by the electronic energy gap.
+Born–Oppenheimer molecular dynamics is obtained from the generalized Lagrangian with the conditions
+
+y = min E(q, x) and µ = 0.
+
+(28)
+
+x
+
+The Born–Oppenheimer Lagrangian is thus simply
+
+L(q, q˙ ) = 1 M q˙ 2 − E(q, y) .
+
+(29)
+
+2
+
+10
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+The respective equations of motion are then decoupled,
+
+M
+
+q¨
+
+=
+
+−
+
+∂E ∂q
+
+and
+
+x¨
+
+=
+
+−k
+
+∂G ∂x
+
+.
+
+4 Faster, Better, and More Accurate: Recent Developments
+While quantum chemistry programs normally calculate only one to some ten molecules with geometry optimization or similar simple calculations and, therefore, need only one CPU, ab initio molecular programs calculate several thousands of atoms and time evolution of newtonian motion in gas, liquid, and solid phase with several ten thousands of time steps and, therefore, need large computer capacities. Parallelization of AIMD codes is therefore indispensable.
+
+4.1 Massively Parallel Implementation
+In two articles from 2005, one of the present authors discussed the parallelization of the CPMD code with plane wave basis sets [18, 19]. In the ﬁrst study [18], the main limiting factors and different bottle necks were identiﬁed for the parallelization dependent on different schemes of parallelization. It was found that the limiting factors signiﬁcantly depend on the computer hardware and the system size. No straightforward generalization was found. In the second paper [19], it was further focused on the parallelization on supercomputers with emphasis on benchmark calculations on several computer clusters and two test systems, SiC with 1000 atoms and liquid methanol with 32 molecules. The same bottle necks for the simulations were found as previous and, additionally, from 100 to 1000 atoms a good scalability to thousands of processors was demonstrated.
+In 2006, Gygi reviewed the history of AIMD since Car and Parrinello and the development and use of several AIMD codes [20]. Therein, he focused on the parallelization of several AIMD codes and discussed several technical details and problems of implementation of parallel codes.
+In 2009, Giannozzi and Cavazzoni presented Quantum ESPRESSO (a ﬁrst principle ”opEn Source Package for Research in Electronic Structure, Simulation, and Optimization“) [21] within the density functional, plane wave, and pseudopotential approach. They showed the parallelization hierarchy from image, pool, plane waves, tasks up to the linear algebra parts. Especially the linear algebra tasks are parallelized by standard routines and libraries, as in the previous programs [18–20].
+Here, we only discussed some special articles which concerned only the parallelization itself. In the following discussions, we will see that parallelization spreads through all works of programming in AIMD codes and that special parallelization schemes are possible due to use of special basis functions and calculations schemes.
+For a selection on reviews about high performance computing on vector systems see Ref. [22] and references therein.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+11
+
+4.2 Basis Sets
+Often AIMD is carried out with plane wave basis sets. Theses basis sets have many advantages, e. g. no basis set superposition error [23] or being conceptually simple. Despite plane waves, other basis functions are in use and have similar or even better properties as plane waves. We want to discuss this in the following section.
+
+4.2.1 Plane Wave and Gaussian Functions as Basis Sets
+
+Gaussian basis sets, where the basis functions have the form
+
+ψy,σ
+
+:
+
+R
+
+→
+
+R,
+
+ψy,σ (x)
+
+:=
+
+p(x)√·
+
+e−
+
+(x−y)2 2σ2
+
+2πσ2
+
+(y, a ∈ R, p ∈ R[x])
+
+(30)
+
+in one dimension, are traditionally used in static quantum computer programs because of their computational advantages concerning the computation of integrals. This is done and known for many decades, is nowadays basic knowledge in theoretical chemistry [13, 14, 24], and, therefore, its detailed discussion shall be skipped. All advantages and disadvantages are present in ab initio molecular dynamics calculations, too.
+To overcome the disadvantages of Gaussian basis sets, especially in calculations using periodic boundary conditions, a second basis set is simultaneously used in most AIMD programs: the plane wave basis set. The basis functions of the plane wave basis set have the form
+
+ϕn
+
+:
+
+[−L/2, L/2]
+
+→
+
+C,
+
+ϕn(x)
+
+:=
+
+2πin
+e √L
+
+x
+
+L
+
+(n ∈ Z)
+
+(31)
+
+in one dimension. This basis set is perfectly suited for periodic boundary calculations because these are periodic itself, they are orthonormal, a basis for the L2([−L/2, L/2], λ(1); C)-space and, therefore, the electron density. For calculations, the basis set is truncated, e. g. an energy cutoff allows only basis functions with n = −nmax, −nmax + 1, ..., nmax. Furthermore, plane waves are not centered at the nuclei and spread over the whole simulation box. These differences from the Gaussian basis sets lead to other advantages and, unfortunately, disadvantages, but combination of both sets results in an optimal combination of their advantages, as will be discussed immediately. For literature on these very useful basis sets see Ref. [3].
+The computational combination of both basis sets is best demonstrated in the QUICKSTEP algorithm [25], the heart of the CP2K program for ab initio molecular dynamics simulations. In this article, all computational aspects from integral and expansion coefﬁcient calculations on real space grids, implementation of density functionals, orbital transformations, parallelization, memory management, up to the initial guess of the wave function and its optimization are treated. We therefore skip
+
+12
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+a detailed discussion and state only, that a good parallel performance is reached. Unfortunately, the computational costs still grow with O(M N 2).
+The most important (chemical) difference of Gaussian and plane wave basis sets is the vanishing basis set super position error (BSSE), using plane waves. Formerly, we already reviewed the behavior of static plane wave basis set calculations in comparison to Gaussian basis set calculations [23]. This was done in the framework of density functional theory for description of hydrogen bonds with the water dimer as an example. Furthermore, we carried out molecular dynamics simulations enforcing the self-dissociation reaction of the water dimer to study the inﬂuence of the basis set onto the reaction. Not surprisingly, we found strongly varying results of the calculated forces for a chosen cutoff along the reaction coordinates. The basis set superposition errors of the dimer interaction energy was analyzed along the free-energy surface, i. e. along the trajectories. Based on the analysis along the trajectories a qualitative and quantitative estimate depending on the particular point of the free-energy surface can be provided. Namely, at the intermolecular OH distance close to the equilibrium geometry the errors were smaller than at shorter OH distances. However, the distribution at the equilibrium distance was less symmetrical than the distribution at short distances. It was wider, and the standard deviation was larger than at shorter distances, where the basis set superposition error is larger.
+
+4.2.2 Wavelets: From Non-Local to Local Basis Sets
+Most problematic in applications of AIMD programs is the computer time needed to calculate the wave functions and, therefore, the required forces. Most programs scale cubically with system size, i. e. numbers of basis functions or electrons. This stems from the calculation of overlap integrals to calculate the energy and other properties needed. In applications, overlap integrals of Gaussian functions are neglected, if the center of positions (y in eq. 30) are too far apart. In a similar fashion plane waves are treated. Unfortunately, this results in errors, the wave function is not calculated as exact as possible with a given number of basis functions. Both, Gaussian and plane waves, have this property of non-vanishing overlap integrals between distant nuclei, because their support is the complete space, i. e. Ω = R or [−L/2, L/2].
+To gain a better scalability, special basis functions can be used. Basis functions with compact and well known support are well suited for this purpose, because for two basis functions ψn and ψm and arbitrary f (x) follows
+
+supp ψn ∩ supp ψm = ∅ ⇒
+
+ψn∗ (x) · f (x) · ψm(x) dx = 0,
+
+(32)
+
+Ω
+
+i. e. integrals between basis functions with disjunct supports are exactly zero. Such functions are, e. g., wavelets. A wavelet is a function ψ : R → C, such that
+
+ψj,k(x) = 2k/2ψ(2kx − j) (j, k ∈ Z)
+
+(33)
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+13
+
+are an orthonormal basis of L2(R), and therefore also L2([−L/2, L/2]) [26, p. 254]. If ψ has a compact support, then every basis function has a compact and well known support and relation 32 can be applied. Note, that not every wavelet has a compact support. Simple examples of such compact orthogonal wavelets are, for instance, the Haar-function
+
+ 1, x ∈ [0, 1/2)
+
+ψHaar(x) = χ[0,1/2)(x) − χ[1/2,1)(x) = −1, x ∈ [1/2, 1) ,
+
+(34)
+
+0, x ∈ R \ [0, 1)
+
+introduced by Haar in 1910 [27], where χM is the characteristic function of the set M . Unfortunately, these functions are not well suited for a quantum chemical purpose, because they are not regular and all derivatives vanish – despite at x = 0, 1/2, or 1 – and therefore no energy or force approximation can be undertaken.
+Only in 1988, Daubechies found a “Orthonormal bases of compactly supported wavelets” [28], where the basis functions have arbitrary high regularity, i. e. are Cm(R) for any ﬁxed m ∈ N. Other wavelets without this property can be found in Ref. [29], and for an introduction to the theory and the application of wavelets see Ref. [30], [31], and [32]. Basis functions with compact support are called local, while all other basis sets (like Gaussian or plane waves) are non-local. To reduce the scalability of AIMD programs, local basis functions have to be used.
+When using local basis sets, the scalability can be reduced up to O(N ) for the integral and some other calculations. This was demonstrated by Genovese et al. in 2008 [33]. In this paper they present the implementation of the Daubechies wavelets in the density functional electronic structure program ABINIT. In their approach they use pseudopotentials. The algorithm for the use of wavelets are discussed and, furthermore, that the matrix elements are not calculated explicitly. Instead, ﬁlters are applied, a mathematical equivalent scheme but numerically much faster. Parallelization was found to be excellent and benchmark calculations on different chemical systems show the behavior of the different algorithms with increasing system size. It was found that with increasing size, the linear algebra tasks went from less than 10 % for 17 and less atoms up to more than 80 % of the required calculation time for 1025 atom. This shows that with increasing system size, not only the number of integrals limit the calculation, but that in the cases of optimal basis sets the linear algebra algorithms are the bottlenecks. Unfortunately, these linear algebra routines cannot be parallelized up to an arbitrary degree and only space matrix algorithms remain to accelerate the calculations.
+The linear scaling of the ONETEP program was presented by Hine et al. in 2009 [34]. ONETEP uses these sparse linear algebra algorithms, which drastically increased the speed. As basis functions periodic bandwidth-limited delta functions or psinc functions are used, both strictly localized and vanishing outside a cut-off radius. These functions are centered at the points of a regular mesh over the whole simulation box. In this study Hine et al. showed linear scaling of the calculations ranging from some ten atoms up to 32 768 atoms on 64 cores.
+
+14
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+4.2.3 Finite Difference, Grid Point, and Discrete Variable Representation Methods
+Despite the use of analytical basis function like Gaussian functions, plane waves, or wavelets, a much more ﬂexible way of approximating the wave function or electron density is possible. No explicit basis functions are used, but the electron density is pointwise deﬁned on a mesh, spreading through the whole space. Approximating and reﬁning the electron density leads to varying the electron density at each mesh point and minimize the total energy of the system in the density functional approach or other schemes.
+In the Kohn-Sham density functional approach, the Kohn-Sham orbitals are only pointwise deﬁned and integrals as well as derivatives are calculated completely from these values on the mesh. Integrals in analytical schemes are therefore transformed in sums and derivatives are calculated from ﬁnite difference schemes, i. e. at least linear approximation of ﬁrst, at least quadratic approximation of second etc. derivatives. Generally, higher approximations schemes are used to improve the energy convergence with increasing grid size. In this scheme, the orbitals can be orthogonalized in such fashion and compact supports can be applied by forcing the orbitals to vanish outside a given cut-off radius. The advantages of Daubechies wavelets (relation 32) can therefore be used and the number of integrals decreases. This approach can include pseudopotentials or not the whole orbitals are treated within the grid approach but only the radial parts and angular contributions are represented by the hydrogen spherical harmonic functions. Such grid point methods are characterized by a good scalability up to O(N ) and a good parallelization performance.
+In 2006, Fattebert and Gygi published a ﬁnite difference implementation of an AIMD [35]. They were able to show that the discretization error can systematically reduced by decreasing the mesh spacing. As a bench mark system Fattebert and Gygi used a water box with 32 and 64 molecules. The error in the forces reduced two magnitutes when going from a mesh spacing of 0.3 to 0.1 a. u., the same as when going from 70 to 150 Ry in the plane wave cut-off. Linear scalability was demonstrated with increasing system size and number of CPUs.
+In 2008, Artacho et al. presented developments and applicability of the SIESTA method [36]. In this program, the Hartree term was calculated with fast Fourier transformation to impose periodic boundary conditions. The fast Fourier transformation (scaling O(N log N )) was then replaced by a multigrid solver to ensure strict linear scaling. The basis sets used are atomic basis functions with compact support, i. e composed by spherical harmonic and a ﬁxed, grid point radial function. In this article, Artacho et al. review calculations using the SIESTA program in which the linear scalability is demonstrated with more than 4000 atoms.
+In 2009, Blum et al. published a numeric atom-centered orbitals ab initio molecular implementation embodied in the Fritz Haber Institute “ab initio molecular simulations” (FHI-aims) package [37]. In this implementation, the basis functions are numeric atom-centered orbitals with the form
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+15
+
+ϕi,l,m(x, y, z)
+
+=
+
+ui(r) r
+
+Yl,m(x,
+
+y,
+
+z),
+
+(35)
+
+where the radial shape ui is numerically tabulated with a compact support and Yl,m are the spheric harmonics. The function in eq. 35 is centered at the origin and the functions ui are fully ﬂexible. The program calculates DFT electronic structures with these basis functions, even with scalar relativistic corrections. Benchmark calculations show a O(N ) scalability and a good parallelization.
+Discrete variable representation is based on and motivated by the Gaussian quadrature [38, 39], and a general method was developed and used by Lee and Tuckerman for AIMD simulations in 2006 [40]. The implementation of Lee and Tuckerman was successfully tested by a 15 ps simulation of liquid water (32 molecules). The corresponding radial distribution functions were found to be in good agreement with experimental data.
+
+4.3 New Developments in Accuracy
+Up to this point, we focused on methods to accelerate existing calculation routes and schemes, i. e. integral calculation etc., by special basis sets and parallelization schemes. But in all schemes conventional DFT schemes are used and no further attention was dedicated to corrections or reﬁnements, e. g. choice of functional, van der Waals interactions, and relativistic corrections, taking unapproachabilities of DFT into account.
+For instance, frequencies calculated by Gaigeot et al. using the BLYP functional had to be down shifted by up to 100 cm−1 compared to frequencies calculated with hybrid functionals (e.g. B3LYP) or with wave function based ab initio calculations [41]. Gaigeot et al. stated that 5 to 10 % underestimation of frequencies is typical for the BLYP functional. The amplitudes of methyl groups δ(C-H) bands were underestimated in their calculations which they attributed to C-H–water interactions being more sensitive to dispersion than to electrostatics forces. Therefore, they estimated that this deﬁciency could be related to the lack of a proper dispersion term in DFT calculations.
+Unfortunately, the deﬁciencies of DFT are much larger, as discussed by Cohen et al. in 2008 [42]. Most important in DFT is the exchange functional. This unknown functional and the approximations lead the major failures in DFT, e. g. underestimation of chemical reaction barriers and band gaps, dissociation energies of molecular ions as well as charge transfer excitation energies. Most is due to the selﬁnteraction and delocalization errors leading to too low barriers in transition states. Especially the delocalization error should be a particular concern for cluster and bulk calculations, like in AIMD. Including Hartree–Fock exchange like in hybrid functionals introduce a localization error, partially annealing the delocalization errors. Therefore, the better performance of hybrid functionals is not because of a more accurate functional, but is due to error cancellation.
+
+16
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+Therefore, we have to pay attention to the choice of functional and other contributions to improve the accuracy of predictions. This will be our concern in the following section.
+
+4.3.1 New Functionals
+
+As well known from static quantum chemical calculations, there are different types of functionals: local density,1 general gradient approximation (GGA),2 meta-GGA,3 hyper-GGA,4 and generalized random phase methods (RPM)5 functionals [24]. The functionals contain contributions from ρ (electron density), ∇ρ, ∇2ρ, τ , HartreeFock exchange, and virtual orbitals in an ascending order improving the quality as well as the computational effort. The computational costs and the limited computer power at the beginning of ab initio molecular dynamics simulations kept the development of functionals used in AIMD at a stage of GGA functionals like the BLYP functional, probably the most used functional in AIMD simulations. Only in the last decade, major contributions in the solution and implementation of the Hartree–Fock exchange with periodic boundary conditions were made and will be the subject of the following discussion.
+In 2003, Heyd et al. proposed to apply as hybrid functionals a screened Coloumb potential only to the exchange interaction in order to screen the long-range part of the Hartree–Fock exchange [43]. The other Coloumb interactions were not obtained via a screened potential. In order to achieve this, the Coloumb operator was split into a short-range (SR) and long-range (LR) components,
+
+1 r
+
+=
+
+erfc(ωr) r
+
++
+
+erf (ωr) r
+
+,
+
+(36)
+
+SR
+
+LR
+
+with erfc(ωr) = 1 − erf(ωr) and ω being an adjustable parameter. In the next step a new hybrid functional was proposed which performs the exact exchange mixing only for short-range interactions in both HF and DFT. Starting from the PBE0 and using eq. 36 the authors arrived at the expression
+EXωPCBEh = aEXHF,SR(ω) + (1 − a)EXPBE,SR(ω) + EXPBE,LR(ω) + ECPBE (37)
+for the exchange-correlation energy. For the evaluation of the short-range Hartree– Fock part Heyd et al. used a modiﬁed version of the PRISM algorithm. For the density functional part the authors applied another screened potential and the longrange part was calculated with the difference of ωPBE-SR. The performance of this functional was very promising, i. e. for molecular systems it yielded an accuracy
+
+1 LDA, LSDA, Xα, ... 2 BLYP, OPTX, OLYP, PW86, PW91, PBE, HCTH, ... 3 BR, B95, VSXC, PKZB, TPSS, τ -HCTH, ... 4 H+H, ACM, B3LYP, B3PW91, O3LYP, PBE0, TPSSh, τ -HCTH-hybrid, ... 5 OEP2, ...
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+17
+
+comparable to the best established hybrid methods, such as B3LYP and PBE0. For periodic boundary condition-calculations a performance similar to established functionals were found while at the same time signiﬁcant reductions in the computational costs were observed [43].
+A variety of databases for testing and designing new density functionals together with a suite of new functionals were developed by Zhao and Truhlar in 2008 [44]. The new density functionals were termed M06-class (and, earlier, M05-class) functionals, for which the authors enforced some fundamental exact constraints such as the uniform-electron-gas limit and the absence of self-correlation energy. The M06suite functionals depended on spin densities, spin density gradients, spin kinetic energy densities, and, for nonlocal (hybrid) functionals, Hartree–Fock exchange. This led to the design of four new functionals:
+
+1. The hybrid meta functional M06 was found to perform well for transition metals, main group thermochemistry, medium-range correlation energy, and barrier heights.
+2. Another hybrid meta functional M06-2X fails for transition metals but shows excellent performance for main group chemistry, predicts accurate valence and Rydberg electronic excitation energies, and is an excellent functional for aromatic-aromatic stacking interactions.
+3. M06-L was not as accurate as M06 for barrier heights but was the most accurate functional for transition metals and was the only local functional (no Hartree– Fock exchange) with better average performance than B3LYP.
+4. M06-HF showed good performance for valence, Rydberg, and charge transfer excited states with minimal sacriﬁce of ground-state accuracy.
+
+In 2008, Spencer and Alavi published an “efﬁcient calculation of the exact exchange energy in periodic systems using a truncated Coulomb potential” in combination with plane waves [45]. By Fourier transformation of the exact exchange energy expression for periodic systems
+
+Ex
+
+=
+
+−
+
+1 Nk
+
+occ vk
+
+occ wk′
+
+φ∗vk
+
+(r)
+
+·
+
+φ∗wk′
+
+(r′) · |r −
+
+φwk′ r′|
+
+(r)
+
+·
+
+φvk
+
+(r′
+
+)
+
+drdr′
+
+(38)
+
+into
+
+Ex
+
+=
+
+−
+
+4π Nk Ω
+
+occ occ vk wk′
+
+G
+
+Yvk,wk′ (G) · Ywk′,vk(−G) |G − k + k′|2
+
+(39)
+
+with
+
+Yvk,wk′ (G) = φ∗vk(r) · φ∗wk′ (r′) · e−i(G−k+k′)·rdr
+Ω
+
+(40)
+
+and addition of zero, i. e. simultaneous addition and subtraction of a (suitable) function, no integration of singularities is needed, and a better convergence with increasing reﬁnement of k-point meshes was reached, in comparison with other programs
+
+18
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+tests by Spencer and Alavi. Furthermore, a truncated Coulomb operator was used, see eq. 36 and the work of Heyd et al. discussed previously [43].
+In 2009, Guidon et al. implemented the same approach using Gaussian basis sets instead of plane waves [46]. They showed that standard functionals can be transformed into short-range functionals without loss of accuracy by the truncated Coulomb operator, see eq. 36. Their implementation shows good parallelization up to ten thousand of cores and calculations with LiH and the rubredoxin protein in solution. They found good results for reactions energies and barriers.
+Paier et al. published a study about random phase approximation (RPA) correlation and second-order screened exchange (SOSEX) functionals in 2010 [47]. They found that SOSEX is selﬁnteraction free and that with exact Hartree–Fock exchange van der Waals interactions are exceptionally well described. Furthermore, Paier et al. found that empirical rescaling of long-range SOSEX leads to little beneﬁt, while rescaling of long-range dRPA is very helpful.
+The complete failure of DFT to discribe van der Waals interactions and its inclusion will be in the focus of the next section.
+
+4.3.2 Correcting for van der Waals Interaction
+To treat the dispersion problem of density functional theory (i.e., the failure to accurately describe van der Waals interaction) is now an active ﬁeld of research. It is especially important for AIMD to treat these kind of interactions more accurately, because in large and condensed phase systems the chemistry often solely relies on the intermolecular forces of such type. These nonlocal long-range electron correlations already appear for vanishing overlap of the electron densities of the fragments.
+In 2004, Ro¨thlisberger and coworkers proposed to add an effective atom centered nonlocal term to the exchange-correlation potential in order to cure the lack of London dispersion forces in standard density functional theory [48, 49]. In particular, the authors constructed an effective potential consisting of optimized nonlocal terms dependent of higher angular momentum for all atoms in the system in order to compensate for the absence of dispersion forces in a generalized gradient approximation (GGA) functional. Thus, instead of approximating the attractive long-range electron density correlation by an atom-atom interaction, they modeled van der Waals forces by an atom-electron interaction, mediated by appropriate nonlocal effective core potential (ECP) projectors, which were obtained from an optimization scheme. ECPs or pseudopotentials of the Hartwigsen–Goedecker–Hutter-type are analytic, separable, norm conserving ab initio pseudopotentials which contain local (loc) and nonlocal (nl) angular momentum l dependent terms of the form
+
+V ECP(r, r′) = V loc(r) × δ(r − r′) + V nl(r, r′).
+
+(41)
+
+l
+
+Their local part consists of an error function and a Gaussian while the nonlocal terms are described by Gaussian-type radial projectors p for each angular momentum channel l
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+19
+
++l
+
+3
+
+V nl(r, r′) =
+
+Ylm(ˆr)
+
+plh(r)hlhj plj (r′)Yl⋆m(ˆr′)
+
+(42)
+
+m=−l
+
+j,h=1
+
+with plj(r) ∝ rl+2(h−1) exp[−r2/(2rl2)], r = |r−RI | on the position R of nucleus I, ˆr is the unit vector in the direction of r, and Ylm denotes a spherical harmonic. The parameters {. . . hlhj, rl . . . } of these pseudopotentials (called {σij} in the following) were generated by iteratively minimizing a penalty functional which expresses the deviations of the Kohn–Sham (KS) pseudo-orbitals from their all-electron counterparts. In a similar way Ro¨thlisberger and coworkers constructed their van der Waals pseudopotentials. Their approach contained an analogous iterative minimization of a penalty functional (P ) which was designed in such a way that it penalizes deviations from molecular properties (e.g., the electronic density) with respect to experimental or theoretical references. The penalty functional P ({σi}) is allowed to depend on all quantities which can be expressed in terms of the KS orbitals. It can thus describe any arbitrary molecular property such as electronic densities ρ(r), multipole moments µ, as well as ionic forces FIons or energies. Therefore, P can depend only indirectly (i.e., via the KS orbitals) on the ECP parameters {σij}. Ro¨thlisberger and coworkers state that this scheme has some advantages over the usual empirical corrections: “... First, the improved electronic properties (dipole moment, quadrupole moment, and polarizability) indicate that due to the nonlocality of the ECP projectors, the valence wave functions reproduce more of the characteristics of dispersion interactions than a simple additive atom-atom based correction. Second, properly calibrated and transferable atomic dispersion calibrated ECPs no longer need any artiﬁcial a priori assignment of interacting groups or atoms.” [48]
+Among the here discussed approaches the most simple and straight forward approach is the one cultivated by Stefan Grimme [50, 51]. Grimme deﬁned the dispersion corrected total energy EMF−D as
+
+EMF−D = EMF + Edisp,
+
+(43)
+
+where EMF is the Hartree–Fock or DFT mean-ﬁeld energy and Edisp is an empirical dispersion correction expressed as
+
+Edisp
+
+=
+
+−s6
+
+Nat−1 Nat i=1 j=i+1
+
+C6ij Ri6j
+
+fdmp(Rij ).
+
+(44)
+
+With Nat being the number of atoms in the system, C6ij denotes the dispersion coefﬁcient for an atom pair ij, s6 is a global scaling factor that only depends on
+the DFT used, and Rij is an interatomic distance. To avoid near-singularities the
+damping function fdmp was added,
+
+fdmp(R)
+
+=
+
+1
+
++
+
+1 e−α(R/R0 −1)
+
+.
+
+(45)
+
+20
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+The C6 coefﬁcients were partly taken from literature [50], but also newly averaged over possible hybridization states of the individual atoms. Mixing rules of the following kind
+
+C6ij
+
+=
+
+2 · C6i · C6j C6i + C6j
+
+(46)
+
+were applied. As a result Grimme found that BLYP combined with the dispersion correction provides the best results. As the fragment densities of hydrogen bonded systems signiﬁcantly overlap these kind of interactions are well described by standard DFT. However, if errors of 10 to 30% need to be corrected, Grimme recommended his dispersion correction scheme. As a consequence to this, Grimme mentioned the fact that steep damping functions need to be applied in order to retain the original DFT description as close as possible in hydrogen bonded systems [50]. An improvement of the original approach followed in 2006 [51], where Grimme stated that the following shortcoming were addressed:
+1. Consistent atomic parameters (C6 coefﬁcients) were only available for elements H, C-Ne, but studies of supramolecular structures or problems in material science require parameters for elements from the whole periodic table.
+2. Test calculations for molecules with third-row elements showed systematic errors.
+3. Adding the dispersion energy to the KS-DFT energy led to inconsistencies for “normal” thermochemistry, e.g. atomization energies: the dispersion correction is zero for the free atom and always nonzero (and large) for the molecule.
+
+In order to account for these problems Grimme reduced the scaling factor from 1.22 to 1.10, which improved computed intermolecular distances for systems with heavier atoms [51]. Smaller values of α from the damping functions were chosen which provided larger corrections at intermediate distances at negligible dispersion energies for typical covalent bonding situations. Furthermore, Grimme applied a new combination rule
+
+C6ij = C6i · C6j
+
+(47)
+
+for mixed atom situations which yielded much better results, but required a new ﬁtting of s6. Altogether, Grimme obtained much improved results and the main reason for higher accuracy was, that the short range part of the density functional was adjusted to the presence of the long-range correction and double-counting effects could be avoided.
+Between 2000 and 2009, Rydberg and coworkers published several works to include van der Waals interactions in density functional theory [52–57]. The ansatz used in these approach is to introduce a correction in the exchange-correlation functional parts in GGA functionals,
+
+Exc[ρ] = ExGGA[ρ] + Ecnew[ρ]
+
+(48)
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+21
+
+and
+
+Ec[ρ] = Ec0[ρ] + Ecnl[ρ],
+
+(49)
+
+where Ec0 is the short-range part evaluated in LDA, and Ecnl is the nonlocal part, nonlocally dependent on the electron density ρ and containing the principal van der Waals terms. For the derivation of the nonlocal term Ecnl Rydberg and coworkers started from the interaction of jellium6 and expanded the results to general geome-
+tries of the electron density. They implemented these approach in a plane wave code
+and made bench mark calculations, using graphite, boron nitride, molybdenum sul-
+ﬁde, benzene dimers, polycyclic aromatic hydrocarbons, cytosine and DNA base
+pairs, as well as adsorbed molecules, like benzene, naphthalene, phenol and adenine
+on graphite, alumina, metall-organic frameworks (MOFs), and DNA. Their results
+were in good agreement with available experimental data [52–57].
+
+4.3.3 Explicit Relativistic Description
+Despite the fact that Erwin Schro¨dinger did not found the relativistic description of wave mechanics, he was perfectly well aware that all physical equations have to satisfy relativity theory [58–61]. The relativistic description was found by Paul Adrien Maurice Dirac only two year later [62, 63].7
+For ab initio molecular simulations, the scalar-relativistic Douglas–Kroll–Hess method is implemented in the Born–Oppenheimer molecular dynamics simulation package CP2K [64]. Using relativistic densities in a nonrelativistic gradient routine is found to be a valid approximation of relativistic gradients. An excellent agreement between optimized structures and geometries obtained from numerical gradients is observed with an error smaller than 0.02 pm. Hydrogen halide dimers (HX)2 with X=F, Cl, Br, and I serve as small test systems for ﬁrst-principles molecular dynamics simulations [64]. Relativistic effects are observed. That is, the amplitude of motion is larger, the frequency of motion is smaller, and the distances are larger in the relativistic picture. Several localization schemes are evaluated for different interatomic and intermolecular distances. The errors ofthese localization schemes are small for geometries which are similar to the equilibrium structure. They become larger for smaller distances, introducing a slight bias toward closed packed conﬁgurations.
+For a much more detailed view on relativistic electronic structure theory see Ref. [65] and [66], and references therein.
+6 Uniform electron gas. 7 For these milestones, i. e. “for the discovery of new productive forms of atomic theory”, Erwin Schro¨dinger and Paul Adrien Maurice Dirac received the nobel prize in physics in 1933, while Werner Heisenberg received his prize in the same year for 1932. For further information see: “The Nobel Prize in Physics 1933”. Nobelprize.org. 6 Jan 2011. http://nobelprize.org/nobel prizes/physics/laureates/1933/.
+
+22
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+4.4 New Integration Schemes
+
+In AIMD, the methods solving the equations of motion (eq. 3) are called integration schemes, not necessarily the calculation of electronic integrals which were discussed in section 4.2. The Car–Parrinello and Born–Oppenheimer approach in AIMD was already discussed in section 2.
+A combination of the CP and BO approach was published by Ku¨hne et al. in 2007 [67]. They designed an improved coupling scheme of the ionic and electronic dynamics and the acceleration stems from the reduced or fully bypassed SCF cycles. With this integration scheme for the electronic degrees of freedom Ku¨hne et al. the calculation was accelerated by an order of 1 or 2 of magnitude. For benchmark simulations liquid SiO2 was calculated. In a subsequent study from 2009, Ku¨hne et al. simulated liquid water [68]. The calculation of the oxygen-oxygen radial distribution function with different functionals and comparison with experimental data show large differences but in a comparison to BOMD simulations they show good agreement. Because of the acceleration Ku¨hne et al. were able to estimate diffusion coefﬁcient and the shear viscosity. Additionally, they found the hydrogen bond network in agreement with tetrahedrally coordinated water.
+In 2009, Andrade et al. published an implementation of a modiﬁed Ehrenfest formalism with larger time steps to accelerate AIMD simulations [69]. In this approach the time consuming orthogonalization of the wave function is not necessary as it is automatically enforced by the Ehrenfest formalism. The resulting implementation consists of the time dependent Kohn–Sham equations for the electrons and the Newtonian equations governing the dynamics of the nuclei. Earlier implementations of the Ehrenfest formalism suffered from too small time steps which was overcome by Andrade et al. and applied to nitrogen, benzene, and C60.
+In the same year, Jakowski and Morokuma published a new ﬁrst principle molecular dynamics scheme: the Liouville–von Neumann molecular dynamics (LvNMD) [70]. This scheme is based on the Liouville-von Neumann equation
+
+i
+
+dP (t) dt
+
+=
+
+[H(t), P (t)]
+
+(50)
+
+for the electron density matrix P with the formal solution
+
+U (t, t0) = exp − i
+
+t
+H(t′) dt′
+
+(51)
+
+t0
+
+and the Magnus theory for such integrals. The key step is to introduce the density matrix P itself instead of the time dependent Hamilitonian leading to the indepentent-particle Hamiltonian model with the electronic energy
+
+E
+
+=
+
+Tr[hP ]
+
++
+
+1 Tr[G(P )P ] 2
+
++
+
+VNN .
+
+(52)
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+23
+
+With the basic equations 50 and 52 the electron propagation can be described and the propagation of the nuclei can be expressed in the Verlet algorithm. The method was applied to several test sytems using density functional based tight-binding method with self-consistent charges (SCC-DFTB).
+
+4.5 Metadynamics
+
+Ab initio metadynamics is a method based on MD simulations that allows thorough sampling of a predeﬁned multidimensional conﬁgurational space and provides, at the same time, the direct reconstruction of the explored free energy surface (FES), and therefore to elude the “rare event problem” present in ab initio molecular dynamics simulations.
+The subspace for which the sampling should be enhanced is deﬁned by selecting a set of collective variables (CV) –like bond distances, angles, or energy etc.– that clearly identify speciﬁc states of the system under investigation. These typically correspond to those slow modes that might play a role in the transformation of the system and, therefore, need to be activated. A rather general rule prescribes that the selected CVs should be able to distinguish the relevant intermediates and competitive reactive pathways. The dynamics in the space of the CVs, that is, the metadynamics, are accelerated by the presence of a history-dependent and repulsive potential. This potential is built up “on-the-ﬂy” during the evolution of the meta-trajectory. It locally modiﬁes the energy proﬁle of those regions in the conﬁgurational space that have already been visited, and, thereby, prevents the trajectory from remaining in the same basin of attraction for very long time. This approach enforces the exploration of the FES and enables the most probable pathways of a reaction to be disclosed, even if there is no prior knowledge of the transition or of the products. Unfortunately, actual calculations depend on the speciﬁc choice of CVs, therefore much care is needed and, additionally, a bad choice of CVs even leads to results far from reason [71–77].
+To demonstrate how metadynamics works we want to discuss the use of one bond length as a CV and afterwards discuss metadynamics applied to actual chemical system and their choice of CVs.
+The general methods is explained in detail by Laio and Parrinello in 2002 [71]. In a simulation with different CVs σi (i = 1, ..., n), like a distance d between to atoms, are calculated during the simulation. After some steps (time t) of the simulation, the CVs σi are analyzed, e. g. an average distance dt for the last, say, 100 steps is calculated at the time t. The assumption is now that the system is in an energy well near dt and the CV is stuck near this distance. To allow the system to visit other regions of the FES, an additional repulsive energy term is added,
+
+W · exp
+
+−
+
+|d − dt 2δd2
+
+|2
+
+,
+
+(53)
+
+a Gaussian located at dt (in general σit) with the width δd (δσi) and the hight W . This additional potential partly ﬁlls the well of the FES and the CVs can visit other
+
+24
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+regions of the FES. After another 100 steps, another Gaussian is added with a new position dt, and so after the time t the whole term
+
+W exp
+t′ ≤t
+
+−
+
+n i=1
+
+|σi − σit′ |2 2δσi2
+
+(54)
+
+is added to the FES and ﬁlls the wells more and more until the whole FES is leveled off and the system can visit the whole conﬁgurational space freely. With the choice of the parameters W and δσi the calculation is inﬂuenced and ranges between a fast leveling of the FES with a large W or a slow leveling with a small W as well as between a broad (smeared) leveling with a large δσi or a ﬁne (more structured) leveling with a small δσi. As can easily be imagined, after a leveling of the FES the term in eq. 54, solely determined by W , (δσi)ni=1, and (σit′ )i=1,...,n;t′≤t, is the negative impression of the FES and changing sign in eq. 54 reproduces the original FES. Unfortunately, the time t when the FES is fully leveled off by eq. 54 is unknown and can only be estimated during the simulations by the point were the change of the CVs σi looks unhindered, i. e. no energy barrier or well is left. This is one critical point. Another is the choice of the W and δσi. Large values ﬁll the FES fast but with less accuracy while small W and δσi lead to long simulation times until leveling is reached.
+This approach was applied by Laio and Parrinello to force ﬁeld simulations of the dissociation of NaCl in TIP3P water (the Na-Cl distance was used as a CV) and an alanine dipeptide in TIP3P water (the backbone dihedral angles Φ and Ψ were used as CVs) [71].
+An application to a chemical reaction with a very high reaction barrier was published by Iannuzzi et al. in 2003 [72]. They investigated the cyclization of butadiene/opening of the cyclobutene molecule and isomerization reactions of small silicon-hydrogen clusters.
+“Simulations of structural phase transitions by metadynamics” were published by Martonˇa´k et al. in 2005 [73]. The method was applied to a zeolithe and crystalline benzene, and especially graphite, were an internal order parameter was used as a collective variable during the simulation.
+Other applications and reﬁnements of the metadynamics scheme were published in various reactions etc. [74–77] and others were discussed in section 5 in more chemical details.
+
+4.6 Enhanced Sampling
+Despite metadynamics, other methods to explore the free energy surface exist. An example is the string method, applied to the alanine dipeptide molecule by Maragliano et al. in 2006 [78]. Similar to metadynamics a set of collective variables are chosen, Maragliano et al. used the four dihedral angles ϕ, ψ, θ, and ζ in the dipeptide. Contrary to metadynamics, were the four dimensional conﬁgurational space is explored by adding repulsive potentials at already visited points, the string
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+25
+
+methods looks for a string between the two points A and B, two isomers, reactants and products, etc. In the example of the alanine dipeptide, the string is a function
+
+f : [0, 1] → R4, α → (ϕ(α), ψ(α), θ(α), ζ(α)),
+
+(55)
+
+were all angles are changed simultaneously with the string parameter α and the boundary conditions f (0) = A and f (1) = B, i. e. f connects the two points (isomers) A and B smoothly. The aim of the string method is now to ﬁnd the string f with the lowest energy barrier by the steepest decent path. As seen from this, the string methods grows linearly with the number of points (αi)ni=1 to ﬁt the function f at (f (αi))ni=0 and therefore required less computational expense than a metadynamics simulations, which has to ﬁll the whole n-dimensional conﬁgurational space of the dihedral angles ϕ, ψ, θ, and ζ. The best way (i. e. with the lowest energy barrier) between the two points A and B is called “Minimum Free Energy Path” (MFEP).
+Besides the string method [78], further methods to locale transition states exist. A comparison of the nudged elastic band (NEB) [79], the Dewar–Healy–Stewart (DHS) [80], dimer [81], constrained optimization (CO) [82], activation–relaxation technique (ART) [83], one-side growing string (OGS) [84] method, and several combinations (DHS+GS, climbing image + DHS (CI-DHS), and CI-NEB) have been extensively studies by Klimesˇ et al. in 2010 [84]. As a test system Klimesˇ et al. used the diffusion of water molecules on a NaCl(100) surface and the HCl bond cleavage on this same surface. They found that the NEB method is quite fast, the dimer methods is poor for the water diffusion processes because of the low energy barriers but more efﬁcient for the HCl bond cleavage process with a higher barrier, and that with poor transition state guess the CI-DHS scheme is most efﬁcient. For a more detailed view on all these methods we refer to the original work of Klimesˇ et al. [84].
+
+4.7 Properties: IR, Raman, ESR, NMR, EXAFS etc.
+4.7.1 Wavefunction Analysis
+In AIMD simulations not only the positions of the nuclei are calculated but also the wave function. Therefore, information encoded in the wave functions can be used to describe and investigated the chemical system. Many schemes were developed to investigate the electronic structure, especially in AIMD simulations.
+The Wannier approach was developed in 1937 leading to maximally localized Wannier functions (MLWF) [85]. Further developments are the corresponding Wannier center, the electron localization function (ELF) [86], the Fukui function [87], and nucleus-independent chemical shift maps. All these approaches are well described in literature [24, 86, 88–90]. We only want to state that in these localization schemes a (not necessarily unitary) transformation U = (Ui,n) on the (Kohn–Sham or Hartree–Fock) orbitals |ψi is applied,
+
+26
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+|ψ˜n = Ui,n|ψi ,
+
+(56)
+
+i
+
+so that different spread functions Ω are minimized. For instance, the spread function introduced by Boys in 1960
+
+Norb
+
+Ω Boys =
+
+ψ˜i(r)ψ˜i(r′) | (r − r′)2 | ψ˜i(r)ψ˜i(r′) ,
+
+(57)
+
+i=1
+
+a function of the transformed orbitals ψ˜i [91]. A generalized methods with the general spread function
+
+Ω=
+
+f (|zi,n|)
+
+(58)
+
+ni
+
+with
+
+zl,n = ψn|Ol|ψn ,
+
+(59)
+
+where f is an appropriate function and Ol is an appropriate operator, was derived and implemented in the Gaussian and plane wave functional scheme in the CPMD code by Berghold et al. in 2000 [92]. In this work, different spread functions from literature were compared on a single water molecule in different supercells, i. e. a simple cubic, orthorhombic, hexagonal, fcc, bcc, and triclinic. For the optimization Berghold et al. developed several optimization schemes and found that for systems with higher complexity and increasing size higher optimization schemes led to a faster convergence.
+The usefulness of Wannier functions was demonstrated by Silvestrelli et al. in 1998 [93]. They simulated amorphous silicon and were able to describe the bond structure using the Wannier functions. Especially, investigation of defect conﬁguration was possible with a novel degree of accuracy.
+Another application of Wannier functions to chemical systems was published by Fitzhenry et al. in 2003 investigating silicon-carbon alloys [94]. In this study the bond structure was also resolved by the application of Wannier functions and Fitzhenry et al. were able to identify, classify, and quantify the types of bonding pressent in the alloy. They were even able to observe three-center bonding and a temperature dependent ﬂipping of bonds during the simulation.
+In 2005, Bu¨hl et al. investigated the ionic liquid 1,3-dimethylimidazolium chloride ([MMIM]Cl) at 438 K with the Car–Parrinello approach [95]. Population analyses showed noticeable charge transfer from anions to cations and Wannier functions demonstrated this especially at the CH · · · Cl hydrogen bonds.
+Another study about ionic liquids was published by us in 2007 [96]. We used the electron localization function (ELF) to investigate a system of 30 AlCl3 molecules with one molecule [EMIM]Cl. We found that the formation of AlCl3 cluster are due to the saturation of electron deﬁciencies, as supported by static ELF calculations on clusters extracted from the simulation.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+27
+
+Aromaticity and homoaromaticity of a parent barbaralane and a tetraphosphabarbaralane of C2v-symmetry were visualized by means of three-dimensional nucleusindependent chemical shift maps by us in 2005 [97]. The nucleous-independent chemical shift maps showed the characteristic response properties of the electronic structure of these molecules. We combine this analysis with Car-Parrinello molecular dynamics simulations to incorporate the ﬂuxional character of the tetraphosphabarbaralane and to show that atomistic motion at room temperature does not alter the aromaticity in this case.
+
+4.7.2 IR and Raman Spectra
+
+The calculation of the IR spectra is not only important in order to conﬁrm the validity of the simulations but it also allows additional insight into the molecular level of the system not accessible from experiment. The calculation of linear optical constants proceeds within linear response theory without explicitly including an external electromagnetic ﬁeld. From the autocorrelation function of the time derivative of the total dipole moment one can obtain the dielectric constant. Therefore, if the total dipole moment can be decomposed unambiguously into a sum of local moleculebased contributions the same contributions to the IR spectrum can be identiﬁed. It is due to the electronic structure nature of AIMD that the dipole moments can be calculated on the ﬂy via quantum chemical recipes in contrast to classical molecular dynamics simulations in which a dipole moment has to be approximated by a molecular vector within a molecule.
+Problematic for AIMD simulations are always the short simulations times available when correlation functions need long trajectories. In 2005, Iftimie and Tuckerman devised a method that allows well-converged results for IR spectra from small AIMD systems and short AIMD trajectories [98]. The frequency-(ν)-dependent Beer-Lambert absorptivity coefﬁcient α(ν) is given as:
+
+α(ν)
+
+=
+
+πν[1 − 3
+
+exp(−β 2πν)] V cn(ν)ǫ0
+
+∞
+exp(2πiντ ) × Mˆ (0)Mˆ (τ ) qm dτ
+−∞
+
+(60)
+
+with β being 1/(kbT ), V being the sample’s volume, c being the speed of light, n(ν) being the index of refraction, ǫ0 being the vacuum permittivity, and Mˆ being the quantum mechanical total dipole moment operator. Iftimie and Tuckerman applied
+the harmonic approximation expressed in
+
+∞
+
+exp(2πiντ ) × Mˆ (0)Mˆ (τ ) qm dτ
+
+−∞
+
+=
+
+1
+
+−
+
+β 2πν exp(−β
+
+2πν)
+
+∞
+exp(2πiντ ) × M(0)M(τ ) cl dτ.
+−∞
+
+(61)
+
+In the last line “cl” denotes a classical ensemble average, i.e. phase space inte-
+gration. Next, the authors suggested to apply integration by parts, i.e. taking the derivative M˙ = dM/dt:
+
+28
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+2πν c
+
+ǫ′′
+
+=
+
+α(ν)n(ν)
+
+=
+
+6cV
+
+1 ǫ0 kB T
+
+∞
+exp(2πiντ ) M˙ (0)M˙ (τ ) cl dτ.
+−∞
+
+(62)
+
+Applying this expression with the four-term Blackman windowed Fourier transform approach led to sufﬁcient accuracy based on a relatively short trajectory (10 ps), i.e. the authors found excellent agreement between the experimentally obtained spectra for liquid and solid water. Using this approach and decomposing the total dipole moment
+
+M = µA
+
+(63)
+
+A
+
+the contribution of a molecule A was calculated via cross-correlation:
+
+ǫ′′
+
+=
+
+1 12πV ǫ0kBT
+
+∞
+exp(2πiντ ) M˙ (0)µ˙A(τ ) cl dτ.
+−∞
+
+(64)
+
+Iftimie and Tuckerman demonstrated that the absolute spectrum of an excess proton in water can be accurately obtained by subtracting the spectrum of bulk water from that of an aqueous solution of HCl.
+Similarly, Gaigeot and coworkers analyzed the IR spectrum of N-methylacetamide (NMA) in gas phase and aqueous solution [41]. Two approaches were tested. The ﬁrst is based on eq. 61 using individual dipole moments of molecules and they used the derivative similar to eq. 62. However, the derivative of dipole moment j is obtained via the following expression:
+
+jβ(t) =
+
+i,α
+
+∂Mβ ∂qiα
+
+(t)
+
+dqiα dt
+
+(t)
+
+=
+
+i,α
+
+∂Mβ ∂qiα
+
+(t)viα(t)
+
+(65)
+
+with qi being the position of atom i and ∂M β/∂qiα (α, β = x, y, z) represents the components of the atomic polar tensor of atom i. As results Gaigeot and coworkers found that, despite the very short time span of 1 ps, the IR spectrum from the current-current autocorrelation function gave most of the important features of the absorption. That is, all amide bands were present. In contrast, the most intense amide I-amide II band was not correctly reproduced from the same 1 ps time interval when the dipole-dipole correlation function was used. The authors explain that “this improved convergence is most likely an effect of the favorable statistics of velocities. Atomic velocities, in contrast to dipoles, are isotropic and ﬂuctuate very quickly during the dynamics. Therefore, calculation of infrared spectra through current-current correlation functions can be done on shorter time scales of dynamics. This might be particularly important in the case of strong coupling between almost degenerate modes, such as for example the δ(O-H) bending mode of water and the amide I and amide II bands of NMA which both occupy the same ≈ 1600 cm−1 frequency band.“ [41]
+Furthermore, it was pointed out by Gaigeot and coworkers that thermalisation of all degrees of freedom might be difﬁcult to achieve and can therefore induce errors in calculated infrared intensities. To compare the calculated infrared spectra to the
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+29
+
+experiments (gas and liquid phase), use of two different scaling factors that adjusted the position of the calculated amide III band were made, 1.064 and 1.117 for the gas phase and the solution, respectively [41]. Gaigoet and coworkers state that there is no reason why the scaling factor of gas phase and solution should be the same. The scaling factor depends on frequency and thus might change in a condensed phase environment. Another difference in solution could be an enhanced inertia (giving rise to frequency red-shifts) due to the ﬁctitious electron mass used in Car– Parrinello molecular dynamics scheme. As also shown by Iftimie and Tuckerman the ﬁctitious electron mass can contribute to the underestimation of the frequencies, up to 40-50 cm−1 [98]. If the well-known frequency red-shifts due to the use of the BLYP functional is kept in mind, this leads to an increased underestimation of the frequency positions [41].
+
+4.7.3 NMR and ESR/EPR
+Calculation of NMR parameter is theoretically very extensive and we want therefore refer to Kaupp et al. [99] for a deeper look into the theory and Ref. [3]. Our aim shall be the different implementations of such calculations and their application in connection with ab initio molecular dynamics simulations.
+In 2001, Sebastiani and Parrinello implemented the NMR chemical shift calculation in the plane wave AIMD code CPMD [100]. Extended systems within periodic boundary conditions can be treated, i. e. the method is applicable to crystalline and amorphous insulators as well as isolated molecules. The problem of the position operator was solved by the use of maximally localized Wannier functions. Several benchmark calculations showed good agreement with experimental values.
+A linear scaling, tested with up to 3000 basis functions, was implemented in Q-Chem by Ochsenfeld et al. in 2004 [101]. The calculations depend on a Hartree– Fock formalism and test calculations with more than 1000 atoms were made.
+In 2009, the calculation of the NMR chemical shifts and EPR g tensors was expanded to the Gaussian and plane wave code CP2k by Weber et al. [102]. Several test calculations have been performed with good agreement to experimental results. Additionally, the NMR shifts in isolated as well as hydrated adenine were calculated.
+
+4.7.4 EXAFS
+The last property we want to discuss accessible through ab initio molecular dynamics simulations is the extended X-ray absorption ﬁne structure EXAFS. The nearedge X-ray absorption spectra calculations at the DFT level was implemented by us in 2007 in the CP2k code [103]. Several test calculations have been done: water and CO with different basis sets and core-hole potentials, the C, O, and N K-edges in (CH3)2CO, CH3COH, and C5H5N, as well as water and CH3OH dimers for the sensitivity to weak intermolecular interactions. For the basis set dependence the
+
+30
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+6-31G∗∗, 6-311G∗∗, 6-311++G(2d,2p), 6-311++G(3fd,2dp), Iglo-III, Roos-ADZANO, Roos-ATZ-ANO, aug-cc-pVDZ, aug-cc-pVTZ, aug-cc-pVQZ, and aug-ccpV5Z were compared, and it was found that the EXAFS spectra signiﬁcantly varied with the basis set, in number of signals, in signal position, as well as in signal shape. Even with the largest basis set the experimental O K-edge in water is only marginally described by the BLYP exchange functional with the HCH potential. The same was found for CO. For the dependence of the core-hole potential we compared the HCH, XHCH, FCH, and the XFCH functional at H2 and CO calculations with the aug-cc-pV5Z basis set and the BLYP functional. Using the full core-hole potentials FCH and XFCH the entire spectrum is shifted by several eV to higher energies and similar to the basis set choice the choice of the functional largely inﬂuences the spectrum. Despite these deﬁciencies, EXAFS calculations of (CH3)2CO, CH3COH, and C5H5N showed a resemblance between theoretical and experimental spectra for the different atoms, and therefore an alignment depending on these calculations is possible. Weaker interactions were investigated at waterwater and methanol-methanol dimers. In both calculations the weak H-bonds signiﬁcantly changed the spectra for the acceptor and the donor with accordance to chemical intuition and experiment making an assignment of experimental results to different coordinations and clusters accessible. In the computed EXAFS spectrum a systematic error to the experimental spectrum was found. In a subsequent study from 2008 the different dependencies of the calculated EXAFS spectra are investigated at liquid water and hexagonal ice within the supercell approach [104]. Therein several conﬁgurations of AIMD simulations were investigated and it was found that asymmetrically coordinated water molecules, for instance with only one H-bond, had well deﬁned spectral lines which signiﬁcantly differ from the ice signals.
+For a review about calculations of the X-ray adsorption spetra (XAS) which specially focused on the transition potential approach and its application to water see the recent work of Leetmaa et al. [105].
+
+5 Applications in Chemical Engineering
+In this section we discuss several works where AIMD was applied to special chemical problems, reactions, and industrial processes. For a more detailed discussion, especially in connection with stereo-electronic effects, we refer to a previous work, were we discussed several AIMD simulations in connection with stereoelectronic effects [106]. Therein, especially the Diels–Alder reaction and the industrial Ziegler–Natta polymerization are dicussed en detail and, therefore, a detailed discussion of these two reactions is left out in the present work.
+
+5.1 Properties of the Vapor Phase, Liquids, Mixtures, and Solvent Effects
+AIMD is well suited for describing several properties of the vapor phase, liquids, mixtures, and solvent effect. Especially solvent effects are best described by AIMD
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+31
+
+because the electronic structure is explicitly described by AIMD and can therefore respond to single solvent molecules and their electronic structure.
+
+5.1.1 The Vapor Phase
+Associating ﬂuids like water or hydrogen ﬂuoride show strong deviations from ideal gas behavior due to the formation of aggregates mostly via hydrogen bonds.
+Standard simulation techniques like MC and MD encounter problems if a coexistence of isolated molecules and hydrogen bonded clusters can be assumed, ”because of the energetic penalty associated with the ’evaporation’ of a molecule from a cluster and the entropic penalty associated with the addition of a monomer to a cluster” [107]. In order to investigate the hydrogen ﬂuoride vapor phase, canonical ensemble Monte Carlo simulations have been carried out for ten molecules at constant density and at three different temperatures (T = 310, 350, and 390 K) by McGrath and coworkers [107]. The authors employed in their Monte Carlo simulations DFT with the BLYP functional. However, due to computational expense nuclear quantum effects were not accounted for. In order to overcome the co-existence problem aggregation-volume-bias and conﬁgurational bias Monte Carlo approaches have been used to increase the sampling efﬁciency of cluster formation and destruction. As important result the authors found from a hydrogen-bond analysis that about two thirds of the hydrogen ﬂuoride molecules were part of small aggregates at 310 K, whereas only about 10 % of the molecules were clustered at 390 K. Of course, this size distribution exhibited a sensitivity to the criteria used to deﬁne a hydrogen bond, but the qualitative features were not affected by these differences. From the temperature dependence of the equilibrium constants, the dimer and trimer aggregation energies were estimated using a simple distance based hydrogen bonding criterion as −13±3 and −65±16 kJ mol−1, respectively, whereas these binding energies were found to be somewhat different for a combined distance-angular criterion with values of −17±6 and −63±11 kJ mol−1, respectively [107]. Naturally, the strictness of the hydrogen bonding criterion played a signiﬁcant role for the assignment of clusters to linear, cyclic, and branched architectures with the fraction of the latter being drastically reduced for the distance angular criterion. McGrath et al. observed an increase of the average molecular dipole moment from 1.85 D for isolated molecules to about 2.0 D for dimers to about 2.75 D for larger aggregates. They found a smaller increase for the H-F bond length from about 94 pm to 98 pm [107].
+
+5.1.2 From Gas Phase to Liquid Phase
+In a previous work of ours we already summarized the differences between gas phase molecules and molecules in condensed phases [106]. Chemical reactivity is highly inﬂuenced by the chemical environment and, therefore, chemical reactivity of an isolated molecule in vacuum cannot be compared with a molecule surrounded
+
+32
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+by other molecules. A ﬁrst step to realize that is to look at the dipole moment of molecules in gas phase as well as in condensed phase.
+Water was investigated by several authors for this purpose [108–110]. Silvestrelli and Parrinello calculated dipole moments of a single water molecule (1.87 D), a dimer (2.1 D), a trimer (2.4 D), as well as for liquid water (2.95 D) [108]. In a subsequent study with reﬁned methods they gained a dipole moment of 3.0 D for liquid water from ab initio molecular dynamics simulations [109]. In 2004, Kuo and Mundy published a study of the aqueous liquid-vapor interface where water was simulated in such a fashion that in one simulations box the water molecules can move freely from the dense bulk phase into the low density vapor phase, i.e. the number of molecules surrounding a water molecule changed smoothly [110]. In this study, Kuo and Mundy found that the dipole moment of the vapor phase molecules is approximately 2.4 D and went smoothly to 3.0 D in the bulk phase.
+The ﬁrst simulations of a water-vapor interface was published by Vassilev et al. in 2001 [111]. In this study the authors compared the simulation with the PW91 functional to previous simulations with the BLYP functional and experimental data. Oxygen-oxygen radial distribution functions were in good agreement with experimental data and the liquid-vapor interface simulation suggested a preferred orientation of the water dipole moments on the surface into the bulk phase.
+Besides other water properties, the temperature change of the water dipole moment was investigated by McGrath et al. in 2006 [112]. They found that the dipole moment of gas phase water at 323 K is 1.8 D and 2.1 D at 523 K, while in the liquid phase the dipole moments changed to 3.0 D at 323 K and 2.5 D at 523 K. This demonstrates not even the dependence on the chemical environment but also on the temperature.
+Besides water, methanol was investigated according to its changing dipole moment, too. Handgraaf et al. did this in 2003 [113]. Handgraaf et al. found that despite only very little change in the position of the Wannier center, the dipole moment of methanol changes from 1.73 D in the gas phase for a single molecule to 2.54 D in the liquid phase.
+N-methylacetamide is the last molecule we want to discuss. It was investigated by Whitﬁeld et al. in 2006 [114]. For the gas phase molecules a dipole moment of 3.74 D was found and in the liquid phase the dipole moments were approximately 6 D. A comparison to classical force ﬁeld simulations of this liquid showed that in the classical simulation the dipole moments remain at approximately 4 D. The ab initio molecular dynamics simulation therefore outperformed the classical simulations because it explicitly accounts for polarization effects from the environment.
+These calculations of the dipole moments show a broad distribution around the given average value. Despite that, ab initio molecular dynamics simulations show that the dipole moments of all molecules change drastically (increasing by 40 to 60 %) and that therefore neither the electronic structure of the molecules in the liquid phase as
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+33
+
+well as the resulting chemical reactivity can be expected to be the same as in the gas phase. Ab initio molecular dynamics constitutes therefore a tool to describe chemical reactivity better and more accurate than static quantum chemical calculations do.
+
+5.1.3 Liquids: Water, Ionic Liquids, and Others
+Water serves as an ideal test system for different test calculations because a wide range of experimental data of water and its structure is available to compare theoretical results to them [115–124]. We will only discuss some of them in detail.
+One of the ﬁrst water simulations were done by Laasonen et al. in 1993 [115]. The authors used an extended exchange functional for an accurate description of the hydrogen bonding in the liquid. The simulation results were in good agreement with available experimental data.
+A comparison of three gradient-corrected density functionals –B, BP, and BLYP– in liquid water simulations were published by Sprik et al. in 1996 [117]. The authors found from a comparison of the structural and the dynamic properties that the hydrogen bonding is too weakly described in the Becke (B) functional, while hydrogen bonding is too strong within the BP approach. The BLYP functional gave the best agreement with experiment.
+Another comparison of density functionals was published by VandeVondele et al. in 2005 [121]. Additionally, in this study the inﬂuence of the temperature was investigated within the different functionals (BLYP, PBE, TPSS, OLYP, HCTH120, and HCTH407). The BLYP, BPE, and TPSS functionals gave similar results, while OLYP, HCTH120, and HCTH407 showed a more diffusive dynamics and a lower structuring of the liquid. The BYLP and PBE functional was once more compared in a study by Schmidt et al. in 2009 [123].
+Ionic liquids are liquids (usual under standard conditions) which consist of ions [125, 126]. Their special properties led to a wide range of application and many ab initio molecular dynamics simulations were performed to understand their extraordinary behavior [95, 126–132], started in 2005 with the calculation of dimethylimidazolium chloride [MMIN][Cl] [127]. Only some of them shall be discussed in detail.
+In 2005, AIMD simulations on [MMIN][Cl] carried out by Del Po´polo et al. showed signiﬁcant differences compared to both the classical calculations and the neutron results [127]. In particular, and unlike the gas-phase ion pair, chloride ions tended to be located near a ring C-H proton in a position suggesting hydrogen bonding.
+In a comparative study by Bhargava and Balasubramanian from 2006, it was found that the apparently good agreement between the pair correlation functions from classical MD and AIMD conceal subtle, but crucial, differences [128]. The radial pair distribution functions between the most acidic proton of the [MMIN] cation and the chloride anion were extremely different in location and width of the
+
+34
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+peaks. Furthermore, differences between AIMD and MD in the spatial distribution of chloride ions around the cation were found. The data were explained in terms of the formation of a hydrogen bond between the acidic hydrogen of the imidazolium ring and the chloride ion. Size effects were excluded by simulations of 32 ion pairs with traditional MD simulations. The cation-anion hydrogen bond present in the melt was observed as a red shift in the C-H stretching frequency.
+The structural and dynamical hydrogen bonding in the IL [EMIM][SCN] was investigated by Thar et al. in 2009 [131]. The geometric picture indicates a superior role for the most acidic hydrogen bond as compared to the two other hydrogen atoms at the rear. Despite the structural picture, the hydrogen bond dynamics at the most acidic hydrogen atom was found to decay faster than the according dynamics at the other ring hydrogen atoms. Neglecting the directionality in the hydrogen bond analysis led to a dynamics which reﬂected the geometrical analysis. Two movements were identiﬁed. First, a fast (<0.3 ps) hopping of the anion above and below the imidazolium ring and, second, a translational motion of the anion away from the cation in-plane of the imidazolium ring (5-10 ps).
+Other Liquids, like liquid ammonia NH3 [133], formamide HCONH2 [134], and liquid hydrogen ﬂuoride HF [135], as well as more exotic liquids, like liquid deuterium D2 [136, 137], melted carbon, graphite or diamond C [138–142], melted aluminum chloride AlCl3 [143], and liquid phosphorous P [144], have been studied. In all cased phase transition as well as the dynamics behavior was studied at a wide range of temperature and pressure.
+Liquid metals and alloys were also studied with ab initio molecular dynamics simulations since the ﬁrst AIMD program appeared because of their importance in physics, chemistry, industry, electronics, and engineering. Therefore, many studies have been published on this ﬁeld, all concerning the crystal, liquid, and electronic structure as well as other properties. Because of the wide range of these studies we only want to give a (obviously not complete) list of studies about important investigations: Li [145], Na [146], Al-Si alloy [147], Si [148, 149], K-Pb [150], Fe-Si [151], Ni [152], Cu [153], GaAs [154], Ge [155–157], As2Se3 [158], Se [159], Zr [160], CdTe [154], CsPb [161], and Hg [162]. However, all these calculations show that even from an early stage on AIMD was able to describe such metallic electronic systems properly, even at thousands of Kelvin at the melting point and beyond. For a review of some works see the article of Kresse [163].
+
+5.1.4 Properties of Mixtures and Solvent Effects
+In the following section we give some examples of solvated molecules, ions, and ionic liquids in water as well as in methanol. Especially the effects of the solvent on the solved species as well as the effects of the dissolved species on the solvent are of special interest. In many studies, these effects results in inﬂuencing dipole moments. For further discussion on the effects of salts on dipole moments see Ref. [106]. For
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+35
+
+a reviews about ionic liquid mixtures from an experimental and theoretical point of view see Ref. [164].
+Molecules in water are studied because many chemical reactions are carried out in water and the solvent inﬂuences the solvated molecule, therefore its chemical reactivity. Gas phase calculations, especially dipole moments, are shown to be quite different in condensed phase, as already seen from section 5.1.2 and 5.1.3. These studies are expanded to the solvation of molecules in water and will now be discussed.
+Hydrogen chloride HCl was studied by Laasonen and Klein in 1994 [165]. Several AIMD simulations were performed with additional water molecules. Starting from a HCl molecule in water dissociation appeared forming H3O+ and Cl− ions. Two different conﬁgurations for the proton were reported: a H3O+ ion and a H5O+3 ion.
+In a study from 2002, we investigated water-dimethylsulfoxid clusters with different number of water molecules [166]. In a subsequent study from 2004 we explicitly investigated dimethylsulfoxid (DMSO) in water and its changing dipole moment [167]. For the simulations we found that the dipole moment of DMSO rose from 3.97 D to 7.39 D. The temperature change for DMSO was negligible, it grew from the geometry optimized value of 3.97 D to 4.08 K at 319 K.
+The solvent effects of uracil in water [168], ethene and ethanol in water [169], as well as hydrogen in water [170] were discussed in detail previously [106] and we therefore want to concentrate on a further study.
+Solvent effects were found as well in the IR study of N-methylacetamide (NMA) (cis and trans) in aqueous solution carried out by Gaigeot and coworkers in 2005 [41]. From geometry optimization of N-methylaceamide microsolvated with a few water molecules formation of bridges between the carbonyl functional group and the amide group would be expected. However, none such an arrangement was found in the aqueous solution. A very noticeable effect of the solvent on the vibrational density of states was that the amide I stretching motion exhibited a red-shift (87 cm−1 for trans-NMA and 46-72 cm−1 for cis-NMA), whereas the amide II was blueshifted (−8-25 cm−1 and −3-38 cm−1, respectively). In general, solvent-solvent hydrogen bonds were observed to be energetically more favorable than solute-solvent hydrogen bonds [41]. Whereas in the gas phase the neutral form was the most stable, in aqueous solution the zwitterionic state was more stable as was observed for alanine [171] as well.
+Salts, ions, and ionic liquids in water are a very active ﬁeld of research because of the wide range of occurrence of such solutions and their different physical and chemical behavior. To understand the dynamic properties of the hydration shell and the physical and thermodynamics properties of the solution is a key step in understanding the effects of such solutions in chemistry as well as industrial and biological processes.
+For this propose several anions [172–179], cations [172, 180–189], and salt as well as ionic liquids [171, 190–192] in water have been studied with ab initio molecular dynamics methods. In all cases structural as well as dynamical properties of the
+
+36
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+hydration shell of the ions have been investigated. In some cases, the inﬂuence of the solvated ions on the water molecules were studied within the Wannier approach to calculate the dipole moments of the water molecules. It was found that in general halogen ions have little effect on the dipole moments of the water molecules or slightly increase it in the ﬁrst hydration shell, while further water molecules remain untouched. Cations were found to increase the dipole moments of the ﬁrst hydration shell by approximately 0.2 to 0.5 D or more and as in the case of the anions the water molecules remain untouched in the second hydration shell and the bulk phase. For more detailed discussion see our previous work [106].
+In 2005, Ikeda et al. demonstrated these changed in the water dipole moments on Y3+ not only by calculating the dipole moment but also in Wannier function based calculations of the 17O-NMR shifts [186]. They found that the chemical shifts in the ﬁrst hydration shell of Y3+ are shifted by −20 ppm according to the bulk water water molecules in accordance with experiment.
+Non-aqeuous solutions of ions, salts, and molecules treated with full ab initio molecular dynamics techniques are quite rare. Pagliai et al. investigated LiCl in methanol in 2005 [193] and found that Li+ is coordinated by approximately 3.56 methanol molecules within a negatively charged ﬁrst, and positively charged second hydration, as Wannier functions showed. A single Br− ion was investigated by Faralli et al. in 2006 and they found that the Br− ion has a more structured ﬁrst hydration shell than the Cl− in the study of Pagliai et al. [194].
+
+5.2 Chemical Reactions
+5.2.1 Metal-Free Organic Reactions
+As an example how ab initio molecular dynamics simulations lead to deeper insight into chemical reactions the SN2 reaction shall be discussed in detail. Other metal-free organic reactions like the Diels–Alder and the Wittig reaction have been discussed previously [106].
+Between 1999 and 2004, several SN2 reactions of the type
+RY + X− → RX + Y− (R = CH3, CH2Cl, ...)
+have been investigated with ab initio molecular dynamics simulations in vacuum as well as in solution [195–201]. In the 1999 study by Raugei et al. they investigated a gas phase SN2 substitution [195]. Raugei et al. found that the dipole moment drastically changed with the applied reaction coordinate. In a subsequent study, Raugei et al. added one and two water molecules, and they found important hydrogen bonds between the substrate as well as the ion X− with the water molecules [196].
+The whole substitution reaction in water was calculated by Pagliai et al. in 2003 [198]. They investigated the hydrogen bonds with Wannier and electron localization functions (ELF) during the reaction and found that the charge of the transition states
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+37
+
+in delocalized and that, therefore, the hydrogens bonds are weakened and had a smaller live time. Similar results were obtained in other investigations [197, 199].
+In 2003 and 2004, Ammal et al. [200] and Yang et al. [201] showed that temperature and dynamic effects can alter the chemical reactions even more than classical static concepts in organic chemistry predict.
+
+5.2.2 Metal-Organic Reactions and Catalysis
+Metal-organic reactions gained much interest by many, experimental as well as theoretical, chemists. This is due to many interesting properties of organo-metallic compounds and their reactions. With metals like Ni, Mo, Ru, Rh, Pd, Pt, Sn, etc. several organic reaction routes are shortened or are even impossible without these metals. We only want to note that Richard F. Heck, Ei-ichi Negishi, and Akira Suzuki received the 2010 nobelprize in chemistry “for palladium-catalyzed cross couplings in organic synthesis”,8 works with which they opened the ﬂoodgates to the whole ﬁeld of organo-metallic catalysis in organic synthesis. Despite cross-coupling reactions, other reactions were investigated with ab initio molecular dynamics simulations and we discuss some of them. Further organo-metallic reactions in AIMD were reviewed previously, especially in connection with stereo-electronic effects [106].
+In 2004 and 2005, we investigated the photochemical activation of dinitrogen with transition metal model complexes of the Sellmann type nitrogenase [202, 203]. In the 2005 work a dinuclear complex designed to emulate the open-side FeMoco model was simulated and found that several side reactions have to be suppressed to obtain the reduced species [203]. Chelate effects and their partial dissociation as well as low temperatures were found to be necessary for successful events. Our investigation even gave suggestions for an optimized design of the complexes to inhibit side reactions.
+In a subsequent study from 2009, we investigated the last step in the dinitrogen reduction: the ammonia-dinitrogen exchange at the Schrock’s molybdenum catalyst [204]. For this purpose we simulated the whole Schrock catalyst without any simpliﬁcations within the CPMD approach. We found several exchange mechanisms whose were all of the addition-elimination type via a single stable six-coordinate intermediate. No dissociation-addition mechanism was observed in accordance with experiments. Furthermore, we suggested a possible detection of the intermediate by a signiﬁcantly different N≡N IR mode in the intermediate in comparison to other N≡N streching modes in similar complexes.
+In 2007, Urakawa et al. investigated the possible rational design of ruthenium CO2 hydrogenation catalysts from ab initio metadynamics simulations [205]. The authors established the concerted CO2 insertion by a mechanism that involves the rotation of the formate group. Several interesting intermediates were observed along the reactive trajectories. One example was the complex with molecular H2 coordinated to [Ru(η2-H2)]. The most relevant structures were discussed in detail and their
+8 For further information see: “The Nobel Prize in Chemistry 2010”. Nobelprize.org. 18 Jan 2011 http://nobelprize.org/nobel prizes/chemistry/laureates/2010/.
+
+38
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+relative stability was calculated in terms of the interatomic interactions as well as the associated electronic charge distribution. The free-energy proﬁles reconstructed by the MTD were consistent with experimental results and provided a more precise interpretation of the observed behavior. Urakawa et al. concluded that the reaction proceeds more easily by the trans-isomer route and that H2 insertion into the formate complex is the rate-determining step of the reaction. On the basis of the disclosed reaction pathways, a procedure that predicts the activity of catalysts with different ligands was proposed.
+Another catalytic reaction studied in 2007 is the C-C and C-H reductive eliminations at Pt(IV) complexes by Michel et al. [206]. The octahedral Pt(IV) complexes of the formula L2Pt(CH3)3X (with X=H or CH3) contained as L2 diphosphine model ligands of dppe and dppbz. These two different chelating diphosphine ligands are dppe (bis(diphenylphosphino)-ethane, PPh2(CH2)2PPh2) and dppbz (obis(diphenylphosphino)benzene, o-PPh2(C6H4)PPh2), of which the latter is a less ﬂuxional ligand compared to dppe because of its benzene backbone. Due to the difference in rate constants for each the C-H (no inﬂuence) and the C-C (large inﬂuence) reductive elimination it was assumed earlier that dissociative mechanism takes place for C-C reductive elimination and a direct mechanism for the C-H reductive elimination. This so-called Crumpton–Bregel and Goldberg rule was thoroughly investigated from metadynamics. Free energy activations were calculated for the C-H and C-C reductive elimination but also for the dissociation of one arm of the diphosphine ligand. Thereby, Michel et al. estimated the free energy cost thus including entropy effects and the Pt-P distance of the transition state structure. The authors deduced that from a mechanistic point of view, the C-C reductive elimination occurs through a two-step dissociative pathway with barriers of around 19 and 16 kcal · mol−1 if the less rigid ligand dppe is used. From kinetic simulations it was shown that this combination of values gives results comparable to a ﬁrst-order kinetics with a barrier of around 40 kcal · mol−1. If the more rigid ligand, dppbz, was treated, the increase of the dissociation cost prevented the system from being reactive. For C-H reductive elimination, two mechanisms were found, the direct one previously postulated and a new one: the concerted mechanism discovered from metadynamics. In the concomitant mechanism the platinum-phosphorus bond formation occurred simultaneously to the C-H bond formation. Depending on the cost of the phosphine dissociation, the direct or the concomitant mechanism was observed. Thus, the strong inﬂuence of the basicity of the phosphine ligand as much as the inﬂuence of its intrinsic rigidity was detected. A subsequent study was done in 2008 [207].
+
+5.3 Electrochemistry
+To understand complex electrochemical reactions in solution and on electrodes, a three step approach is done. Firstly, how does the solvent interacts with the unbiased and biased metal surface? Secondly, how does the oxidation/reduction of a single electrochemical active species work in pure solvents? And ﬁnally, how does a
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+39
+
+complex electrochemical reaction proceed in solution and on metal surfaces? Therefore, we discuss metal-liquid interfaces at ﬁrst, followed by half cell reactions in solvents, and ﬁnally we discuss complex redox reactions in metal-liquid interfaces.
+
+5.3.1 Metal-Liquid Interfaces
+Metal-water interfaces are the ﬁrst step in investigating electrochemical reactions on surfaces in solution to understand the interactions of the solvent with the surface itself. In 2001, Izvekov and coworkers investigated the Cu(110)-water [208] and the Ag(111)-water [209] interface from ab initio molecular dynamics simulations. In both simulations an absorption of water on the surface and a bilayer structure of water was found, where water is tightly bound to the metal surface in the ﬁrst shell. Exploration of the electronic structure of the interface showed strong coupling of the water molecules and the metal. However, the metal surface remains almost undisturbed in the presents of water, geometrically and electronically.
+In 2007 and 2008, Sugino et al. [210] and Otani et al. [211] investigated biased plantinum/water interfaces. Sugino et al. found that an orientation of the water molecules emerges due to the negative bias potential of the water-Pt(111) interface and, furthermore, that the water molecules screened the electric ﬁeld due to these reorientations (almost completely in the ﬁrst shell) [210]. Similar results were obtained by the simulations from Otani et al. where a O-down conﬁguration (oxygen is attached to the Pt surface) is found in the neutral interface, while at the negative biased interface mostly H-down conﬁgurations (hydrogen is directed to the Pt surface) occur.
+
+5.3.2 Redox-Reactions in Solution
+Since 2004, several redox and half cell reactions in solution have been studied with ab initio molecular dynamics simulations (see Tab. 1) and reviewed [212–215].
+As seen from this list, so many reactions have been studied that our list is far from being complete. Additionally, it is impossible to discuss all studies in detail and we want therefore only discuss one special cases, reaction (n) in Tab. 1, and summarize the main facts of the other studies.
+In all studies, ab initio molecular simulations of the ions were done in solution (aqueous or organic) and Marcus theory was applied to calculated the electrochemical potential. All electrochemical potentials were in good to very good (error ≤ 0.2 V) agreement with experimental data. For an introduction to the Marcus theory and its application to calculate cell potentials see the cited reviews [212–215].
+However, most interesting and promising is the reaction (n) from Tab. 1, the redox reaction of two rubredoxin molecules: Clostridium pasteurianum rubredoxin CpRd and Pyrococcus furiosus rubredoxin PfRd [230]. Rubredoxins are a group of oxidation/reduction enzymes and also metalloproteins containing one FeS4 prosthetic group. It is found in bacteria and archea. Several natural varieties exist,
+
+40
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+Table 1. Some redox reaction investigated in solution since 2004, where bpy is 2,2’-bipyridine, TH thianthrene, TTF tetrathiafulvalene, Q 1,4-benzoquinone, CpRd Clostridium pasteurianum rubredoxin, and PfRd Pyrococcus furiosus rubredoxin. For reviews see references [212–215].
+
+(a)
+
+Mn2+ → Mn3+ + e−
+
+[216]
+
+(b)
+
+MnO24− → MnO−4 + e−
+
+[217]
+
+(c)
+
+Cu+ → Cu2+ + e−
+
+[218–220]
+
+(d)
+
+Ru2+ → Ru3+ + e−
+
+[221–224]
+
+(e)
+
+Ru(bpy)23+ → Ru(bpy)33+ + e−
+
+[223]
+
+(f)
+
+[RuCl6]4− → [RuCl6]3− + e−
+
+[225]
+
+(g)
+
+[Ru(CN)6]4− → [Ru(CN)6]3− + e−
+
+[225]
+
+(h)
+
+RuO24− → RuO−4 + e−
+
+[217]
+
+(i) RuO−4 + H2O + e− → [RuO3(OH)2]2−
+
+[226]
+
+(j)
+
+Ag+ → Ag2+ + e−
+
+[218, 219, 227]
+
+(k)
+
+TH•+ + TTF → TH + TTF•+
+
+[228]
+
+(l)
+
+TH2+ + TTF•+ → TH•+ + TTF2+
+
+[228]
+
+(m)
+
+Q− → Q + e−
+
+[229]
+
+(n)
+
+CpRd− + PfRd → CpRd + PfRd−
+
+[230]
+
+Clostridium pasteurianum rubredoxin and Pyrococcus furiosus rubredoxin being only two of them, but fully characterized by X-ray structures in oxidized as well as reduced forms. Sulpizi et al. used these X-ray structures for their study in 2007 [230]. Classical molecular dynamics simulations in 676 and 678 water molecules were carried out with the Amber8 force ﬁeld, and every 100 ps a conﬁguration was used to calculated the whole electronic structure and energy of the protein including the water molecules with the CP2k program. From these calculations, under application of the Marcus theory which leads to the formula
+
+∆AX
+
+=
+
+1 2
+
+(
+
+EX
+
+red +
+
+EX
+
+ox)
+
+(X = CpRd, PfRd),
+
+(66)
+
+Sulpizi et al. gained a redox potential difference
+
+∆∆A = ∆ACpRd − ∆APfRd
+
+(67)
+
+of −40 mV. The experimental value is −60 mV. The electrochemical properties of the reactions in Tab. 1 were gained in a similar fashion. For the smaller systems with only one cation or anion in water a full AIMD treatment is feasible.
+
+5.3.3 Complex Electrochemical Interfaces and Electrochemical Reactions on Surfaces
+In this part, complex electrochemical interfaces and electrochemical reactions on surfaces with various molecules in solvents will be discussed. Reactions will be
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+41
+
+the oxidation and evolution of hydrogen on different transition metal surfaces, the reduction of oxygen on several surfaces as well as carbon monoxide reactions, and a complex photoactive reaction in a solar cell.
+Hydrogen under electrochemical conditions was investigated very recently [231, 232]. Santana et al. investigated the electrooxidation of molecular hydrogen at the Pt(110)-water interface [231]. The Tafel–Volmer mechanism with a homolytic H–H bond cleavage followed by the formation of adsorbed terminal hydrogen atoms and further oxidation of the H atoms was observed by the authors. Furthermore Santana et al. found the potential dependent activation energies for this process in accordance with experimental results.
+Sku´lason et al. investigated the hydrogen oxidation as well as evolution reaction on a Pt(111) surface under electrochemical conditions [232]. Three steps were investigated, the Tafel, Heyrovsky, and Volmer step. Sku´lason et al. found that the rate determining steps on Pt(111) surface were the Tafel–Volmer cascade for the oxidation and the Volmer–Tafel cascade for the evolution. Additionally, the H adsorption energy and energy barriers for the Tafel reaction were calculated for many metals9 with different faces and steps. Their results suggested that the binding free energy of hydrogen is the most important parameter for describing oxidation and evolution activity of an electrode.
+Further experimental as well as theoretical studies with several methods about hydrogen oxidation and evolution on different platinum surfaces were cited in both works.
+Oxygen, e. i. its electroreduction, on a Pt(111) surface was studied under electrochemical conditions by Wang and Balbuena in 2004 [233]. They observed a stepwise adsorption of two oxygen atoms with a very low energy barrier (0.08 eV) and no clear barrier for the decomposition was found. Addition of H3O+ from the surrounding water led to a rapid formation of a proton transfer intermediate H+–O2 · · · Pt(111) followed by an electron transfer to H–O–O–Pt(111). Wang and Balbuena found that the formation of H–O–O–Pt(111) has a much higher activation barrier (0.4 eV) than its dissociation (0.1 eV) and that, therefore, the rate determining step for the ﬁrst electron transfer reaction in the electroreduction of O2.
+In 2008, the oxygen reduction on a ZrO2 (¯111) surface was studies by Okamoto [234]. During the reactions a spontaneous bond cleavage in HOOH suppressed termination of the reduction reaction at the 2e− step. These simulations showed that at least reduction to HO on the surface should be possible and further reactions could only be hindered by OH poisoning of the surface.
+In 2009, Hirunsit and Balbuena published AIMD simulations of a Pt(111)- and a Pt-Co-alloy-water interface and oxygen [235]. Different oxygen coverages were investigated as well as surface reconstruction effects due to different coverages of the adsorbed oxygen. Additionally, an electric ﬁeld (−0.51 to 0.51 V/A˚ ) was applied on the surface but no spontaneous water dissociation or oxygen reduction was observed. Only the reorientation of the water molecules from O-down to H-down
+9 Au, Ag, Cu, Pt, Ni, Ir, Rh, Co, Ru, Re, W, Mo, and Nb.
+
+42
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+orientations was observed, previously found [210, 211] and already discussed in section 5.3.1.
+Gas phase partial and complete reduction of oxygen by different hydrogen covered transition metal10 (111) surfaces with static but periodic calculations were published by Ford et al. in 2010 [236]. It shall only be given here for completeness.
+Carbon monoxide was investigated on a Pt surface as well as on a Pt-Ru-alloy surface with water by Santana and Ishikawa in 2010 [237]. The simulations revealed new interpretations for the adsorbed CO and water interactions, as well as rationalized observed quantitative relationship between IR intensities and Pt and Pt-Rualloy due to water molecules ﬁrmly hydrogen bonded to bridging CO molecules. Furthermore, the authors found the linear dependency of the O–H stretching mode with the potential and the CO coverage.
+The photoactive part of dye sensitized solar cells consists of a wide band gap semiconductor covered by a monolayer of sensitizing dye [238]. The semiconductor can be directly supported by a transparent electrode on one side, while the dye is connected to the back electrode via a liquid electrolyte or a solid hole conducting material. The initial step of the photovoltaic process is a light induced electron injection from the dye into the semiconductor material. This process yields an oxidized dye and an energetic electron. Rapid regeneration (reduction) of the dye by the electrolyte prevents back transfer of the electron or degradation of the photo-oxidized dye. Meanwhile, the energetic electron diffuses away from the dye, passing through the electrode and an external load, ﬁnally reaching the counter electrode where it regenerates the electrolyte. From ab initio molecular dynamics simulations Schiffmann et al. identiﬁed a highly efﬁcient mechanism for the regeneration of the cisbis(isothiocyanato)bis(2,2’-bipyridyl-4,4’-dicarboxylato)-ruthenium(II) sensitizing dye (N3) by I− in acetonitrile. A barrier-free complex formation of the oxidized dye with both I− and I−2 , and facile dissociation of I−2 and I−3 from the reduced dye were found to be key steps in this process. The authors also carried out in situ vibrational spectroscopy and could thus conﬁrm the reversible binding of I2 to the thiocyanate group. Furthermore, Schiffmann et al. were able to simulate the electrolyte near the interface and found that acetonitrile is able to cover the (101) surface of anatase with a passivating layer that inhibits direct contact of the redox mediator with the oxide [238, 239]. It was further observed that the solvent structure speciﬁcally enhances the concentration of I− at a distance which further favors rapid dye regeneration.
+
+6 Conclusion
+In this review we tried to give a broad overview of many aspects concerning technical as well as applicational details of ab initio molecular dynamics simulations.
+10 Rh, Ir, Ni, Pd, Pt, Cu, Ag, and Au.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+43
+
+At ﬁrst, we presented the technique of AIMD, the Lagrange formulation originally introduced by Car and Parrinello. We showed how the forces and equations of motions are derived. This lead us to the CP- as well as the BO-AIMD, and some generalizations of these schemes.
+After that, we were concerned with the difﬁculties of ab initio molecular dynamics simulations, ranging from computer time problems solved by massively parallelizations, basis set considerations leading to much faster implementations, the use of different density functionals, corrections of the van der Waals interactions poorly describes by DFT, and relativistic corrections, as well as new integration schemes for the equations of motion. Additionally, several simulation techniques were summarized to gain physical data like the free energy surface, transition states, and activation barriers by metadynamics and enhanced samplings, as well as IR, Raman, ESR, NMR, and EXAFS spectra from simulations with or without the use of maximally localized Wannier functions, the electron localization function, and other.
+The last section was solely devoted to the wide range of applications of ab initio molecular dynamics simulations. Ordinary chemical reactions were only treated to some extend, because they were already intensively discussed in a previous review about stereo-electronic effects from ab initio molecular dynamics simulations [106]. Therefore, we had enough space to discuss results of gas to liquid phase simulations which gave a deep insight into the structure and dynamics of many common solvents as well as the emerging ionic liquids. After a shorts discussion of chemical reactions, for instance concerning homogeneous catalysis, we gave an introduction to electrochemical reactions and processes studied with AIMD. The electrochemical considerations ranged from simple metal-water interfaces, to several ions in solution and their inﬂuence on the solvent, as well as half cell reactions and complete redox reactions, the calculations of the cell potentials, and simulations of complex interfaces with surface reactions. In these electrochemical surface reaction sections, several AIMD simulations were discussed where oxidation and reduction reactions on metal and oxide surfaces with and without a surrounding solvent were calculated.
+We hope this selection of discussed AIMD techniques and simulations showed that, despite some difﬁculties, AIMD is nowadays capable of analyzing and predicting real-world processes, especially those which are poorly or not at all accessible through experiments.
+
+References
+[1] Ehrenfest, P. Z. Phys. A 1927, 45, 455–457. [2] Dirac, P. A. M. Proc. Camb. Phil. Soc. 1930, 26, 376–385. [3] Marx, D.; Hutter, J. Ab Initio Molecular Dynamics: Basic Theory and Ad-
+vanced Methods; Cambridge University Press: Cambridge, New York, Melbourne, Madrid, Cape Town, Singapore, Sa˜o Paulo, Delhi, Dubai, Tokyo, 2009. [4] Car, R.; Parrinello, M. Phys. Rev. Lett. 1985, 55, 2471–2474. [5] Andersen, H. C. J. Chem. Phys. 1980, 72, 2384–2393. [6] Parrinello, M.; Rahman, A. Phys. Rev. Lett. 1980, 45, 1196–1199.
+
+44
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+[7] Niklasson, A. M. N.; Tymczak, C. J.; Challacombe, M. Phys. Rev. Lett. 2006, 97, 123001.
+[8] Niklasson, A. M. N. Phys. Rev. Lett. 2008, 100, 123004. [9] Tuckerman, M. E. Statistical mechanics: Theory and Molecular Simulations;
+Oxford University Press: Oxford, New York, 2010. [10] Allen, M. P.; Tildesley, D. J. Computer Simulation of Liquids; Oxford Uni-
+versity Press: Oxford (GB), New York (USA), 1987. [11] Frenkel, D.; Smit, B. Understanding Molecular Simulation - From Algo-
+rithms to Applications, 2nd ed.; Academic Press: San Diego, San Francisco, New York, Boston, London, Sydney, Tokyo, 2002. [12] Huber, H.; Dyson, A. J.; Kirchner, B. Chem. Soc. Rev. 1999, 28, 121–133. [13] Szabo, A.; Ostlund, N. S. Modern Quantum Chemistry: Introduction to Advanced Electronic Structure Theory; Dover Publications, Inc.: Mineola, New York, 1996. [14] McQuarrie, D. A.; Simon, J. D. Physical Chemistry: A Molecular Approach; University Science Books: Saulalito, California, 1997. [15] Remler, D. K.; Madden, P. A. Mol. Phys. 1990, 70, 921–966. [16] Ryckaert, J.-P.; Ciccotti, G.; Berendsen, H. J. C. J. Comput. Phys. 1977, 23, 327–341. [17] Tangney, P. J. Chem. Phys. 2006, 124, 044111. [18] Hutter, J.; Curioni, A. Parallel Computing 2005, 31, 1–17. [19] Hutter, J.; Curioni, A. Chem. Phys. Chem. 2005, 6, 1788–1793. [20] Gygi, F. J. Phys.: Conference Series 2006, 46, 268–277. [21] Giannozzo, P.; Cavazzoni, C. Il Nuovo Cimento 2009, 32, 49–52. [22] Resch, M.; Bo¨nisch, T.; Tiyyagura, S.; Furui, T.; Seo, Y.; Bez, W., Eds. High Performance Computing on Vector Systems 2006; Springer-Verlag: Berlin, Heidelberg, 2007. [23] Thar, J.; Reckien, W.; Kirchner, B. Top. Curr. Chem. 2007, 268, 133–171. [24] Jensen, F. Introduction to Computational Chemistry; John Wiley & Son Ltd.: Chichester (England), 2007. [25] VandeVondele, J.; Krack, M.; Mohamed, F.; Parrinello, M.; Chassaing, T.; Hutter, J. Comput. Phys. Comm. 2005, 167, 103–128. [26] Werner, D. Funktionalanalysis, 6th ed.; Springer-Verlag: Berlin, Heidelberg, 2007. [27] Haar, A. Math. Annalen 1910, 69, 331–371. [28] Daubechies, I. Comm. Pure Appl. Math. 1988, 41, 909–996. [29] Cohen, A.; Daubechies, I.; Feauveau, J. C. Comm. Pure Appl. Math. 1990, 45, 485–560. [30] Daubechies, I. Ten Lectures on Wavelets; SIAM, 1992. [31] Wojtaszczyk, P. A Mathematical Introduction to Wavelets; Cambridge University Press, 1997. [32] Meyer, Y.; Coifman, R. R. Wavelets: Calderon-Zygmund and Multilinear Operators; Cambridge University Press, 2000. [33] Genovese, L.; et al. J. Chem. Phys. 2008, 129, 014109.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+45
+
+[34] Hine, N. D. M.; Haynes, P. D.; Mostoﬁ, A. A.; Skylaris, C.-K.; Payne, M. Comput. Phys. Comm. 2009, 180, 1041–1053.
+[35] Fattebert, J.-L.; Gygi, F. Phys. Rev. B 2006, 73, 115124. [36] Artacho, E.; et al. J. Phys. Condens. Matter 2008, 20, 064208. [37] Blum, V.; Gehrke, R.; Hanke, F.; Havu, P.; Havu, V.; Ren, X.; Reuter, K.;
+Schefﬂer, M. Comput. Phys. Comm. 2009, 180, 2175–2196. [38] Light, J. C.; Hamilton, I. P.; Lill, J. V. J. Chem. Phys. 1985, 82, 1400–1409. [39] Light, J. C.; Carrington, T. Adv. Chem. Phys. 2000, 114, 263–310. [40] Lee, H.-S.; Tuckerman, M. E. J. Phys. Chem. A 2006, 110, 5549–5560. [41] Gaigeot, M.-P.; Vuilleumier, R.; Sprik, M.; Borgis, D. J. Chem. Theory Com-
+put. 2005, 1, 772–789. [42] Cohen, A. J.; Mori-Sa´nchez, P.; Yang, W. Science 2008, 321, 792–794. [43] Heyd, J.; Scuseria, G. E.; Ernerhof, M. J. Chem. Phys. 2003, 118, 8207–8215. [44] Zhao, Y.; Truhlar, D. G. Acc. Chem. Res. 2008, 41, 157–167. [45] Spencer, J.; Alavi, A. Phys. Rev. B 2008, 77, 193110. [46] Guidon, M.; Hutter, J.; VandeVondele, J. J. Chem. Theory Comput. 2009, 5,
+3010–3021. [47] Paier, J.; Janesko, B. G.; Henderson, T. M.; Scuseria, G. E.; Gru¨neis, A.;
+Kresse, G. J. Chem. Phys. 2010, 132, 094103. [48] von Lilienfeld, O. A.; Tavernelli, I.; Ro¨thlisberger, U.; Sebastiani, D. Phys.
+Rev. Lett. 2004, 93, 153004. [49] Tapavicza, E.; Lin, I.-C.; von Lilienfeld, O. A.; Tavernelli, I.; Coutinho-Neto,
+M.; Ro¨thlisberger, U. J. Chem. Theory Comput. 2007, 3, 1673–1679. [50] Grimme, S. J. Comput. Chem. 2004, 25, 1463–1473. [51] Grimme, S. J. Comput. Chem. 2006, 27, 1787–1799. [52] Rydberg, H.; Lundqvist, B. I.; Langreth, D. C.; Dion, M. Phys. Rev. B 2000,
+62, 6997–7006. [53] Rydberg, H.; Dion, M.; Jacobson, N.; Schro¨der, E.; Hyldgaard, P.; Simak,
+S. I.; Langreth, D. C.; Lundqvist, B. I. Phys. Rev. Lett. 2003, 91, 126402. [54] Dion, M.; Rydberg, H.; Schro¨der, E.; Langreth, D. C.; Lundqvist, B. I. Phys.
+Rev. Lett. 2004, 92, 246401. [55] Dion, M.; Rydberg, H.; Schro¨der, E.; Langreth, D. C.; Lundqvist, B. I. Phys.
+Rev. Lett. 2005, 95, 109902(E). [56] Langreth, D. C.; Dion, M.; Rydberg, H.; Schro¨der, E.; Hyldgaard, P.;
+Lundqvist, B. I. Int. J. Quant. Chem. 2005, 101, 599–610. [57] Langreth, D. C.; et al. J. Phys. Condens. Matter 2009, 21, 084203. [58] Schro¨dinger, E. Ann. Phys. 1926, 79, 361–376. [59] Schro¨dinger, E. Ann. Phys. 1926, 79, 489–527. [60] Schro¨dinger, E. Ann. Phys. 1926, 80, 437–490. [61] Schro¨dinger, E. Ann. Phys. 1926, 81, 109–139. [62] Dirac, P. A. M. Proc. Roy. Soc. A 1928, 117, 610–624. [63] Dirac, P. A. M. Proc. Roy. Soc. A 1928, 118, 351–361. [64] Thar, J.; Kirchner, B. J. Chem. Phys. 2009, 130, 124103.
+
+46
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+[65] Schwerdtfeger, P., Ed. Relativistic Electronic Structure Theory. Part 1. Fundamentals; Theoretical and Computational Chemistry, Vol. 11; Elsevier: Amsterdam, Boston, London, New York, Oxford, Paris, San Diego, San Fransisco, Singapore, Sydney, Tokyo, 2002.
+[66] Schwerdtfeger, P., Ed. Relativistic Electronic Structure Theory. Part 2. Application; Theoretical and Computational Chemistry, Vol. 11; Elsevier: Amsterdam, Boston, Heidelberg, London, New York, Oxford, Paris, San Diego, San Francisco, Singapore, Sydney, Tokyo, 2004.
+[67] Ku¨hne, T. D.; Krack, M.; Mohamed, F. R.; Parrinello, M. Phys. Rev. Lett. 2007, 98, 066401.
+[68] Ku¨hne, T. D.; Krack, M.; Parrinello, M. J. Chem. Theory Comput. 2009, 5, 235–241.
+[69] Andrade, X.; Castro, A.; Zueco, D.; Alonso, J. L.; Echenique, P.; Falceto, F.; A´ ngel Rubio J. Chem. Theory Comput. 2009, 5, 728–742.
+[70] Jakowski, J.; Morokuma, K. J. Chem. Phys. 2009, 130, 224106. [71] Laio, A.; Parrinello, M. Proc. Natl. Acad. Sci. USA 2002, 99, 12562–12566. [72] Iannuzzi, M.; Laio, A.; Parrinello, M. Phys. Rev. Lett. 2003, 90, 238302. [73] Martonnˇa´k, R.; Laio, A.; Bernasconi, M.; Ceriani, C.; Raiteri, P.; Zipoli, F.;
+Parrinello, M. Z. Kristallogr. 2005, 220, 489–498. [74] Ensing, B.; Laio, A.; Parrinello, M.; Klein, M. I. J. Phys. Chem. B 2005, 109,
+6676–6687. [75] Laio, A.; Rodriguez-Fortea, A.; Gervasio, F. L.; Ceccarelli, M.; Parrinello,
+M. J. Phys. Chem. B 2005, 109, 6714–6721. [76] Ensing, B.; Vivo, M. D.; andPreston Moore, Z. L.; Klein, M. L. Acc. Chem.
+Res. 2006, 39, 73–81. [77] Cucinotta, C. S.; Ruini, A.; Catellani, A.; Stirling, A. Chem. Phys. Chem.
+2006, 7, 1229–1234. [78] Maragliano, L.; Fischer, A.; Vanden-Eijnden, E.; Ciccotti, G. J. Chem. Phys.
+2006, 125, 024106. [79] Mills, G.; Jo´nsson, H.; Schenter, G. K. Surf. Sci. 1995, 324, 305–337. [80] Dewar, M. J. S.; Healy, E. F.; Stewart, J. J. P. J. Chem. Soc., Faraday Trans. 2
+1984, 80, 227–233. [81] Henkelman, G.; Jo´nsson, H. J. Chem. Phys. 1999, 111, 7010–7022. [82] Rothman, M. J.; Lohr, L. L. Chem. Phys. Lett. 1980, 70, 405–409. [83] Barkema, G. T.; Mousseau, N. Comput. Mat. Sci. 2001, 20, 285–292. [84] Klimesˇ, J.; Bowler, D. R.; Michaelides, A. J. Phys. Condens. Matter 2010,
+22, 074203. [85] Wannier, G. H. Phys. Rev. 1937, 52, 191–197. [86] Savin, A.; Nesper, R.; Wengert, S.; Fa¨ssler, T. F. Angew. Chem. Int. Ed. 1997,
+36, 1809–1832. [87] Fukui, K. Acc. Chem. Res. 1981, 14, 363–368. [88] Fuentealba, P.; Guerra, D.; Savin, A. Chemical Reactivity Theory: A Density
+Functional View; Chattaraj, P. K., Ed.; CRC Press, Taylor & Francis Group: Boca Raton, 2009; Chapter 20, pp 281–292.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+47
+
+[89] Chattaraj, P. K., Ed. Chemical Reactivity Theory: A Density Functional View; CRC Press, Taylor & Francis Group: Boca Raton, London, New York, 2009.
+[90] Bader, R. F. W. Atoms in Molecules – A Quantum Theory; Clarendo Press: Oxford (UK), 2003.
+[91] Boys, S. F. Rev. Mod. Phys. 1960, 32, 296–299. [92] Berghold, G.; Mundy, C. J.; Romero, A. H.; Hutter, J.; Parrinello, M. Phys.
+Rev. B 2000, 61, 10040–10048. [93] Silvestrelli, P. L.; Marzari, N.; Vanderbilt, D.; Parrinello, M. Solid State Com-
+mun. 1998, 107, 7–11. [94] Fitzhenry, P.; Bilek, M. M. M.; Mariks, N. A.; Cooper, N. C.; McKenzie,
+D. R. J. Phys. Condens. Matter 2003, 15, 165–173. [95] Bu¨hl, M.; Chaumont, A.; Schurhammer, R.; Wipff, G. J. Phys. Chem. B 2005,
+109, 18591–18599. [96] Kirchner, B.; Seitsonen, A. P. Inorg. Chem. 2007, 46, 2751–2754. [97] Kirchner, B.; Sebastiani, D. J. Phys. Chem. A 2004, 108, 11728–11732. [98] Iftimie, R.; Tuckerman, M. E. J. Chem. Phys. 2005, 122, 214508. [99] Kaupp, M.; Bu¨hl, M.; Malkin, V. G., Eds. Calculation of NMR and EPR
+Parameters - Theory and Application; WILEY-VCH Verlag GmbH & Co. KGaA: Weinheim, 2004. [100] Sebastiani, D.; Parrinello, M. J. Phys. Chem. A 2001, 105, 1951–1958. [101] Ochsenfeld, C.; andFelix Koziol, J. K. Angew. Chem. Int. Ed. 2004, 43, 4485– 4489. [102] Weber, V.; Iannuzzi, M.; Giani, S.; Hutter, J.; Declerck, R.; Waroquier, M. J. Chem. Phys. 2009, 131, 014106. [103] Iannuzzi, M.; Hutter, J. Phys. Chem. Chem. Phys. 2007, 9, 1599–1610. [104] Iannuzzi, M. J. Chem. Phys. 2008, 128, 204506. [105] Leetmaa, M.; Ljungberg, M.; Lyubartsev, A.; Nilsson, A.; Pettersson, L. J. Electron Spectrosc. Rel. Phenom. 2010, 177, 135–157. [106] di Dio, P. J.; Kirchner, B. Stereo-Elec-Review. [107] McGrath, M. J.; Ghogomu, J. N.; Mundy, C. J.; Kuo, I.-F. W.; Siepmann, J. I. Phys. Chem. Chem. Phys. 2010, 12, 7678–7687. [108] Silvestrelli, P. L.; Parrinello, M. Phys. Rev. Lett. 1999, 82, 3308–3311. [109] Silvestrelli, P. L.; Parrinello, M. J. Chem. Phys. 1999, 111, 3572–3580. [110] Kuo, I.-F. W.; Mundy, C. J. Science 2004, 303, 658–660. [111] Vassilev, P.; Hartnig, C.; Koper, M. T. M.; Frechard, F.; van Santen, R. A. J. Chem. Phys. 2001, 105, 9815–9820. [112] McGrath, M. J.; Siepmann, J. I.; Kuo, I.-F. W.; Mundy, C. J.; VandeVondele, J.; Hutter, J.; Mohamed, F.; Krack, M. J. Phys. Chem. A 2006, 110, 640–646. [113] Handgraaf, J.-W.; van Erp, T. S.; Meijer, E. J. Chem. Phys. Lett. 2003, 367, 617–624. [114] Whitﬁeld, T. W.; Crain, J.; Martyna, G. J. J. Chem. Phys. 2006, 124, 094503. [115] Laasonen, K.; Sprik, M.; Parrinello, M.; Car, R. J. Chem. Phys. 1993, 99, 9080–9089. [116] Fois, E. S.; Sprik, M.; Parrinello, M. Chem. Phys. Lett. 1994, 223, 411–415. [117] Sprik, M.; Hutter, J.; Parrinello, M. J. Chem. Phys. 1996, 105, 1142–1152.
+
+48
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+[118] Silvestrelli, P. L.; Bernasconi, M.; Parrinello, M. Chem. Phys. Lett. 1997, 277, 478–482.
+[119] Asthagiri, D.; Pratt, L. R.; Kress, J. D. Phys. Rev. E 2003, 68, 041505. [120] Sharma, M.; Wu, Y.; Car, R. Int. J. Quant. Chem. 2003, 95, 821–829. [121] VandeVondele, J.; Mohamed, F.; Krack, M.; Hutter, J.; Sprik, M.; Parrinello,
+M. J. Chem. Phys. 2005, 122, 014515. [122] Lee, H.-S.; Tuckerman, M. E. J. Chem. Phys. 2006, 125, 154507. [123] Schmidt, J.; VandeVondele, J.; Kuo, I.-F. W.; Sebastiani, D.; Siepmann, J. I.;
+Hutter, J.; Mundy, C. J. J. Phys. Chem. B 2009, 113, 11959–11964. [124] Lin, I.-C.; Seitsonen, A. P.; Coutinho-Neto, M. D.; Tavernelli, I.;
+Ro¨thlisberger, U. J. Phys. Chem. B 2009, 113, 1127–1131. [125] Kirchner, B. Ionic Liquids; Kirchner, B., Ed.; Top. Curr. Chem., Vol. 290;
+Springer, 2009; pp xi–xiii. [126] Kirchner, B. Ionic Liquids; Kirchner, B., Ed.; Top. Curr. Chem., Vol. 290;
+Springer, 2009; pp 213–262. [127] Del Po´polo, M. G.; Lynden-Bell, R. M.; Kohanoff, J. J. Phys. Chem. B 2005,
+109, 5895–5902. [128] Bhargava, B.; Balasubramanian, S. Chem. Phys. Lett. 2006, 417, 486–491. [129] Bhargava, B. L.; Balasubramanian, S. J. Phys. Chem. B 2007, 111, 4477–
+4487. [130] Bhargava, B. L.; Balasubramanian, S. J. Phys. Chem. B 2008, 112, 7566–
+7573. [131] Thar, J.; Brehm, M.; Seitsonen, A. P.; Kirchner, B. J. Phys. Chem. B 2009,
+113, 15129–15132. [132] Zahn, S.; Thar, J.; Kirchner, B. J. Chem. Phys. 2010, 132, 124506. [133] Diraison, M.; Martyna, G. J.; Tuckerman, M. E. J. Chem. Phys. 1999, 111,
+1096–1103. [134] Tsuchida, E. J. Chem. Phys. 2004, 121, 4740–4746. [135] Ro¨thlisberger, U.; Parrinello, M. J. Chem. Phys. 1997, 106, 4658–4694. [136] Galli, G.; Hood, R. Q.; Hazi, A. U.; Gygi, F. Phys. Rev. B 2000, 61, 909–912. [137] Bonev, S. A.; Militzer, B.; Galli, G. Phys. Rev. B 2004, 69, 014101. [138] Galli, G.; Martin, R. M.; Car, R.; Parrinello, M. Phys. Rev. B 1990, 42, 7470–
+7482. [139] Marks, N. A.; McKenzie, D. R.; Pailthorpe, B. A.; Bernasconi, M.; Parrinello,
+M. Phys. Rev. B 1996, 54, 9703–9714. [140] Silvestrelli, P. L.; Parrinello, M. J. Appl. Phys. 1998, 83, 2478–2485. [141] McCulloch, D. G.; McKenzie, D. R.; Goringe, C. M. Phys. Rev. B 2000, 61,
+2349–2355. [142] Wang, X.; Scandolo, S.; Car, R. Phys. Rev. Lett. 2005, 95, 185701. [143] Kirchner, B.; Seitsonen, A. P.; Hutter, J. J. Phys. Chem. B 2006, 110, 11475–
+11480. [144] Senda, Y.; Shimojo, F.; Hoshino, K. J. Phys. Condens. Matter 2002, 14,
+3715–3723. [145] Anta, J. A.; Madden, P. A. J. Phys. Condens. Matter 1999, 11, 6099–6111.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+49
+
+[146] Foley, M.; Smargiassi, E.; Madden, P. A. J. Phys. Condens. Matter 1994, 6, 5231–5241.
+[147] Ji, M.; Gong, X. G. J. Phys. Condens. Matter 2004, 16, 2507–2514. [148] Sˇ tich, I.; Car, R.; Parrinello, M. Phys. Rev. B 1991, 44, 4262–4274. [149] Sugino, O.; Car, R. Phys. Rev. Lett. 1995, 74, 1823–1826. [150] Senda, Y.; Shimojo, F.; Hoshino, K. J. Phys. Condens. Matter 1999, 11,
+5387–5398. [151] Gu, T.; Qin, J.; Xu, C.; Bian, X. Phys. Rev. B 2004, 70, 144204. [152] Jakse, N.; Pasturel, A. J. Chem. Phys. 2004, 120, 6124–6127. [153] Pasquarello, A.; Laasonen, K.; Car, R.; Lee, C.; Vanderbilt, D. Phys. Rev.
+Lett. 1992, 69, 1982–1985. [154] Godlevsky, V. V.; Derby, J. J.; Chelikowsky, J. R. Phys. Rev. Lett. 1998, 81,
+4959–4962. [155] Kresse, G.; Hafner, J. Phys. Rev. B 1994, 49, 14251–14269. [156] Kulkarni, R. V.; Aulbur, W. G.; Stroud, D. Phys. Rev. B 1997, 55, 6896–6903. [157] Chai, J.-D.; Stroud, D.; Hafner, J.; Kresse, G. Phys. Rev. B 2003, 67, 104205. [158] Shimojo, F.; Munejiri, S.; Hoshino, K.; Zempo, Y. J. Phys. Condens. Matter
+2000, 12, 6161–6172. [159] Shimojo, F.; Hoshino, K.; Watabe, M.; Zempo, Y. J. Phys. Condens. Matter
+1998, 10, 1199–1210. [160] Jakse, N.; Pasturel, A. Phys. Rev. Lett. 2003, 91, 195501. [161] de Wijs, G. A.; Pastore, G.; Selloni, A.; van der Lugt, W. Europhys. Lett.
+1994, 27, 667–672. [162] Kresse, G.; Hafner, J. Phys. Rev. B 1997, 55, 7539–7548. [163] Kresse, G. J. Non-Cryst. Solids 1995, 193, 222–229. [164] Rogers, R. D.; Seddon, K. R., Eds. Ionic Liquids III A: Fundamentals,
+Progress, Challenges, and Opportunities; ACS Symposium Series, Vol. 901; American Chemical Society: Washington, D. C., 2005. [165] Laasonen, K.; Klein, M. L. J. Am. Chem. Soc. 1994, 116, 11620–11621. [166] Kirchner, B.; Reiher, M. J. Am. Chem. Soc. 2002, 124, 6206–6215. [167] Kirchner, B.; Hutter, J. J. Chem. Phys. 2004, 121, 5133–5142. [168] Gaigeot, M.-P.; Sprik, M. J. Phys. Chem. B 2003, 107, 10344–10358. [169] van Erp, T. S.; Meijer, E. J. J. Chem. Phys. 2003, 118, 8831–8840. [170] Kirchner, B.; Hutter, J.; Kuo, I.-F. W.; Mundy, C. J. Int. J. Mod. Phys. B 2004, 18, 1951–1962. [171] Thar, J.; Zahn, S.; Kirchner, B. J. Phys. Chem. B 2008, 112, 1456–1464. [172] Tuckerman, M.; Laasonen, K.; Sprik, M.; Parrinello, M. J. Chem. Phys. 1995, 103, 150–161. [173] Yarne, D. A.; Tuckerman, M. E.; Klein, M. L. Chem. Phys. 2000, 258, 163– 169. [174] Kuo, I.-F.; Tobias, D. J. J. Phys. Chem. B 2001, 105, 5827–5832. [175] Tobias, D. J.; Jungwirth, P.; Parrinello, M. J. Chem. Phys. 2001, 114, 7036– 7044. [176] Raugei, S.; Klein, M. L. J. Chem. Phys. 2002, 116, 196–202. [177] Leung, K.; Rempe, S. B. J. Am. Chem. Soc. 2004, 126, 344–351.
+
+50
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+[178] Heuft, J. M.; Meijer, E. J. J. Chem. Phys. 2005, 122, 094501. [179] Heuft, J. M.; Meijer, E. J. J. Chem. Phys. 2005, 123, 094506. [180] Marx, D.; Sprik, M.; Parrinello, M. Chem. Phys. Lett. 1997, 273, 360–366. [181] Ramaniah, L. M.; Bernasconi, M.; Parrinello, M. J. Chem. Phys. 1999, 111,
+1587–1591. [182] Lyubartsev, A. P.; Laasonen, K.; Laaksonen, A. J. Chem. Phys. 2001, 114,
+3120–3126. [183] Lightstone, F. C.; Schwegler, E.; Hood, R. Q.; Gygi, F.; Galli, G. Chem. Phys.
+Lett. 2001, 343, 549–555. [184] Bako´, I.; Hutter, J.; Pa´linka´s, G. J. Chem. Phys. 2002, 117, 9838–9843. [185] Lightstone, F. C.; Schwegler, E.; Allesch, M.; Gygi, F.; Galli, G. Chem. Phys.
+Chem. 2005, 6, 1745–1749. [186] Ikeda, T.; Hirata, M.; Kimura, T. J. Chem. Phys. 2005, 122, 024510. [187] Amira, S.; Spa˚ngberg, D.; Hermansson, K. J. Chem. Phys. 2006, 124,
+104501. [188] Sa, R.; Zhu, W.; Shen, J.; Gong, Z.; Cheng, J.; Chen, K.; Jiang, H. J. Phys.
+Chem. B 2006, 110, 5094–5098. [189] Moret, M.-E.; Tavernelli, I.; Chergui, M.; Rothlisberger, U. Chem. Eur. J.
+2010, 16, 5889–5894. [190] Todorova, T.; Hu¨nenberger, P. H.; Hutter, J. J. Chem. Theory Comput. 2008,
+4, 779–789. [191] Spickermann, C.; Thar, J.; Lehmann, S. B. C.; Zahn, S.; Hunger, J.; Buchner,
+R.; Hunt, P. A.; Welton, T.; Kirchner, B. J. Chem. Phys. 2008, 129, 104505. [192] Mallik, B. S.; Siepmann, J. I. J. Phys. Chem. B 2010, 114, 12577–12584. [193] Faralli, C.; Pagliai, M.; Cardini, G.; Schettino, V. J. Phys. Chem. B 2006, 110,
+14923–14928. [194] Pagliai, M.; Cardini, G.; Schettino, V. J. Phys. Chem. B 2005, 109, 7475–
+7481. [195] Raugei, S.; Cardini, G.; Schettino, V. J. Chem. Phys. 1999, 111, 10887–
+10894. [196] Raugei, S.; Cardini, G.; Schettino, V. J. Chem. Phys. 2001, 114, 4089–4098. [197] Pagliai, M.; Raugei, S.; Cardini, G.; Schettino, V. Phys. Chem. Chem. Phys.
+2001, 3, 4870–4873. [198] Pagliai, M.; Raugei, S.; Cardini, G.; Schettino, V. J. Mol. Struct. (Theochem)
+2003, 630, 141–149. [199] Mugnai, M.; Cardini, G.; Schettino, V. J. Chem. Phys. 2003, 118, 2767–2774. [200] Ammal, S. C.; Yamataka, H.; Aida, M.; Dupuis, M. Science 2003, 299, 1555–
+1557. [201] Yang, S.-Y.; Fleurat-Lessard, P.; Hristov, I.; Ziegler, T. J. Phys. Chem. A 2004,
+108, 9461–9468. [202] Reiher, M.; Kirchner, B.; Hutter, J.; Sellmann, D.; Hess, B. A. Chem. Eur. J.
+2004, 10, 4443–4453. [203] Kirchner, B.; Reiher, M.; Hille, A.; Hutter, J.; Hess, B. A. Chem. Eur. J. 2005,
+11, 574–583. [204] Schenk, S.; Kirchner, B.; Reiher, M. Chem. Eur. J. 2009, 15, 5073–5082.
+
+REAL-WORLD PREDICTIONS FROM AIMD
+
+51
+
+[205] Urakawa, A.; Iannuzzi, M.; Hutter, J.; Baiker, A. Chem. Eur. J. 2007, 13, 6828–6840.
+[206] Michel, C.; Laio, A.; Mohammad, F.; Krack, M.; Parrinello, M.; Milet, A. Organometallics 2007, 26, 1241–1249.
+[207] Michel, C.; Milet, A. J. Mol. Struct. (Theochem) 2008, 852, 54–61. [208] Izvekov, S.; Mazzolo, A.; VanOpdorp, K.; Voth, G. A. J. Chem. Phys. 2001,
+114, 3248–3257. [209] Izvekov, S.; Voth, G. A. J. Chem. Phys. 2001, 115, 7196–7206. [210] Sugino, O.; Hamada, I.; Otani, M.; Morikawa, Y.; Ikeshoji, T.; Okamoto, Y.
+Surf. Sci. 2007, 601, 5237–5240. [211] Otani, M.; Hamada, I.; Sugino, O.; Morikawa, Y.; Okamoto, Y.; Ikeshoji, T.
+Phys. Chem. Chem. Phys. 2008, 10, 3609–3612. [212] Blumberger, J.; Tateyama, Y.; Sprik, M. Comput. Phys. Comm. 2005, 169,
+256–261. [213] VandeVondele, J.; Ayala, R.; Sulpizi, M.; Sprik, M. J. Electroanal. Chem.
+2007, 607, 113–120. [214] VandeVondele, J.; Sulpizi, M.; Sprik, M. Chimia 2007, 61, 155–158. [215] Lynden-Bell, R. Elec. Commun. 2007, 9, 1857–1861. [216] Moens, J.; Seidel, R.; Geerlings, P.; Faubel, M.; Winter, B.; Blumberger, J.
+J. Phys. Chem. B 2010, 114, 9173–9182. [217] Tateyama, Y.; Blumberger, J.; Sprik, M.; Tavernelli, I. J. Chem. Phys. 2005,
+122, 234505. [218] Blumberger, J.; Bernasconi, L.; Tavernelli, I.; Vuilleumier, R.; Sprik, M.
+J. Am. Chem. Soc. 2004, 126, 3928–3938. [219] Blumberger, J.; Sprik, M. J. Phys. Chem. B 2004, 180, 6529–6535. [220] Blumberger, J. J. Am. Chem. Soc. 2008, 130, 16065–16068. [221] Blumberger, J.; Sprik, M. J. Phys. Chem. B 2005, 109, 6793–6804. [222] Blumberger, J.; Sprik, M. Theor. Chem. Acc. 2006, 115, 113–126. [223] Seidel, R.; Faubel, M.; Winter, B.; Blumberger, J. J. Am. Chem. Soc. 2009,
+131, 16127–16137. [224] Oberhofer, H.; Blumberger, J. J. Chem. Phys. 2009, 131, 064101. [225] Ayala, R.; Sprik, M. J. Chem. Theory Comput. 2006, 2, 1403–1415. [226] Tateyama, Y.; Blumberger, J.; Ohno, T.; Sprik, M. J. Chem. Phys. 2007, 126,
+204506. [227] Blumberger, J.; Tavernelli, I.; Klein, M. L.; Sprik, M. J. Chem. Phys. 2006,
+124, 064507. [228] VandeVondele, J.; Lynden-Bell, R.; Meijer, E. J.; Sprik, M. J. Phys. Chem. B
+2006, 110, 3614–3623. [229] Cheng, J.; Sulpizi, M.; Sprik, M. J. Chem. Phys. 2009, 131, 154504. [230] Sulpizi, M.; Raugei, S.; VandeVondele, J.; Carloni, P.; Sprik, M. J. Phys.
+Chem. B 2007, 111, 3969–3976. [231] Santana, J. A.; Mateo, J. J.; Ishikawa, Y. J. Phys. Chem. C 2010, 114, 4995–
+5002.
+
+52
+
+Philipp J. di Dio, Ju¨rg Hutter, and Barbara Kirchner
+
+[232] Sku´lason, E.; Tripkovic, V.; Bjo¨rketun, M. E.; Gudmundsdo´ttir, S.; Karlberg, G.; Rossmeisl, J.; Bligaard, T.; Jo´nsson, H.; Nørskov, J. K. J. Phys. Chem. C 2010, 114, 18182–18197.
+[233] Wang, Y.; Balbuena, P. B. J. Phys. Chem. B 2004, 108, 4376–4384. [234] Okamoto, Y. Appl. Surf. Sci. 2008, 255, 3434–3441. [235] Hirunsit, P.; Balbuena, P. B. Surf. Sci. 2009, 603, 3239–3248. [236] Ford, D. C.; Nilekar, A. U.; Xu, Y.; Mavrikakis, M. Surf. Sci. 2010, 604,
+1565–1575. [237] Santana, J. A.; Ishikawa, Y. Electrochim. Acta 2010, 56, 945–952. [238] Schiffmann, F.; VandeVondele, J.; Hutter, J.; Urakawa, A.; Wirz, R.; Baiker,
+A. Proc. Natl. Acad. Sci. USA 2010, 4830–4833. [239] Schiffmann, F.; Hutter, J.; VandeVondele, J. J. Phys. Condens. Matter 2008,
+20, 064206.
+

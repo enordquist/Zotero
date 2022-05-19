@@ -1,0 +1,448 @@
+
+
+    ACS
+    ACS Publications
+    C&EN
+    CAS
+
+Access provided by University of Massachusetts Amherst Libraries
+Blank image Log In
+ACS Publications. Most Trusted. Most Cited. Most Read
+
+OR SEARCH CITATIONS
+My Activity
+Publications
+ADVERTISEMENT
+RETURN TO ISSUE PREV Article NEXT
+Assessing the Accuracy of Metadynamics †
+
+    Alessandro Laio
+    , 
+    Antonio Rodriguez-Fortea
+    , 
+    Francesco Luigi Gervasio
+    , 
+    Matteo Ceccarelli
+    , and 
+    Michele Parrinello
+
+View Author Information
+Cite this: J. Phys. Chem. B 2005 , 109 , 14 , 6714–6721
+Publication Date (Web) : February 15, 2005
+https://doi.org/10.1021/jp045424k
+Copyright © 2005 American Chemical Society
+RIGHTS & PERMISSIONS
+Subscribed Access
+Article Views
+5968
+Altmetric
+6
+Citations
+387
+LEARN ABOUT THESE METRICS
+Share
+Add to View In
+Export RIS
+PDF (268 KB) OpenURL UNIV OF MASSACHUSETTS AMHERST
+SUBJECTS:
+
+    Free energy ,
+    Aromatic compounds ,
+
+Get e-Alerts
+Go to The Journal of Physical Chemistry B
+The Journal of Physical Chemistry B
+Abstract
+
+Metadynamics is a powerful technique that has been successfully exploited to explore the multidimensional free energy surface of complex polyatomic systems and predict transition mechanisms in very different fields, ranging from chemistry and solid-state physics to biophysics. We here derive an explicit expression for the accuracy of the methodology and provide a way to choose the parameters of the method in order to optimize its performance.
+
+†
+
+ Part of the special issue “David Chandler Festschrift”.
+*
+
+In papers with more than one author, the asterisk indicates the name of the author to whom inquiries about the paper should be addressed.
+I. Introduction
+ARTICLE SECTIONS
+Jump To
+Computing free energies and accelerating rare events in complex polyatomic systems are of evergrowing interest in computational physics and several powerful methodologies have been proposed to tackle these problems. 1 Although it is obvious that the optimal technique will depend on the system and on what one wishes to observe, many methods are apparently aimed at very similar tasks. For instance the free energy along a given reaction coordinate can be computed in at least four different manners:  thermodynamic integration, 2,3 weighted histogram techniques, 4,5 Jarzynski's identity based methods, 6 and adaptive force bias. 7 A quantitative assessment of the performance and limitations of each method would help considerably to ensure best use of the computer time allocated for a project. 1,8
+In this work we address this issue for the metadynamics method introduced in ref 9. This algorithm is aimed at reconstructing the multidimensional free energy of complex systems, and is based on an artificial dynamics performed in the space defined by a few collective coordinates s , which are assumed to provide a coarse-grained description of the system. The dynamics is driven by the free energy of the system and is biased by a history-dependent potential constructed as a sum of Gaussians centered along the trajectory of the collective variables. This potential, in time, fills the minima in the free energy surface, i.e., the sum of the Gaussians and of the free energy becomes approximately a constant as a function of the collective variables. As we discussed in ref 10, our methodology can be viewed as a finite temperature extension of the Wang and Landau algorithm 11 and it is also closely related to the adaptive force bias algorithm, 7 in which the derivative of the free energy along a one-dimensional reaction coordinate is reconstructed with a history-dependent bias. The algorithm has been successfully applied in several different fields, ranging from chemistry 12-15 and materials science 16,17 to crystal structure prediction 18,19 and biophysics. 20 Its major advantages are its ability to cope with high dimensionality and its flexibility:  it can in fact be exploited not only for efficiently computing the free energy, but also for exploring new reaction pathways (i.e., for accelerating rare events), if the collective coordinates are properly chosen.
+The algorithm introduced in ref 9 requires, at every step, the evaluation of the derivative of the free energy with respect to the collective variables, which are then evolved in a discrete fashion in the direction of the maximum gradient. In ref 10, we analyzed in detail and improved this algorithm, deriving an explicit expression for the error, and showing that it can be used for computing with an arbitrary accuracy the density of states in a model system together with weighted histogram techniques. 21
+In ref 12, to facilitate the implementation of the algorithm in conjunction with molecular dynamics schemes, we introduced a formulation in which the collective variables are evolved continuously. This is achieved by introducing, for a system described by a set of coordinates x , an extended Lagrangean in which the collective variables s ( x ) are coupled to auxiliary variables s̃ by an harmonic restraining potential of the form 1 / 2 k ( s̃ − s ( x )) 2 . We also assigned to the auxiliary variables a fictitious kinetic energy 1 / 2 M 2 . If M is very large, the motion of s̃ is adiabatically separated and driven by the derivative of the free energy, which thus does not have to be computed explicitly. This significantly broadened the scope of the methodology, so that it can now be applied, in conjunction with Car−Parrinello molecular dynamics, 22 to the prediction of reaction pathways for systems described at the DFT level. 12,15
+Subsequently we discovered that in practice the adiabatic separation condition, explicitly invoked in ref 12, is not strictly required for the success of the methodology, and that also if the auxiliary masses are small, the history-dependent Gaussian potential F G ( s ) tends to flatten the underlying free energy F ( s ). Furthermore, we checked that the algorithm described in ref 12 is also valid in the limits k → ∞ and M → 0. In this case, since s̃ = s ( x ), the Gaussian history-dependent potential acts directly on the atomic position and the auxiliary variables are no longer necessary. As we will discuss in detail in this work, the real core of the metadynamics algorithm (and what makes it work in all the variants) is that if the Gaussians are added sufficiently slowly, the collective variables have the tendency to diffuse toward the closest local minimum of F ( s ) + F G ( s ), and the next Gaussian will preferentially be placed in this minimum. This property does not depend on the underlying dynamics of the system, as long as it is able to reach the equilibrium distribution associated with F ( s ) + F G ( s ), and the fictitious mass can only change the efficiency at which the equilibrium is reached (e.g., the auxiliary variables can be used as a thermostat for keeping the degrees of freedom associated with the collective variables at the correct temperature).
+This observation suggests that the continuous version of the metadynamics algorithm derives in fact from very general principles, but it poses the question of its accuracy, i.e., of its ability to reconstruct a multidimensional free energy efficiently in a realistic case. For example, while it is obvious that for fixed values of the metadynamics parameters the error will be larger in systems that relax slowly toward equilibrium, the exact dependence of the accuracy on the system relaxation times is actually hard to predict. In this work, we will show that, in the same line of ref 10, it is possible to derive an explicit expression (eq 12) for the average deviation of F G ( s ) from F ( s ) as a function of the parameters of the metadynamics and a few parameters characterizing the physical system, such as the diffusion coefficient, the temperature and the system size. This allows an a priori estimate of the computational time necessary to obtain the required accuracy (eq 14) and to choose the parameters in an optimal manner. Moreover, the explicit knowledge of the error allows the optimal combination of the results of different runs by weighted histogram analysis, 21,4 a technique we have already exploited in conjunction with metadynamics in ref 10. The expression for the error is derived by an extensive numerical analysis on a very simple Langevin model (section III) in which F ( s ) is known analytically, but in section IV, we will show that this expression predicts with remarkable precision the error in a real case, in which the metadynamics is applied to reconstruct a bidimensional free energy of a cyclophane−catenane complex in solution.
+II. The Continuous Metadynamics Equations
+ARTICLE SECTIONS
+Jump To
+Consider a system described by a set of coordinates x and a potential V ( x ) evolving under the action of a dynamics (e.g., molecular dynamics, Langevin, or Monte Carlo) whose equilibrium distribution is canonical at temperature 1/β. We are interested in studying the probability distribution for this system as a function of a limited number of collective variables s ( x ), which are functions of the coordinates x . This probability distribution can be written as with the free energy F ( s ) given by Consider now a trajectory x ( t ) of the system at temperature 1/β. If this trajectory could be computed for a very long time, P ( s ) could be obtained by taking the histogram of the collective variable s along this trajectory, i.e., at time t , P ( s ) = 1 / t d t ‘ δ( s ( x ( t ‘)) − s ). This can be thought of as the Δ s → 0 limit of If the system displays metastability, the motion of s will be bound in some local minimum of the free energy F ( s ) (i.e., in a local maximum of P ( s )), and it will escape from this minimum with a very low probability on the time scale determined by the potential V ( x ) alone.
+Metadynamics is an algorithm capable of both eliminating this metastability and reconstructing F ( s ). This is achieved by modifying the potential V ( x ) by a history-dependent term consisting of Gaussians centered along the trajectory in s space explored during the evolution of the system. 9,12 If a new Gaussian is added at every time interval τ G , the biasing potential at time t is given by where w and δ s are the height and the width of the Gaussians and x G ( t ‘ ) denotes the trajectory of the system under the action of V + V G .
+The ability of metadynamics to accelerate rare events in s space and to reconstruct the free energy relies on the fact that the function is an approximation of F ( s ) in the region Σ( s ) explored by s ( x G ( t )) up to time t (see section III for a rigorous definition of Σ( s )). This property can be qualitatively understood in the limit of slow “deposition” (i.e., w /τ G → 0). In this limit, the probability distribution is always approximately proportional to exp[−β( F ( s ) − F G ( s , t ))]. If the function F ( s ) − F G ( s , t ) has some local minimum, s ( x G ( t )) will preferentially be localized in the neighborhood of this minimum and increasing numbers of Gaussians will be deposed there until this minimum is flattened. Consider instead the case in which F ( s ) ∼ F G ( s , t ) in a region Ω( s ). The probability distribution will be approximately flat in this region, and the location of the new Gaussians will not be affected by the bias deriving from the difference F ( s ) − F G ( s , t ). Hence, if w /τ G → 0, the only corrugations in the free energy that are not flattened by the dynamics will be of the order of the size of the new Gaussians that are deposed. The scope of this work is to provide a quantitative estimate of the amplitude of these corrugations.
+For τ G → 0, the biasing potential can be written in the form where the constant ϖ has the dimension of an energy divided by a time. Comparing this expression with eq 2, we notice that the metadynamics biasing potential at time t is proportional to the histogram of s computed along the trajectory x G ( t ) with a binning width of δ s . Hence, computing the histogram of a trajectory generated by V + V G with a binning of δ s provides a direct estimate of the free energy, i.e., of the logarithm of the probability distribution. This is a fundamental difference with respect to a dynamics generated by V alone and allows the acceleration of rare events in s space that we already mentioned.
+Before proceeding, we note that in the algorithm introduced in ref 12, the coordinate space x is given by the set ( r , s̃ ), in which r are the actual coordinates of the system to be studied and the s̃ are auxiliary variables, one for each collective coordinate s ( r ) that is considered. The potential as a function of r and s̃ is taken to be of the form where V ( r ) is the potential as a function of r and V G ( s̃ , t ) = w ∑ t ‘ = τ G ,2 τ G ,3 τ G ,..., t ‘ < t exp (−( s̃ − s̃ ( t ‘)) 2 /2δ s 2 ). This is a special case of eq 3 with s ( x ) = s̃ . Under the same conditions described above V G ( s̃ , t ) is, for large t , an approximation to the free energy and lim k → ∞ F k ( s̃ ) = F ( s̃ ), except for an additive constant (see also ref 1).
+III. Estimating the Error:  The Langevin Case
+ARTICLE SECTIONS
+Jump To
+The error ε in a metadynamics run is a measure of how different F G ( s , t ) is from F ( s ) for a given metadynamics run, and is, in principle, a function of s and t . We here define where the average 〈·〉 is taken over an ensemble of statistically independent trajectories x G ( t ) of the same time duration t and initiated in the same local minimum of F ( s ). Of course F G ( s , t ) can be considered an estimator of F ( s ) only in the region Ω( s , t ) explored by the metadynamics up to time t , i.e., the set of points s that belong to the neighborhood of { s ( x G ( t ‘)), t ‘ < t }. In this work we use a definition of Ω that does not require the knowledge of the metadynamics trajectory, but only of F G ( s , t ). In particular, we define Ω( s , t ) as the set of s values in which −F G ( s , t ) > 1/β. As we will show in the following, the error in a region Ω( s , t ) defined in this manner is approximately a constant with respect to s . Therefore, we define the metadynamics error at time t as with
+In this section we show that it is possible to derive an explicit expression for ε by considering the time evolution of s ( r ) alone in the framework of stochastic differential equations. In fact, in conditions of adiabatic separation and high friction, the time evolution of s at a temperature 1/β satisfies the Langevin equation: where F ( s ) is given by eq 1, ξ( t ) is a random force and is the diffusion coefficient. 23 The generalization of these equations to the many-dimensional case is straightforward.
+The collective variables in a real system are not necessarily slow variables, or adiabatically separated from the other modes of the system, and dimensional reduction will in general lead to much more complicated equations with a time-dependent friction kernel 24,23 and inertial terms. Nevertheless, adiabatic separation can always be enforced by introducing auxiliary variables s̃ 12 and evolving the full system with a dynamics derived by an Hamiltonian of the form where K is the real kinetic energy of the system and the auxiliary mass M is large enough for the motion of the s̃ variables to be adiabatically separated. More importantly, as we will show in section IV, the expressions for the error deduced using eq 9 predict very accurately the error in a real case. This apparently surprising result derives from the fact that the accuracy is in fact primarily determined by the diffusion time τ s that the collective variables s need to visit the entire region of interest (see eq 14), and τ s is usually much larger than the time scales associated with inertial or memory effects.
+We thus consider the evolution of a system described by eq 9 modified by a history-dependent term of the form 3, i.e. For a given profile F ( s ), this stochastic equation can be numerically integrated, generating a very large set of statistically independent trajectories s ( t ), which are then used to compute the error ε ( s , t ).
+A. The Error Does Not Depend on F ( s ). We first consider the influence of F ( s ) on the error. For this purpose, we consider the evolution generated by eq 11 with D = 0.0005 and β = 1 in a one-dimensional system confined in a region of length 8 by reflecting boundary conditions for s = − 4 and s = 4. With these choices of D and β the features of the dynamics of the s variable are qualitatively similiar to the ones observed in realisitic systems. We choose for F ( s ) four different functional forms with respectively zero, one, two, and three minima (see Figure 1 ).
+
+Figure 1 Metadynamics results for four different free energy profiles:  (A) F ( s ) = − 4; (B) F ( s ) = −5 exp(−( s /1.75) 2 ); (C) F ( s ) = −5 exp(−( s − 2/0.75) 2 ) − 10 exp(−( s + 2/0.75) 2 ); (D) F ( s ) = −5 exp(−( s − 2/0.75) 2 ) − 4 exp(−( s /0.75) 2 ) − 7 exp(−( s + 2/0.75) 2 ). The average 〈 F ( s ) − F G ( s , t )〉 computed over 1000 independent trajectories is represented as a dashed line, with the error bar given by eq 7.
+The effect of the metadynamics parameters on the error will be discussed later. We now choose for our analysis the same values for all the profiles:  δ s = 0.1, w = 0.2, and τ G = 500. We compute ε ( s , t ) by averaging over 1000 independent metadynamics trajectories. In Figure 1 we plot, for every free energy profile, the average value of F ( s ) + F G ( s , t ) after 1000 Gaussians have been added and, as error bar, the value of ε ( s , t ). Both 〈 F ( s ) + F G ( s , t )〉 and the error are approximately constant on all the profiles. The error is approximately 20% smaller at the center of the profile than at the border. These deviations are possibly due to the reflecting walls and are neglected in this exposition, which aims to determine only the leading effects.
+The independence of the metadynamics results on F ( s ) is confirmed in Figure 2 , in which we plot the average error ε( t ) defined in eq 8 as a function of the number of Gaussians that have been added. Regardless of the functional form, ε( t ) tends to the same plateau value of ∼0.6. This is reached when the average level of F ( s ) − F G ( s , t ) is approximately zero, i.e., when all the underlying profile is filled. This required ∼500 Gaussians for all the profiles reported in Figure 1.
+
+Figure 2 Average error (eq 8) as a function of the number of Gaussians for the four F ( s ) of Figure 1. The bump in the error observed for the functional forms C and D is due to the fact that in a long part of the metadynamics one of the free energy wells is already completely filled, while the other is being filled. The error is measured using definition 8 on both the wells, but the filling level is not the same until the full profile is filled.
+We verified that these properties also hold in higher dimensionalities, for virtually any value of w and τ G , and for any value of δ s significantly smaller than the system size, as we will specify in more detail in the following.
+B. Dependence of the Error on the Metadynamics Parameters. Since the value of ε does not depend on F ( s ), we consider in more detail the flat profile (Figure 1A). In d dimension, we use eq 11 with F ( s ) = 0 and reflecting boundary conditions for | s | = S /2, and we compute the dependence of the error on the metadynamics parameters w , τ G and δ s and on β, D , and S , which characterize the physical system. We repeated several metadynamics for different values of the parameters and for d = 1, d = 2, and d = 3. If only one parameter is varied at a time, the dependence of ε on that parameter can be investigated. In this manner, we found empirically that ε is approximately proportional (independently of the dimensionality) to the square root of the system size S , of the Gaussian width δ s and the Gaussian height w , while it is approximately proportional to the inverse square root of β, D , and τ G . These observations are summarized in Figure 3 , in which we plot the logarithm of ε vs the logarithm of ( S δ s / D τ G )( w /β) when d = 1 and d = 2. Different color codes correspond to different physical conditions (i.e., different D , β, or S ), while dots of the same color correspond to different metadynamics parameters. w is varied in the range between 0.04 and 4, δ s between 0.05 and 0.4 and τ G between 5 and 5000. The continuous line corresponds to the equation where C ( d = 1) ∼ 0.5 and C ( d = 2) ∼ 0.3 in the same logarithmic scale, and represents a lower bound to the error. For a given value of ( S δ s / D τ G )( w /β), the error obtained with any parameter in the range considered leads to errors at most 50% higher than the value given by eq 12.
+
+Figure 3 Error as a function of the metadynamics parameters w , τ G and δ s and of β, D and S in d = 1 (upper panel) and d = 2 (lower panel). The continuous and the dashed lines correspond to eq 12 for d = 1 and d = 2, respectively.
+The dependence of the error on the simulation parameters becomes more transparent if ε is expressed as an explicit function of the total simulation time. Consider in fact a free energy profile F ( s ) that has to be filled with Gaussians up to a given level F max (e.g., the free energy of the highest saddle point in F ( s )). The total computational time needed to fill this profile can be estimated as the ratio between the volume that has to be filled and the volume of one Gaussian times τ G : where S̄ is an estimate of the dimension of the region that has to be explored by metadynamics and F̄ is an estimate of the typical value of F max − F ( s ) in this region. Solving for τ G and substituting in eq 12 give where c is a dimensionless constant and τ S̄ ≐ S̄ 2 / D is the average time required for diffusing on a distance S̄ .
+Equations 14 and 12 are the main result of this work. They allow an a priori estimate of the error for a given simulation time and for a given choice of metadynamics parameters and require further analysis and discussion.
+C. The Optimal Choice for the Scaling Factor δ s . We now consider in more detail the dependence of the error on the ratio δ s / S . This is an important issue, since, from eq 14, ε is proportional to ( S̄ /δ s ) d -1 and for d > 1 the smallest error seems to be obtained by choosing δ s / S̄ as large as possible. This is clearly paradoxical for a real case, since a metadynamics performed with a very large δ s will smear out all the spatial details of F ( s ). Indeed, the data presented in Figure 2 correspond to choices of δ s that are at most 1 / 10 th of the system size S , and significant deviations from eq 12 are observed for a larger δ s .
+In Figure 4 , we plot the error ε as a function of δ s / S̄ keeping the product δ s d w fixed, which is equivalent to using a fixed t total . For the cases d = 2 and d = 3, we have δ s 2 w = 0.0012 and δ s 3 w = 0.005, respectively. In these conditions, eq 14 would predict an error proportional to 1/ (represented as a dashed line in Figure 4). The calculated error (circles with continuous line) is consistent with this equation only for δ s / S < 0.1. For larger values of δ s the error is no longer predicted by eq 12 or 14. Moreover, in these conditions the reconstructed profile shows systematic bumps, i.e., 〈 F ( s ) + F G ( s , t )〉 is not flat, as we found in other calculations not reported here.
+
+Figure 4 Effect of the δ s / S on the error ε computed with eq 8 for a system in d = 2 (top panel) and d = 3 (bottom panel), with S = 8, β = 1 and D = 0.0005. The dashed line corresponds to the theoretical error given by eq 12. τ G is kept fixed at the value of 50. w is varied as a function of δ s in order to mantain a constant filling speed, as described in the text.
+D. The Optimal Choice for the Time Interval between Two Gaussians. The error, as predicted by eq 14, does not depend separately on w and τ G but only on the ratio τ G / w which appears in the definition of t total :  if this equation were to predict the error exactly, it would be approximately the same as when performing a metadynamics with τ G = 1000 fs and w = 1 kcal/mol or τ G = 100 fs and w = 0.1 kcal/mol. This is in fact true only approximately, and it is marginally better to use a small τ G , as demonstrated in Figure 5 , in which we plot the ratio between the error as computed with eq 8 and the theoretical error given by eq 12 as a function of τ G for three different choices of w /τ G . The error grows almost linearly with τ G and is approximately twice as large as the value predicted by eq 14 if τ G = 4000, and, remarkably, the linear coefficient is independent of the w /τ G . Therefore, the error at finite τ G can be approximately estimated as In this equation the time τ G is expressed relative to τ S , since, as we have already seen, the only relevant time scale for this system is the diffusion time.
+
+Figure 5 Effect of τ G on the ratio ε / ε τ G f 0 between the error computed with eq 8 and eq 14 for a system in d = 2, with S = 8, β = 1, and D = 0.0005. By τ G → 0, we denote the error computed with eq 12. Circles, diamonds, and crosses correspond to w /τ G equal to 0.0004, 0.0008, and 0.0016, respectively. The dashed line is a linear fit to the data of eq 1 + 40 τ G /τ S .
+The qualitative reason for this effect is that a metadynamics performed with a large τ G and large w will create significant discontinuities in the free energy as a function of time. If the Gaussians are added more often (virtually at every step) the free energy never varies abruptly, and the filling proceeds more smoothly. Moreover, if the underlying free energy is flat, the motion of s will be approximately diffusive, and there is no optimal place to put a Gaussian. Every finite τ G will induce unnecessary ripples in the reconstructed free energy.
+We would like to stress that for reasonable choices of τ G the correction term introduced in eq 15 is small, since τ S is usually very large.
+E. The Effect of Anisotropy. Equation 11 is formally written as a one-dimensional equation, but the metadynamics algorithm is very often applied in two or more dimensions, choosing collective variables that can be physically very different from each other, for instance a distance together with an angle or a coordination number. Hence, in a real system, a free energy well will not have the same size in all the directions. Moreover, the diffusion constant D , in the d dimensional case, is a d × d tensor:  D αγ = β d t 〈 ⋅ α (0) ⋅ γ ( t )〉. Considering this problem in its full generality would be beyond the scope of this presentation and will be the object of a separate publication. We consider here a simple two-dimensional case in which D αγ is diagonal and the free energy is a function of ( s 1 / S 1 ) 2 + ( s 2 / S 2 ) 2 where S α is the size of the free energy well in the direction α. We rewrite eq 11 as a function of the scaled variables σ α = s α / S α . This gives with τ S α = S α 2 / D α , 〈ζ( t )ζ( t ‘)〉 = 1 / β δ( t − t ‘). F (|σ|) is independent of S , and f G (σ, t ) depends only on δ s / S . From this equation, it is once again clear that the accuracy is determined by the diffusion times τ S α and that these times cannot be changed by a linear transformation of the variables. Since the effect of anisotropy in S and in D does not have to be examined separately, we consider a two-dimensional spherical well with leaving D 11 fixed at 5 × 10 -4 and varying D 22 between 5 × 10 -3 and 5 × 10 -5 . We checked that the error is still predicted within ∼10% by eq 12 with D = .
+In a similar manner, we considered the effect of performing a metadynamics with nonspherical Gaussians of the form w exp[− 1 / 2 [( s 1 − s 1 ( t )/δ s 1 ) 2 + ( s 2 − s 2 ( t )/δ s 2 ) 2 ]] with δ s 1 ≠ δ s 2 . Also for this case the error is predicted by eq 12 with δ s = .
+IV. Dethreading of the Cyclophane:  The Performance of Metadynamics in a Real Case
+ARTICLE SECTIONS
+Jump To
+In this section, we show that the expressions for the error deduced in section III for a simple Langevin model predict with remarkable precision the error introduced by a metadynamic reconstruction of the free energy in a real case. The system (see Figure 6 ) is made up of a tetracationic cyclophane (cyclobis(paraquat- p -phenylene) 8 4+ ) and a 1,5-dihydroxynaphthalene solvated in acetonitrile. The detailed physics of this interesting system will be discussed elsewhere 25 since it is beyond the scope of the present work.
+
+Figure 6 Test system. (A) Schematic view of the Cyclobis(paraquat- p -phenylene) 8 4+ (left) and the 1,5-dihydroxy-naphthalene (right). (B) Snapshot of the dynamics showing the naphthalene inside the cyclophane ring. For the sake of clarity, the acetonitrile molecules are not shown in the picture.
+The complex is mainly stabilized by π−π interactions (see Figure 6B). The simulations were performed using the Amber all atom force field 26 and a united atom model for the acetonitrile molecules (model A from ref 27). The point charges of the ligands were obtained using a RESP fit to a HF/6-31G* calculation, 26 and are reported in ref 25. Electrostatic interactions were evaluated using the PME schemes with 32 × 32 × 32 grid points, k = 0.40 Å -1 , and a cutoff of 10 Å, as for the Lennard Jones energy terms. The structure was thermalized in the isobaric−isothermal ( NPT ) ensemble at T = 300 K and P = 0.1 MPa for 1 ns in solution. To keep the pressure constant the tetragonal MD cell was allowed only uniform deformation in a Parrinello−Rahman-like scheme. 28 The temperature was controlled by a Nosè thermostat. 29 Once equilibrated at constant pressure the run was continued in the canonical ensemble. The metadynamics was started after 5 more ns of thermalization. The first metacoordinate s 1 was chosen to be the distance between the centroids of the cyclophane and the naphthalene. The second is the coordination number of the naphthalene with the atoms of the acetonitrile. This is defined as where r ij is the distance between the two chosen atom types and r 0 = 4 Å. In the summations over i and j the hydrogen atoms are excluded.
+We first obtained a free energy surface as a function of these two variables by a bi-dimensional umbrella sampling. This free energy is shown in Figure 7 a and has a minimum for s 1 - 0 and s 2 - 6 . The barrier toward the dissociated state is of ∼12 kcal/mol and is located at s 1 - 6 and s 2 - 8.5 . The umbrella potential used was parabolic on the two variables:  0.5( K x ( X − X 0 ) 2 + K y ( Y − Y 0 ) 2 ) with K x = 6. kJ/mol Å -2 and K y = 6. kJ/mol ra d -2 . The space was divided into 16 × 10 windows. The starting configuration was obtained by restarting from the last configuration of the preceding run and applying the new values of the restraints. A zigzag path on the two-dimensional space of the variables was followed. In each window the MD run was 150 ps long, so the total length of the umbrella sampling simulation was 24 ns. The two-dimensional free energy surface was then reconstructed using the weighted histogram analysis method 4,5 as implemented in the program WHAM-2d. 30
+
+Figure 7 (Left):  Free energy for the pseudo-rotaxane naphthalene complex as a function of the distance between the centroids of the two molecules (s 1 ) and the coordination of the naphthalene with the solvent ( s 2 ). The continuous and dashed lines correspond to the metadynamics and umbrella sampling results, respectively. (Right):  Error as a function of simulation time for four different choices of metadynamics parameter. The error is estimated with eq 8 and is computed with respect to the umbrella sampling free energy.
+We then performed several metadynamics runs with different choices of w , δ s and τ G , with the aim of optimizing the performance of the method, i.e., the computational time required to obtain the free energy with a given accuracy. In fact we are in a position to compute the error explicitly with eqs 7 and 8 since the exact free energy for the system has been computed by umbrella sampling. In total, we tested more than 50 different combinations of parameters, for a total of almost 200 ns of molecular dynamics. All the simulations are started from the same initial condition in which the naphthalene is inserted in the catenane, forming a stable complex represented in Figure 6A, and are stopped when the system escapes this free energy minimum. This happens when the centroid distance collective variable s 1 reaches a value of ∼6 and the coordination with the solvent s 2 reaches a value of ∼8.5 (see also Figure 7a). The error is computed by eq 8 during all the metadynamics. If the parameters of the method are properly chosen, this error should remain approximately constant (or grow slowly) during the entire reconstruction process. Only if this condition is satisfied is the method able to localize the lowest free energy saddle point with a controlled accuracy and without any a priori knowledge of the free energy value at this saddle point. If a reasonable choice of metadynamics parameters is made, the reconstructed free energy resembles the real free energy with very good spatial detail, as shown in Figure 7a:  the metadynamics and umbrella sampling free energy contour levels follow each other very closely and are in fact never further than ∼0.5 apart in the collective variable space.
+Typical behavior of the error as a function of time is shown in Figure 7b for four different choices of parameters. A coarse-grained reconstruction of F ( s ) ( ε ≃ 1.5 kcal/mol) can be obtained using δ s = 0.5, w = 1 kcal/mol and τ G = 1000 fs. The choice of δ s = 0.5 is consistent with the criteria introduced in section III, since the size of the system (S) is approximately 5 and hence δ s / S ∼ 0.1 (see Figure 7a and 4). The whole free energy basin up to the saddle point is reconstructed in just 100 ps. The other curves in Figure 7b correspond to more conservative choices of Metadynamics parameters, as specified in the legend. The monotonic dependence of the error on the total simulation time is already obvious from these results:  if an accuracy of ∼0.6 kcal/mol is required, the total filling process requires almost 0.5 ns.
+The results obtained in the previous sections provide a way of understanding the behavior observed in Figure 7b and, more importantly, predicting the value of the error. This is shown in Figure 8 , in which the error computed by eq 8 is compared with the error predicted by eq 12, including the correction factor for a finite τ G (eq 15). Choices of the parameters for which the error is not approximately constant during the filling procedure are discarded (e.g., δ s > 1). The diffusion tensor is computed with eq 11 and its three independent components are given by D 11 = 15 × 10 -5 Å 2 fs -1 , D 22 = 14 × 10 -5 fs -1 and D 12 = 10 -5 Å fs -1 . The difference between the predicted and the computed value is on average only 10%. This result is particularly remarkable and indicates that the simple Langevin model introduced in section III provides quite an accurate description for the metadynamics filling process in a real system, even if several details have been neglected, including inertial and memory effects and the exact shape of the free energy basin. The size S of the system is here estimated from Figure 7. If the free energy is not known a priori, the value of S should be estimated exploiting some knowledge of the physics of the system or a preliminary metadynamics run. This introduces an additional uncertainty in the error estimate.
+
+Figure 8 Metadynamics error on the free energy for the pseudo-rotaxane naphthalene complex as a function of the run number. Upper panel:  the error computed by eq 8 (dashed line with circles) and the error predicted by eq 12, including the correction factor for a finite τ G eq 15 (continuous line with diamonds). Lower panels:  the metadynamics parameters w , δ s and τ G as a function of the run number.
+V. Conclusions
+ARTICLE SECTIONS
+Jump To
+In this work we derived an explicit expression for the error in the free energy reconstructed by metadynamics as a function of w , τ G , δ s and a few parameters characterizing the physical system, the diffusion coefficient D , the temperature 1/β and the system size S (in the collective variable space): In eq 14, we express this error as an explicit function of the total simulation time t total and of the free energy well depth F̄ . This equation and the analysis performed in section IIIC suggest a rational manner for choosing the Gaussian width δ s . As can be inferred from Figure 4, in which the accuracy at fixed filling speed is plotted as a function of δ s / S , if δ s / S is chosen between 0.05 and 0.15 in d = 2 and between 0.07 and 0.2 in d = 3 the error is approximately constant. This is the best possible accuracy that can be obtained for a given filling speed. If this choice is made, the error on a free energy profile reconstructed by metadynamics is approximately given by with γ ∼ 1.5 for d = 2 and γ ∼ 4 for d = 3. Hence, for a given physical system (defined by a system size S̄ , a diffusion coefficient D , a temperature 1/β, and a free energy well depth F̄ ), the error depends only on the total simulation time, and the only parameter that has to be chosen with care is δ s , while the ratio w /τ G is fixed by the t total that can be afforded. Hence, the theory we developed here allows an a priori estimate of the accuracy that can be expected for a given simulation time, which is primarily determined by the diffusion time τ S̄ .
+These expressions for the error are here derived by extensive numerical analysis on a Langevin model without memory friction or inertia, but are capable of predicting with remarkable precision the metadynamics error on the bidimensional free energy of a cyclophane−catenane complex in solution, as shown in Figure 8. This result depends on the fact that the diffusion time τ S in that system is much larger than any other correlation time associated for example with inertial or memory effects. In cases in which the collective variables diffuse much faster, other characteristic times of the system might play a role, and eq 14 might no longer be valid.
+An important consequence of eq 14 is that the easier it is for the variables s to diffuse through the region of interest, the better the accuracy will be. The error will in general increase as the region explored by metadynamics becomes bigger or topologically more complex, i.e., made up of many different regions separated by narrow connections. In this case the accuracy on F ( s ) is worsened by the intrinsic difficulty of the dynamics to diffuse through topological bottlenecks and explore all the different regions evenly. This difficulty of course remains even if the underlying free energy is completely flattened. These considerations suggest that the metadynamics approach should be used with caution for reconstructing the free energy profile on large regions or on free energy surfaces containing many basins connected by narrow paths. It is instead particularly suited to “escaping free energy minima”, 9 i.e., localizing with good accuracy the lowest free energy saddle point from a stable state, and, in general, mapping F ( s ) accurately in a comparably small and connected region. Nevertheless, since the error on the reconstructed free energy can now be estimated, the algorithm can easily be extended to cope with complex topologies and/or large basins by combining it with other approaches, such as weighted histogram techniques. 4,10 A very promising approach is also the one described in ref 15, in which the free energy for a complex chemical reaction is first coarsely reconstructed by metadynamics in a high dimensional space. The minimum free energy path on F G ( s ) is then found, and the one-dimensional free energy is computed along this path, which defines a generalized reaction coordinate. In this approach, the potential of metadynamics for expediently providing a coarse-grained estimate of F ( s ) in many dimensions is fully exploited, but the quantitative evaluation of the free energy difference between two states is performed, much more efficiently, in one dimension.
+Author Information
+ARTICLE SECTIONS
+Jump To
+
+    Authors
+        Alessandro Laio - Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+        Antonio Rodriguez-Fortea - Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+        Francesco Luigi Gervasio - Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+        Matteo Ceccarelli - Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+        Michele Parrinello - Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, c/o USI Campus, Via Buffi 13, CH-6900 Lugano, Switzerland
+
+Acknowledgment
+ARTICLE SECTIONS
+Jump To
+
+A number of people contributed to the development of metadynamics, helping, with their suggestions, to improve the methodology. In particular, we would like to thank Cristian Micheletti, Roman Martoňák, Marcella Iannuzzi, Andras Stirling, Francesco Mercuri, Bernd Ensing, Davide Donadio, Jannis Kevrekidis, and Marco Bernasconi. A.L. would also like to acknowledge the participants of the CECAM workshop “Conformational Dynamics in Complex Systems, Lyon 2004” for a very stimulating discussion on the method.
+
+This article references 30 other publications.
+
+    1
+    E. W.; Vanden-Eijnden, E. Lecture Notes in Computational Science and Engineering ; Attinger, S., Koumoutsakos, P., Eds.; Springer:  Berlin, 2004.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    2
+    Carter, E.; Ciccotti, G.; Hynes, J.; Kapral, R. Chem. Phys. Lett. 1989 , 156 , 472.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    3
+    Sprik, M.; Ciccotti, G. J. Chem. Phys. 1998 , 109 , 7737.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    4
+    Kumar, S.; Rosenberg, J. M.; Bouzida, D.; Swendsen, R. H.; Kollman, P. A. J. Comput. Chem. 1995 , 16 , 1339−1350.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    5
+    Roux, B. Comput. Phys. Commun. 1995 , 91 , 275−282.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    6
+    Jarzynski, C. Phys. Rev. Lett. 1997 , 78 , 2690.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    7
+    Darve, E.; Pohorille, A. J. Chem. Phys. 2001 , 115 , 9169.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    8
+    Rodriguez-Gomez, D.; Darve, E.; Pohorille, A. J. Chem. Phys. 2004 , 120 , 3563.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    9
+    Laio, A.; Parrinello, M. Proc. Natl. Acad. Sci. U.S.A. 2002 , 99 , 12562−12566.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Micheletti, C.; Laio, A.; Parrinello, M. Phys. Rev. Lett. 2004 , 92 , 170601.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    11
+    Wang, F.; Landau, D. Phys. Rev. Lett. 2001 , 86 , 2050.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    12
+    Iannuzzi, M.; Laio, A.; Parrinello, M. Phys. Rev. Lett. 2003 , 90 , 238302.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    13
+    Stirling, A.; Iannuzzi, M.; Laio, A.; Parrinello, M. ChemPhysChem 2004 , 5 , 1292.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    14
+    Churakov, S.; Iannuzzi, M.; Parrinello, M. J. Phys. Chem. B 2004 , 108 , 11567.
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    15
+    Ensing, B.; Laio, A.; Gervasio, F.; Parrinello, M.; Klein, M. J. Am. Chem. Soc. 2004 , 126 , 9492.
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    16
+    Zipoli, F.; Bernasconi, M.; Martoňák, R. Eur. Phys. J. B 2004 , 39 , 41.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    17
+    Iannuzzi, M.; Parrinello, M. Phys. Rev. Lett. 2004 , 93 , 025901.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    18
+    Martoňák, R.; Laio, A.; Parrinello, M. Phys. Rev. Lett. 2003 , 90 , 75503.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    19
+    Martoňák, R.; Laio, A.; Bernasconi, M.; Ceriani, C.; Raiteri, P.; Parrinello, M. Z. Kristallogr. , in press 2005.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ceccarelli, M.; Danelon, C.; Laio, A.; Parrinello, M. Biophys. J. 2004 , 87 , 58−64.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    21
+    Ferrenberg, A.; Swendsen, R. Phys. Rev. Lett. 1988 , 61 , 2635.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    22
+    Car, R.; Parrinello, M. Phys. Rev. Lett. 1985 , 45 , 2471.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    23
+    Gardiner, C. Handbook of Stochastic Methods , 3rd ed.; 2004.
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    24
+    Ottinger, H. Phys. Rev. E 1998 , 57 , 1416.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    25
+    Mercuri, F.; Passerone, D.; Ceccarelli, M.; Parrinello, M. Manuscript in preparation 2005.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    26
+    Cornell, W. D.; Cieplak, P.; Bayly, C. I.; Gould, I. R.; Merz, K. M., Jr.; Ferguson, D. M.; Spellmeyer, D. C.; Fox, T.; Caldwell, J. W.; Kollmann, P. A. J. Am. Chem. Soc. 1995 , 117 , 5179−5197.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    27
+    Mountain, R. J. Chem. Phys. 1997 , 107 , 3921.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    28
+    Parrinello, M.; Rahman, A. Phys. Rev. Lett. 1980 , 45 , 1196.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    29
+    Nose, S. Mol. Phys. 1984 , 52 , 255−268.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Grossfield, A. An implementation of WHAM:  the Weighted Histogram Analysis Method ; 2004.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+
+Cited By
+
+This article is cited by 387 publications.
+
+    Lunna Li, Tommaso Casalini, Paolo Arosio, Matteo Salvalaglio . Modeling the Structure and Interactions of Intrinsically Disordered Peptides with Multiple Replica, Metadynamics-Based Sampling Methods and Force-Field Combinations. Journal of Chemical Theory and Computation 2022, 18 (3) , 1915-1928. https://doi.org/10.1021/acs.jctc.1c00889 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alyson Shoji, Christopher Kang, Kazuumi Fujioka, John P. Rose, Rui Sun . Assessing the Intestinal Permeability of Small Molecule Drugs via Diffusion Motion on a Multidimensional Free Energy Surface. Journal of Chemical Theory and Computation 2022, 18 (1) , 503-515. https://doi.org/10.1021/acs.jctc.1c00661 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Surl-Hee Ahn, Anupam A. Ojha, Rommie E. Amaro, J. Andrew McCammon . Gaussian-Accelerated Molecular Dynamics with the Weighted Ensemble Method: A Hybrid Method Improves Thermodynamic and Kinetic Sampling. Journal of Chemical Theory and Computation 2021, 17 (12) , 7938-7951. https://doi.org/10.1021/acs.jctc.1c00770 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Fabrizio Marinelli, José D. Faraldo-Gómez . Force-Correction Analysis Method for Derivation of Multidimensional Free-Energy Landscapes from Adaptively Biased Replica Simulations. Journal of Chemical Theory and Computation 2021, 17 (11) , 6775-6788. https://doi.org/10.1021/acs.jctc.1c00586 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Daria Ruth Galimberti, Joachim Sauer . Chemically Accurate Vibrational Free Energies of Adsorption from Density Functional Theory Molecular Dynamics: Alkanes in Zeolites. Journal of Chemical Theory and Computation 2021, 17 (9) , 5849-5862. https://doi.org/10.1021/acs.jctc.1c00519 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rodolphe Pollet, Wutharath Chin . Reversible Hydration of α-Dicarbonyl Compounds from Ab Initio Metadynamics Simulations: Comparison between Pyruvic and Glyoxylic Acids in Aqueous Solutions. The Journal of Physical Chemistry B 2021, 125 (11) , 2942-2951. https://doi.org/10.1021/acs.jpcb.0c09748 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Brandon C. Bukowski, W. Nicholas Delgass, Jeffrey Greeley . Gold Stability and Diffusion in the Au/TS-1 Catalyst. The Journal of Physical Chemistry C 2021, 125 (8) , 4519-4531. https://doi.org/10.1021/acs.jpcc.0c10193 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Christopher Kang, Rui Sun . Molecular Dynamics Study of the Interaction between the N-terminal of α-Synuclein and a Lipid Bilayer Mimicking Synaptic Vesicles. The Journal of Physical Chemistry B 2021, 125 (4) , 1036-1048. https://doi.org/10.1021/acs.jpcb.0c08620 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yue Fu, Leonardo Bernasconi, Peng Liu . Ab Initio Molecular Dynamics Simulations of the SN1/SN2 Mechanistic Continuum in Glycosylation Reactions. Journal of the American Chemical Society 2021, 143 (3) , 1577-1589. https://doi.org/10.1021/jacs.0c12096 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sergio Decherchi, Andrea Cavalli . Thermodynamics and Kinetics of Drug-Target Binding by Molecular Simulation. Chemical Reviews 2020, 120 (23) , 12788-12833. https://doi.org/10.1021/acs.chemrev.0c00534 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Anthony P. Baldo, Jil C. Tardiff, Steven D. Schwartz . Mechanochemical Function of Myosin II: Investigation into the Recovery Stroke and ATP Hydrolysis. The Journal of Physical Chemistry B 2020, 124 (45) , 10014-10023. https://doi.org/10.1021/acs.jpcb.0c05762 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ivan Gladich, Ahmed Abotaleb, Alessandro Sinopoli . Tuning CO2 Capture at the Gas/Amine Solution Interface by Changing the Solvent Polarity. The Journal of Physical Chemistry B 2020, 124 (45) , 10245-10256. https://doi.org/10.1021/acs.jpcb.0c06340 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alba Nin-Hill, Carme Rovira . The Catalytic Reaction Mechanism of the β-Galactocerebrosidase Enzyme Deficient in Krabbe Disease. ACS Catalysis 2020, 10 (20) , 12091-12097. https://doi.org/10.1021/acscatal.0c02609 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ivan Gladich, Margaret L. Berrens, Penny M. Rowe, Rodolfo G. Pereyra, Steven Neshyba . Solvation and Stabilization of Single-Strand RNA at the Air/Ice Interface Support a Primordial RNA World on Ice. The Journal of Physical Chemistry C 2020, 124 (34) , 18587-18594. https://doi.org/10.1021/acs.jpcc.0c04273 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Narendra Kumar, Dominik Marx . Deciphering the Self-Cleavage Reaction Mechanism of Hairpin Ribozyme. The Journal of Physical Chemistry B 2020, 124 (24) , 4906-4918. https://doi.org/10.1021/acs.jpcb.0c03768 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Timo M. Schäfer, Giovanni Settanni . Data Reweighting in Metadynamics Simulations. Journal of Chemical Theory and Computation 2020, 16 (4) , 2042-2052. https://doi.org/10.1021/acs.jctc.9b00867 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    David F. Hahn, Rhiannon A. Zarotiadis, Philippe H. Hünenberger . The Conveyor Belt Umbrella Sampling (CBUS) Scheme: Principle and Application to the Calculation of the Absolute Binding Free Energies of Alkali Cations to Crown Ethers. Journal of Chemical Theory and Computation 2020, 16 (4) , 2474-2493. https://doi.org/10.1021/acs.jctc.9b00998 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Aditya W. Sakti, Chien-Pin Chou, Hiromi Nakai . Density-Functional Tight-Binding Study of Carbonaceous Species Diffusion on the (100)-γ-Al2O3 Surface. ACS Omega 2020, 5 (12) , 6862-6871. https://doi.org/10.1021/acsomega.0c00203 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Florian Belviso, Victor E. P. Claerbout, Aleix Comas-Vives, Naresh S. Dalal, Feng-Ren Fan, Alessio Filippetti, Vincenzo Fiorentini, Lucas Foppa, Cesare Franchini, Benjamin Geisler, Luca M. Ghiringhelli, Axel Groß, Shunbo Hu, Jorge Íñiguez, Steven Kaai Kauwe, Janice L. Musfeldt, Paolo Nicolini, Rossitza Pentcheva, Tomas Polcar, Wei Ren, Fabio Ricci, Francesco Ricci, Huseyin Sener Sen, Jonathan Michael Skelton, Taylor D. Sparks, Alessandro Stroppa, Andrea Urru, Matthias Vandichel, Paolo Vavassori, Hua Wu, Ke Yang, Hong Jian Zhao, Danilo Puggioni, Remedios Cortese, Antonio Cammarata . Viewpoint: Atomic-Scale Design Protocols toward Energy, Electronic, Catalysis, and Sensing Applications. Inorganic Chemistry 2019, 58 (22) , 14939-14980. https://doi.org/10.1021/acs.inorgchem.9b01785 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lucas Foppa, Marcella Iannuzzi, Christophe Copéret, Aleix Comas-Vives . Facile Fischer–Tropsch Chain Growth from CH2 Monomers Enabled by the Dynamic CO Adlayer. ACS Catalysis 2019, 9 (7) , 6571-6582. https://doi.org/10.1021/acscatal.9b00239 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ryan S. Jakubek, Riley J. Workman, Stephen E. White, Sanford A. Asher . Polyglutamine Solution-State Structural Propensity Is Repeat Length Dependent. The Journal of Physical Chemistry B 2019, 123 (19) , 4193-4203. https://doi.org/10.1021/acs.jpcb.9b01433 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Andrea Basciu, Giuliano Malloci, Fabio Pietrucci, Alexandre M. J. J. Bonvin, Attilio V. Vargiu . Holo-like and Druggable Protein Conformations from Enhanced Sampling of Binding Pocket Volume and Shape. Journal of Chemical Information and Modeling 2019, 59 (4) , 1515-1528. https://doi.org/10.1021/acs.jcim.8b00730 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Z. Faidon Brotzakis, Vittorio Limongelli, Michele Parrinello . Accelerating the Calculation of Protein–Ligand Binding Free Energy and Residence Times Using Dynamically Optimized Collective Variables. Journal of Chemical Theory and Computation 2019, 15 (1) , 743-750. https://doi.org/10.1021/acs.jctc.8b00934 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zhizhang Shen, Eugene S. Ilton, Micah P. Prange, Christopher J. Mundy, Sebastien N. Kerisit . Diffusion Mechanisms of Radiolytic Species in Irradiated Al (Oxy-)Hydroxides. The Journal of Physical Chemistry C 2018, 122 (50) , 28990-28997. https://doi.org/10.1021/acs.jpcc.8b07809 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Arushi Prakash, Christopher D. Fu, Massimiliano Bonomi, Jim Pfaendtner . Biasing Smarter, Not Harder, by Partitioning Collective Variables into Families in Parallel Bias Metadynamics. Journal of Chemical Theory and Computation 2018, 14 (10) , 4985-4990. https://doi.org/10.1021/acs.jctc.8b00448 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lucas Foppa, Marcella Iannuzzi, Christophe Copéret, Aleix Comas-Vives . Adlayer Dynamics Drives CO Activation in Ru-Catalyzed Fischer–Tropsch Synthesis. ACS Catalysis 2018, 8 (8) , 6983-6992. https://doi.org/10.1021/acscatal.8b01232 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mithun Biswas, Benjamin Lickert, Gerhard Stock . Metadynamics Enhanced Markov Modeling of Protein Dynamics. The Journal of Physical Chemistry B 2018, 122 (21) , 5508-5514. https://doi.org/10.1021/acs.jpcb.7b11800 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jeffrey S. Lowe, Donald J. Siegel . Reaction Pathways for Solvent Decomposition on Magnesium Anodes. The Journal of Physical Chemistry C 2018, 122 (20) , 10714-10724. https://doi.org/10.1021/acs.jpcc.8b01752 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hossein Eslami, Kheiri Bahri, Florian Müller-Plathe . Solid–Liquid and Solid–Solid Phase Diagrams of Self-Assembled Triblock Janus Nanoparticles from Solution. The Journal of Physical Chemistry C 2018, 122 (16) , 9235-9244. https://doi.org/10.1021/acs.jpcc.8b02043 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jelle M. Boereboom, Paul Fleurat-Lessard, Rosa E. Bulo . Explicit Solvation Matters: Performance of QM/MM Solvation Models in Nucleophilic Addition. Journal of Chemical Theory and Computation 2018, 14 (4) , 1841-1852. https://doi.org/10.1021/acs.jctc.7b01206 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    M. Amabili , S. Meloni , A. Giacomello , and C.M. Casciola . Activated Wetting of Nanostructured Surfaces: Reaction Coordinates, Finite Size Effects, and Simulation Pitfalls. The Journal of Physical Chemistry B 2018, 122 (1) , 200-212. https://doi.org/10.1021/acs.jpcb.7b07429 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sichi Li , Yang Zheng , Feng Gao , Janos Szanyi , and William F. Schneider . Experimental and Computational Interrogation of Fast SCR Mechanism and Active Sites on H-Form SSZ-13. ACS Catalysis 2017, 7 (8) , 5087-5096. https://doi.org/10.1021/acscatal.7b01319 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zhiye Tang and Chia-en A. Chang . Systematic Dissociation Pathway Searches Guided by Principal Component Modes. Journal of Chemical Theory and Computation 2017, 13 (5) , 2230-2244. https://doi.org/10.1021/acs.jctc.6b01204 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rui Sun , Olaseni Sode , James F. Dama , and Gregory A. Voth . Simulating Protein Mediated Hydrolysis of ATP and Other Nucleoside Triphosphates by Combining QM/MM Molecular Dynamics with Advances in Metadynamics. Journal of Chemical Theory and Computation 2017, 13 (5) , 2332-2341. https://doi.org/10.1021/acs.jctc.7b00077 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Raphael M. Peltzer , Odile Eisenstein , Ainara Nova , and Michele Cascella . How Solvent Dynamics Controls the Schlenk Equilibrium of Grignard Reagents: A Computational Study of CH3MgCl in Tetrahydrofuran. The Journal of Physical Chemistry B 2017, 121 (16) , 4226-4237. https://doi.org/10.1021/acs.jpcb.7b02716 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rodolphe Pollet , Célia S. Bonnet , Pascal Retailleau , Philippe Durand , and Éva Tóth . Proton Exchange in a Paramagnetic Chemical Exchange Saturation Transfer Agent from Experimental Studies and ab Initio Metadynamics Simulation. Inorganic Chemistry 2017, 56 (8) , 4317-4323. https://doi.org/10.1021/acs.inorgchem.6b02773 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hossein Eslami , Neda Khanjari , and Florian Müller-Plathe . A Local Order Parameter-Based Method for Simulation of Free Energy Barriers in Crystal Nucleation. Journal of Chemical Theory and Computation 2017, 13 (3) , 1307-1316. https://doi.org/10.1021/acs.jctc.6b01034 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Christopher J. O’Brien , Jeffery A. Greathouse , and Craig M. Tenney . Dissociation of Sarin on a Cement Analogue Surface: Effects of Humidity and Confined Geometry. The Journal of Physical Chemistry C 2016, 120 (49) , 28100-28109. https://doi.org/10.1021/acs.jpcc.6b10046 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tao Cheng , Hai Xiao , and William A. Goddard . Reaction Mechanisms for the Electrochemical Reduction of CO2 to CO and Formate on the Cu(100) Surface at 298 K from Quantum Mechanics Free Energy Calculations with Explicit Water. Journal of the American Chemical Society 2016, 138 (42) , 13802-13805. https://doi.org/10.1021/jacs.6b08534 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rui Sun , James F. Dama , Jeffrey S. Tan , John P. Rose , and Gregory A. Voth . Transition-Tempered Metadynamics Is a Promising Tool for Studying the Permeation of Drug-like Molecules through Membranes. Journal of Chemical Theory and Computation 2016, 12 (10) , 5157-5169. https://doi.org/10.1021/acs.jctc.6b00206 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zoran Šućur and Vojtěch Spiwok . Sampling Enhancement and Free Energy Prediction by the Flying Gaussian Method. Journal of Chemical Theory and Computation 2016, 12 (9) , 4644-4650. https://doi.org/10.1021/acs.jctc.6b00551 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Qing Shao and Carol K. Hall . Binding Preferences of Amino Acids for Gold Nanoparticles: A Molecular Simulation Study. Langmuir 2016, 32 (31) , 7888-7896. https://doi.org/10.1021/acs.langmuir.6b01693 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Weilong Zhao , Zhijun Xu , Qiang Cui , and Nita Sahai . Predicting the Structure–Activity Relationship of Hydroxyapatite-Binding Peptides by Enhanced-Sampling Molecular Simulation. Langmuir 2016, 32 (27) , 7009-7022. https://doi.org/10.1021/acs.langmuir.6b01582 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Marco De Vivo , Matteo Masetti , Giovanni Bottegoni , and Andrea Cavalli . Role of Molecular Dynamics and Related Methods in Drug Discovery. Journal of Medicinal Chemistry 2016, 59 (9) , 4035-4061. https://doi.org/10.1021/acs.jmedchem.5b01684 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    David C. Cantu , Juntaek Lee , Mal-Soon Lee , David J. Heldebrant , Phillip K. Koech , Charles J. Freeman , Roger Rousseau , and Vassiliki-Alexandra Glezakou . Dynamic Acid/Base Equilibrium in Single Component Switchable Ionic Liquids and Consequences on Viscosity. The Journal of Physical Chemistry Letters 2016, 7 (9) , 1646-1652. https://doi.org/10.1021/acs.jpclett.6b00395 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Changjun Chen . Calculation of the Local Free Energy Landscape in the Restricted Region by the Modified Tomographic Method. The Journal of Physical Chemistry B 2016, 120 (12) , 3061-3071. https://doi.org/10.1021/acs.jpcb.5b11892 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    András Stirling , Tamás Rozgonyi , Matthias Krack , and Marco Bernasconi . Prebiotic NH3 Formation: Insights from Simulations. Inorganic Chemistry 2016, 55 (4) , 1934-1939. https://doi.org/10.1021/acs.inorgchem.5b02911 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mathias Rapacioli , Aude Simon , Charlotte C. M. Marshall , Jérôme Cuny , Damian Kokkin , Fernand Spiegelman , and Christine Joblin . Cationic Methylene–Pyrene Isomers and Isomerization Pathways: Finite Temperature Theoretical Studies. The Journal of Physical Chemistry A 2015, 119 (51) , 12845-12854. https://doi.org/10.1021/acs.jpca.5b09494 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jim Pfaendtner and Massimiliano Bonomi . Efficient Sampling of High-Dimensional Free-Energy Landscapes with Parallel Bias Metadynamics. Journal of Chemical Theory and Computation 2015, 11 (11) , 5062-5067. https://doi.org/10.1021/acs.jctc.5b00846 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Biswajit Sadhu , Mahesh Sundararajan , and Tusar Bandyopadhyay . Selectivity of a Singly Permeating Ion in Nonselective NaK Channel: Combined QM and MD Based Investigations. The Journal of Physical Chemistry B 2015, 119 (40) , 12783-12797. https://doi.org/10.1021/acs.jpcb.5b05996 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pablo Campomanes , Ursula Rothlisberger , Mercedes Alfonso-Prieto , and Carme Rovira . The Molecular Mechanism of the Catalase-like Activity in Horseradish Peroxidase. Journal of the American Chemical Society 2015, 137 (34) , 11170-11178. https://doi.org/10.1021/jacs.5b06796 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Albert Ardèvol and Carme Rovira . Reaction Mechanisms in Carbohydrate-Active Enzymes: Glycoside Hydrolases and Glycosyltransferases. Insights from ab Initio Quantum Mechanics/Molecular Mechanics Dynamic Simulations. Journal of the American Chemical Society 2015, 137 (24) , 7528-7547. https://doi.org/10.1021/jacs.5b01156 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Andrew D. White , James F. Dama , and Gregory A. Voth . Designing Free Energy Surfaces That Match Experimental Data with Metadynamics. Journal of Chemical Theory and Computation 2015, 11 (6) , 2451-2460. https://doi.org/10.1021/acs.jctc.5b00178 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nitin Kumar , Maxwell D. Radin , Brandon C. Wood , Tadashi Ogitsu , and Donald J. Siegel . Surface-Mediated Solvent Decomposition in Li–Air Batteries: Impact of Peroxide and Superoxide Surface Terminations. The Journal of Physical Chemistry C 2015, 119 (17) , 9050-9060. https://doi.org/10.1021/acs.jpcc.5b00256 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Melchor Sanchez-Martinez , Martin Field , and Ramon Crehuet . Enzymatic Minimum Free Energy Path Calculations Using Swarms of Trajectories. The Journal of Physical Chemistry B 2015, 119 (3) , 1103-1113. https://doi.org/10.1021/jp506593t OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jérôme Cuny and Ali A. Hassanali . Ab Initio Molecular Dynamics Study of the Mechanism of Proton Recombination with a Weak Base. The Journal of Physical Chemistry B 2014, 118 (48) , 13903-13912. https://doi.org/10.1021/jp507246e OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Anil Kumar Tummanapelli and Sukumaran Vasudevan . Dissociation Constants of Weak Acids from ab Initio Molecular Dynamics Using Metadynamics: Influence of the Inductive Effect and Hydrogen Bonding on pKa Values. The Journal of Physical Chemistry B 2014, 118 (47) , 13651-13657. https://doi.org/10.1021/jp5088898 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Trang Nhu Do , Wing-Yiu Choy , and Mikko Karttunen . Accelerating the Conformational Sampling of Intrinsically Disordered Proteins. Journal of Chemical Theory and Computation 2014, 10 (11) , 5081-5094. https://doi.org/10.1021/ct5004803 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Marco Lauricella , Simone Meloni , Niall J. English , Baron Peters , and Giovanni Ciccotti . Methane Clathrate Hydrate Nucleation Mechanism by Advanced Molecular Simulations. The Journal of Physical Chemistry C 2014, 118 (40) , 22847-22857. https://doi.org/10.1021/jp5052479 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    James F. Dama , Grant Rotskoff , Michele Parrinello , and Gregory A. Voth . Transition-Tempered Metadynamics: Robust, Convergent Metadynamics via On-the-Fly Transition Barrier Estimation. Journal of Chemical Theory and Computation 2014, 10 (9) , 3626-3633. https://doi.org/10.1021/ct500441q OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Michel A. Cuendet and Mark E. Tuckerman . Free Energy Reconstruction from Metadynamics or Adiabatic Free Energy Dynamics Simulations. Journal of Chemical Theory and Computation 2014, 10 (8) , 2975-2986. https://doi.org/10.1021/ct500012b OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Harish Vashisth , Georgios Skiniotis , and Charles Lee Brooks, . Collective Variable Approaches for Single Molecule Flexible Fitting and Enhanced Sampling. Chemical Reviews 2014, 114 (6) , 3353-3365. https://doi.org/10.1021/cr4005988 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Andrew J. Ilott , Sebastian Palucha , Paul Hodgkinson , and Mark R. Wilson . Well-Tempered Metadynamics as a Tool for Characterizing Multi-Component, Crystalline Molecular Machines. The Journal of Physical Chemistry B 2013, 117 (40) , 12286-12295. https://doi.org/10.1021/jp4045995 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ravi Tripathi and Nisanth N. Nair . Mechanism of Acyl–Enzyme Complex Formation from the Henry–Michaelis Complex of Class C β-Lactamases with β-Lactam Antibiotics. Journal of the American Chemical Society 2013, 135 (39) , 14679-14690. https://doi.org/10.1021/ja405319n OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alessandro Motta , Ignazio L. Fragalà , and Tobin J. Marks . Insight into Group 4 Metallocenium-Mediated Olefin Polymerization Reaction Coordinates Using a Metadynamics Approach. Journal of Chemical Theory and Computation 2013, 9 (8) , 3491-3497. https://doi.org/10.1021/ct400259a OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sebastien Kerisit and Chongxuan Liu . Structure, Kinetics, and Thermodynamics of the Aqueous Uranyl(VI) Cation. The Journal of Physical Chemistry A 2013, 117 (30) , 6421-6432. https://doi.org/10.1021/jp404594p OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Matthew J. McGrath , I.-F. Will Kuo , Shigehiko Hayashi , and Shoji Takada . Adenosine Triphosphate Hydrolysis Mechanism in Kinesin Studied by Combined Quantum-Mechanical/Molecular-Mechanical Metadynamics Simulations. Journal of the American Chemical Society 2013, 135 (24) , 8908-8919. https://doi.org/10.1021/ja401540g OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Joakim P. M. Jämbeck and Alexander P. Lyubartsev . Exploring the Free Energy Landscape of Solutes Embedded in Lipid Bilayers. The Journal of Physical Chemistry Letters 2013, 4 (11) , 1781-1787. https://doi.org/10.1021/jz4007993 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Li Li , Susan A. Martinis , and Zaida Luthey-Schulten . Capture and Quality Control Mechanisms for Adenosine-5′-triphosphate Binding. Journal of the American Chemical Society 2013, 135 (16) , 6047-6055. https://doi.org/10.1021/ja308044w OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Wojciech Wojtas-Niziurski , Yilin Meng , Benoı̂t Roux , and Simon Bernèche . Self-Learning Adaptive Umbrella Sampling Method for the Determination of Free Energy Landscapes in Multiple Dimensions. Journal of Chemical Theory and Computation 2013, 9 (4) , 1885-1895. https://doi.org/10.1021/ct300978b OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sai Pooja Mahajan , Camilo Velez-Vega , and Fernando A. Escobedo . Tilting the Balance between Canonical and Noncanonical Conformations for the H1 Hypervariable Loop of a Llama VHH through Point Mutations. The Journal of Physical Chemistry B 2013, 117 (1) , 13-24. https://doi.org/10.1021/jp3075496 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Grégoire A. Gallet , Fabio Pietrucci , and Wanda Andreoni . Bridging Static and Dynamical Descriptions of Chemical Reactions: An ab Initio Study of CO2 Interacting with Water Molecules. Journal of Chemical Theory and Computation 2012, 8 (11) , 4029-4039. https://doi.org/10.1021/ct300581n OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Xianghong Qian and Xingfei Wei . Glucose Isomerization to Fructose from ab Initio Molecular Dynamics Simulations. The Journal of Physical Chemistry B 2012, 116 (35) , 10898-10904. https://doi.org/10.1021/jp303842g OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Davide Branduardi , Giovanni Bussi , and Michele Parrinello . Metadynamics with Adaptive Gaussians. Journal of Chemical Theory and Computation 2012, 8 (7) , 2247-2254. https://doi.org/10.1021/ct3002464 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ravi Tripathi and Nisanth N. Nair . Thermodynamic and Kinetic Stabilities of Active Site Protonation States of Class C β-Lactamase. The Journal of Physical Chemistry B 2012, 116 (16) , 4741-4753. https://doi.org/10.1021/jp212186q OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Vojtěch Spiwok , Katarína Hlat-Glembová , Igor Tvaroška , and Blanka Králová . Conformational Free Energy Modeling of Druglike Molecules by Metadynamics in the WHIM Space. Journal of Chemical Information and Modeling 2012, 52 (3) , 804-813. https://doi.org/10.1021/ci200623n OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lianqing Zheng and Wei Yang . Practically Efficient and Robust Free Energy Calculations: Double-Integration Orthogonal Space Tempering. Journal of Chemical Theory and Computation 2012, 8 (3) , 810-823. https://doi.org/10.1021/ct200726v OpenURL UNIV OF MASSACHUSETTS AMHERST
+    R. Benedek and M. M. Thackeray , J. Low , Tomáš Bučko . Simulation of Aqueous Dissolution of Lithium Manganate Spinel from First Principles. The Journal of Physical Chemistry C 2012, 116 (6) , 4050-4059. https://doi.org/10.1021/jp208793k OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Xevi Biarnés , Albert Ardèvol , Javier Iglesias-Fernández , Antoni Planas , and Carme Rovira . Catalytic Itinerary in 1,3-1,4-β-Glucanase Unraveled by QM/MM Metadynamics. Charge Is Not Yet Fully Developed at the Oxocarbenium Ion-like Transition State. Journal of the American Chemical Society 2011, 133 (50) , 20301-20309. https://doi.org/10.1021/ja207113e OpenURL UNIV OF MASSACHUSETTS AMHERST
+    André Farias de Moura , Kalil Bernardino , Osmair Vital de Oliveira , and Luiz Carlos Gomide Freitas . Solvation of Sodium Octanoate Micelles in Concentrated Urea Solution Studied by Means of Molecular Dynamics Simulations. The Journal of Physical Chemistry B 2011, 115 (49) , 14582-14590. https://doi.org/10.1021/jp206657m OpenURL UNIV OF MASSACHUSETTS AMHERST
+    András Stirling . HCO3– Formation from CO2 at High pH: Ab Initio Molecular Dynamics Study. The Journal of Physical Chemistry B 2011, 115 (49) , 14683-14687. https://doi.org/10.1021/jp2084204 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mauro Boero . LeuRS Synthetase: A First-Principles Investigation of the Water-Mediated Editing Reaction. The Journal of Physical Chemistry B 2011, 115 (42) , 12276-12286. https://doi.org/10.1021/jp2070024 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pan Wu , Xiangqian Hu , and Weitao Yang . λ-Metadynamics Approach To Compute Absolute Solvation Free Energy. The Journal of Physical Chemistry Letters 2011, 2 (17) , 2099-2103. https://doi.org/10.1021/jz200808x OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Laia Vilà-Nadal , Elizabeth F. Wilson , Haralampos N. Miras , Antonio Rodríguez-Fortea , Leroy Cronin , and Josep M. Poblet . Combined Theoretical and Mass Spectrometry Study of the Formation-Fragmentation of Small Polyoxomolybdates. Inorganic Chemistry 2011, 50 (16) , 7811-7819. https://doi.org/10.1021/ic200969h OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yong Zhang and Gregory A. Voth . Combined Metadynamics and Umbrella Sampling Method for the Calculation of Ion Permeation Free Energy Profiles. Journal of Chemical Theory and Computation 2011, 7 (7) , 2277-2283. https://doi.org/10.1021/ct200100e OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nisanth N. Nair . Ligand Exchanges and Hydroxypalladation Reactions of the Wacker Process in Aqueous Solution at High Cl− Concentration. The Journal of Physical Chemistry B 2011, 115 (10) , 2312-2321. https://doi.org/10.1021/jp110168p OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zhiwei Liu , Bernd Ensing , and Preston B. Moore . Quantitative Assessment of Force Fields on Both Low-Energy Conformational Basins and Transition-State Regions of the (ϕ−ψ) Space. Journal of Chemical Theory and Computation 2011, 7 (2) , 402-419. https://doi.org/10.1021/ct100395n OpenURL UNIV OF MASSACHUSETTS AMHERST
+    András Stirling and Imre Pápai . H2CO3 Forms via HCO3− in Water. The Journal of Physical Chemistry B 2010, 114 (50) , 16854-16859. https://doi.org/10.1021/jp1099909 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Dajiang Liu , Mark R. Nimlos , David K. Johnson , Michael E. Himmel , and Xianghong Qian . Free Energy Landscape for Glucose Condensation Reactions. The Journal of Physical Chemistry A 2010, 114 (49) , 12936-12944. https://doi.org/10.1021/jp1078407 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Halvor S. Hansen , Xavier Daura , and Philippe H. Hünenberger . Enhanced Conformational Sampling in Molecular Dynamics Simulations of Solvated Peptides: Fragment-Based Local Elevation Umbrella Sampling. Journal of Chemical Theory and Computation 2010, 6 (9) , 2598-2621. https://doi.org/10.1021/ct1003059 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Halvor S. Hansen and Philippe H. Hünenberger . Ball-and-Stick Local Elevation Umbrella Sampling: Molecular Simulations Involving Enhanced Sampling within Conformational or Alchemical Subspaces of Low Internal Dimensionalities, Minimal Irrelevant Volumes, and Problem-Adapted Geometries. Journal of Chemical Theory and Computation 2010, 6 (9) , 2622-2646. https://doi.org/10.1021/ct1003065 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jung Mee Park and Mauro Boero . Protonation of a Hydroxide Anion Bridging Two Divalent Magnesium Cations in Water Probed by First-Principles Metadynamics Simulation. The Journal of Physical Chemistry B 2010, 114 (34) , 11102-11109. https://doi.org/10.1021/jp102991f OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Donghong Min , Lianqing Zheng , William Harris , Mengen Chen , Chao Lv and Wei Yang . Practically Efficient QM/MM Alchemical Free Energy Simulations: The Orthogonal Space Random Walk Strategy. Journal of Chemical Theory and Computation 2010, 6 (8) , 2253-2266. https://doi.org/10.1021/ct100033s OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Amit Kumar , Eric Hajjar , Paolo Ruggerone and Matteo Ceccarelli . Molecular Simulations Reveal the Mechanism and the Determinants for Ampicillin Translocation through OmpF. The Journal of Physical Chemistry B 2010, 114 (29) , 9608-9616. https://doi.org/10.1021/jp9110579 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jérémy Fidelak , Jarek Juraszek , Davide Branduardi , Marc Bianciotto and Francesco Luigi Gervasio . Free-Energy-Based Methods for Binding Profile Determination in a Congeneric Series of CDK2 Inhibitors. The Journal of Physical Chemistry B 2010, 114 (29) , 9516-9524. https://doi.org/10.1021/jp911689r OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kozhinjampara R. Mahendran , Eric Hajjar , Tivadar Mach , Marcos Lovelle , Amit Kumar , Isabel Sousa , Enrico Spiga , Helge Weingart , Paula Gameiro , Mathias Winterhalter and Matteo Ceccarelli . Molecular Basis of Enrofloxacin Translocation through OmpF, an Outer Membrane Channel of Escherichia coli - When Binding Does Not Imply Translocation. The Journal of Physical Chemistry B 2010, 114 (15) , 5170-5179. https://doi.org/10.1021/jp911485k OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Luca Bellucci , Teodoro Laino , Andrea Tafi and Maurizio Botta . Metadynamics Simulations of Enantioselective Acylation Give Insights into the Catalytic Mechanism of Burkholderia cepacia Lipase. Journal of Chemical Theory and Computation 2010, 6 (4) , 1145-1156. https://doi.org/10.1021/ct900636w OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jérome Hénin , Giacomo Fiorin , Christophe Chipot and Michael L. Klein . Exploring Multidimensional Free Energy Landscapes Using Time-Dependent Biases on Collective Variables. Journal of Chemical Theory and Computation 2010, 6 (1) , 35-47. https://doi.org/10.1021/ct9004432 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Haitao Dong Xianghong Qian . Ab Initio Molecular Dynamics Investigation of Xylan Hydrolysis. 2010, ,, 1-15. https://doi.org/10.1021/bk-2010-1052.ch001 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Claudio Melis , Giovanni Bussi , Sarah C. R. Lummis and Carla Molteni . Trans−cis Switching Mechanisms in Proline Analogues and Their Relevance for the Gating of the 5-HT3 Receptor. The Journal of Physical Chemistry B 2009, 113 (35) , 12148-12153. https://doi.org/10.1021/jp9046962 OpenURL UNIV OF MASSACHUSETTS AMHERST 
+
+Load more citations
+
+    Figures
+    References 
+
+    Figure 1 Metadynamics results for four different free energy profiles:  (A) F ( s ) = − 4; (B) F ( s ) = −5 exp(−( s /1.75) 2 ); (C) F ( s ) = −5 exp(−( s − 2/0.75) 2 ) − 10 exp(−( s + 2/0.75) 2 ); (D) F ( s ) = −5 exp(−( s − 2/0.75) 2 ) − 4 exp(−( s /0.75) 2 ) − 7 exp(−( s + 2/0.75) 2 ). The average 〈 F ( s ) − F G ( s , t )〉 computed over 1000 independent trajectories is represented as a dashed line, with the error bar given by eq 7.
+
+    Figure 2 Average error (eq 8) as a function of the number of Gaussians for the four F ( s ) of Figure 1. The bump in the error observed for the functional forms C and D is due to the fact that in a long part of the metadynamics one of the free energy wells is already completely filled, while the other is being filled. The error is measured using definition 8 on both the wells, but the filling level is not the same until the full profile is filled.
+
+    Figure 3 Error as a function of the metadynamics parameters w , τ G and δ s and of β, D and S in d = 1 (upper panel) and d = 2 (lower panel). The continuous and the dashed lines correspond to eq 12 for d = 1 and d = 2, respectively.
+
+    Figure 4 Effect of the δ s / S on the error ε computed with eq 8 for a system in d = 2 (top panel) and d = 3 (bottom panel), with S = 8, β = 1 and D = 0.0005. The dashed line corresponds to the theoretical error given by eq 12. τ G is kept fixed at the value of 50. w is varied as a function of δ s in order to mantain a constant filling speed, as described in the text.
+
+    Figure 5 Effect of τ G on the ratio ε / ε τ G f 0 between the error computed with eq 8 and eq 14 for a system in d = 2, with S = 8, β = 1, and D = 0.0005. By τ G → 0, we denote the error computed with eq 12. Circles, diamonds, and crosses correspond to w /τ G equal to 0.0004, 0.0008, and 0.0016, respectively. The dashed line is a linear fit to the data of eq 1 + 40 τ G /τ S .
+
+    Figure 6 Test system. (A) Schematic view of the Cyclobis(paraquat- p -phenylene) 8 4+ (left) and the 1,5-dihydroxy-naphthalene (right). (B) Snapshot of the dynamics showing the naphthalene inside the cyclophane ring. For the sake of clarity, the acetonitrile molecules are not shown in the picture.
+
+    Figure 7 (Left):  Free energy for the pseudo-rotaxane naphthalene complex as a function of the distance between the centroids of the two molecules (s 1 ) and the coordination of the naphthalene with the solvent ( s 2 ). The continuous and dashed lines correspond to the metadynamics and umbrella sampling results, respectively. (Right):  Error as a function of simulation time for four different choices of metadynamics parameter. The error is estimated with eq 8 and is computed with respect to the umbrella sampling free energy.
+
+    Figure 8 Metadynamics error on the free energy for the pseudo-rotaxane naphthalene complex as a function of the run number. Upper panel:  the error computed by eq 8 (dashed line with circles) and the error predicted by eq 12, including the correction factor for a finite τ G eq 15 (continuous line with diamonds). Lower panels:  the metadynamics parameters w , δ s and τ G as a function of the run number.
+
+Recommended Articles
+
+    A Recipe for the Computation of the Free Energy Barrier and the Lowest Free Energy Path of Concerted Reactions The Journal of Physical Chemistry B
+    Rethinking Metadynamics: From Bias Potentials to Probability Distributions The Journal of Physical Chemistry Letters
+    Efficient Reconstruction of Complex Free Energy Landscapes by Multiple Walkers Metadynamics The Journal of Physical Chemistry B
+    A Time-Independent Free Energy Estimator for Metadynamics The Journal of Physical Chemistry B
+    Metadynamics as a Tool for Exploring Free Energy Landscapes of Chemical Reactions Accounts of Chemical Research
+    ADVERTISEMENT
+
+back
+Partners
+Atypon
+Chorus
+Cope publication ethics
+Project Counter
+Crossref
+Crossref similarity check
+Orcid Connecting Research and Researchers
+Portico digital preservation service
+ACS Publications
+
+    1155 Sixteenth Street N.W.
+    Washington, DC 20036
+    Copyright © 2022
+    American Chemical Society
+
+About
+
+    About ACS Publications
+    ACS & Open Access
+    ACS Membership
+
+Resources and Information
+
+    Journals A-Z
+    Books and Reference
+    Advertising Media Kit
+    Institutional Sales
+    ACS Publishing Center
+    Privacy Policy
+    Terms of Use
+
+Support & Contact
+
+    Help
+    Live Chat
+    FAQ
+
+Connect with ACS Publications
+
+This website uses cookies to improve your user experience. By continuing to use the site, you are accepting our use of cookies. Read the ACS privacy policy .
+CONTINUE

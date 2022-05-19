@@ -1,0 +1,877 @@
+Cite This: J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Article pubs.acs.org/jcim
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on February 26, 2020 at 17:03:24 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Utilizing Machine Learning for Eﬃcient Parameterization of Coarse Grained Molecular Force Fields
+James L. McDonagh,† Ardita Shkurti,‡ David J. Bray,*,‡ Richard L. Anderson,‡ and Edward O. Pyzer-Knapp*,†
+†IBM Research U.K., Hartree Centre, Daresbury WA4 4AD, United Kingdom ‡STFC Daresbury Laboratories, Daresbury WA4 4AD, United Kingdom
+*S Supporting Information
+
+ABSTRACT: We present a machine learning approach to automated force ﬁeld development in dissipative particle
+dynamics (DPD). The approach employs Bayesian optimization to parametrize a DPD force ﬁeld against experimentally determined partition coeﬃcients. The optimization process
+covers a discrete space of over 40 000 000 points, where each
+point represents the set of potentials that jointly forms a force ﬁeld. We ﬁnd that Bayesian optimization is capable of reaching a force ﬁeld of comparable performance to the
+current state-of-the-art within 40 iterations. The best iteration during the optimization achieves an R2 of 0.78 and an RMSE of 0.63 log units on the training set of data, these metrics are maintained when a validation set is included, giving R2 of 0.8 and an RMSE of 0.65 log units. This work hence provides a proofof-concept, expounding the utility of coupling automated and eﬃcient global optimization with a top down data driven approach to force ﬁeld parametrization. Compared to commonly employed alternative methods, Bayesian optimization oﬀers
+global parameter searching and a low time to solution.
+
+■ INTRODUCTION
+Molecular simulation has become a valuable technique for gaining insight into the behavior of chemical and materials systems. Many diﬀerent techniques exist including approximate and simulation coupled quantum mechanics,1,2 classical atomistic approaches such as molecular dynamics (MD)3,4 and mesoscopic methods such as coarse grained molecular dynamics (CGMD)5,6 and dissipative particle dynamics (DPD).7−9
+For simulations to provide useful insights, the molecular interactions need to be suitably modeled. This is achieved through interparticle potentials, which are idealized mathematical descriptions of the interactions between particles. Typically, these potentials operate between particular atoms or groups and represent a particular interaction (e.g., bond stretching, bond bending and twisting, van der Waals interaction, electrostatic attraction/repulsion etc.), such that the collection of all interactions present in a simulation is governed by a collection of potentials. The collection of such potentials is referred to as a force ﬁeld.
+Force ﬁelds require extensive parametrization to ensure an optimal description of the molecular interactions. This is generally achieved by testing how accurately a set of trial force ﬁeld parameters reproduces relevant physical observations, often from experiment or higher level theory, such as quantum chemical data. This can require a large number of trials, while one navigates to an appropriate set of parameters. This searching of the parameter space is a laborious and typically expensive task. Many optimization attempts employ manual ﬁtting proce-
+
+dures,10,11 which are extremely expensive in terms of research time, as well as requiring considerable existing insight on the part of the researcher. Others employ local optimization techniques, which are typically restricted to search only in the vicinity of the starting position.12 Less commonly used are global optimization strategies, which are the focus of this work. These methods enable searching of comparatively vast parameter spaces, which are not bound to a local minima. However, global optimization procedures are often too computationally expensive to utilize in force ﬁeld development.
+The use of the parametrization methods introduced above can be seen in the development of a plethora of force ﬁelds. MD is one of the clearest examples of the complexity and diﬃculty involved in accurate force ﬁeld generation. Many of the leading MD force ﬁelds, such as CHARMM,3 AMBER,4 and OPLS,13,14 are the result of years of incremental improvements and extensions through a variety of ﬁtting methods. In fact these force ﬁeld names more correctly refer to a set of force ﬁelds with speciﬁc parametrizations for particular applications. Within the MD community, there is an increasing interest in developing automated methodologies to speed up the process of parametrization.15−20 For example, new parameters in CHARMM can be developed using semiautomated tools.15,16 In addition to automation, a number of smarter methods are being incorporated into model parametrization to help accelerate the
+Received: August 2, 2019 Published: September 24, 2019
+
+© 2019 American Chemical Society
+
+4278
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+process and to ﬁnd better solutions. These methods include the application of Gaussian processes to learn or parametrize interatomic potentials21−24 and the use of neural networks,24,25,25−29 both of which have shown promising results in recent years.
+Within the MD community accurate parameters and reliable models have been generated for a variety of chemical classes; such as small drug molecules, proteins, and hydrocarbons. However, there are many industrially relevant ﬁelds not well served by the current MD force ﬁelds. The reasons for this are twofold:
+• The chemical constituents of products lie outside the existing parameter sets.
+• The scale (time and number of particles) for industrially relevant simulations often exceeds what is currently tractable in MD on commonly employed computer clusters.
+This results in a signiﬁcant barrier to wide-scale adoption of modeling and simulation within some sectors of the chemical industry.
+In this work, we introduce the application of an eﬃcient global optimization methodology, Bayesian optimization, to automated top down parametrization of DPD force ﬁelds. This strategy aids in alleviating the barriers detailed previously, as the force ﬁeld can be optimized automatically, on relevant data, in a reasonable time period. Additionally, the DPD method, allows one to access time and length scales inaccessible via MD while maintaining coarse molecular features. Currently, DPD lacks a standard set of force ﬁelds to act as a general benchmark. DPD has typically been used to model idealized, none speciﬁc chemical systems.30,31 Force ﬁeld choices and justiﬁable parameters will become vital as DPD matures and speciﬁc chemistry is considered.
+Several groups have developed methods based around machine learning and Bayesian models for bottom up ﬁtting of DPD force ﬁelds utilizing the outputs of MD simulations.32−35 Liu et al.34 provided some of the ﬁrst applications in this area using force matching between MD simulation and coarse graining with a Bayesian inference reﬁnement. More recent work by Dequidt and Solano Canchaya32 also utilizes a force matching methodology, where by an atomistic trajectory is sampled and coarse grained coordinates determined in relation to the all atom models. Bayesian modeling was then applied to locate the most likely DPD force ﬁeld parameters to reproduce the sampled coarse grained coordinates.
+More common approaches to CGMD and DPD force ﬁeld parametrization are methods such as, iterative Boltzmann inversion (IBI) and stochastic parametric optimization.36 IBI is typically used to determine parameters, which reproduce a reference radial distribution function (RDF). The method involves the calculation of initial CGMD parameters approximated as the potential of mean force between a pair of coarse grained particles at a given distance. This initial estimate is iteratively reﬁned by a correction factor. The method can suﬀer from practical limitations such as the selection of an interaction cutoﬀ distance.36−39 The stochastic parametric approach involves the selection of an empirical function with a number of free parameters which can be ﬁt to reproduce target properties.36,40
+While these bottom up ﬁtting methods for DPD show signiﬁcant promise, the accuracy of the underlying atomistic force ﬁeld determines the accuracy of the DPD model. Here
+
+there is a danger that the atomistic force ﬁeld is not well suited to model the behavior or chemicals of interest. In this article, we tackle this issue by performing a top-down parametrization of a DPD force ﬁeld directly to experimental data, hence one can select the data best suited to their problem. As an example, here we are using data on partition coeﬃcients (log P). In this work, log P has been adopted because of the abundance of curated data available in the literature, the wide community interest in this property,41−43 and its previous use in the work by Anderson et al.11,44 to manually ﬁt DPD force ﬁelds. We hope that the growing body of DPD parametrization literature around log P and related solution properties can form an initial standard in this respect.
+The proposed Bayesian optimization method enables an eﬃcient automated search, which learns a probabilistic approximation of the parameter landscape via a machine learning technique known as a Gaussian process. The search is carried out over a range of DPD parameters, which form a high dimensional grid. These ranges are deﬁned prior to the optimization process. Such a prior deﬁnition allows for expert knowledge to be encoded into the optimization process. To the authors knowledge, this is a novel approach.
+We focus on a modest set of molecules made up of alkanes and primary alcohols. Our aim in this work is to provide a proof-ofconcept, hence we focus on well understood chemistry which has open experimental literature data available for validation. Experimental log P data, obtained from the literature, is used as a reference in this work and details are supplied in the Supporting Information.
+We calculate a predicted log P from DPD simulations, using the protocol of Anderson et al.11 All additional details pertinent to the determination of log P for the work are provided in the Supporting Information. While DPD is not the most eﬃcient method for calculating log P, we have found that log P is a good parameter for top down ﬁtting of DPD parameters. Therefore, we apply existing and documented methods for calculating log P using DPD in this work.11 The Bayesian optimization process then eﬃciently guides the search to regions of parameter space which minimizes the error between the experimental values and the simulation values. Noting that the optimization in the present case is over a discrete high dimensional grid the hypothesis here is that the Bayesian optimization will locate an optimal region of parameter space very eﬃciently. It may be possible to further reﬁne this result considering a continuous parameter space.
+The remainder of the article is arranged as follows: an outline of the general methods adopted in order to develop an automated parametrization process; the presentation of a proof-of-concept test case using log P as the target of the optimization process; a discussion and evaluation of the results; and, ﬁnally, a summary of the main ﬁndings of the paper and discussion of potential extensions of the proposed method.
+■ METHODS
+The automated Bayesian parametrization procedure described in this work requires several elements to be connected in a workﬂow. The workﬂow consists of simulations, analysis, and optimization. We have developed a workﬂow engine named CAROL,45 which is used to orchestrate the simulation and analysis process (see the Supporting Information for more details). In this section we describe the automated procedures and inputs including: the Bayesian optimization scheme, the DPD simulation details, and literature data. For reference,
+
+4279
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+background information on log P data is provided in the Supporting Information; a light weight overview of the DPD method is given in the Supporting Information, and details of the Bayesian optimization theory are presented in the Supporting Information.
+Bayesian Optimization Scheme. Bayesian optimization is machine learning approach, capable of eﬃciently balancing the exploration exploitation dilemma that is commonly encountered in optimization problems.46−48 The optimization of DPD force ﬁeld parameters is achieved through a python based Bayesian optimization library. The Bayesian optimization library constructs a probabilistic model of the objective function utilizing scikit-learn’s49 Gaussian process regression with a square-exponential kernel.
+
+k(x ,
+
+x′)
+
+=
+
+σ2
+
+expikjjjjj (x
+
+− x′)2 2l2
+
+y{zzzzz
+
+(1)
+
+Equation 1 deﬁnes the squared exponential kernel where x and x′ denote a pair of inputs l is the length scale parameter and σ is the variance of function values from the mean. The hyper-
+parameters are optimized by maximizing the log-marginal-
+likelihood. The Bayesian optimization library employs an
+expected improvement (EI) acquisition function to select the
+next point to sample. EI is here used with an epsilon parameter,
+that assists in balancing the exploration and exploitation of the parameter space by deﬁning a minimum magnitude of
+improvement, which is expected of a new sample point. The improvement is calculated from the utility function (γ(x)), commonly referenced as the improvement function:50,51
+
+μ(x) − f * − ϵ
+
+γ(x) =
+
+σ 2(x)
+
+(2)
+
+In the improvement function, deﬁned in eq 2, μ(x) is the mean, σ2(x) is the variance, ϵ deﬁnes the minimum improvement margin, and f * is the currently best located point assigned
+as the lowest loss. The EI acquisition function can then be deﬁned in terms of γ(x) thus:
+
+EI(x) = μ(x) − f *Φ(γ) + σ(x)ϕ(γ)
+
+(3)
+
+Equation 3 deﬁnes the expected improvement acquisition function in terms of gamma. Φ(γ) is the cumulative distribution function, and ϕ(γ) is the probability density function.50 This is a
+commonly applied embodiment of Bayesian optimization that has been deployed in other areas.52,53 More details and
+background are given in the Supporting Information. In this study, we optimize a DPD force ﬁeld by minimizing the
+error in calculated log P data compared to experimental log P data for nine solute molecules over three diﬀerent solvent pairs deﬁning log P. The combination of the nine solutes and three diﬀerent solvent pairs results in 15 log P data points for training.
+The standard DPD force ﬁeld is purely repulsive and soft-core in nature. The primary parameter in these DPD force ﬁelds,
+which governs the chemical interactions, is the so-called
+conservative repulsion parameter Aij. This parameter governs the strength of the repulsion between beads of type i and j. The details of DPD force ﬁelds are elaborated upon in the Supporting
+Information. The unique pairwise interactions and the ranges of
+their conservative potential repulsion parameters are shown in
+Table 1. Seven potential values in the ranges speciﬁed in Table 1 were
+selected with a spacing of 2 DPD units, inclusive of the lower and
+
+Table 1. Pairwise Bead−Bead Interactions Optimized in This Worka
+
+interaction pairing
+
+AiLj ower
+
+AiUj pper
+
+2H2O−2H2O
+
+25.0
+
+25.0
+
+2H2O−CH3
+
+35.0
+
+47.0
+
+2H2O−CH2
+
+39.0
+
+51.0
+
+2H2O−CH2OH
+
+14.0
+
+26.0
+
+CH3−CH3
+
+24.0
+
+36.0
+
+CH3−CH2
+
+19.0
+
+31.0
+
+CH3−CH2OH
+
+41.0
+
+53.0
+
+CH2−CH2
+
+9.0
+
+21.0
+
+CH2−CH2OH
+
+22.0
+
+34.0
+
+CH2OH−CH2OH
+
+25.0
+
+37.0
+
+aEach interaction pair is bounded within the intervals deﬁned by Aij ∈ [AiLjower, AiUj pper]. We note here that the 2H2O−2H2O interaction acts as reference and remains ﬁxed at 25.0.
+
+upper bounds. The sampling grid which speciﬁes the parameters
+is generated as a Cartesian product over the sets of interaction values resulting in a sampling grid of 40 353 607 (79) potential
+unique combinations of conservative repulsion parameters. Our workﬂow engine, CAROL, manages the execution of the
+DL MESO DPD simulation engine and the UMMAP analysis
+package, which calculates the log P from the simulation data.
+The Bayesian optimization library and CAROL communicate passing predicted log P, experimental data and trail force ﬁelds
+where required. Within the optimizer the calculated log P data is used to perform an evaluation of force ﬁeld performance, before
+selecting the next point in parameter space for sampling. The optimizer ﬁnally updates the simulation inputs to reﬂect its new choice of trial force ﬁeld parameters. This process is carried out iteratively for a ﬁxed number of iterations.
+At the end of each iteration, the accuracy of the parameters with respect to log P is determined using the L2-norm, deﬁned as
+in eq 4. The L2-norm serves as a loss function within the model
+optimization process.
+
+N
+
+∑ L2‐norm =
+
+(|xnexp − xnmodel|2)
+
+n=1
+
+(4)
+
+where N is the number of samples, xnexp is the real observable for the nth experiment, and xnmodel is the corresponding model observable for the nth experiment run with the current parameter set. In our implementation, the observable x will be log P. The loss function is calculated from the 15 chemical systems that we simulate in the training set and deﬁne a single metric for the utility of the parameters for a single iteration. With this loss function, a value of 0 would represent a complete ﬁt.
+For the optimization process to begin, the Gaussian process model, which acts as a probabilistic surrogate for the real objective function, is initialized with known data from previous calculations. This is achieved by selecting at random 10 force ﬁelds and running simulations to obtain the loss (as deﬁned in eq 4), which are then provided as training data to the Gaussian process. Once complete, the real optimization process begins and runs in a sequential manner, assessing the suitability of the force ﬁeld parameters one set at a time for a total of 30 iterations. This number of iteration was selected as it represents approximately 1 week of compute time for the current proofof-concept case. The choice of number of iterations is somewhat arbitrary and could be increased or decreased as one desires
+
+4280
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+dependent on resources and the accuracy required of the force ﬁeld.
+For each iteration of the workﬂow, simulations and analysis
+tools were run over 15 nodes, each with 16 cores. The Bayesian
+optimization library on the other hand is computationally
+inexpensive and is executed on a single core.
+Appropriate error handling and monitoring of the simulation
+and analysis stages are performed to ensure suitable feedback
+can be provided at each iteration. This prevents the automation
+process faulting and failing to complete. Three types of major failures are detected and handled within this workﬂow: simulations may not run or fail to complete; the force ﬁeld
+parameters are bad such that the simulated system has only a
+single liquid phase rather than two (a requirement for measuring
+log P, see the Supporting Information (SI) for more detail); or,
+the model observable lies outside the measurable range (i.e., there is poor sampling). The workﬂow handles failed
+simulations by assigning an extreme value to the observable, i.e. log P values of ±10.0. This is also the modus operandi where the force ﬁeld fails such as when the simulated water and organic solvent partition has collapsed or signiﬁcantly mixed. In this event there is no clear way to deﬁne the regions to sample and
+hence calculate the concentration of solute within a region. DPD Model Deﬁnition. In our approach the DPD beads
+represent molecular fragments comprising 1−2 “heavy atoms” (speciﬁcally C and O in this work), with the exception of water
+(H2O) which is treated supermolecularly. This provides the potential for a wide variety of both aqueous and nonaqueous
+systems to be modeled by combining these fragments in diﬀerent conﬁgurations. Crucially this approach also leads to an
+extensible parameter set, since the molecular palette is easily
+enlarged to include other chemical groups. In our model we adopt four diﬀerent bead types representing
+water, two representing alkanes, and one bead for alcohol
+functionality (Table 2). To establish the basis for the coarse
+
+Table 2. CG Representations of Molecules Considered in the Present Worka
+
+molecule SMILES code n beads
+
+CG bead mapping
+
+n-hexane
+
+cccccc
+
+6
+
+[CH3][CH2]4[CH3]
+
+n-heptane
+
+ccccccc
+
+7
+
+[CH3][CH2]5[CH3]
+
+methanol
+
+co
+
+1
+
+[CH2OH]
+
+ethanol
+
+cco
+
+2
+
+[CH3][CH2OH]
+
+1-propanol
+
+ccco
+
+3
+
+[CH3][CH2][CH2OH]
+
+1-butanol
+
+cccco
+
+4
+
+[CH3][CH2]2[CH2OH]
+
+1-pentanol
+
+cccco
+
+5
+
+[CH3][CH2]3[CH2OH]
+
+1-hexanol
+
+cccccco
+
+6
+
+[CH3][CH2]4[CH2OH]
+
+1-heptanol
+
+ccccccco
+
+7
+
+[CH3][CH2]5[CH2OH]
+
+1-octanol
+
+cccccccco
+
+8
+
+[CH3][CH2]6[CH2OH]
+
+1-nonanol
+
+ccccccccco
+
+9
+
+[CH3][CH2]7[CH2OH]
+
+butan-1,4-diol occcco
+
+4
+
+[CH2OH][CH2]2[CH2OH]
+
+aThe CG bead content is denoted by the contents of square brackets.
+
+grained (CG) scheme, we ﬁrst follow Groot and Rabone in deﬁning a water mapping number, in our case Nm = 2 so that each water bead (2H2O) corresponds, on average, to two water molecules.54 Following well established protocols, we also assert
+that the density of water in our model (in reduced DPD units) corresponds to ρrc3 = 3, where rc is the cutoﬀ distance for an interaction.7 We can then use the mapping number tautology ρNmvm ≡ 1, where vm ≈ 30 Å3 is the molecular volume of liquid
+
+water, to determine that rc ≈ 5.65 Å. This underpins the conversion of all lengths and molecular densities in the model.
+
+Alkane molecules are constructed from connected (bonded)
+
+beads comprising (i) CH2 groups of atoms and (ii) CH3, a terminal methyl group. Similarly alcohol molecules are
+
+constructed by bonding together alkane beads and a speciﬁc
+
+bead containing an alcohol functionality, e.g. composed of the
+
+CH2OH group of atoms. Atom to beaded structures for the molecules explored in this work are given in detail in Table 2.
+
+Having decided on the CG level, the next part of the model deﬁnition is to specify the bonded interactions between beads:
+
+once set these interactions will not be optimized by the
+
+parametrization procedure. Here we take an approach motivated
+
+by previous work and our own experience. A simple harmonic
+
+potential
+
+ϕb
+
+=
+
+1 2
+
+kb(rαβ
+
+−
+
+r0)2
+
+was
+
+chosen
+
+to
+
+represent
+
+bonds
+
+between connected DPD beads, where rαβ is the distance
+
+between bonded beads α and β. The nominal bond length, r0, is
+
+set as 0.3 for bonds [CH2]−[CH2/3] and 0.35 for bonds
+
+[CH2OH]−[CH2/3]. These distances are based on approximate
+
+experimental atom atom distances and have been converted to
+
+DPD distance units by multiplying by 5.65. This minimizes the
+
+number of parameters to be ﬁtted in this initial exploration of
+
+applying Bayesian optimization in this manner. A single bond
+
+constant kb = 150 was adopted throughout (in units of kBT). Note that, contrary to the usual practice in MD, we (and others)
+
+do not exclude the 1−2 and 1−3 nonbonded interaction
+
+between two bonded DPD beads.
+
+In our model we explicitly introduce an element of rigidity by
+
+including a harmonic angular potential between conjoining pairs
+
+of bonds. This has been demonstrated to be essential for the
+
+correctness of molecular models at the level of coarse graining used here.55,56
+
+We here adopt the same three-body angular potential used by
+
+Smit and collaborators,55,57 viz.÷÷ϕ÷÷÷a◊
+
+=
+
+1 2
+
+÷k÷÷a÷◊(θαβγ
+
+−
+
+θ0)2 where θαβγ
+
+is the angle between the bonds αβ and βγ of bonded bead triplet
+
+α, β, and γ. We use θ0 of 105° for angles [CH2/3]−[CH2]− [CH2/3], 125° for angles [CH2OH]−[CH2]−[CH2/3], and ka = 5 (in units of kBT) for all angles. For the nonbonded interactions between beads i and j we take the standard DPD pairwise soft
+
+repulsion, ϕ
+
+=
+
+1 2
+
+Aij(1
+
+−
+
+ri , j/R ij)2
+
+for r
+
+≤
+
+Rij
+
+and ϕ
+
+=
+
+0 for ri,j >
+
+Rij, where Ai,j is the interaction strength, Ri,j the interaction cutoﬀ distance, and ri,j the distance between centers of bead i and j.7
+
+We set the self-interaction of water beads to be equal to AH20,H20
+
+= 25.0. The optimization of all other Aij (i ≠ j and i = j) is the
+
+central problem addressed in the present work.
+
+Literature Data. In this work we have collected
+
+experimental data from the literature for three deﬁnitions of
+
+log P: octanol/water (log P(Oct/H2O)); hexane/water (log
+
+P(Hex/H2O)); and heptane/water (log P(Hep/H2O)). Previous
+attempts toward parametrizing DPD force ﬁelds to log P data focused exclusively on log P(Oct/H2O).11 From compilations of
+
+experimental data on log P(Oct/H2O) measurements, it is clear that
+
+in some cases the quality of the data is quite variable. For simple
+
+alkanes and alcohols (simple alcohol meaning here an alkane
+
+chain with a single OH substitution), the variance between
+
+experimental procedures can be as large as 0.6 log units, considering direct measurement methods only.58 If indirect
+
+measurement methods are included, the variance in reported log
+
+P values for these molecules can be as large as 0.7 log units (see
+
+4281
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+the range in reported log P values for 1-butanol and methanol in the work of Sangster59). Typical estimates of experimental errors on a single determination for log P range ≈ 0.05−0.25 log units.58 Similar experimental errors are reported for direct methods measuring log P(Hex/H2O).60,61 The diﬃculties in assessing the accuracy of experimental data for force ﬁeld
+parametrization has been expounded for other properties of industrial interest.62 This places bounds on the accuracy our force ﬁeld can realistically achieve. Given that the target data
+used here comes from a variety of experimental sources we
+would consider a good result to have errors in the region of ≈±0.7 log units. This level of error is consistent with other
+current state-of-the-art log P prediction methods, which generally come from quantitative structure−activity relationships (QSARs).63,64 Table 3 displays the data set used in this
+work.
+
+Table 3. Log P Data from the Literature Curated for Use in This Work with the Source Reference Given by Each Value
+
+solute
+1-propanol 1-butanol 1-pentanol 1-hexanol 1-heptanol 1-octanol 1,4-butanediol
+
+log P(Oct/H2O) 0.2559 0.8459 1.5159
+N/A
+N/A
+N/A −0.8011
+
+log P(Hex/H2O) −1.4865 −0.7867 −0.4065 0.4567 1.2165
+N/A
+N/A
+
+log P(Hep/H2O) −1.5266 −0.7066 −0.4066 0.4566 0.9866 1.6266
+N/A
+
+Bayesian Optimization Workﬂow. Figure 1 visually depicts the connections between the various workﬂow elements adopted in this work. The simulations are all run with the DL MESO DPD68 simulation engine, and the analysis, which predicts the log P from the simulations, is provided by the UMMAP program.69 The sections in orange outline the areas where the workﬂow engine CAROL45 orchestrates the simulations and analysis. The sections in blue outline the areas controlled by the Bayesian optimization library, which evaluates
+
+Article
+the relative success of a set of force ﬁeld parameters, selects the next force ﬁeld to trial and produces updated input ﬁles for the simulations.
+On the left-hand side of Figure 1, the initialization process is expounded, which provides initial training data for the optimizer upon which to initialize its Gaussian process. In this phase, force ﬁeld parameters are selected at random from a sampling grid constructed by the optimizer based upon user input. Once complete, the optimizer has some information on the parameter space it is operating within and thus can begin to guide the parameter optimization process.
+The optimization process is detailed on the right-hand side of Figure 1. In this phase the optimizer calculates a loss at the end of each iteration which is added to the Gaussian process training data. The Gaussian process is retrained and the acquisition function recalculated using the retrained Gaussian process. The maximum value of the acquisition function is found and the force ﬁeld corresponding to the maxima in the acquisition function is then trialed.
+■ RESULTS AND DISCUSSION
+We present here the results of the automated DPD force ﬁeld parametrization using Bayesian optimization. We begin by assessing the performance and overall utility of the optimization method using summary statistics considering all training set systems. We follow this with a microscopic investigation, exploring the choices of parameters from a physical perspective. Finally, we validate the force ﬁeld using examples from outside the training set.
+Bayesian Optimization vs Random Sampling. Bayesian optimization searches the parameter space in an intelligent manner balancing the need for exploration in a global search with local exploitation. As an initial benchmark we compare our results against several instantiations of a random search. This tests that intelligent navigation provides a beneﬁt above simple random trail and error. The parametrization engine was initialized with 10 random samples across the grid. The engine was then run for 30 optimization iterations. This process was
+
+Figure 1. Flowcharts representing stages that compose CAROL and the Bayesian optimization library. Arrows in the ﬂowchart show the data ﬂow direction. (left) Initialization process. This provides initial training data sampled randomly without replacement. (right) Optimization process. Once the optimizer is trained, it selects a new sampling point based upon its current knowledge of the parameter space.
+
+4282
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+independently repeated three times using diﬀerent initial training sets. The purpose of such repetition, was to test the methods performance with variations in the starting data, given a reasonable limit in the number of optimization iterations which can be performed in a timely manner (30 optimization iterations in the current work represents approximately 1 week over 15 compute nodes).
+Bayesian optimization does not operate in the same manner as a conventional gradient based optimization routine. Instead, it operates probabilistically balancing exploration and exploitation, meaning that sequential steps will not necessarily show improvement. As a result, it is much clearer to track the socalled regret, which follows the best currently located parameters and associated loss. Figure 2 displays the mean
+
+Article
+
+Table 5. Best Force Fields Found in Each of the Independent Bayesian Optimization Runs and the Best Force Field Found from Random Samplinga
+
+Aij BO
+
+Aij BO
+
+Aij BO
+
+best
+
+interactions
+
+Rij
+
+run 1
+
+run 2
+
+run 3 random Aij
+
+CH2−CH2
+
+0.9250 21
+
+21
+
+9
+
+15
+
+CH2−CH2OH 0.9370
+
+22
+
+22
+
+22
+
+26
+
+CH3−CH2
+
+0.9410 19
+
+19
+
+19
+
+25
+
+CH3−CH3
+
+0.9570 36
+
+36
+
+32
+
+26
+
+CH3−CH2OH 0.9525
+
+49
+
+53
+
+49
+
+43
+
+CH2OH−
+
+0.9800 25
+
+31
+
+25
+
+27
+
+CH2OH
+
+2H2O−CH2
+
+0.9625 39
+
+39
+
+39
+
+39
+
+2H2O−CH3
+
+0.9785 35
+
+35
+
+35
+
+37
+
+2H2O−
+
+0.9900 14
+
+14
+
+14
+
+16
+
+CH2OH
+
+2H2O−2H2O 1.0000
+
+25
+
+25
+
+25
+
+25
+
+loss
+
+3.3
+
+2.45
+
+2.91
+
+4.59
+
+R2
+
+0.72
+
+0.78
+
+0.77
+
+0.63
+
+RMSE
+
+0.86
+
+0.63
+
+0.75
+
+1.19
+
+aIn all cases the dissipative parameter γij = 4.5 for all interactions. The dissipative cutoﬀ for all simulations is set to 1.15. All simulations were
+
+run in the NPT ensemble at a DPD temperature of 1 and pressure of 23.7, which correspond to 25 °C and 1 atm. Bond lengths, Rij, are applied to all simulations; these values were selected based upon previous work by Anderson et al.11
+
+Figure 2. Comparison of optimized and randomly sampled runs. The boot strapped 95% conﬁdence bounds are shown by the shaded areas, and the mean regret for each iteration over three independent repetitions of random sampling and Bayesian optimization are displayed as the solid lines. The zeroth iteration is set to the mean of the Bayesian optimization training data for both the random and Bayesian optimization runs.
+
+regret trajectory over the three independent Bayesian optimization runs and three independent random sampling runs. The solid lines represent the lowest mean loss encountered at that iteration over the three independent runs of the Bayesian optimization and random sampling. The shaded regions are the boot strapped (random sampling with replacement) 95% conﬁdence intervals calculated at each point over the three independent runs of the Bayesian optimization and random sampling.
+From Figure 2, the trend is clear, Bayesian optimization consistently achieves a lower loss value (lower regret) faster than random sampling. This is an important ﬁrst hurdle, displaying the need for intelligent guidance in order to minimize the time to solution. This test also suggests that the parameter space is suﬃciently complicated that given the same number of chances, one is unlikely to stumble upon the best solution.
+The best force ﬁelds found in the independent runs themselves achieved the summary statistics described in Tables 4 and 5. The summary statistics clearly demonstrate the superiority of the Bayesian optimization runs, in which the
+
+Table 4. Summary Statistics for the Best Force Field Found in Trials from Each Random or Optimization Run over 30 Iterations
+
+run name best from random sample best from Bayesian optimization
+
+R2
+
+RMSE
+
+0.63
+
+1.2
+
+0.78
+
+0.63
+
+RMSE from the best Bayesian optimization force ﬁelds is substantially lower than the best random sampling force ﬁelds. Additionally, the R2 metric reveals better correlations between
+predicted and experimental data for the Bayesian optimization
+runs compared to the random sampling runs. These trends
+remain when the independent runs are considered in isolation
+rather than on average. The data for each independent Bayesian
+optimization run is given in Table 5. Data on all runs, including
+the independent random sampling runs is given in the SI. Log P Predictions. In this section, we investigate the
+accuracy of the log P predictions and the optimal parameters are explored for physical signiﬁcance. Considering ﬁrst all three Bayesian optimization runs, one can see that the best force ﬁelds over the three runs appear to sit in two diﬀerent regions of
+parameter space. The data is shown in Table 5.
+Looking at the results in Table 5, Bayesian optimization runs 1
+and 2 seem to occupy a similar region of parameter space with generally similar parameters except CH3−CH2OH and CH2OH−CH2OH, which diﬀer by 4 and 6 DPD units, respectively. However, Bayesian optimization run 3 displays a slightly diﬀerent force ﬁeld suggesting potentially two related regions of the parameter space which hold suitable force ﬁelds.
+Across the three force ﬁelds, six interactions are the same: CH2−CH2OH, CH3−CH2, 2H2O−CH2, 2H2O−CH3, 2H2O− CH2OH, and the reference interaction 2H2O−2H2O. Interestingly, this includes all four of the water interactions. This may be
+rationalized as the solvents must remain relatively immiscible in
+order to provide an interface in the simulation cell between the
+solvents, which is a requirement for a log P calculation to be
+carried out. Therefore, interactions which maintain relatively
+immiscible solvents could be considered a prerequisite for
+successful calculations. From the remaining four interactions,
+which are all between the organic molecule bead types, the variation in performance of these force ﬁelds is derived.
+To provide a comparison we contrast our developed force ﬁeld against that used in the paper by Anderson et al.11
+
+4283
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+Figure 3. Cyan beads are water, gray beads are the organic solvent, and green beads are the solute. Column A, left, represents the log P predictions over all 15 solutions for the best force ﬁeld encountered during Bayesian optimization. Column B, right, represents the log P predictions over all 15 solutions for the best force ﬁeld encountered during random sampling. A representative example of the simulations employing both force ﬁelds is given for the
+solute 1-butanol in each of the solvent combinations. Y error bars represent the standard deviation.
+
+(developed by some of the current authors RLA and DB). Our new force ﬁeld oﬀers greater ﬂexibility in terms of molecule deﬁnition as odd carbon chain lengths can be constructed. Additionally the present force ﬁeld has been parametrized against three deﬁnitions of log P while the Anderson et al. force ﬁeld was parametrized considering only the water octanol partition coeﬃcient. Both force ﬁelds oﬀer a comparable level of
+accuracy on the training data in terms of log P predictions
+(Anderson et al. value 0.20 log units RMSE, present work 0.63
+log units RMSE). However, this level of accuracy is maintained
+over the validation set in the present case, whereas the previous attempt suﬀered a substantial reduction in accuracy over the
+validation set (Anderson et al. gave 0.45 log units for RMSE while this paper’s best force ﬁeld gives 0.65 log units for RMSE).
+Noting that the experimental variance in some of these measurements is as high as 0.7 log units the diﬀerence between
+these results is well within the experimental error. In addition to these scientiﬁc points, RLA estimates the parametrization published in the 2017 work of Anderson et al.11 took
+
+approximately 16 weeks. The present parametrization eﬀort
+took approximately 1.5 weeks from initialization to termination, hence the present method oﬀers a substantial improvement in
+time to solution. Considering the results from Table 4, it is clear that Bayesian
+optimization run 2 provided the best force ﬁeld parameters considering the summary statistics. The optimal force ﬁeld in
+this run generated DPD log P predictions across the set of 15 systems with an RMSE of 0.63 log units and an R2 0.78 on the training set. Comparing this against the best force ﬁeld located by random sampling, which achieved RMSE 1.19 and R2 0.63, it
+is clear that Bayesian optimization has arrived at superior force ﬁelds. The results are presented visually in Figure 3.
+Considering Figure 3, it is clear that the best force ﬁeld located
+by random sampling is biased toward more positive log Ps. In the
+system snapshots, one can visually verify that fewer solute
+molecules are present in the aqueous phase, which would lead to a more positive log P. The gray dashed lines represent ±0.7 log
+units, the maximum spread found in the experimental data for
+
+4284
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+Figure 4. Log P validation test. (left) Three log P deﬁnitions color coded with validation points represented by triangular markers. (right) Blue data are the training set discussed above, and the red data were used as a validation set.
+
+some solute molecules. In Figure 3, it is also notable that most predicted points lie within this ±0.7 log unit error margin for the best force ﬁeld found using Bayesian optimization, and achieve a smaller standard deviation around this mean value (y error bars). However, applying the best force ﬁeld from random sampling, most points lie outside of the ±0.7 log unit error margin and the standard deviation in some cases cannot be calculated due to samples in which no solute molecules are found in one of the solvents. Both force ﬁelds, however, manage to maintain a solvent boundary between the water and organic solvent, which is something that not all force ﬁelds that were trialed achieved (see the Supporting Information for an example of this).
+In the simulations using the best force ﬁeld, we can see that families of solute molecules in the diﬀerent solution mixtures follow the expected trends as the carbon chain lengths increase.
+There is also an interesting observation that the log P(Oct/H2O) seems to follow a diﬀerent trend to the other deﬁnitions of log P.
+This is demonstrated by the separation of the log P(Oct/H2O) systems lying clearly on a diﬀerent trend, with a shallower
+gradient, to the log P(Hep/H2O) and log P(Hex/H2O) systems. This is
+perhaps due to the slight miscibility of water in octanol which is also present in the simulations.
+Currently our loss function weights all points equally. This is chosen to insist that the force ﬁeld is generally applicable across this family of systems. However, this does mean that a failed molecule can dominate the loss function, leading to a suggestion that the force ﬁeld is poor, which while true when considered over all systems, is not necessarily the case for all other systems in the data set. Therefore, naturally the question of whether the accuracy in a deﬁned, potentially small set of molecules, is more important than general applicability could be posed. In this work, there is an additional consideration; if we can automatically generate these force ﬁelds in a small enough amount of time does general applicability matter? We could simply generate bespoke force ﬁelds optimized for accuracy over generality. We believe this is a topic for further work and consideration with a caveat that, even though the current work shows a substantive reduction in the time to generate a force ﬁeld compared to some of the authors previous work, another considerable reduction in the time to solution would be needed to make such a suggestion practical.
+
+Validation. In this section we validate the force ﬁeld
+parameters. Figure 4 shows the results from a validation set of four similar molecules with experimental log P’s. One can see
+clearly that the validation set lies on the same trend lines as the
+training data as shown in Figure 4. Having added the validation data to the training data the summary statistics remain similar R2 0.8 and RMSE 0.65, compared to the training set R2 0.78 and
+RMSE 0.63. In comparison to some of the authors previous
+work, this model maintains its accuracy to a greater extent from
+training into the validation data. Previous work showed a notable increase in RMSE when moving from training to validation set.11
+Future Work. We believe there are areas where further
+improvements can be made, which will require subsequent
+thorough investigations. Of particular note, investigations detailing the eﬀects of diﬀerent kernel choices for the Gaussian
+process and acquisition function for Bayesian optimization need to be investigated. Additionally, the eﬀects of varying the loss
+function should be considered together with the questions of
+transferability and multiobjective optimization. There are also
+further questions about how best to access the potential parameters, which rest between the grid points we have deﬁned
+and how to automatically determine the optimal coarseness of
+the model. However, we do believe this novel method holds much promise, owing to its eﬃciency, relative ease of
+automation and low compute overheads.
+■ CONCLUSIONS
+In conclusion, we show that Bayesian optimization can be eﬀectively applied to optimize a molecular force ﬁeld, which is
+treated as a black box function. Having provided 10 randomly selected initial data points Bayesian optimization ﬁnds a force ﬁeld with an RMSE of 0.63 log units and an R2 of 0.78 for the
+training set in 30 optimization iterations. This level of accuracy is
+in line with current state of the art cheminformatics models. This force ﬁeld has been found in approximately 1.5 weeks, with no
+human intervention once the process had begun, demonstrating Bayesian optimization’s ability to automatically discover good
+regions of parameter space for molecular interaction potentials.
+This is in comparison to the 16 week time frame that resulted in the development of parameters in Anderson et al.11
+Over several separate instantiations of Bayesian optimization
+and random sampling, we show that Bayesian optimization
+
+4285
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+locates a superior force ﬁeld faster. We also note that the observable parameter, in this case log P, is much more poorly predicted by even the best of the randomly sampled force ﬁelds. The best force ﬁelds from all of the independent Bayesian optimization instantiations provide reasonable predictions with RMSE’s and R2 values in line with state-of-the-art models.
+Considering the current state-of-the-art force ﬁelds available for DPD, and the methods employed to generate these force ﬁelds, we believe our approach is arguably one of the most eﬃcient taking approximately 1.5 weeks, start to ﬁnish, to generate a good force ﬁeld over a modest data set with relatively modest compute resources (15 compute nodes). Many state-ofthe-art DPD force ﬁelds have been generated by hand requiring months, possibly years, of a researcher’s time. In this work, we also see that the force ﬁeld which is found has similar predictive accuracy for log P compared to other DPD force ﬁelds. Additionally, the force ﬁeld is shown to be stable in its predictive accuracy over a small validation set to a greater extent than in other state-of-the-art DPD force ﬁelds.11
+■ ASSOCIATED CONTENT
+*S Supporting Information
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jcim.9b00646.
+Contains details of the simulation procedure, background theory for DPD, and Bayesian optimization (PDF)
+■ AUTHOR INFORMATION
+Corresponding Authors *Email: david.bray@stfc.ac.uk. *Email: epyzerk3@uk.ibm.com.
+ORCID
+James L. McDonagh: 0000-0002-2323-6898 Richard L. Anderson: 0000-0002-4320-8472 Edward O. Pyzer-Knapp: 0000-0002-8232-8282
+Notes The authors declare no competing ﬁnancial interest.
+■ ACKNOWLEDGMENTS
+The authors thank Michael Johnston, Bill Swope, and Kirk Jordan for many stimulating discussions that helped shape the work contained in this article. This work was supported by the STFC Hartree Centre Innovation: Return on Research programme, funded by the UK Department for Business, Energy & Industrial Strategy.
+■ REFERENCES
+(1) Car, R.; Parrinello, M. Unified Approach for Molecular Dynamics and Density-Functional Theory. Phys. Rev. Lett. 1985, 55, 2471−2474. (2) Tuckerman, M. E. Ab Initio Molecular Dynamics: Basic Concepts, Current Trends And Novel Applications. J. Phys.: Condens. Matter 2002, 14, R1297. (3) Brooks, B. R.; Bruccoleri, R. E.; Olafson, B. D.; States, D. J.; Swaminathan, S. a.; Karplus, M. Charmm: A Program For Macromolecular Energy, Minimization, And Dynamics Calculations. J. Comput. Chem. 1983, 4, 187−217. (4) Pearlman, D. A.; Case, D. A.; Caldwell, J. W.; Ross, W. S.; Cheatham, T. E., III; DeBolt, S.; Ferguson, D.; Seibel, G.; Kollman, P. Amber, A Package Of Computer Programs For Applying Molecular Mechanics, Normal Mode Analysis, Molecular Dynamics And Free Energy Calculations To Simulate The Structural And Energetic Properties Of Molecules. Comput. Phys. Commun. 1995, 91, 1−41.
+
+(5) Marrink, S. J.; Risselada, H. J.; Yefimov, S.; Tieleman, D. P.; De Vries, A. H. The Martini Force Field: Coarse Grained Model For Biomol. Sim.S. J. Phys. Chem. B 2007, 111, 7812−7824. (6) Rudd, R. E.; Broughton, J. Q. Coarse-grained molecular dynamics and the atomic limit of finite elements. Phys. Rev. B: Condens. Matter Mater. Phys. 1998, 58, R5893−R5896. (7) Groot, R. D.; Warren, P. B. Dissipative Particle Dynamics: Bridging The Gap Between Atomistic And Mesoscopic Simulation. J. Chem. Phys. 1997, 107, 4423−4435. (8) Espanol, P.; Warren, P. Statistical Mechanics Of Dissipative Particle Dynamics. Europhys. Lett. 1995, 30, 191. (9) Español, P.; Warren, P. B. Perspective: Dissipative particle dynamics. J. Chem. Phys. 2017, 146, 150901. (10) Foloppe, N.; MacKerell, A. D., Jr All-Atom Empirical Force Field For Nucleic Acids: I. Parameter Optimization Based On Small Molecule And Condensed Phase Macromolecular Target Data. J. Comput. Chem. 2000, 21, 86−104. (11) Anderson, R. L.; Bray, D. J.; Ferrante, A. S.; Noro, M. G.; Stott, I. P.; Warren, P. B. Dissipative Particle Dynamics: Systematic Parametrization Using Water-Octanol Partition Coefficients. J. Chem. Phys. 2017, 147, 094503. (12) Wang, L.-P.; McKiernan, K. A.; Gomes, J.; Beauchamp, K. A.; Head-Gordon, T.; Rice, J. E.; Swope, W. C.; Martínez, T. J.; Pande, V. S. Building A More Predictive Protein Force Field: A Systematic And Reproducible Route To Amber-Fb15. J. Phys. Chem. B 2017, 121, 4023−4039. (13) Jorgensen, W. L.; Maxwell, D. S.; Tirado-Rives, J. Development And Testing Of The Opls All-Atom Force Field On Conformational Energetics And Properties Of Organic Liquids. J. Am. Chem. Soc. 1996, 118, 11225−11236. (14) Jorgensen, W. L.; Tirado-Rives, J. The Opls [Optimized Potentials For Liquid Simulations] Potential Functions For Proteins, Energy Minimizations For Crystals Of Cyclic Peptides And Crambin. J. Am. Chem. Soc. 1988, 110, 1657−1666. (15) Vanommeslaeghe, K.; MacKerell, A. D., Jr Automation Of The Charmm General Force Field (Cgenff) I: Bond Perception And Atom Typing. J. Chem. Inf. Model. 2012, 52, 3144−3154. (16) Vanommeslaeghe, K.; Raman, E. P.; MacKerell, A. D., Jr Automation Of The Charmm General Force Field (Cgenff) Ii: Assignment Of Bonded Parameters And Partial Atomic Charges. J. Chem. Inf. Model. 2012, 52, 3155−3168. (17) Popelier, P. L. Mol. Sim. By Knowledgeable Quantum Atoms. Phys. Scr. 2016, 91, 033007. (18) Huang, L.; Roux, B. Automated Force Field Parameterization For Nonpolarizable And Polarizable Atomic Models Based On Ab Initio Target Data. J. Chem. Theory Comput. 2013, 9, 3543−3556. (19) Wu, J. C.; Chattree, G.; Ren, P. Automation Of Amoeba Polarizable Force Field Parameterization For Small Molecules. Theor. Chem. Acc. 2012, 131, 1138. (20) Wang, L.-P.; Martinez, T. J.; Pande, V. S. Building Force Fields: An Automatic, Systematic, And Reproducible Approach. J. Phys. Chem. Lett. 2014, 5, 1885−1891. (21) Zielinski, F.; Maxwell, P. I.; Fletcher, T. L.; Davie, S. J.; Di Pasquale, N.; Cardamone, S.; Mills, M. J.; Popelier, P. L. Geometry Optimization With Machine Trained Topological Atoms. Sci. Rep. 2017, 7, 12817. (22) McDonagh, J. L.; Silva, A. F.; Vincent, M. A.; Popelier, P. L. Machine Learning Of Dynamic Electron Correlation Energies From Topological Atoms. J. Chem. Theory Comput. 2018, 14, 216−224. (23) Silva, A. F.; Vincent, M. A.; McDonagh, J. L.; Popelier, P. L. The Transferability Of Topologically Partitioned Electron Correlation Energies In Water Clusters. ChemPhysChem 2017, 18, 3360−3368. (24) Bartoḱ , A. P.; Payne, M. C.; Kondor, R.; Csań yi, G. Gaussian Approximation Potentials: The Accuracy Of Quantum Mechanics, Without The Electrons. Phys. Rev. Lett. 2010, 104, 136403. (25) Behler, J. Perspective: Machine Learning Potentials For Atomistic Simulations. J. Chem. Phys. 2016, 145, 170901.
+
+4286
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+
+Article
+
+(26) Ramakrishnan, R.; Dral, P. O.; Rupp, M.; von Lilienfeld, O. A. Big Data Meets Quantum Chemistry Approximations: The Δ-Machine Learning Approach. J. Chem. Theory Comput. 2015, 11, 2087−2096. (27) Rupp, M.; Tkatchenko, A.; Müller, K.-R.; Von Lilienfeld, O. A. Fast And Accurate Modeling Of Molecular Atomization Energies With Machine Learning. Phys. Rev. Lett. 2012, 108, 058301. (28) Smith, J. S.; Isayev, O.; Roitberg, A. E. Ani-1: An Extensible Neural Network Potential With Dft Accuracy At Force Field Computational Cost. Chem. Sci. 2017, 8, 3192−3203. (29) Hansen, K.; Biegler, F.; Ramakrishnan, R.; Pronobis, W.; von Lilienfeld, O. A.; Muller, K.-R.; Tkatchenko, A. Machine Learning Predictions Of Molecular Properties: Accurate Many-Body Potentials And Nonlocality In Chemical Space. J. Phys. Chem. Lett. 2015, 6, 2326− 2331. (30) Wang, S.; Guo, H.; Li, Y.; Li, X. Penetration of nanoparticles across a lipid bilayer: effects of particle stiffness and surface hydrophobicity. Nanoscale 2019, 11, 4025−4034. (31) Liu, Y.; Li, S.; Liu, X.; Sun, H.; Yue, T.; Zhang, X.; Yan, B.; Cao, D. Design of Small Nanoparticles Decorated with Amphiphilic Ligands: Self-preservation Effect and Translocation into a Plasma Membrane. ACS Appl. Mater. Interfaces 2019, 11, 23822. (32) Dequidt, A.; Solano Canchaya, J. G. Bayesian Parametrization Of Coarse-Grain Dissipative Dynamics Models. J. Chem. Phys. 2015, 143, 084122. (33) Solano Canchaya, J. G.; Dequidt, A.; Goujon, F.; Malfreyt, P. Development Of DPD Coarse-Grained Models: From Bulk To Interfacial Properties. J. Chem. Phys. 2016, 145, 054107. (34) Liu, P.; Shi, Q.; Daume,́ H., III; Voth, G. A. A Bayesian Statistics Approach To Multiscale Coarse Graining. J. Chem. Phys. 2008, 129, 214114. (35) Ruff, K. M.; Harmon, T. S.; Pappu, R. V. Camelot: A Machine Learning Approach For Coarse-Grained Simulations Of Aggregation Of Block-Copolymeric Protein Sequences. J. Chem. Phys. 2015, 143, 243123. (36) Li, Z.; Bian, X.; Yang, X.; Karniadakis, G. E. A Comparative Study Of Coarse-Graining Methods For Polymeric Fluids: Mori-Zwanzig Vs. Iterative Boltzmann Inversion Vs. Stochastic Parametric Optimization. J. Chem. Phys. 2016, 145, 044102. (37) Tschöp, W.; Kremer, K.; Batoulis, J.; Bürger, T.; Hahn, O. Simulation Of Polymer Melts. I. Coarse-Graining Procedure For Polycarbonates. Acta Polym. 1998, 49, 61−74. (38) Ingoĺ fsson, H. I.; Lopez, C. A.; Uusitalo, J. J.; de Jong, D. H.; Gopal, S. M.; Periole, X.; Marrink, S. J. The power of coarse graining in biomolecular simulations. Wiley Interdiscip. Rev.: Comput. Mol. Sci. 2014, 4, 225−248. (39) Reith, D.; Pütz, M.; Müller-Plathe, F. Deriving Effective Mesoscale Potentials From Atomistic Simulations. J. Comput. Chem. 2003, 24, 1624−1636. (40) Izvekov, S.; Voth, G. A. A Multiscale Coarse-Graining Method For Biomolecular Systems. J. Phys. Chem. B 2005, 109, 2469−2473. (41) Schnackenberg, L. K.; Beger, R. D. Whole-Molecule Calculation Of Log P Based On Molar Volume, Hydrogen Bonds, And Simulated 13C Nmr Spectra. J. Chem. Inf. Model. 2005, 45, 360−365. (42) McDonagh, J.; van Mourik, T.; Mitchell, J. B. Predicting Melting Points Of Organic Molecules: Applications To Aqueous Solubility Prediction Using The General Solubility Equation. Mol. Inf. 2015, 34, 715−724. (43) Lyubartsev, A. P.; Jacobsson, S. P.; Sundholm, G.; Laaksonen, A. Solubility Of Organic Compounds In Water/Octanol Systems. A Expanded Ensemble Molecular Dynamics Simulation Study Of Log P Parameters. J. Phys. Chem. B 2001, 105, 7775−7782. (44) Anderson, R. L.; Bray, D. J.; Del Regno, A.; Seaton, M. A.; Ferrante, A. S.; Warren, P. B. Micelle Formation in Alkyl Sulfate Surfactants Using Dissipative Particle Dynamics. J. Chem. Theory Comput. 2018, 14, 2633−2643. (45) Shkurti, A. https://www.scd.stfc.ac.uk/Pages/carol.aspx, 2018. (46) Chen, J.; Xin, B.; Peng, Z.; Dou, L.; Zhang, J. Optimal Contraction Theorem For Exploration−Exploitation Tradeoff In
+
+Search And Optimization. IEEE Trans. Syst., Man, and Cybern. A 2009, 39, 680−691. (47) Auer, P. Using Confidence Bounds For Exploitation-Exploration Trade-Offs. J. Mach. Learn. Res. 2002, 3, 397−422. (48) Tan, K. C.; Chiam, S. C.; Mamun, A.; Goh, C. K. Balancing Exploration And Exploitation With Adaptive Variation For Evolutionary Multi-Objective Optimization. Eur. J. Oper. Res. 2009, 197, 701−713. (49) Pedregosa, F.; Varoquaux, G.; Gramfort, A.; Michel, B. V.; Thirion; Grisel, O.; Blondel, M.; Prettenhofer, P.; Weiss, R.; Dubourg, V.; Vanderplas, J.; Passos, A.; Cournapeau, D.; Brucher, M.; Perrot, M.; Duchesnay, E. Scikit-learn: Machine Learning in Python. J. Mach. Learn. Res. 2011, 12, 2825−2830. (50) Shahriari, B.; Swersky, K.; Wang, Z.; Adams, R. P.; De Freitas, N. Taking The Human Out Of The Loop: A Review Of Bayesian Optimization. Proc. IEEE 2016, 104, 148−175. (51) Brochu, E.; Cora, V. M.; De Freitas, N. A Tutorial On Bayesian Optimization Of Expensive Cost Functions, With Application To Active User Modeling And Hierarchical Reinforcement Learning. arXiv.org 2010, 1012.2599. (52) Jasrasaria, D.; Pyzer-Knapp, E. O. Dynamic Control Of Explore/ Exploit Trade-Off In Bayesian Optimization. arXiv.org 2018, 1807.01279. (53) Groves, M.; Pyzer-Knapp, E. O. Efficient And Scalable Batch Bayesian Optimization Using K-Means. arXiv.org 2018, 1806.01159. (54) Groot, R.; Rabone, K. Mesoscopic Simulation Of Cell Membrane Damage, Morphology Change And Rupture By Nonionic Surfactants. Biophys. J. 2001, 81, 725−736. (55) Venturoli, M.; Smit, B. Simulating the self-assembly of model membranes. PhysChemComm 1999, 2, 45−49. (56) Nagarajan, R. Molecular Packing Parameter and Surfactant SelfAssembly: The Neglected Role of the Surfactant Tail. Langmuir 2002, 18, 31−38. (57) Venturoli, M.; Sperotto, M. M.; Kranenburg, M.; Smit, B. Mesoscopic models of biological membranes. Phys. Rep. 2006, 437, 1− 54. (58) Sangster, J. Octanol-Water Partition Coefficients Of Simple Organic Compounds. J. Phys. Chem. Ref. Data 1989, 18, 1111−1229. (59) Sangster, J. Octanol-Water Partition Coeﬃcients: Fundamentals And Physical Chemistry; John Wiley & Sons, 1997. (60) Bergström, C. A.; Norinder, U.; Luthman, K.; Artursson, P. Experimental And Computational Screening Models For Prediction Of Aqueous Drug Solubility. Pharm. Res. 2002, 19, 182−188. (61) Schulte, J.; Dürr, J.; Ritter, S.; Hauthal, W.; Quitzsch, K.; Maurer, G. Partition Coefficients For Environmentally Important, Multifunctional Organic Compounds In Hexane+ Water. J. Chem. Eng. Data 1998, 43, 69−73. (62) Swope, W. C.; Johnston, M. A.; Duff, A. I.; McDonagh, J. L.; Anderson, R. L.; Alva, G.; Tek, A. T.; Maschino, A. P. The Challenge To Reconcile Experimental Micellar Properties Of The Cnem Nonionic Surfactant Family. J. Phys. Chem. B 2019, 123, 1696. (63) Zang, Q.; Mansouri, K.; Williams, A. J.; Judson, R. S.; Allen, D. G.; Casey, W. M.; Kleinstreuer, N. C. In Silico Prediction Of Physicochemical Properties Of Environmental Chemicals Using Molecular Fingerprints And Machine Learning. J. Chem. Inf. Model. 2017, 57, 36−49. (64) Mansouri, K.; Grulke, C. M.; Judson, R. S.; Williams, A. J. Opera Models For Predicting Physicochemical Properties And Environmental Fate Endpoints. J. Cheminf. 2018, 10, 10. (65) Ruelle, P. The N-Octanol And N-Hexane/Water Partition Coefficient Of Environmentally Relevant Chemicals Predicted From The Mobile Order And Disorder (Mod) Thermodynamics. Chemosphere 2000, 40, 457−512. (66) El Tayar, N.; Tsai, R.-S.; Testa, B.; Carrupt, P.-A.; Hansch, C.; Leo, A. Percutaneous Penetration Of Drugs: A Quantitative StructurePermeability Relationship Study. J. Pharm. Sci. 1991, 80, 744−749. (67) Garrido, N. M.; Economou, I. G.; Queimada, A. J.; Jorge, M.; Macedo, E. A. Prediction Of The N-Hexane/Water And 1-Octanol/
+
+4287
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+
+Journal of Chemical Information and Modeling
+Water Partition Coefficients For Environmentally Relevant Compounds Using Mol. Sim. AIChE J. 2012, 58, 1929−1938. (68) Seaton, M.; Smith, W. Dl Meso User Manual; 2016. (69) Bray, D. J. https://www.scd.stfc.ac.uk/Pages/UMMAP.aspx, 2017.
+
+Article
+
+4288
+
+DOI: 10.1021/acs.jcim.9b00646 J. Chem. Inf. Model. 2019, 59, 4278−4288
+

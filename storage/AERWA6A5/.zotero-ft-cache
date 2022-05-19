@@ -1,0 +1,226 @@
+    Skip to Article Content
+    Skip to Article Information
+
+Wiley Online Library
+University Of Massachusetts
+Search within
+
+    Search term
+
+Login / Register
+Proteins: Structure, Function, and Bioinformatics
+Volume 84, Issue 9 p. 1224-1233 Proteins: Structure, Function, and Bioinformatics
+Article
+Full Access
+GGIP: Structure and sequence-based GPCR–GPCR interaction pair predictor
+Wataru Nemoto ,
+Correspondence to: Wataru Nemoto. E-mail: or
+Yoshihiro Yamanishi ,
+Vachiranee Limviphuvadh ,
+Akira Saito ,
+Hiroyuki Toh ,
+First published: 18 May 2016
+https://doi.org/10.1002/prot.25071
+Citations: 7
+OpenURL University Of Massachusetts
+Sections
+PDF PDF
+Tools
+Share
+ABSTRACT
+
+G Protein-Coupled Receptors (GPCRs) are important pharmaceutical targets. More than 30% of currently marketed pharmaceutical medicines target GPCRs. Numerous studies have reported that GPCRs function not only as monomers but also as homo- or hetero-dimers or higher-order molecular complexes. Many GPCRs exert a wide variety of molecular functions by forming specific combinations of GPCR subtypes. In addition, some GPCRs are reportedly associated with diseases. GPCR oligomerization is now recognized as an important event in various biological phenomena, and many researchers are investigating this subject. We have developed a support vector machine (SVM)-based method to predict interacting pairs for GPCR oligomerization, by integrating the structure and sequence information of GPCRs. The performance of our method was evaluated by the Receiver Operating Characteristic (ROC) curve. The corresponding area under the curve was 0.938. As far as we know, this is the only prediction method for interacting pairs among GPCRs. Our method could accelerate the analyses of these interactions, and contribute to the elucidation of the global structures of the GPCR networks in membranes. Proteins 2016; 84:1224–1233. © 2016 Wiley Periodicals, Inc.
+INTRODUCTION
+
+G Protein-Coupled Receptors (GPCRs) constitute the largest family of plasma membrane proteins. It is estimated that there are over 1000 GPCRs encoded in the human genome. Approximately 600 of the GPCRs are represented by sensory receptors and are thus considered to be therapeutically irrelevant, whereas the remaining 400 are potential drug targets. 1 Numerous studies have reported that GPCRs function not only as monomers but also as oligomers; that is, dimers or higher-order molecular complexes. 2 - 6 Many studies have reported that the functions of GPCRs, such as the ligand binding specificity, the affinity, and the downstream signaling activity, are modified through homo- and hetero-dimer formation. 3 - 5 , 7 - 9 Although their functional importance remains enigmatic and in some cases even controversial, as summarized by Terrillon, 7 several stages of the GPCR life cycle in a cell could be affected by dimerization (see Ref. 7 for review). In addition, GPCR oligomerizations are associated with various diseases. 5 For instance, the hetero-oligomerization between cannabinoid receptor 1 (Cbr1) and angiotensin receptor 1 (Agtr1) is suggested to be involved in the enhancement of angiotensin II-mediated signaling and the coupling of Agtr1 with multiple trimeric G proteins in hepatic stellate cells, in ethanol-treated rats with upregulated Cbr1. 10 Therefore, in liver fibrosis caused by alcohol consumption, the Cbr1-Agtr1 heterodimer may be a novel target for anti-fibrotic compounds. 10 Thus, studies of GPCR oligomerization are necessary not only to understand disease mechanisms but also to reveal novel pathways for the treatment of various illnesses (see ref. 5 for review). Oligomer-specific ligands are now considered to be one of the promising strategies to control GPCR functions precisely. 8 , 9 , 11 Devi et al . identified compounds that selectively activate the μ-δ opioid receptor heterodimer, which thus have potential uses in pain treatment without the undesirable effects associated with opiate use (PubChem AID 588407). 12
+
+If we suppose that there are 1000 GPCR genes in the human genome, then the number of all possible hetero pairs from the 1000 GPCRs is 499,500. Systematic experimental studies of oligomerization for such a vast number of combinations of GPCRs would be time-consuming and costly. Hence, an accurate method to predict interacting pairs could accelerate such studies, by reducing their costs.
+
+There are various methods to predict interacting pairs between soluble proteins 13 or between soluble and membrane proteins. 14 However, these methods cannot be applied to predict interacting GPCR pairs, since the characteristics used for the predictions between soluble proteins or between soluble and membrane proteins are different from those between membrane proteins.
+
+We have developed GPCR–GPCR interacting pair predictor (GGIP), a method to predict specifically interacting pairs for GPCR hetero-oligomerization, by integrating the structure and sequence information of GPCRs. In GGIP, different structural regions are assumed to be used for the interaction interfaces among different GPCRs, because the interfaces for GPCR–GPCR interactions are not always conserved even among closely related GPCRs. 15 - 17 The prediction by GGIP is made by the support vector machine (SVM), which classifies a given hetero GPCR pair into either an interacting pair or a non-interacting pair by using a pair-wise kernel. In this article, we describe the advantages and disadvantages of our method.
+MATERIALS AND METHODS
+Preparation of Training Data and Prediction Targets
+
+In this study, we used 353 mouse non-odorant GPCR sequences with available gene expression profiles in 41 tissues, 18 as the prediction targets. These target amino acid sequences were retrieved from the RefSeq database. 19 , 20 The RefSeq IDs of the mouse sequences are provided in Supporting Information Table SI. We used the GPCR abbreviations reported in Regard's work. 18 Their homologous sequences in human are the principal targets for medical treatments. The number of all possible pairs of the 353 GPCRs is 62,128 ( 353 C 2 ).
+
+Among them, 61 pairs were treated as positive data for training, to develop the predictor. Among the 61 pairs, 16 pairs are registered as mouse non-odorant GPCR pairs in the GPCR oligomer databases. 21 , 22 Referring to the databases and the literature, 21 - 34 the remaining 45 pairs were identified in non-mouse species, but their orthologous pairs are present in mice. All positive pairs are listed in Supporting Information Table SII.
+
+Negative data candidates for training to develop the predictor were collected, as follows. As negative data candidates, 21 pairs of mouse receptors with orthologous pairs from other species that have been experimentally characterized as non-interactive with each other 4 , 21 , 23 , 29 , 35 - 39 were used. To compensate for the imbalance in the sizes of the positive and negative datasets, the negative dataset was augmented as follows. Among the 62,128 possible GPCR pairs, 9275 pairs are not coexpressed in any of the 41 examined mouse tissues. 18 The 9275 pairs were also used as the negative data candidates, under the assumption that a pair of proteins, which are not coexpressed, will not interact with each other. By adding the 9275 pairs to the 21 negative pairs, the total number of negative data candidates became 9296 pairs (= 21 + 9275). The negative data candidates are listed in Supporting Information Table SIII.
+
+The negative pairs for the training were randomly selected from the negative data candidates. The size of the negative data set thus selected was set to three times greater than the number of positive pairs. Then, the experimentally suggested 21 pairs were always selected as the negative data.
+
+The interactions of the remaining 52,771 pairs (= 62,128 – 61 – 9296) have not been characterized yet, although they are coexpressed in at least one of the 41 tissues. These pairs were used to predict novel interacting pairs.
+SVM-Based Method to Predict GPCR–GPCR Interacting Pairs
+
+To predict GPCR–GPCR interaction pairs, we used the SVM. In recent years, the SVM has been gaining popularity in the analyses of biological problems, 40 - 45 such as gene and tissue classifications from microarray expression data, 41 protein subcellular localization prediction, 40 , 42 protein function classification, 44 and protein structural class prediction. 45 By learning a set of positively and negatively labeled training samples, the SVM classifies new unlabeled test samples.
+In this study, we regarded the pair of the x and y GPCRs as the sample, and used the SVM to classify GPCR–GPCR pairs into either the interaction or non-interaction class. Suppose that we have a set of GPCR–GPCR pairs {( x , y ) 1 , ( x , y ) 2 , …, ( x , y ) m }, where m is the number of GPCR–GPCR pairs in the learning set, and each pair in the set belongs to either the interaction or non-interaction class. The SVM classifier is formulated as follows:
+urn:x-wiley:08873585:media:prot25071:prot25071-math-0001 (1)
+where ( x ′, y ′) is any new GPCR–GPCR pair to be classified, K pair is a kernel similarity function for GPCR–GPCR pairs, and {τ 1 , τ 2 , …, τ m } are the parameters learned. If f ( x ′, y ′) is positive, then GPCR x ′ and GPCR y ′ are predicted to interact with each other. In contrast, if f ( x ′, y ′) is negative, then GPCR x ′ and GPCR y ′ are predicted not to interact. We compute the pairwise kernel function for the GPCR–GPCR pairs in the SVM algorithm, as follows:
+urn:x-wiley:08873585:media:prot25071:prot25071-math-0002 (2)
+where Κ is a kernel similarity function for GPCRs. The pairwise kernel function was proposed in a previous study for predicting protein–protein interactions. 45
+
+We prepared a set of values (e.g., 0.001,0.01,0.1,1,10,100,1000) for the regularization parameter C in SVM, tested each value to calculate the classification accuracy by cross-validation, and chose the value that provided the highest accuracy. The best parameter value depends on a random seed used for data splitting in the cross-validation, but the accuracy tends to be the highest when the regularization parameter C is 1. Thus, we set C = 1 in the analyses in the article.
+Preparation of Feature Vectors
+
+The feature vectors for the pairs were generated by integrating the structure and sequence information, as follows.
+Preprocessing of Structure and Sequence Data of Each GPCR
+
+To obtain the structure information for each target GPCR sequence, the structure of the most closely related sequence to the target was used as the template. At present, 125 PDB entries contain GPCR crystal structures belonging to the class A, B, or C GPCRs. When more than two Protein Data Bank (PDB) entries contain an identical GPCR, we adopted the entry of the protein structure with the highest resolution and the maximum sequence length as the candidate for the template structure.
+
+We used the chain where transmembrane regions are annotated in the Protein Data Bank of Transmembrane Proteins (PDBTM). 46 As a result, 65 structures were adopted as candidates for a template structure for each GPCR. Among them, the structure of the most closely related sequence to the target GPCR sequence was selected. The adopted PDB IDs and their chains are listed in Supporting Information Table SIV.
+
+In each PDB file, we removed the hetero atom (HETATM) lines. The ATOM lines corresponding to an artificially conjugated domain that was used to facilitate the crystallization of a PDB structure were removed. For instance, the atom (ATOM) lines corresponding to lysozyme, which is artificially connected to intracellular loop III of β 2 adrenergic receptor (Adrb2) (PDB ID: 3D4S chain A), 47 were removed.
+Segmentation of a GPCR Sequence Based on the Template Structure
+
+There are two possible mechanisms for the formation of a GPCR oligomer. One is domain contact oligomerization, while the other is domain-swapping oligomerization. 48 Although the two mechanisms are still under debate, there is some evidence to support the domain contact mechanism. 49 - 53 Therefore, we have developed a method based on the assumption that GPCRs form oligomers by the domain contact mechanism. Domain contact oligomers reportedly have at least one of three types of interaction interfaces for oligomerization. 54 The first type of interface exists in the amino-terminal extracellular region, which forms disulfide bonds with the corresponding region of an interaction partner. 55 The second interface type is at the carboxyl cytoplasmic tail, which forms a coiled-coil structure with an interaction partner. 56 The third type is located on the lipid-facing surface along the seven transmembrane helices. The critical residues for oligomerization seem to be scattered along the transmembrane helices 15 , 51 , 52 , 57 or loops, 58 but have the loose regulation to cluster on either the extracellular side, central or intracellular side of transmembrane helices, or at some of them. 15 , 51 , 52 The details of the oligomerizations based on these mechanisms are provided in the Supporting Information.
+
+Based on the observations of the domain contact oligomerizations, we divided each target GPCR sequence into 29 segments, with reference to the structural information of the template structure (Fig. 1 ). First, the N- and C-termini, the three extracellular loops, and the three intracellular loops constitute eight segments. Second, each transmembrane helix was further split into three segments: the seven residues constituting the N-terminus of the helical region, the seven residues constituting the C-terminus of the helical region, and the remaining region constituting the center of the helix. Then, the helical region that is continuous with a transmembrane helix, but located outside the membrane, is included in one of the loops. Thus, the transmembrane helices were split into 21 (= 3 × 7) segments.
+Details are in the caption following the image
+Figure 1
+Open in figure viewer PowerPoint
+
+Procedure for the development of our method. Two amino acid sequences of a hetero GPCR pair were used as input. Each sequence was split into 29 segments, according to a closely related structure. The average scores of various characteristics were calculated for each segment, and used as the elements of a feature vector for a GPCR pair.
+
+As a result, 29 (= 8 + 21) segments were obtained. A label corresponding to one of the structural segments was assigned to each residue of a target GPCR sequence, based on the pairwise alignment between the sequence of the target GPCR and that of the template structure. We focused on the exposed residues in each segment, because we assumed in this study that buried residues are not involved in the physical contact for the GPCR–GPCR interaction. An exposed residue was defined as a residue with a relative accessible surface area (rASA) ≥25%. 15 The rASA was calculated by using NACCESS. 59
+Designing of a Feature Vector for Each Segment
+
+As shown in Figure 1 , the feature vector for each pair consists of 1624 elements, where two sets of 812 scores corresponding to target GPCRs are integrated (1624 = 2 × 812). The 812 scores consist of 28 scores for the defined 29 segments of each GPCR (812 = 28 × 29).
+
+To represent the features of each segment, 28 scores were calculated. Among them, seven scores are the averages of three hydrophobicity scores, 60 - 62 the log of partition coefficient (log P ), 63 the acidity, 64 the polarity, 64 and the isoelectric point ( p I) 64 over the amino acid residues in each segment. The remaining 21 scores were calculated to indicate the presence or absence of 20 types of amino acids and the GXXXG motif 65 in each segment. These 21 kinds of presence or absence scores were represented as binary expressions.
+
+As a result, a single GPCR had 812 scores (= (7 + 21) × 29). The feature vector for each pair is designed to integrate the two sets of 812 scores corresponding to the pair of target GPCRs. The obtained vector has the size of 1624 elements.
+Performance Evaluations
+
+In this study, the performance of a predictor was evaluated with a Receiver Operating Characteristic (ROC) curve. The horizontal and vertical axes of the ROC curve represent the false positive and true positive rates, respectively. Both rates were obtained by varying the threshold used to classify interacting and non-interacting GPCR pairs. Herein, a true positive is a correctly predicted pair, whereas a false positive is a predicted pair that is not present in the positive dataset.
+
+The prediction performance was evaluated based on the Area Under the ROC Curve (AUC). 66 The value of AUC ranges from 0 to 1. An AUC value close to 1 indicates the good performance of the predictor. The 5-fold cross validation was performed for a predictor, as follows. The set of all pairs was split into five equally sized subsets. In each validation cycle, one subset was removed for evaluation, and the remaining subsets were used for the training of the predictor. Thus, five AUCs were obtained for each cross-validation cycle. The average of the five AUCs was used as a measure of the performance of a predictor. Performance comparisons of the five predictors are provided in Figure 2 .
+Details are in the caption following the image
+Figure 2
+Open in figure viewer PowerPoint
+
+Performance comparison of GGIP and other predictors.
+Other Predictors With Different Feature Vectors
+
+We evaluated the prediction accuracy of GGIP, by comparisons with those of the four other predictors. Details of the other predictors are described below.
+Other Structure- and Sequence-Based Predictors
+
+Some GPCRs reportedly form oligomers in an active (agonist-bound) conformation, while others are in an inactive (antagonist-bound) conformation. 3 , 67 , 68 To examine whether the conformation of a template structure affects the prediction accuracy of GGIP, we prepared two other structure- and sequence-based predictors that use either an active or inactive conformation structure as the template. 69 The active-form predictor uses one of the 10 agonist-bound structures as the template of each target GPCR, while the inactive form predictor uses one of the 55 antagonist-bound structures (Supporting Information Table SV). The procedures used to generate their feature vectors are the same as those of GGIP.
+Sequence-Based Predictor
+Ben-Hur et al . 45 proposed the use of sequence similarity for predicting protein–protein interactions in the SVM framework. 70 Here, we also tested the sequence similarity for the prediction of interacting GPCR pairs. The sequence similarity score S ij is calculated as a kernel similarity function of GPCRs, as follows:
+urn:x-wiley:08873585:media:prot25071:prot25071-math-0003 (3)
+where the Smith-Waterman based score 70 is divided by the lengths of sequences i and j ( N i and N j ). The resulting normalized score is transformed into a positive definite kernel by subtracting the minimum eigenvalue. Then, the corresponding pairwise kernel is computed for all of the pairs among the 353 GPCRs.
+G Protein-Coupling Profile-Based Predictor
+
+Most GPCRs exert their signal transduction activity through coupling with one or several types of G proteins, although a few GPCRs have G protein-independent functions. 71 The G protein types are specific for a particular set of GPCRs and downstream signaling pathways. We tested the profile of the coupled G proteins for the prediction of interacting GPCR pairs. The set of the coupled G proteins of a GPCR was expressed as a four-dimensional binary vector. Each element of the vector corresponds to G s , G i , G q , and G o/11 . If the GPCRs coupled with a G protein, then the corresponding element of the vectors is set to 1. Otherwise, it is 0. Information about the coupled G proteins of 245 target GPCRs was manually retrieved from the International Union of Basic and Clinical Pharmacology (IUPHAR) website. 72 The coupled G proteins for the remaining 108 GPCRs were predicted by Griffin, 14 which is a web-based system to predict a coupled G protein from the amino acid sequence of a given GPCR. The four-dimensional profile was used as a feature vector of each GPCR, and the similarity of the GPCR profiles was calculated by the Gaussian RBF kernel. Then, the corresponding pairwise kernel based on the profile similarities was computed for all of the pairs among the 353 GPCRs.
+RESULTS
+
+The performance of GGIP was evaluated by an ROC curve (Fig. 2 ). The AUC 66 was 0.938 (red line). We also tested other features for the prediction accuracy. The AUCs of these predictors were 0.931 (green: active conformation and sequence information), 0.921 (blue: inactive conformation and sequence information), 0.863 (orange: sequence similarity), and 0.758 (grey: G protein-coupling profile), respectively. Comparisons with the four approaches revealed that GGIP showed the highest performance, although the true positive rates of the predictors with an active or inactive conformation are larger than that of GGIP in the region where the false positive rate is smaller than 0.100. All of the predicted interacting pairs are listed in Supporting Information Table SVI. In addition to 5-fold cross-validation, we performed leave-one-out cross-validation, and confirmed that the proposed method tends to work the best, regardless of the cross-validation procedure. We evaluated the effects of data imbalance by varying the ratio between positive and negative samples (e.g., 1:1, 1:2, 1:3, 1:4, 1:5). The corresponding AUC scores are summarized in the Supporting Information Table SVII. These results suggest that the proposed method tends to work the best, regardless of data imbalance. In an attempt to improve the prediction accuracy of GGIP, these types of information were integrated in various combinations and used to design predictors. However, the performance was not improved.
+DISCUSSION
+Advantages and Disadvantages of the Predictors
+
+As described above, GGIP (AUC = 0.938) outperformed the other predictors (Fig. 2 ). The active conformation-based predictor (AUC = 0.931) and the inactive conformation-based predictor (AUC = 0.921) also showed high performance. In contrast, the performances of the predictors without structure information were comparatively low. These results imply that structure information contributes to the high performance of the predictor. As described in the Materials and methods section, three structure-based predictors differ in the conformations of the template structure candidates. GGIP adopted the structure of the most closely related sequence as the template of the target GPCR, regardless of the conformation. As a result, the adopted structures for GGIP consist of four structures in an active conformation and 18 structures in an inactive conformation. The active conformation-based predictor and the inactive conformation-based predictor used 10 structures in an active conformation and 21 structures in an inactive conformation, respectively. Comparisons of the performances of the three structure-based predictors showed that the conformational differences among the template structures did not cause significant differences in the performance. This may signify that the difference in the amino acid composition of a structural segment between closely related sequences with different conformations is smaller than that between distantly related sequences with the same conformations. The result suggests that the accuracy of the prediction is improved if the structures with amino acid sequences that are close to those of the GPCR pair under consideration are available, regardless of their conformations. Therefore, an increase in the available coordinates of GPCRs would further improve the accuracy of our prediction method.
+
+The sequence similarity-based predictor demonstrated an AUC of 0.863. Although this performance is lower than those of the structure-based predictors, the good performance of this predictor seems to agree with the tendency that proteins with high sequence similarity interact with each other. 23 However, GPCRs with high sequence similarity do not always interact with each other. 23 For example, μ-opioid receptor (Oprm) interacts with δ-opioid receptor (Oprd) and κ-opioid receptor (Oprk), but Oprd does not form an oligomer with Oprk. 11 , 38 , 73 , 74 The percent sequence identities between the human opioid receptor subtypes are 59% (Oprk–Oprd), 60% (Oprm–Oprk), and 63% (Oprm–Oprd). Thus, sequence similarity and identity do not seem to have a relationship with GPCR–GPCR interactions. This might be the reason for the lower performance of the sequence-based predictor.
+
+The AUC for the G protein coupling profile-based predictor was 0.758, which was the lowest among all of the predictors. This result indicates that two GPCRs with identical G protein coupling profiles do not always interact with each other. In fact, the oligomerization can occur between GPCRs that couple with different G proteins. For example, G i /G o -coupled A1 adenosine receptor and G q -coupled P2Y1 receptor coimmunoprecipitate in cotransfected HEK293T cells. 75 In addition, several GPCRs reportedly change their coupling G protein types through the formation of heterodimers. For example, G q /G 11 -coupling growth hormone secretagogue receptor 1b and neurotensin receptor 1 heterodimerize in non-small cell lung cancer cells. This heterodimer binds neuromedin U and couples with G s , although the endogenous neuromedin U receptor couples with G q /G 11 . 76 Thus, the G protein coupling profile seems to be more complicated than previously thought. Further consideration will be needed to use the profile for the development of a high performance predictor.
+Disease-Related Interacting GPCR Pairs
+
+As described above, various diseases are associated with specific combinations of GPCRs. 5 A recent study reported that somatic mutations in GPCR-encoding genes are frequently found in many types of cancer. 77 Among the somatic mutations, hotspot mutations are defined as recurrent amino acid changes occurring in coding sequences. The hotspot mutations observed in G proteins and GPCRs were recently summarized in a review. 78 The data revealed that many GPCRs have hotspot mutations in the same types of cancer tissues (see Supporting Information Table SIII of this review 78 ). For example, 145 GPCRs with hotspot mutations were found in lung cancer tissues. 78
+
+Most of the hotspot mutations have not been characterized yet, and their effects on the cancer pathways remain unknown. 78 We expected to find some examples of mutations that may cause cancers by modifying GPCR oligomerization. Hence, we examined the 415 predicted interacting GPCR pairs, to determine whether there are GPCRs with hotspot mutations in the same types of cancer tissues. Among them, 73 predicted interacting pairs present in the same types of cancer tissues have hotspot mutations in each monomer of the predicted pairs. We then examined whether these hotspot mutations are present in the predicted interfaces of the GPCRs by using the method to predict interfaces for GPCR oligomerization, 16 , 79 which predicts at most two interface regions for a given GPCR. The interface prediction requires the coordinate data of a GPCR monomer structure, 15 , 79 and this restriction further reduced the number of the GPCRs we could examine. We found hotspot mutations in Glutamate receptor type 1 (Grm1), as a possible example that may be related to the pathology of lung cancer by affecting the heterodimerization with Adrenergic receptor A2b (Adra2b). Both GPCRs have hotspot mutations associated with lung cancer. Although no coordinate data of Adra2b are currently available, the structure of the Grm1 homodimer was recently determined. 80 Therefore, we predicted the interfaces of Grm1 in this study.
+
+Two predicted interfaces were mapped on chain A of the crystal structure of the Grm1 homodimer 80 (see Fig. 3 ). One of the interfaces consisted of helix II and the extracellular side of helix III, while the other interface was formed by the membrane-facing surface regions of helices IV and V, along with the cytoplasmic tail of helix III. As shown in Figure 3 , the former interface agreed with the interface for homodimerization. 80 Therefore, the latter interface could be used for the interaction with Adra2b. Among the hotspot mutations in the Grm1, R681H/G and R684C were found on the cytoplasmic surface of helix III, one of the constituents of the interface for heterooligomerization (depicted as yellow spheres in Fig. 3 ). These hotspot mutations might be related to the pathology of lung cancer, by affecting heterodimerization.
+Details are in the caption following the image
+Figure 3
+Open in figure viewer PowerPoint
+
+Two predicted interfaces mapped on a protomer constituting a homodimer of Grm1. Two predicted interfaces are indicated in red smoothed surface and blue mesh, respectively. The residues corresponding to the hotspot mutations R681H/G and R684C are depicted as yellow spheres.
+
+As described above, many aspects of the interactions among GPCRs remain to be elucidated. High performance prediction methods could accelerate the analyses of these interactions, and contribute to the elucidation of the global structures of the GPCR networks in membranes. Thus, the integration of mutation data and the predicted interacting pairs could shed light on how hotspot mutations may influence the GPCR networks and affect the mechanisms related to the pathology of cancer.
+Concluding Remarks
+
+We have developed a high-performance method to predict interacting GPCR pairs. We would like to conclude by describing possible improvements and extensions of our method.
+
+The number of target GPCRs in this work was restricted to the targets in Regard's work, 18 because the current version of GGIP requires comprehensive gene expression data of the targets to generate negative data candidates. However, the number of targets will increase when we obtain more gene expression data or integrate the gene expression data of other GPCRs available from public databases.
+
+Membrane lipids have recently been implicated in the modulation of GPCR oligomerization. 81 - 84 In particular, the roles of membrane cholesterol content have been extensively investigated. Ganguly et al . 83 showed that cholesterol depletion appears to increase the dimeric fraction of the receptor population. Coarse-grained molecular dynamics simulations showed that the composition of the helices at the interface of the dimer for the Adrb2 varied, depending on the membrane cholesterol content. 85 Considering that cellular cholesterol is developmentally regulated and its content increases with aging, 86 , 87 Chattopadhyay advocated that the organization of GPCR oligomers could also be age-dependent. 81 In the next version of GGIP, we need to consider the cholesterol-mediated interactions between GPCR molecules, and to reconstruct positive and negative datasets with age-dependent GPCR oligomerization.
+
+The current version of GGIP cannot perform prediction when the structure information of query GPCRs is unavailable. However, secondary structure prediction and molecular surface prediction could compensate for the lack of structure information. The next version of GGIP will perform prediction without structure information of query GPCRs.
+ACKNOWLEDGMENTS
+
+We thank S. Maurer-Stroh for valuable comments about the relationships between the interacting GPCR pairs and the disease-related nsSNPs.
+
+AUTHOR CONTRIBUTIONS
+
+W.N. and H.T. conceived the concept to develop the prediction method and designed the feature vectors. Y.Y. optimized the parameters of the SVM procedures. V.L. and W.N. investigated the relationships between the interacting GPCR pairs and the disease-related nsSNPs. A.S. extended the method to predict interfaces for GPCR oligomerization for this research. All authors contributed to write the manuscript.
+COMPETING FINANCIAL INTERESTS
+
+The authors declare no competing financial interests.
+Supporting Information
+REFERENCES
+Citing Literature
+
+Volume 84 , Issue 9
+
+September 2016
+
+Pages 1224-1233
+
+    Figures
+    References
+    Related
+    Information
+
+Recommended
+
+    Agonist‐selective mechanisms of GPCR desensitization
+    E Kelly , C P Bailey , G Henderson ,
+    British Journal of Pharmacology
+
+    Revolution in GPCR signalling: opioid receptor heteromers as novel therapeutic targets: IUPHAR Review 10
+    Wakako Fujita , Ivone Gomes , Lakshmi A Devi ,
+    British Journal of Pharmacology
+
+    Two ligands for a GPCR, proton vs lysolipid
+    Dong-soon IM ,
+    Acta Pharmacologica Sinica
+
+    Past and Future Strategies for GPCR Deorphanization
+    Angélique Levoye , Nathalie Clement , Elodie Tenconi , Ralf Jockers ,
+    GPCR Molecular Pharmacology and Drug Targeting: Shifting Paradigms and New Directions, [1]
+
+    Orphan GPCR research
+    S Chung , T Funakoshi , O Civelli ,
+    British Journal of Pharmacology
+
+Download PDF
+back
+Additional links
+About Wiley Online Library
+
+    Privacy Policy
+    Terms of Use
+    Cookies
+    Accessibility
+    Publishing Policies
+
+Help & Support
+
+    Contact Us
+    Training and Support
+    DMCA & Reporting Piracy
+
+Opportunities
+
+    Subscription Agents
+    Advertisers & Corporate Partners
+
+Connect with Wiley
+
+    The Wiley Network
+    Wiley Press Room
+
+Copyright © 1999-2022 John Wiley & Sons, Inc . All rights reserved
+Wiley Home Page
+

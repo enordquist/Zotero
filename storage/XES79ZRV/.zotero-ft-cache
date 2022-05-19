@@ -1,0 +1,405 @@
+    Skip to Article Content
+    Skip to Article Information
+
+Wiley Interdisciplinary Reviews
+University Of Massachusetts
+Search within
+
+    Search term
+
+Login / Register
+
+    Journals
+    Explore
+
+    About WIREs
+    For Authors
+    Contact Us
+
+WIREs Computational Molecular Science
+Volume 1, Issue 5 p. 826-843 WIREs Computational Molecular Science
+Advanced Review
+Free Access
+Metadynamics
+Alessandro Barducci ,
+Massimiliano Bonomi ,
+Michele Parrinello ,
+Computational Science, Department of Chemistry and Applied Biosciences, ETH Zurich, USI Campus, Lugano, Switzerland
+First published: 18 February 2011
+https://doi.org/10.1002/wcms.31
+Citations: 665
+OpenURL University Of Massachusetts
+Sections
+PDF PDF
+Tools
+Share
+Abstract
+
+Metadynamics is a powerful technique for enhancing sampling in molecular dynamics simulations and reconstructing the free-energy surface as a function of few selected degrees of freedom, often referred to as collective variables (CVs). In metadynamics, sampling is accelerated by a history-dependent bias potential, which is adaptively constructed in the space of the CVs. Since its first appearance, significant improvements have been made to the original algorithm, leading to an efficient, flexible, and accurate method that has found many successful applications in several domains of science. Here, we discuss first the theory underlying metadynamics and its recent developments. In particular, we focus on the crucial issue of choosing an appropriate set of CVs and on the possible strategies to alleviate this difficulty. Later in the second part, we present a few recent representative applications, which we have classified into three main classes: solid-state physics, chemical reactions, and biomolecules. © 2011 John Wiley & Sons, Ltd. WIREs Comput Mol Sci 2011 1 826-843 DOI: 10.1002/wcms.31
+
+This article is categorized under:
+
+    Molecular and Statistical Mechanics > Free Energy Methods
+
+Abstract
+
+Description unavailable
+
+INTRODUCTION
+
+Over the years, after its early beginning in the late 1950s, molecular dynamics (MD) has become a standard tool used in many branches of science, from physics to biology, from chemistry to material science. Thanks also to the tremendous and continuous progress both in low- and high-end computing, MD is today a precious instrument for understanding the mechanisms underlying complex processes, interpreting the experimental results, and making novel predictions.
+
+However, the results of an MD simulation are meaningful only if the run is long enough for the system to visit all the energetically relevant configurations or, in other words, if the system is ergodic in the timescale of the simulation. In practical situations, this is not always the case. One frequent source of difficulty is that the relevant configurations might be separated by high free-energy barriers. In such case, the change from one metastable state to another can take place only if activated by those rare fluctuations that take the system over the free energy. Another possibility is that the system diffuses extremely slowly in configuration space. Under these conditions, obtaining sufficient statistics requires an impractical amount of computer time.
+
+In fact, in a typical MD simulation that uses atomistic empirical force field, one needs to use a time step of the order of femtoseconds (i.e., 10 −15 seconds) to integrate correctly the equations of motions. This is required to resolve properly the fastest motion of the system, which are usually bond stretching and bond bending. Unfortunately, interesting events often take place on a much longer timescale. For example, a small denatured protein needs in excess of 10 −4 seconds to sample the rugged energy landscape and find its folded state. Thus to explore this process, about 10 11 MD time steps are needed. A rough evaluation of the computational cost of a single time step in the case of a small protein (∼32000 atoms) leads to the staggering estimation of 1 year of dedicated time on a petaflop machine to observe a single folding event. An even longer computer time would be needed if we have to simulate this system ab initio .
+
+From these considerations, it emerges clearly that MD is plagued by a timescale problem. In the last few years, a large variety of methods have been proposed to address this issue. These are often referred to as enhanced sampling techniques. An exhaustive review of all these methods is beyond the scope of this paper. We refer the interested reader to recent reviews. 1 , 2
+
+Metadynamics 3 belongs to a class of methods in which sampling is facilitated by the introduction of an additional bias potential (or force) that acts on a selected number of degrees of freedom, often referred to as collective variables (CVs). A number of methods can be thought of as belonging to this class, such as umbrella sampling, 4 local elevation, 5 conformational flooding, 6 , 7 adaptive force bias, 8 steered MD, 9 and self-healing umbrella sampling. 10
+
+In this review, we will focus on metadynamics, which, at the same time, is able to enhance sampling and reconstruct the free-energy surface (FES) as a function of the chosen CVs. The paper is organized in two parts. In the first, we will provide an overview of the basic theory underpinning metadynamics. In the second, we will present some recent representative applications in the field of material science, chemical reactions, and biomolecular dynamics.
+THEORY
+
+In metadynamics, an external history-dependent bias potential which is a function of the CVs is added to the Hamiltonian of the system. This potential can be written as a sum of Gaussians deposited along the system trajectory in the CVs space to discourage the system from revisiting configurations that have already been sampled.
+
+In the first version of metadynamics, the bias was used to influence a coarse-grained dynamics in the CVs space that was based on a series of constrained MD simulations. 3 Later on, the bias was applied continuously during an MD simulation either through an extended Lagrangian formalism 11 or acting directly on the microscopic coordinates of the system. 12 In this review, we will focus on the latter version, the so-called continuous direct metadynamics.
+Let S be a set of d functions of the microscopic coordinates R of the system:
+equation image (1.1)
+At time t , the metadynamics bias potential can be written as
+equation image (1.2)
+where ω is an energy rate and σ i is the width of the Gaussian for the i th CV. The energy rate is constant and usually expressed in terms of a Gaussian height W and a deposition stride τ G :
+equation image (1.3)
+
+To understand the effect of V G on the evolution of the system, let us consider the simple case of the one-dimensional potential of Figure 1 , in which three local minima A, B, and C are present. The system is prepared in the local minimum B. Let us measure the time t by counting the number of Gaussians added. In a standard MD simulation, the system would remain stuck in this minimum because barriers are larger than thermal fluctuations. Instead, in the metadynamics simulation, as time goes by, Gaussians are deposited causing the underlying bias potential to grow, until eventually around t = 135 the system is pushed out of the basin B into a new local minimum. The natural and more convenient escape route is to pass the lowest barrier and fall into the left basin. Here, the Gaussians accumulation starts again. The system is trapped in A until the underlying free-energy basin is completely filled ( t = 430). At this point, the system diffuses in the region between the first two minima. Starting from t = 810, the system can easily access also the region of C on the right. Finally, when this basin is also compensated by the bias potential ( t = 1650), the system evolution resembles a random walk on the flattened FES.
+Details are in the caption following the image
+Figure 1
+Open in figure viewer PowerPoint
+
+Example of metadynamics simulation in a one-dimensional model potential. The time t is measured by counting the number of Gaussians deposited. (Top) Time evolution of the collective variables during the simulation. (Bottom) Schematic representation of the progressive filling of the underlying potential (thick line) by means of the Gaussians deposited along the trajectory. The sum of the underlying potential and of the metadynamics bias is shown at different times (thin lines).
+This simple example illustrates the following multiple benefits of metadynamics:
+
+    It accelerates the sampling of rare events by pushing the system away from local free-energy minima.
+
+    It allows exploring new reaction pathways as the system tends to escape the minima passing through the lowest free-energy saddle point.
+
+    No a priori knowledge of the landscape is required. At variance with umbrella sampling, metadynamics inherently explores the low free-energy regions first.
+
+    After a transient, the bias potential V G provides an unbiased estimate of the underlying free energy
+
+equation image (1.4)
+where C is an irrelevant additive constant and the free energy F ( S ) is defined as
+equation image (1.5)
+where β = ( k B T ) −1 , k B is the Boltzmann constant, T the temperature of the system, and U ( R ) the potential energy function. The correctness of relation Eq. (1.4) has been shown empirically by extensive testing on simplified model 12 and by comparison with results obtained with other free-energy methods on complex systems. 3 , 13 Furthermore, a formal proof of Eq. (1.4) was provided under the assumption that in the absence of bias, the stochastic dynamics in the CVs space is memoryless. 14 Under the same assumption, the error in the FES reconstruction has been proven, both empirically 12 and theoretically, 14 to be
+equation image (1.6)
+where D is the intrinsic system diffusion coefficient in the CVs space. Because the application of this equation is far from trivial in practical situations; in most studies, the error in the free-energy profile was estimated by means of comparison of independent runs 15 - 17 or block averaging. 18
+
+    Metadynamics simulations are intrinsically parallelizable. Indeed multiple interacting metadynamics simulations can be performed for exploring and reconstructing the same FES. Each simulation contributes to the overall history-dependent potential. This implementation, usually dubbed multiple walkers metadynamics, 19 leads to a fully linear scaling algorithm that does not need fast and expensive connection between CPUs.
+
+In contrast with the benefits described above, metadynamics presents two major drawbacks:
+
+    1.
+
+    In a single run, V G does not converge modulo a constant to the free energy, but oscillates around it. This fact has two consequences. (a) The bias potential overfills the underlying FES and pushes the system toward high-energy regions of the CVs space. (b) It is not trivial to decide when to stop a simulation. However, in this respect, one can say, as a general rule, that, if metadynamics is used to find the closest saddle point, it should be stopped as soon as the system exits from the minimum. Otherwise, if one is interested in reconstructing an FES, it should be stopped when the motion of the CVs becomes diffusive in the region of interest.
+    2.
+
+    Identifying a set of CVs appropriate for describing complex processes is far from trivial.
+
+A solution to the first problem is provided by well-tempered metadynamics. 20 In well-tempered metadynamics, the bias deposition rate decreases over simulation time. This is achieved by using a different expression for the bias potential:
+equation image (1.7)
+equation image (1.8)
+where V̇( S,t ) is the time derivative of the bias potential, N (S, t ) is the histogram of the S variables collected during the simulation, and Δ T an input parameter with the dimension of a temperature. This formulation can be easily reconnected to standard metadynamics by replacing δ S , S ( t ) with a Gaussian. In practice, this set of equations is implemented by rescaling the Gaussian height W according to
+equation image (1.9)
+With respect to standard metadynamics, two key features must be underlined. The first is that the bias deposition rate decreases as 1/ t , the dynamics of all the microscopic variables becomes progressively closer to thermodynamic equilibrium as the simulation proceeds. The second is that the bias potential does not fully compensate the FES, but it converges to
+equation image (1.10)
+where C is an immaterial constant. At variance with standard metadynamics, the bias converges to its limiting value in a single run. It must also be noted that in the long time limit, the CVs probability distribution becomes
+equation image (1.11)
+
+Therefore, for Δ T → 0, ordinary MD is recovered, whereas the Δ T → ∞ limit corresponds to standard metadynamics. In between one can regulate the extent of FES exploration by tuning Δ T . This avoids overfilling and might save computational time when a large number of CVs are used. Figure 2 shows how the choice of Δ T affects the exploration and the convergence of the free-energy difference between two metastable states of alanine dipeptide.
+Details are in the caption following the image
+Figure 2
+Open in figure viewer PowerPoint
+
+(a–c). Projection onto the Ramachandran plot of the configurations sampled during a well-tempered metadynamics simulation of alanine dipeptide in vacuum (white dots) for different choices of Δ T [600 K (a), 1800 K (b), and 4200 K (c)]. The underlying color map shows the reference free-energy landscape. (d) Estimate of the free-energy difference between the two metastable minima C 7ax (1.22, −1.22) and C 7eq (−1.45, 1.29) as a function of the simulation time. Angles are measured in radians.
+The introduction of a history-dependent potential alters the probability distribution. Although from Eq. ( 1.11 ) the probability distribution for the CVs can be easily reconstructed, that for the others degrees of freedom is distorted in a nontrivial way. Different techniques have been proposed to reweight a metadynamics run and recover the unbiased distribution for variables other than the CVs 21 , 22 assuming an adiabatic evolution for the bias potential. Recently, a simple reweighting scheme 23 in the framework of well-tempered metadynamics has been introduced, in which this assumption becomes more and more valid as the simulation progresses. The algorithm proceeds in two steps. The first is the evolution of the biased probability P ( R , t ) during the metadynamics simulation
+equation image (1.12)
+where the average in the exponent is calculated in the biased ensemble. The second is a standard reweighting step to recover the Boltzmann distribution P B ( R )
+equation image (1.13)
+
+Under the assumptions described above, this technique allows computing on the fly expectation values of any variable. Therefore, one does not need to use CVs directly related to measurable quantities to make quantitatively contact with experiments. 24
+THE HEART OF THE MATTER
+A CV is a function of the microscopic coordinates of the system. a To guarantee an effective application of metadynamics, the CVs must respect the following guidelines:
+
+    They should distinguish between the initial and final state and describe all the relevant intermediates.
+
+    They should include all the slow modes of the system.
+
+    They should be limited in number.
+
+Let us examine these requirements one by one.
+
+When we project the potential energy function on a FES, we operate a dimensional reduction. This transformation is not appropriate for studying a particular process if the CVs cannot discriminate between the configurations of the reactants, products, and relevant intermediates. It must be noted that for the CVs to be dynamically meaningful, i.e., to correspond to the reaction coordinate, stricter conditions must be fulfilled. 25
+
+The second prerequisite is essential. We define as ‘slow’ those variables that cannot be satisfactorily sampled in the timescale of the simulation. We also expect that the other ‘fast’ variables adjust rapidly to the evolution of the slow variables. If any of the latter is not added to the CVs list, the bias potential may not converge to the FES in a reasonable simulation time.
+
+As an example of the consequences of neglecting a slow variable, let us consider the two-dimensional potential of Figure 3 . The transition between the two metastable states A and B presents high free-energy barriers in both s 1 and s 2 . We shall start from basin B and bias only s 1 . When metadynamics fills the basin, the system remains stuck there, as it faces a barrier in the hidden variable s 2 . As a result, basin B is overfilled and the barrier going to A is overestimated. Eventually, s 2 will make the transition and the system will reach state A. At this point, a similar phenomenon will occur again. The overall result is that the situation in which the free energy grows evenly and the system diffuses from A to B is never reached.
+Details are in the caption following the image
+Figure 3
+Open in figure viewer PowerPoint
+
+Example of the effect of neglecting a slow degree of freedom in the collective variables (CVs) set. (Top) Model two-dimensional potential with relevant barriers both in s 1 and s 2 . (Bottom) Representation of a metadynamics simulation using only s 1 as CV. The sum of the underlying one-dimensional free-energy F ( s 1 ) (thick line) and of the metadynamics bias is shown at different times (thin lines). Neglecting s 2 in the CVs set causes strong hysteresis in the reconstructed free energy.
+
+Another instructive example can be found in Ref 26. Here, the authors wanted to study the penetration of tetramethylammonium (TMA) into the acetylcholinesterase (AChE) gorge. In a first trial, only the distance between the center of mass of TMA and the active site of AChE was used as CV. This metadynamics run was not successful, as the system sometimes showed a diffusive behavior in the CV, whereas at other times, it got stuck at a particular point. This hysteretic behavior is the typical sign that a slow motion of the system is not included in the CVs. As a result, the system remains stuck at a certain position until the rare event involving the hidden variable eventually takes place. In the case of Ref 26, a careful inspection of the system showed that some aromatic residues were blocking the access to the gorge of AChE. Once a further variable describing the opening of the gate was added, metadynamics showed a smooth reversible behavior.
+
+This example demonstrates an important point. Choosing a correct set of CVs comes together with an understanding of the physics and chemistry of the process under study. In light of this, the difficulty of choosing a priori the right CVs is not a flaw of metadynamics and of the large variety of CV-based methods. It just reflects the fact that one needs to gain some experience and make a few trials and errors before solving any new problem.
+
+Last but not least, the number of CVs should be kept small because the use of many CVs implies that a high-dimensional space has to be explored. Even using well-tempered metadynamics, 20 this may take a considerable amount of computational time. Furthermore, analyzing a high-dimensional surface is far from trivial.
+The question thus arises how it is possible to choose prior to a simulation a set of CVs for describing complex processes that may involve hundreds or thousands of particles. Unfortunately, a universal recipe still does not exist. However, several useful approaches have been suggested. They can be grouped in two general categories:
+
+    1.
+
+    the development of appropriate CVs,
+    2.
+
+    the combination of metadynamics with methods that enhance the sampling in transverse coordinates.
+
+Developing Appropriate Cvs
+
+A large variety of CVs have been used and their choice usually depends on the nature of specific process studied. Examples of frequently used CVs are interatomic distances, angles, dihedrals, coordination numbers, radius of gyration, dipole moment, number of hydrogen bonds, and Steinhardt parameters. More complex coordinates have been devised to describe puckering motions 27 or the amount of alpha or beta secondary structure in polypeptide chains, calibrated on the protein structure data bank. 28
+
+Few CVs have shown the potential to be used in a wider number of cases. Among these, a very general choice is to use the potential energy of the system as a metadynamics CV. This approach was successfully applied to study the Ising model, 29 ice melting, 30 water dimer dissociation, 31 and the isomerization of small molecules. 32 More recently, 33 it has been shown that using potential energy as a CV within well-tempered metadynamics results in the sampling of a well-defined distribution called well-tempered ensemble (WTE). In this ensemble, the average energy is very close to its canonical value but the fluctuations are enhanced in a tunable way, thus improving sampling.
+
+Other approaches rely on identifying the most relevant degrees of freedom by means of essential dynamics. From a preliminary MD run, a principal component analysis is performed. The first few eigenvectors of the correlation matrix are then used as CVs. 34
+In many cases, path CVs (PCVs) 35 are a successful solution to the problem of finding a limited number of CVs to describe complex processes. Given a reference path that connects two states, PCVs are flexible descriptors that represent the progression along the path and the distance from it. Let us consider a transition between states A and B and assume that it can be described by a large set of CVs S ( R ) that cannot be efficiently sampled with metadynamics. In many cases, we would expect that the reactive trajectories will be bundled in a narrow tube around the minimum free-energy path. 36 In practical applications, we describe this path with a discrete number of frames S ( l ) with l = 1, …, P and S (1)= S A , S ( P )= S B . The path can be traced introducing the following two variables:
+equation image (1.14)
+equation image (1.15)
+where ‖ ‖ is a metric that defines the distance between two configurations and λ is proportional to the average distance between neighboring frames. For any microscopic configuration R , s ( R ) and z ( R ) measure its intercept and distance from the path, respectively (see Figure 4 ). Using these variables, it is possible to find transition paths that are rather different from the reference. Several choices for S ( R ) and the relative metrics have been explored. Among these are a subset of the coordinates of the system, 18 , 35 , 37 , 38 the contact map, 39 - 42 and a chirality measure. 43
+Details are in the caption following the image
+Figure 4
+Open in figure viewer PowerPoint
+
+(a and b). Representation of the path collective variables. Collection of points at constant s (a) and z (b) are shown for the case of a reference path designed in the two-dimensional model potential of Figure 3 .(c) Free energy as a function of s and z . The two minima A and B are projected onto (0,0) and (1,0).
+Enhancing the Sampling in Transverse Coordinates
+
+In spite of the success in devising appropriate CVs in many interesting cases, sometimes finding a small set of CVs is a daunting task. An example is the case of protein folding, which takes place in a large and complex conformational space and often involves many alternative pathways. In order to study such processes, it is instrumental to enhance sampling along a great number of degrees of freedom besides those that can be targeted by metadynamics. In this spirit, a successful strategy is to combine metadynamics with a replica exchange method (REM) such as the popular parallel tempering (PT) algorithm. 44 , 45
+
+In PT, multiple copies of the same system at different temperatures are independently simulated. At fixed intervals, an exchange of configurations between two adjacent replicas is attempted while respecting detailed balance. By exchanging with higher temperatures, colder replicas are prevented from being trapped in local minima.
+Let us consider M as independent replicas of the system at different temperatures T 1 , …, T M . In order to satisfy detailed balance, we use the following acceptance probability for the exchange between configuration R j at temperature T j and configuration R k at temperature T k :
+equation image (1.16)
+where
+equation image (1.17)
+When combining PT with metadynamics, 46 each replica performs at a different temperature a metadynamics that uses the same set of CVs. Thus indicating with V urn:x-wiley:17590876:media:WCMS31:wcms31-math-0001 the bias potential acting on the i th replica, the acceptance probability is determined by
+equation image (1.18)
+This combination of PT and metadynamics (PTMetaD) is particularly effective because it compensates for some of the weaknesses of each method individually taken:
+
+    PT allows the system to cross moderately high free-energy barriers on all degrees of freedom, so that in PTMetaD, the effect of neglecting a slow degree of freedom in the choice of the CVs plays a lesser role than in normal metadynamics.
+
+    Because the metadynamics bias potential allows higher barriers on a few selected CVs to be overcome, PTMetaD enhances significantly the sampling efficiency of PT. This has been verified in the case of a beta-hairpin peptide 46 by comparing the number of clusters visited per unit of time by standard PT and by PTMetaD.
+
+One limitation of PTMetaD approach is the poor scaling with system size. In fact, a sufficient overlap between the potential energy distributions of neighboring replicas is required in order to obtain a significant diffusion in temperature space. Thus, as in standard PT, the number of replicas needed to cover the same temperature range scales as the square root of the number of degrees of freedom, making this approach prohibitively expensive for large systems.
+
+Different solutions have been proposed to overcome this latter difficulty. One has to combine metadynamics with other type of REM, leading to a combination of solute tempering and metadynamics. 47 In solute tempering, 48 the parts of the Hamiltonian that describe the solute–solvent and solvent–solvent interactions are rescaled across the replicas in such a way that the number of replicas needed scales as the square root of the number of solute degrees of freedom.
+
+The combination of PT with WTE (PT-WTE) has been proven to be particularly effective. 33 In PT-WTE, the energy fluctuations can be enhanced in order to always guarantee an effective overlap of the energy distributions between neighboring replicas. Moreover, the quantity Δ j,k that in standard PT determines the swapping probability (Eq. 1.16 ) is reduced by a tunable parameter. These two properties lead to an effective diffusion in temperature space, regardless of the number of degrees of freedom of the system.
+
+An alternative approach is bias exchange, 49 wherein a replica exchange scheme is implemented among multiple metadynamics simulations that bias different sets of CVs. In this case, swap exchange probabilities are derived assuming instantaneous equilibrium for each metadynamics simulation.
+APPLICATIONS
+
+Even if relatively recent, metadynamics has found many applications in different fields. At the time of writing this review, the first metadynamics paper 3 has been cited about 400 times according to ISI Web of Knowledge SM . Discussing or even mentioning all the studies based on metadynamics goes beyond the scope of (and the space reserved for) this work. Here, we just want to illustrate the main fields of application and present few recent metadynamics-based papers. The choice we are forced to make does not reflect the quality of the work, but it is meant to give an overview of the different fields and represent the activities of as many different groups as possible. We apologize if in doing so we do not do full justice to many very good papers that have been left out.
+MATERIAL SCIENCE
+
+Metadynamics has found widespread applications in the field of material science. In particular, since its early days metadynamics has been successfully applied in predicting equilibrium crystal structures at a given thermodynamics condition. 50 , 51 It must be noted that in MD simulations, due to the periodic boundary conditions, heterogeneous nucleation is suppressed, resulting in large free-energy barriers between stable structures. A viable solution to overcome those barriers is to apply the metadynamics bias in the space of the lattice vectors, resulting in six independent CVs. Some of the earlier applications of this protocol can be found in Ref 52. Other applications include the study of the stacking-fault structures intermediate between the perovskite and postperovskite phases of MgSiO 3 , 53 monohydrated lithium hydroxyde, 54 phosphorus phase IV, 55 silica, 51 , 56 5-fluorouracil, 57 α-cristobalite, 58 cadmium selenide, 59 carbon dioxide, 60 carbon, 61 and calcium. 62
+
+Different approaches for using metadynamics simulation to induce crystallization events, which do not use CVs related to the simulation box edges, have been proposed. 63 , 64 Other studies focused on enhancing phase transition in Lennard–Jones model system. 17 , 65 , 66 Within the field of material science, metadynamics was also used to shed light on various diffusion processes. 67 , 68
+High-pressure Polymeric Phase of Carbon Dioxide
+
+Among the successful applications of metadynamics for predicting new crystal structures is the work by Sun et al. 60 These authors investigated the high-pressure (60–80 GPa) structural phases of CO 2 , which have attracted remarkable attention in the last decades due to the suggested possibility of forming material with interesting mechanical properties and its importance in the geochemistry of the Earth's mantle. The authors used a stepwise version of the metadynamics algorithm using as CVs, the cell variables rescaled by the elastic constants, 51 in the context of density functional theory MD simulations. Their results showed that, in these conditions, the transition paths and the resultant carbon dioxide structures are highly temperature dependent with many different metastable states present.
+
+In particular, they showed that at 60 GPa and 600 K, the CO 2 molecular phase II transforms into a fully tetrahedral layered structure via a variety of intermediate stable states. By comparing experimental and calculated X-ray diffraction patterns and Raman spectra, they suggested that the recently identified phase VI is likely the result of an incomplete transformation of phase II rather than a disordered stishovite-like phase as previously assumed. In addition, at low temperature (<300 K), a new α-cristobalite-like structure is predicted to be formed from Phase III via an intermediate structure with space group Pbca (see Figure 5 ). Defects in the crystals are frequently observed in the calculations at 300 K, whereas at 500–700 K, Phase III transforms to an amorphous form consistent with experiment. 69 These results obtained from advanced MD simulations revealed hitherto unknown microscopic transformation mechanisms and illustrated the transformation from a molecular solid characterized by intramolecular π-bonding to polymerized structure.
+Details are in the caption following the image
+Figure 5
+Open in figure viewer PowerPoint
+
+A combination of Figures 1 b and 4 of Sun et al. 60 showing the structural evolution of solid CO 2 obtained with ab initio metadynamics simulations. (a) Structural phase transformation of CO 2 from Phase II (P4 2 /mnm) at 60 GPa and 600 K, resulting in a layered structure (P-4m2). (b) Snapshots of the transformation from Phase III (Cmca) to an α-cristobalite-like structure (P4 1 2 1 2) at 80 GPa and 300 K.
+Solid–Liquid Interface Free Energy
+
+The solid–liquid interface free energy γ sl is a physical parameter that plays a fundamental role in determining the kinetics of nucleation and the morphology of grain boundaries. It is a quantity that is difficult to measure experimentally; hence, theoretical modeling is particularly important. The work by Angioletti-Uberti et al. 17 demonstrated that, in the prototype example of a Lennard–Jones potential, metadynamics provides a viable strategy to compute a reliable estimate of γ sl . This approach requires a smaller supercell and is less sensitive to hysteresis than previously reported methods.
+
+A convenient set of metadynamics CVs can be obtained by defining an order parameter that can discriminate whether each atom is in the solid or in the liquid phase based on its local environment. This quantity is then averaged over the atoms belonging to two regions within the supercell; therefore, yielding two CVs s A and s B . At the melting temperature, the Gibbs free energy of the configurations of CVs, which define a homogeneous (solid–solid or liquid–liquid) system, must be equal by definition (see Figure 6 ). Configurations in which the two parts of the cells are in a different state will instead have a larger free energy, with an excess term that is due to the presence of a planar interface. An estimate of γ sl can then be recovered by dividing the free-energetic barrier by the area of the interface.
+Details are in the caption following the image
+Figure 6
+Open in figure viewer PowerPoint
+
+Free-energy surface for the calculation of the solid–liquid interface free energy γ sl for a Lennard–Jones potential. The two collective variables (CVs) discriminate between a solid ( s ∼ 0.85) or liquid ( s ∼ 0) state of two halves of the supercell. γ sl can be obtained from the difference between the plateau (in which an interface is present) and the two minima (which correspond to homogeneous configurations).
+
+This approach has the additional advantage that, by comparing the free energies of the two homogeneous configurations, one can also verify that the simulation has been performed at the melting temperature, in the cases wherein this value is not established. It is also possible to speed up convergence by performing a one-dimensional metadynamics wherein s A or s B is restrained so as to maintain half of the cell at solid conditions.
+CHEMICAL REACTIONS
+
+The great enhancement in conformational sampling guaranteed by metadynamics finds a natural application in studying processes in which changes in the electronic structure play a dominant role, such as chemical reactions. These processes are described by means of first principle dynamics, in particular Car–Parrinello MD. 70 Unfortunately, the typical timescale accessible in straightforward simulations (tens of picoseconds) does not allow overcoming the different chemical transition states, which are usually one or two orders of magnitude higher than k B T at room temperature. In ab initio MD simulations, which are often based on an extended formalism, 70 the metadynamics bias potential is usually applied through the introduction of an additional term in the Lagrangian function. 11 Within this framework, the combination of metadynamics simulations in an N -dimensional CVs space and a one-dimensional umbrella sampling scheme proved to be a useful recipe for determining the free-energy barrier and the lowest free-energy path of concerted reactions. 71 , 72
+
+Generally speaking, we can group the studies of chemical reactions based on metadynamics simulations into four main classes: gas phase and condensed phase reactions, surface chemistry and enzymatic quantum mechanics/molecular mechanics (QM/MM) studies.
+
+In gas phase, metadynamics has been able to resolve tautomeric effects, 73 catalytic effect of gold particle, 74 CO 2 hydrogenation catalysis, 75 fragmentation processes, 76 the conformational behavior of complex molecules, 77 and the dissociation of carbonic acid. 78
+
+Even more ambitious have been the efforts brought to bear the effect of the environment in atomistic detail. These included studies on small solvated amino acids, 79 polyoxometalates, 80 beta- d -xylose condensation reactions, 81 ester 82 and formamide hydrolysis, 83 and solvation 84 and isomerization in water. 85 The area of reaction at surfaces has also been explored to study chemical vapor deposition, 86 heterogeneous reactions on carbon surfaces, 87 , 88 and on anatase. 89 Studies also included reactions in the solid state. 90 , 91 When it comes to enzymatic reactions, then the system size forces one to use a QM/MM approach in which only a small part of the system is treated ab initio . Published works include studies on hydrolysis reactions of cellulose, 92 an intermediate enzyme xanthosine monophosphate complex, 93 and ATP. 94 Although it is not an enzymatic reaction, we list here a QM/MM study of the excited state dynamics of protonated tryptophan. 95
+
+In the field of theoretical chemistry, an unrelated yet inspiring and elegant application of metadynamics was proposed by Thom and Head-Gordon, 96 who devised a method to locate the solutions to the self-consistent field equations, using a history-dependent bias in order to escape from local minima.
+The Molecular Mechanism of the Catalase Reaction
+
+In the context of enzymatic catalysis, Alfonso-Prieto et al. 97 recently applied metadynamics to unravel the molecular mechanism of an enzyme of the catalase family by means of hybrid QM/MM Car–Parrinello simulations. Catalases are ubiquitous enzymes that play a fundamental role in preventing cell oxidative damage by degrading hydrogen peroxide to water and oxygen (2H 2 O 2 → 2H 2 O + O 2 ). The enzymatic reaction proceeds through an oxidized high-valent iron intermediate, known as Compound I (Cpd I), which is reduced back to the resting state by the reaction with a second molecule of H 2 O 2 . The latter reaction is extremely efficient in catalases, whereas it occurs with much slower rates in other heme enzymes. The authors investigated the molecular mechanism of this second step in two different catalases. Their results showed that first the reactant Cpd I–H 2 O 2 state evolves to another intermediate (Cpd II-like) by means of a low-barrier reaction involving the transfer of a hydrogen to the oxoferryl group. The conversion of this intermediate to the final products is an activated process that may happen through competing mechanisms. According to the authors' results, in Penicillium vitale catalase, the proton transfer takes place through a histidine-mediated process (Fita–Rossman mechanism), which implies a proton transfer followed by an electron transfer. A competing pathway, which involves the transfer of a hydrogen atom, was however observed for Helicobacter pylori catalase.
+
+The two alternative pathways (A and B) were clearly explored and differentiated by determining the FES as a function of two CVs that measured the coordination number between the two hydrogen atoms of the H 2 O 2 molecule and their oxygen atoms (CV1) or the oxoferryl oxygen (CV2) (see Figure 7 ). Remarkably, this study showed that, independent of the mechanism, the reaction proceeds by two one-electron transfers rather than one two-electron transfer, as previously assumed.
+Details are in the caption following the image
+Figure 7
+Open in figure viewer PowerPoint
+
+The molecular mechanism of the catalase reaction in Helicobacter pylori catalase obtained from quantum mechanics/molecular mechanics CPMD metadynamics simulations. R is the Heme +• Fe IV = O···H 2 O 2 reactant complex (also named Compound I···H 2 O 2 ), R ′ is the HemeFe IV = O···HOO • intermediate formed after low-barrier hydrogen abstraction and P is the HemeFe III ···H 2 O ···O 2 product state. Conversion from R to R ′ was spontaneous, whereas R ′→ P was activated by metadynamics. The two-dimensional free-surface energy displays two possible pathways, depending on the mechanism of the second hydrogen atom transfer.
+The Role of Extreme Conditions on Peptide Bond Formation and Peptide Hydrolysis
+
+Among the applications of metadynamics to the study of chemical reactions in condensed phases, Schreiner et al. 98 investigated the effect of high temperature and high pressure on the mechanism of peptide bond formation from alpha-amino acids and alpha-amino acid N-carboxyanhydrides (NCA). Shedding further light on the molecular mechanism of the polymerization of aminoacids into polypeptides is crucial due to the outstanding biological and technological importance of this process. In particular, chemical processes in high-temperature pressurized water are gaining importance in organic chemistry due to the possibility of accelerating many reactions without using any catalysts. In this study, the authors focused on the effect of extreme thermodynamic conditions on the mechanism and energetics of peptide bond from NCA–glycine and glycine, and the corresponding back reaction that is hydrolysis of diglycine.
+
+The authors performed Car–Parrinello metadynamics simulations using a distance and two coordination numbers as CVs (see Figure 8 ). Their results showed that both the peptide formation and the subsequent decarboxylation are accelerated in hot-pressurized water (HPW) at 500 K and 20 MPa with respect to the same reactions at ambient water condition (ABW). As noted in a previous study of the formation of NCA by the same authors, 99 the main differences arise from the fact that in HPW, charged species are destabilized with respect to their neutral counterpart. The authors also observed that diglycine hydrolysis is accelerated in HPW condition though the free-energy barrier is higher for HPW compared with ABW, in agreement with experimental data. Remarkably, the hydrolysis processes in the two conditions were found to differ both in the reaction sequence and in the nature of the proton transfer process.
+Details are in the caption following the image
+Figure 8
+Open in figure viewer PowerPoint
+
+(a) Reaction mechanisms for the hydrolysis of diglycine in hot-pressurized water (HPW). (b) Corresponding schematic free-energy profiles at ambient (black line and filled triangles) and at extreme conditions (blue line and open squares). (c) Reconstructed free-energy surface for this reaction at HPW is presented as a volumetric data for selected free energy (contour) values (in kJ/mol); 4′ cis is having a cis , and 4 and 4′ are having a trans peptide bond.
+BIOMOLECULAR DYNAMICS
+
+Even if the timescale of biomolecular dynamics simulations is significantly increasing 100 and useful information can be obtained complementing the structural biology data, most of the conformational transitions that are biologically relevant are still not accessible by means of brute-force simulations. Metadynamics can provide a viable solution for overcoming this problem, even if its application within this context poses a few distinct challenges.
+
+In order to understand these complications, a key feature of the FES associated with the conformational dynamics of large biomolecules must be noted. Biomolecular systems are characterized by a huge number of degrees of freedom and a significant topological complexity. In absence of chemical reactions, the system dynamics is ruled by a large number of different molecular interactions characterized by comparable energies. The resulting energetic landscape is extremely rough and complex with a very large number of accessible microscopic configurations and many possible transition pathways between different free-energy minima. In this framework, identifying an efficient set of CVs for biasing the system is extremely challenging. In most cases, one has to rely on the advanced methods described above.
+
+Regardless of these difficulties, metadynamics has been successfully applied to fully explore the conformational FES of peptides or small biomolecules 24 , 47 , 101 , 102 and to study the folding process of small proteins. 39 , 46 , 103
+
+Other metadynamics-based studies focused instead on protein conformational rearrangements that play a fundamental role in many metabolic processes. Examples are prion protein unfolding, 15 the closure mechanism of a kinase, 38 processes involving proline cis / trans isomerization, 104 , 105 opening and closing of potassium channel, 37 and pH-induced transition in dengue virus envelope protein. 42
+
+Another important class of studies focused on drug–receptor interactions, providing significant insight for application to drug design. To this aim, metadynamics has allowed characterizing the docking process, taking into account the full protein flexibility 13 , 40 , 41 , 106 - 108 and understanding the microscopic features of drug translocation mechanism in protein gorges/channel. 26 , 109 - 111 The diffusion of small molecules and ions in cavities and channels has also been studied. 112 - 115
+
+Finally, other applications of metadynamics in biomolecular simulations were devoted to the study of protein–protein interactions. 116 , 117
+Nucleotide-dependent Conformational States of Actin
+
+In the work of Pfaendtner et al., 18 the effect of different nucleotides (ATP, ADP-Pi, and ADP) on the conformational free-energy landscape of actin was studied by means of all-atom MD simulations in explicit solvent and metadynamics.
+
+A first set of simulations was carried out to assess the relationship between the width of the nucleotide-binding cleft and the state of the bound nucleotide. These metadynamics simulations, performed using the cleft width and the protein–phosphate coordination as CVs, showed that a closed conformation of the cleft was favored when ATP and ADP-Pi were bound, whereas ADP state favored an open conformation. These considerations held when actin was both in its monomeric and trimeric form.
+
+The relation between the conformations adopted by the DNase-I binding (DB) loop and the nucleotide present was also investigated with PCVs-based metadynamics (see Figure 9 ). These results demonstrated that when ADP was bound to monomeric actin, folded and unfolded states of the DB loop showed a comparable thermodynamic stability. With the same nucleotide bound to the actin trimer, the folded state of the DB loop became the most stable conformation. This fact could explain the experimental difficulty in obtaining an ordered crystal structure for this region of monomeric actin. The presence of ATP and ADP-Pi nucleotides had a similar effect in monomeric and trimeric actin. The former destabilized the folded state of the DB loop, whereas the latter favored the native conformation.
+Details are in the caption following the image
+Figure 9
+Open in figure viewer PowerPoint
+
+(Left, upper) The image shows an actin trimer. The bottom (blue) subunit is the subunit in which the folding of the DNase-I binding (DB) loop was studied. The neighboring actin subunits (green and silver) make significant contacts with the DB loop, and were found to be important in the overall stability of the helix. (Left, lower) The close-up view shows the neighborhood surrounding the DB loop. The unfolded (blue transparent) and folded (red helix) states are shown. (Right, lower) Free-energy profiles for folding the DB loop in monomeric actin as a function of the bound nucleotide. (Right, upper) The transition states are shown in ribbon representation along with representative unfolded and folded structures.
+
+These results demonstrate a clear dependence of the folding free-energy profile of actin on the bound nucleotide. The nucleotide acts as an allosteric regulator of the DB loop conformation by influencing the equilibrium cleft width from which the barrier height for the nucleation of the DB loop depends.
+Molecular Basis of Cyclooxygenase Enzymes Selective Inhibition
+
+In the work of Limongelli et al., 40 the full unbinding pathway of the highly selective inhibitor SC-558 of cyclooxygenase-2 (COX-2) was studied by means of all-atom MD simulations in explicit solvent and metadynamics calculations. A binding mode alternative to that experimentally found and with comparable thermodynamic stability was discovered using as metadynamics CVs a distance and a torsional angle (see Figure 10 ). According to the authors, this ability of SC-558 to bind COX-2 in two different ways could explain the increased time of permanence in this isoform of the enzyme and the slow binding rate of this ligand. The ligand was found to leave the active site passing through a gate formed by three alpha-helices, whose breathing movement was essential to let the ligand reach an external pose and finally the fully solvated state.
+Details are in the caption following the image
+Figure 1
+Open in figure viewer PowerPoint
+
+(Bottom) Free-energy surface of the dissociation process of SC-558 from cyclooxygenase-2 as a function of the distance and dihedral collective variables. Isoenergy lines are drawn every 2 kcal/mol. (Top) The four main free-energy basins A–D found during the metadynamics simulation. Basin A is the crystallographic pose, basin B an alternative pose, basin C corresponds to the gate site, and basin D is an external pose. The ligand and the main interacting residues are displayed as licorice, whereas the protein is represented as green cartoon with the α-helices forming the gate colored in orange. The interacting waters are shown as spheres, whereas hydrogens are not displayed for clarity.
+
+The same analysis was carried out for another isoform of the cyclooxygenase: cyclooxygenase-1 (COX-1). In this case, a single binding pose was found. This fact could explain the lower time of permanence of SC-558 in COX-1 and the time-independent inhibition kinetics found experimentally. The binding pose predicted by metadynamics agrees remarkably well with the X-ray structure of COX-1 complexed with celecoxib, an analogue of SC-558, which was very recently reported. 118
+
+These results demonstrate that metadynamics can be considered a valuable complement to traditional docking protocols. At the price of a higher computational cost, a metadynamics-based approach can (1) be used to study the full drug binding mechanism, (2) guarantee a greater accuracy in selecting the most stable poses, and (3) describe properly the large protein conformational changes that often occur upon binding.
+SOFTWARE
+
+Metadynamics has been implemented in PLUMED, 119 an external plugin that can be interfaced with some of the most popular MD codes through a simple patching procedure. With PLUMED, free-energy calculations can be performed as a function of many CVs and using state-of-the-art methods including metadynamics, umbrella sampling, and steered MD. PLUMED can be freely downloaded from http://merlino.mi.infn.it/plumed . A native implementation of metadynamics is also available in ORAC, 120 CP2K, 121 CPMD (IBM, Armonk, NY), 122 and NAMD. 123
+NOTE
+
+a For use in MD, the function must have a continuous derivative.
+Acknowledgements
+
+For some of the pictures in this review, the authors would like to thank Jian Sun; Dennis Klug, and Roman Martoňák (Figure 5 ); Michele Ceriotti (Figure 6 ); Carme Rovira (Figure 7 ), Eduard Schreiner, Nisanth Nair, and Dominik Marx (Figure 8 ); Jim Pfaendtner (Figure 9 ); and Vittorio Limongelli (Figure 10 ).
+
+FURTHER READING
+RELATED WIREs ARTICLES
+REFERENCES
+Citing Literature
+
+Volume 1 , Issue 5
+
+September/October 2011
+
+Pages 826-843
+This article also appears in:
+
+    Honoring Walter Thiel
+    Top Articles 
+
+Citation Statements
+beta
+Smart citations by  scite.ai  include citation statements extracted from the full text of the citing article. The number of the statements may be higher than the number of citations provided by Wiley Online Library if one paper cites another multiple times or lower if scite has not yet processed some of the citing articles.
+
+    Supporting
+    Supporting 2
+    Mentioning
+    Mentioning 557
+    Contrasting
+    Contrasting 0
+
+Explore this article's citation statements on  scite.ai
+powered by   Scite
+
+    Figures
+    References
+    Related
+    Information
+
+Recommended
+
+    New advances in metadynamics
+    Ludovico Sutto , Simone Marsili , Francesco Luigi Gervasio ,
+    WIREs Computational Molecular Science
+
+    Adaptive quantum mechanics/molecular mechanics methods
+    Min Zheng , Mark P. Waller ,
+    WIREs Computational Molecular Science
+
+    Adaptive quantum/molecular mechanics: what have we learned, where are we, and where do we go from here?
+    Adam W. Duster , Chun-Hung Wang , Christina M. Garza , Danielle E. Miller , Hai Lin ,
+    WIREs Computational Molecular Science
+
+    Development and application of quantum mechanics/molecular mechanics methods with advanced polarizable potentials
+    Jorge Nochebuena , Sehr Naseem-Khan , G. Andrés Cisneros ,
+    WIREs Computational Molecular Science
+
+    Umbrella sampling
+    Johannes Kästner ,
+    WIREs Computational Molecular Science
+
+Download PDF
+back
+Wiley Interdisciplinary Reviews Logo
+© 2022 by John Wiley & Sons, Inc., or related companies. All rights reserved
+
+© 2022 by John Wiley & Sons, Inc., or related companies. All rights reserved
+Additional links
+About Wiley Online Library
+
+    Privacy Policy
+    Terms of Use
+    About Cookies
+    Manage Cookies
+    Accessibility
+    Wiley Research DE&I Statement and Publishing Policies
+
+Help & Support
+
+    Contact Us
+    Training and Support
+    DMCA & Reporting Piracy
+
+Opportunities
+
+    Subscription Agents
+    Advertisers & Corporate Partners
+
+Connect with Wiley
+
+    The Wiley Network
+    Wiley Press Room
+
+Copyright © 1999-2022 John Wiley & Sons, Inc . All rights reserved
+Wiley Home Page
+

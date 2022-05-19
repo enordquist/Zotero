@@ -1,0 +1,677 @@
+PCCP
+PAPER
+
+Cite this: Phys. Chem. Chem. Phys., 2017, 19, 32421
+
+HyRes: a coarse-grained model for multi-scale enhanced sampling of disordered protein conformations†
+Xiaorong Liua and Jianhan Chen *ab
+
+Received 2nd October 2017, Accepted 14th November 2017 DOI: 10.1039/c7cp06736d
+rsc.li/pccp
+
+Eﬃcient coarse-grained (CG) models can be coupled with atomistic force fields to accelerate the sampling of atomistic energy landscapes in the multi-scale enhanced sampling (MSES) framework. This approach may be particularly suitable for generating atomistic conformational ensembles of intrinsically disordered proteins (IDPs). While MSES is relatively robust to inherent CG artifacts, achieving optimal sampling eﬃciency requires CG modeling to generate the local and long-range fluctuations that are largely consistent with those at the atomistic level. Here, we describe a new hybrid resolution CG model (HyRes) for MSES simulations of disordered protein states, which is specifically designed to provide semi-quantitative secondary structure propensities together with a qualitative description of long-range nonspecific interactions. The HyRes model contains an atomistic description of the backbone with intermediate resolution side chains. The secondary structure propensities are tuned by adjusting the backbone hydrogen-bonding strength and the f/c torsion profile. The sizes and covalent geometries of the side chains are parameterized to reproduce distributions derived from atomistic simulations. Lennard-Jones parameters for sidechain beads are assigned to reproduce statistical potentials derived from the protein structural database, and then globally parameterized with nonspecific electrostatic interactions to reproduce the free energy profiles of pair wise interactions and the key conformational properties of model peptides. Application of HyRes to MSES simulations of small IDPs suggests that it is capable of driving faster structural transitions at the atomistic level and increasing the convergence rate compared to the Ca-only Go -like models previously utilized. With further optimization, we believe that the new CG model could greatly improve the eﬃciency of MSES simulations of the larger and more complex IDPs frequently involved in cellular signalling and regulation.
+
+Introduction
+Intrinsically disordered proteins (IDPs) remain fully or partially disordered in the unbound state under physiological conditions.1–4 Compared with globular proteins, IDPs are enriched in polar and charged residues, and deficient in hydrophobic residues.5 They often play significant roles in cellular signalling and regulation,1,6–10 and are frequently associated with human diseases including cancer and neurodegenerative diseases.7,11–14 There is thus a great need to understand the physical basis of IDP functions in molecular recognition and cellular signaling. The dynamic nature of unbound IDPs, however, requires their
+a Department of Chemistry, University of Massachusetts Amherst, Amherst, MA 01003, USA. E-mail: jianhanc@umass.edu
+b Department of Biochemistry and Molecular Biology, University of Massachusetts Amherst, Amherst, MA 01003, USA
+† Electronic supplementary information (ESI) available: Five tables and 12 figures. See DOI: 10.1039/c7cp06736d
+
+properties to be described by heterogeneous ensembles that are not amenable to traditional experimental techniques geared towards structured proteins. The averaged properties measured on disordered protein states are generally insufficient to uniquely define the underlying ensembles via various restrained structure calculation or selection protocols.4,15–18 Reliable physics-based atomistic simulations thus have an important role to play.
+We recently adapted the multi-scale enhanced sampling (MSES) approach of Kidera and coworkers19 to couple Go¯-like coarse-grained (CG) models for the enhanced sampling of protein conformations in atomistic (AT) force fields.20,21 In brief, both the AT and CG representations of the system are simulated simultaneously, but they don’t interact directly with each other except through a MSES coupling potential (UMSES). The potential energy of the hybrid system is shown in eqn (1),
+Uhybrid(rAT, rCG, l) = UAT(rAT) + UCG(rCG) + lUMSES(rAT, rCG) (1)
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32421
+
+Paper
+
+PCCP
+
+where UAT and UCG are the AT and CG potentials, respectively. UMSES is designed to restrict the structural divergence between the AT and CG models along selected degrees of freedom. An appropriate UMSES is expected to leverage rapid CG fluctuation to accelerate structural transitions at the atomistic level, and the scaling factor l determines how closely the AT and CG configurations can track each other. The bias introduced by MSES coupling is removed using the Hamiltonian replica exchange (H-REX), which communicates coupled conformational dynamics to the limit of l = 0 where the AT and CG models are completely independent and the appropriate ensembles can be recovered at both resolutions. Our MSES approach also incorporates the temperature replica exchange (T-REX) to further enhance the sampling eﬃciency.20,21 Application to small b-hairpins and helical peptides supports the fact that MSES can dramatically accelerate the sampling of peptide conformational transitions. Compared with other multiscale sampling methods such as direct coordinate swapping in resolution exchange,22–24 coupling AT and CG models through UMSES provides several significant advantages. It offers flexibility in controlling the energetic impact of diverged conformations at the AT and CG levels, which improves the exchange efficiency and provides superior scalability to large systems. Also, it prevents the CG model from dictating the conformational dynamics and makes MSES more robust against inherent CG artifacts.
+A key bottleneck in sampling the large-scale conformational rearrangement, either for folded proteins or IDPs, is that these transitions are often entropically limited.20–22 The kinetics of such a transition is temperature insensitive, and the popular temperature-based REX protocols become ineffective. In this regard, MSES could provide unique advantages, because CG modeling reduces the conformational space and may be particularly effective in driving conformational search at the atomistic level. However, the efficiency of MSES depends critically on the ability of CG modeling to generate local and long-range structural fluctuations that are largely consistent with those expected at the atomistic level. Otherwise, the CG model would attempt to drive atomistic transitions through unfavorable pathways, which will hinder the convergence of MSES simulations. Previous studies have shown that coupling the AT model to a simple Ca-based G¯o-like model could significantly increase atomistic structural transitions in the simulations of both b-hairpin20 and small IDPs.21 However, these studies also suggest that the efficiency of MSES for simulating IDPs is limited by the existence of inconsistent structural fluctuations between Ca-based CG and atomistic models.21 This problem is anticipated to become more severe for larger and more complex IDPs. There is thus a need to explore or develop alternative CG models for more efficient MSES simulations of IDPs.
+CG modeling is an area of intensive research and numerous CG protein models have been described in the literature. Some CG force fields treat solvent molecules implicitly, for example, the united-residue (UNRES) model,25–30 PRIME (protein intermediate resolution model),31–34 Bereau and Deserno’s CG model,35 OPEP (optimized potential for efficient structure prediction) force field36–40 and the PRIMO force field.41 Others
+
+include solvent molecules explicitly, such as MARTINI42,43 and PACE.44 We refer the reader to the references45–48 for more complete reviews. We note that virtually all existing CG models are designed to work independently (i.e., as alternatives to AT models), which presents formidable challenges and requires stringent optimization and/or more sophisticated effective potential energy functions. We have evaluated several CG protein models and the results suggest that none of them is capable of provide a balanced description of disordered protein ensembles.49 Here, we describe a new hybrid resolution CG model (HyRes) that has been specifically designed for the MSES simulations of IDPs. A guiding hypothesis is that the CG model should be able to capture the essential conformational features of IDPs to achieve the best possible efficiency of MSES simulations. In particular, most regulatory IDPs are known to contain some level of residual secondary structures (mostly helical) and transient long-range contacts with functional implications.3,15,50,51 Importantly, the new model does not have to be highly accurate to be effective in MSES simulations, because the quality of structure ensembles derived from MSES simulations is ultimately determined by the AT model. In addition, HyRes should be designed with a simple potential energy function to minimize the computational overhead in MSES simulations. To this end, the new model contains a united-atom representation of the backbone to semiquantitatively describe the secondary structure propensities. Side chains are represented at intermediate resolution, to provide a qualitative description of the long-range nonspecific interactions. The model is parameterized based on atomistic and CG simulations of model compounds and peptides as well as statistical potentials derived from the protein structure database. The new model is then validated using a set of model IDPs and its efficacy for MSES simulations evaluated using short IDPs.
+Models and methods
+Peptide model with hybrid resolutions
+In the HyRes model, the peptide backbone is represented at the united-atom level and side chains at an intermediate resolution. The goal is to allow a semi-quantitative description of secondary structure propensities together with a qualitative description of the geometries and pair-wise interactions between side chains. A detailed description of the peptide backbone, particularly the hydrogen bonding geometry, has been shown to be critical for realistic modeling of peptide conformational equilibrium.52 Fig. 1 summarizes the representation of all 20 amino acids in HyRes. There is no side chain bead in Gly, while there are two side chain beads in Lys and Arg, three side chain beads in His, Phe, and Tyr, five side chain beads in Trp, and one side chain bead in the other amino acids. Detailed mapping of side chain atoms from the atomistic model53–55 to CG beads is summarized in Table S1 (ESI†).
+Eﬀective potential energy function
+The total interaction energy U is shown in eqn (2). It consists of eight terms, including the bond (Ubond), angle (Uangle), dihedral
+
+32422 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+
+PCCP
+
+Paper
+
+Fig. 1 HyRes representation of all 20 natural amino acids. The CG side chain beads are shown in the VDW representation to proportion, with the atomistic model shown in ball-and-stick to illustrate the mapping scheme (summarized in Table S1, ESI†). Representative backbone and side chain beads in the HyRes model are labeled in red.
+
+(Udihedral), improper dihedral (Uimproper), backbone f/c torsion cross-term (UCMAP), Lennard-Jones interactions (ULJ), hydrogen bonding (UHbond) and electrostatic potentials (Uelec),
+
+U = Ubond + Uangle + Udihedral + Uimproper + UCMAP + UHbond + ULJ
+
++ Uelec
+
+(2)
+
+X
+
+Ubond ¼
+
+kbðb À b0Þ2
+
+(3)
+
+bonds
+
+X
+
+Uangle ¼
+
+kyðy À y0Þ2
+
+(4)
+
+angles
+
+X
+
+Udihedral ¼
+
+kw½1 þ cosðnw À dÞ
+
+(5)
+
+dihedrals
+
+X
+
+Uimproper ¼
+
+kcðc À c0Þ2
+
+(6)
+
+impropers
+
+X
+
+UHbond ¼
+
+eHB
+
+Hbonds
+
+ s 12 5
+r
+
+ s 10 ! À6
+r
+
+cos4
+
+yAHD
+
+(7)
+
+X
+
+UCMAP ¼
+
+UCMAPðf; cÞ
+
+(8)
+
+non-Gly;non-Pro residues
+
+The bond (Ubond) and angle (Uangle) interactions are described as harmonic potentials (eqn (3) and (4)). Uangle is found between all adjacent bonds, except those constituting a triangle (such as for the His side chain) and the CiÀ1–Ni–CBi angle for Pro. The bond and angle parameters for the peptide backbone are obtained directly from the CHARMM19 unitedatom force field.56 The equilibrium values and force constants of other bonds and angles are optimized to reproduce distributions obtained from the atomistic simulations of dipeptides in the GBSW implicit solvent57 based on the mapping scheme (Table S1, ESI†). The force constants are restricted to be
+
+between 200 to 600 kcal molÀ1 ÅÀ2 for bonds and to 20–90 kcal molÀ1 radÀ2 for angles during the optimization.
+Dihedral potentials (Udihedral shown in eqn (5)) are applied to peptide f (CiÀ1–Ni–CAi–Ci), o (CAiÀ1–CiÀ1–Ni–CAi), w (Ni–CAi–CBi–CCi, if present) and c0 (CBi–CAi–Ci–Oi, only for a few selected residues, see below). Parameters related to f are obtained directly from the CHARMM 19 force field.56 The peptide bond strongly favors the trans-conformation for all non-proline amino acids. Therefore, for o, n is set to 2 and d to 1801 in eqn (5), and a 9.00 kcal molÀ1 energy barrier is used here to separate the cis- and trans-conformations. The barrier reflects a slight increase from the 8.2 kcal molÀ1 value in CHARMM19, such that only the trans-conformation is sampled in the CG simulations of dipeptides. However, for o in XiÀ1-Proi, both cis- and trans-conformations are accessible. To allow efficient sampling of both cis- and trans-conformations, a smaller energy barrier (5.40 kcal molÀ1) is applied to o in this case, which is based on the previous report that the barrier of the trans- to cis-rotation for XiÀ1-Proi is B65% of that for XiÀ1-nonProi.58 Udihedral related to w is applied to residues Lys, Arg, His, Phe, Tyr and Trp, and the parameters were obtained by fitting the distribution of w from the atomistic simulations of dipeptides.
+Improper potentials (Uimproper) are required to maintain the chirality of Ca atoms in non-Gly amino acids (i.e., on CAi–Ni–Ci–CBi, where CAi is the central atom), planarity of peptide bonds (i.e., on Ni–CiÀ1–CAi–Hi for non-Pro amino acids and Ci–CAi–Ni+1–Oi for all amino acids), and the planarity of the Trp side chain ring. Although representing multiple atoms in the side chain by one bead could impact the geometry of Ca-connected atoms/beads to different degrees for different amino acids, we treat the chirality of Ca atoms uniformly (i.e., 35.31) for all non-Gly amino acids in the HyRes model.
+The secondary structure propensities are mainly determined by the backbone hydrogen bonding interactions (UHbond) and the f/c torsion cross-term (via the CMAP term in CHARMM59) (UCMAP). UHbond is applied on the peptide backbone N, H and O atoms, and depends on both the N–O distance and O–H–N angle (r and yAHD in eqn (7), respectively). s in eqn (7) is set to the ideal hydrogen bond donor–acceptor distance of 2.9 Å. In the current model, the same CMAP is applied to all non-Gly, non-Pro residues. The main role of the CMAP term is to fine tune secondary structure preferences together with backbone hydrogen-bonding interactions. Specifically, stabilizing or dis-stabilizing potentials may be added to the f/c regions corresponding to certain secondary structures, such as the a-helix, p-helix, parallel and anti-parallel b strand, and polyproline II (PPII) structures.
+Nonspecific van der Waals (vdW) interactions between atoms separated by at least 3 virtual bonds are described by the Lennard-Jones (LJ) potential (ULJ) (eqn (9)), where rimin/2 and ei are the vdW radius and interaction strength of the bead i. The LJ parameters of the backbone atoms were first obtained from the CHARMM 19 force field, and then the interaction strengths were scaled down to account for lack of solvent screening of protein–protein dispersion interactions (see Results and discussions for details). Initial vdW radii of side chain beads are
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32423
+
+Paper
+
+PCCP
+
+assigned by matching the total volume occupied by corres-
+ponding atoms in the AT model, and ei values assigned based on Miyazawa and Jernigan’s (MJ) statistical potentials.60 These
+
+parameters are then optimized based on the free energy
+
+profiles of pair-wise interactions and model peptide simula-
+
+tions (see Results and discussions for details).
+
+2 X ULJ ¼ ei;j4
+i;j
+
+rmi;jin !12 À2 ri;j
+
+rmi;jin
+
+!6
+
+3 5
+
+ri;j
+
+(9)
+
+with rmi;jin
+
+¼ rmi in þ rmj in; 2
+
+and ei;j
+
+¼ pﬃeﬃiﬃﬃeﬃjﬃ
+
+There is no charge on either backbone atoms or side chain CG
+
+beads, except for those corresponding to charged groups in Lys,
+
+Arg, Asp, and Glu. Nonspecific electrostatic interactions are
+
+described using the Debye–Hu¨ckel-type potential,
+
+Uelec
+
+¼
+
+X
+chrg: pairs
+
+qi qj eÀrDi;j 4pere0ri;j
+
+(10)
+
+where qi is the charge of the CG bead i, ri,j is the inter-charge distance, and e0 is the permittivity of vacuum. D is the Debye screening length. At 300 K, D (inpﬃÅﬃﬃﬃ)ﬃﬃﬃﬃdﬃﬃﬃeﬃﬃpends on the ionic strength (I, in M) according to 9:48=I. Note that similar potentials have been widely used in various CG models and shown to provide an adequate description of the long-range electrostatic interactions, even though the accurate modeling of electrostatic solvation in heterogeneous protein environments requires more detailed and computationally more intensive implicit solvent theories. In the present work, I is set to 0.01 M, to roughly account for the low salt conditions in many NMR experiments. er is the effective dielectric constant. The final value of er, 20, was chosen in the current model based on the simulations of several highly charged model peptides (see Results and discussions for details).
+
+AT and CG simulation protocols
+The HyRes model has been implemented in CHARMM.61,62 Multiple sets of AT and CG simulations were performed in the explicit or implicit solvent for backbone and side chain analogs, dipeptides, and various model peptides. The protocols of these simulations are summarized below. Unless otherwise noted, Langevin dynamics was always used with a friction coeﬃcient of 0.2 psÀ1 and a time step of 2 fs. The SHAKE algorithm63 was used to constrain the length of all bonds involving hydrogen atoms.
+Dipeptide simulations. Explicit solvent simulations of the Ala dipeptide (Ace–Ala–Nme) were performed using both AMBER ff99SB-ILDN64 and CHARMM36m65 force fields, as implemented in GROMACS 2016.1.66 586 TIP3P water molecules67 were used to solvate the dipeptide. Simulations were performed in the NPT ensemble at 298 K and 1 atm pressure under periodic boundary conditions. The PME method68 was used to treat long-range electrostatic interactions. Short-range nonbonded interactions were truncated at 1.0 nm in the AMBER ff99SB-ILDN simulation, and 1.2 nm in the CHARMM36m
+
+simulation. Each simulation lasted for 200 ns. In addition, all 20 dipeptides were simulated at 300 K for 300 ns in the GBSW implicit solvent, to derive the distributions of side chain conformations for parameterization of bonding parameters as well as for the initial assignment of the vdW radii of side chain beads.
+Free energy of side chain interactions. Potentials of mean force (PMFs) for pair-wise interactions between hydrophobic side chains were calculated by umbrella sampling simulations at 300 K in both the CHARMM36 explicit solvent and GBSW implicit solvent57 atomistic force fields, and compared to the results from the HyRes model. In atomistic simulations, harmonic potentials with a force constant of 5.0 kcal molÀ1 ÅÀ2 were imposed on the center of mass distance between the pair of side chain analogs. 17 windows were used, spanning from 4 to 12 Å at a spacing of 0.5 Å. The simulation time at each window was 5 and 8 ns for explicit and implicit solvent calculations, respectively. In the CG simulation, the force constant of harmonic restraining potentials was 1.0 kcal molÀ1 ÅÀ2. A total of 12 windows were used, spanning the reaction coordinate from 4 to 15 Å at a spacing of 1 Å. Each window was sampled for 200 ns. The weighted histogram analysis method (WHAM)69 was then utilized to calculate the free energy profiles along the center of mass separation distance.
+Model peptide simulations. Multiple model peptides were used in the parameterization and validation of HyRes, including Gly10, (AAQAA)3, 30 variants of the (EK)25 peptide,70 the 24-residue arginine/serine (RS) peptide, the 28-residue kinase inducible transactivation domain of transcription factor CREB (KID), the activation domain of the activator for the thyroid hormone and retinoid receptors (ACTR, residues 1040–1086), the nuclear coactivator binding domain of the CREB binding protein (NCBD, residues 2059–2117), and a b-hairpin GB1m3.71 The sequences of all the model peptides are summarized in Table S2 (ESI†). Conformational ensembles of the relatively shorter and simpler Gly10, (AAQAA)3, RS peptide, KID, and GB1m3 peptides in HyRes were calculated using direct MD simulations at 300 K. For each peptide, two independent simulations were performed, one starting from the folded or helical structure (control run) and the other starting from the fully extended structure (folding run). The folded configuration of KID was obtained from the RCSB Protein Data Bank (PDB) entry 1KDX.72 Comparison of the results from the folding and control runs demonstrate that convergence can be achieved with 200 ns MD.
+Conformational ensembles of ACTR, NCBD and (EK)25 peptides in HyRes were calculated using T-REX simulations, performed using CHARMM in combination with the MMTSB toolset.73 For (EK)25 peptides, T-REX simulations were initiated from fully extended structures. For ACTR and NCBD, both control and folding runs were performed for convergence analysis. The folded conformations in control runs of ACTR and NCBD were obtained from their complex structure (PDB: 1KBH74). Each simulation involved eight replicas with temperatures exponentially spaced between 300 and 500 K, and exchanges between neighboring replicas were attempted every 2 ps. The simulations lasted for 200 ns per replica. The averaged exchange acceptance
+
+32424 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+
+PCCP
+
+Paper
+
+ratio was B20% for all the three peptides. Conformations sampled at the lowest temperature were collected for analysis.
+For Gly10, four additional 10 ns explicit solvent simulations were performed at 300 K under NPT conditions using the CHARMM36m force field to estimate the solvent screening of dispersion interactions. The peptide was solvated by 7240 TIP3P water molecules in a 60 Å-cubic box. In these simulations, the peptide end-to-end distance was restrained to either 7 or 20 Å to represent the compact or extended conformation states. We also carried out the Monte Carlo (MC) simulation of free Gly10 using the ABSINTH model75 implemented in the CAMPARI package to calculate the conformational properties. ABSINTH has been highly successful in describing the IDP sequence composition– structural preference relationship,75–78 and thus provides a good reference for examining the conformational properties of Gly10. The MC simulation follows the protocol as defined in ‘‘file abs3.2_opls.prm’’ in CAMPARI. The peptide was put in a droplet of 80 Å radius and simulated at 300 K under NVT conditions. The simulation lasted 41 000 000 MC steps, with the first 1 000 000 steps excluded in the analysis. A 200 ns simulation of Gly10 was also performed in the GBSW implicit solvent for comparison.
+
+MSES simulations
+
+In the MSES simulations of (AAQAA)3, the AT and CG models were coupled using UMSES imposed on (i, i + 4) Ca atoms that form native helical contacts. UMSES with a soft asymptote was used to reduce the energy penalty for significantly diﬀerent
+conformations between AT and CG models and avoid exchange bottlenecks between neighboring replicas,21
+
+UMSESðrAT; rCGÞ
+
+¼ X 0:5kiÀdiAT À diCGÁ2;
+i
+
+¼
+
+X
+i
+
+A
+
+þ
+
+À diAT
+
+B À
+
+diCGÁs
+
+þ
+
+fmax ÀdiAT
+
+À
+
+diCG
+
+Á ;
+
+ifjDdij ds ifjDdij 4 ds
+
+with Ddi ¼ diAT À diCG (11)
+
+where dAi T and dCi G are the Ca–Ca distances for residue pair i in the atomistic and CG models, respectively. ds is the distance threshold where UMSES smoothly switches from quadratic to the soft asymptote. s determines how quickly the maximal force, fmax, is approached at a large distance difference |dAi T À dCi G|. A and B are identified by requiring both MSES coupling energy and force to be continuous at |dAi T À dCi G| = ds. The H-REX protocol previously optimized for disordered proteins21 is used in this work. For comparison, three independent sets of simulations were preformed using T-REX in the GBSW implicit solvent and MSES with the GBSW model coupled to the Ca-only Go¯-like model (MSES/G¯o) or the HyRes model (MSES/HyRes). For each protocol, both control and folding simulations were initiated from helical and extended structures, respectively, for convergence analysis. All simulations were performed with 16 replicas and temperatures ranging from 270 K to 500 K. Other simulation details are listed in Table 1.
+
+Table 1 T-REX and MSES simulations of (AAQAA)3
+
+Protocol T-REX
+
+Run
+Control Folding
+
+Simulation time (ns per replica)
+100 100
+
+Exchange acceptance ratio
+0.61 0.61
+
+MSES/G¯o
+
+Control 50
+
+0.55
+
+Folding 50
+
+0.55
+
+MSES/HyRes Control 50
+
+0.51
+
+Folding 50
+
+0.51
+
+Results and discussions
+Side chain bonded parameter optimization
+The packing of peptide side chains has long been recognized as a key factor in determining the protein structure (and folding).79 A flexible CG protein model thus needs to provide a reasonably realistic description of side chain geometries. Accordingly, the equilibrium bond and angle parameters (as well as vdW radii) of the HyRes model are assigned to maximally reproduce atomistic distributions according to the mapping scheme (Table S1, ESI†). The corresponding bond and angle force constants are assigned to reproduce the root-mean-squared (RMS) fluctuations from atomistic simulations. As summarized in Fig. 2, the average values of all virtual bond lengths and angles observed in the atomistic GBSW model are well reproduced in HyRes. Importantly, the CG model is also able to reproduce the distributions of most virtual bonds and angles, except those displaying multimodal distributions (Fig. S1 and S2, ESI†). These are the cases where the side chain samples multiple rotamers at the atomic resolution and reflects an inherent consequence of coarsegraining. For these bonds and angles, the associated standard deviation derived from atomistic simulations are larger than those in the HyRes model (Fig. 2). Once the bond and angle parameters are assigned, side chain w (Ni–CAi–CBi–CCi) dihedral potentials are parameterized by fitting atomistic distributions to cosine expansions for the residues Lys, Arg, His, Phe, Tyr and Trp. The resulting parameters are summarized in Table S3 (ESI†). As shown in Fig. S3 (ESI†), all atomistic distributions along w can be well reproduced by HyRes. Additional dihedral potentials are imposed on c0 (CBi–CAi–Ci–Oi), to finely tune the helical propensities of individual amino acids (independent of the backbone f/c CMAP cross-term). Since Asp, Asn, Thr, Cys and Val have been suggested to have lower helical propensities than other non-Gly, non-Pro residues,80,81 weak Udihedral along c0 is applied to these residues to capture this feature (see Table S4, ESI†).
+Scaling of backbone vdW interactions
+The original CHARMM19 vdW parameters for the backbone over-estimate the eﬀective strengths of nonspecific dispersion interactions in HyRes due to a lack of solvent screening, and this leads to severe over compaction in peptide simulations. To address this limitation, we uniformly scale down the strengths of backbone vdW interactions (ei in eqn (9)). Determination of the appropriate scaling factor is guided by explicit solvent
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32425
+
+Paper
+
+PCCP
+
+Fig. 2 Averaged values and standard deviations of bond lengths (top) and angles (bottom) for all 20 amino acids, derived from 300 ns of GBSW and 100 ns HyRes simulations of dipeptides at 300 K.
+
+simulations of Gly10, a highly flexible peptide that does not have any side chains and is thus particularly sensitive to the balance of water-mediated backbone–backbone interactions. Two sets of explicit solvent simulations of Gly10 were performed on representative ‘‘compact’’ and ‘‘extended’’ states to estimate the ratio between the net contribution of vdW interactions and the intra-peptide component alone:
+
+f
+
+¼
+
+UvtodtWðcmpÞ UvindtWraðcmpÞ
+
+À À
+
+UvtodtWðextÞ UvindtWraðextÞ
+
+(12)
+
+The results show that the net contribution of vdW interactions to the stabilization of compact states is about 20–40% of the intra-peptide component alone (see Table S5, ESI† for details). That is, the solvent screening reduces the energetic contribution of nonspecific vdW interactions to conformational collapse by 60–80%. Accordingly, vdW interactions of all backbone atoms (ei) are reduced to 30% of the original CHARMM19 values to approximately account for the solvent screening in HyRes. The scaling significantly reduces over-compaction. The conformational properties of Gly10 calculated using HyRes agree well with results from various atomistic simulations in implicit and explicit solvents (Table 2 and Fig. 3). We note that GBSW is known to generate overly compact ensembles (e.g., compared to ABSINTH, blue vs green traces in Fig. 3). HyRes appears to display a small bias towards compaction, which is likely due to the lack of a more sophisticated implicit treatment of the solvent. Benchmark simulations suggest that the compaction bias is smaller for more complex and longer peptides (see below), and the current choice of scaling appears appropriate.
+
+Side chain non-bonded parameters
+The vdW radii of all amino acid side chain beads were first assigned based on the average volume occupied by the corresponding atoms in the GBSW implicit solvent simulations of
+
+Table 2 Ensemble averaged end-to-end distance (de2e), radius of gyration (Rg), and solvent accessible surface area (SASA) of Gly10 simulated using HyRes, GBSW, CHARMM27, CHARMM36, Amber ﬀ12SB and ABSINTH
+
+Model
+
+hde2ei (Å)
+
+hRgi (Å)
+
+HyRes
+
+13.65
+
+6.15
+
+GBSW
+
+10.65
+
+5.23
+
+CHARMM27a
+
+13.30
+
+5.65
+
+CHARMM36a
+
+18.14
+
+7.22
+
+Amber ﬀ12SBa
+
+14.78
+
+6.31
+
+ABSINTH
+
+16.54
+
+6.94
+
+a Results are from Drake and Pettitt’s work.82
+
+hSASAi (Å2)
+1000 899 880
+1010 934 959
+
+Fig. 3 Probability distribution of the end-to-end distance, Rg and SASA of Gly10 obtained from HyRes, GBSW and ABSINTH simulations at 300 K.
+pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ dipeptides, as R ¼ 3 3V=4p. The initial values of the vdW radii were fine-tuned by examining the backbone f/c adiabatic energy surfaces of dipeptides and the PMFs of side chain pair-wise interactions. The backbone f/c energy surface is particularly sensitive to the covalent geometry and vdW radii. Other non-bonded parameters such as hydrogen bonding interactions and vdW interaction strengths have relatively weaker eﬀects. It was found that special 1–4 vdW radii were needed for most amino acid side chain beads to reproduce results from the GBSW implicit solvent, e.g., by comparing Fig. S4 and S5 (ESI†). The final assignment of vdW radii is summarized in Table 3. MD simulations of the Ala dipeptide were also performed to compare HyRes with AMBER ff99SB-ILDN64 and CHARMM36m65 explicit
+
+32426 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+
+PCCP
+
+Paper
+
+Table 3 Lennard-Jones parameters for all side chain beads
+
+Residue
+Ala Val Leu Ile Met Asn Asp Gln Glu Cys Ser Thr Pro Lys Lys Arg Arg His His His Phe Phe Phe Tyr Tyr Tyr Trp Trp Trp Trp Trp
+
+CG bead
+CB CB CB CB CB CB CB CB CB CB CB CB CB CB CC CB CC CB CC CD CB CC CD CB CC CD CB CC CD CE CF
+
+ei (kcal molÀ1)
+À0.308 À0.62 À0.9 À0.772 À0.636 À0.18 À0.148 À0.204 À0.14 À0.532 À0.188 À0.228 À0.212 À0.05 À0.05 À0.135 À0.135 À0.108 À0.081 À0.081 À0.22 À0.22 À0.22 À0.197 À0.197 À0.0984 À0.168 À0.084 À0.168 À0.168 À0.168
+
+rm i in/2 (Å)
+2.12 2.75 2.96 2.97 2.98 2.65 2.61 2.89 2.85 2.47 2.32 2.62 2.77 2.78 2.36 2.78 2.54 2.34 2.18 2.11 2.64 2.33 2.33 2.64 2.33 2.45 2.42 2.24 2.09 2.33 2.33
+
+rm i in/2(1–4) (Å)
+2.12 2.75 2.96 2.97 3.68 3.25 3.11 3.89 3.95 2.77 2.72 2.62 2.77 3.48 3.06 3.18 2.94 2.64 2.48 2.41 2.94 2.63 2.63 2.94 2.63 2.75 2.72 2.54 2.39 2.63 2.63
+
+Table 4 ei0 (in RT) before rescaling obtained from deconvoluting the MJ matrix
+
+AA(i) C
+
+M
+
+F
+
+I
+
+L
+
+V
+
+W
+
+ei0
+
+4.63 5.51 7.53 6.65 7.73 5.37 5.31
+
+AA(i) Y
+
+A
+
+G
+
+T
+
+S
+
+N
+
+Q
+
+ei0
+
+4.3
+
+2.75 2.14 2.08 1.74 1.67 1.87
+
+AA(i) D
+
+E
+
+H
+
+R
+
+K
+
+P
+
+ei0
+
+1.4
+
+1.34 2.68 1.87 1
+
+1.94
+
+Fig. 5 ei,j0 parameters from the original MJ statistical potentials (upper left) and in the HyRes model by calculating ei,j0 from ei0 using the LB mixing rule
+(lower right).
+
+Fig. 4 Backbone f/c free energy profiles of alanine dipeptide obtained from 200 ns of MD simulations using (A) HyRes, (B) AMBER ﬀ99SB-ILDN, and (C) CHARMM36m.
+solvent force fields. The results are shown in Fig. 4. Although details in the free energy landscapes are different among all three models, probabilities of visiting various secondary structure regions (e.g., a helical vs. extended states) appear similar. Note that the inherent secondary structure propensities of HyRes have also been fine tuned using the f/c CMAP and c0 torsion terms based on model peptide simulations. This will be described in detail in the following sections.
+To determine the vdW interaction strengths of side chain beads, we followed a deconvolution strategy previously described by Bereau and Deserno35 to reproduce the 20 Â 20 MJ matrix using 20 parameters (ei0) based on the Lorentz–Berthelot (LB) mixing rule (eqn (9)). The final values of 20 ei0 are listed in Table 4. As shown in Fig. 5, the pair-wise vdW interaction strengths calculated using 20 ei0 is in excellent agreement with the original MJ matrix, with the overall RMSD of 0.25 RT. Only 11 out of the 210 pair-wise interactions deviate by greater
+
+than 0.5 RT (Table 5). The deviation of the Cys–Cys pair-wise interaction from the MJ potential may be related to disulfide bond formation in proteins. Among these 11 pairs of residues, nine pairs are between charged residues or between charged and hydrophobic residues. Interactions between oppositely charged residues were underestimated by this deconvolution method, while they were overestimated for residues with the same charges (Table 5). When explicit electrostatic interactions are taken into account between charged residues, the actual strengths of interactions involving charged residues agree better with the MJ matrix (Fig. S6, ESI†). Importantly, the nonspecific attractive interactions between oppositely charged residues in HyRes are B2 kcal molÀ1 (Fig. S6, ESI†), which is very similar to results obtained from atomistic simulations in the explicit solvent.44,83
+The deconvoluted parameters (ei0) for 20 amino acids are then rescaled based on the PMFs of pair-wise interactions between side chain analogs using the atomistic results as a reference. During the rescaling process, the minimum and maximum values of ei0 (for Lys and Leu, respectively) are adjusted while the relative scale (ei0 À min[ei0])/(max[ei0] À min[ei0]) of each residue is maintained. Optimal agreement with atomistic PMFs were found with min[ei0] = 0.1 kcal molÀ1 and max[ei0] = 0.9 kcal molÀ1. For residues with multiple CG beads in the side chain, such as Lys, Arg, His, Phe and Trp (see Fig. 1), the scaled ei0 needs to be further partitioned to the constituent CG beads based on the mapping scheme (Table S1, ESI†). The final parameters are summarized in Table 3. As illustrated in Fig. 6, the resulting PMFs of the side chain interactions in HyRes are in excellent agreement with the atomistic results. Note that HyRes tends to shift the minima of
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32427
+
+Paper
+
+Table 5 Residue pairs with the deviation Dei,j0 = ei,j0(MJ) À ei,j0(LB) greater than 0.5 RT
+
+AAi
+
+C
+
+F
+
+L
+
+W
+
+Y
+
+D
+
+AAj
+
+C
+
+K
+
+K
+
+P
+
+K
+
+R
+
+Dei,j0
+
+0.81
+
+0.62
+
+0.59
+
+0.52
+
+0.53
+
+0.67
+
+AAi
+
+D
+
+E
+
+E
+
+R
+
+K
+
+AAj
+
+K
+
+Dei,j0
+
+0.5
+
+R
+
+K
+
+K
+
+K
+
+0.69
+
+0.64
+
+À0.78
+
+À0.88
+
+PCCP
+
+Fig. 7 Averaged Rg as a function of the charge patterning parameter k for 30 variants of the (EK)25 peptide. Values from HyRes simulations are uniformly shifted up by 4 Å to roughly account for larger side chain beads. ABSINTH results are taken from ref. 70.
+
+Fig. 6 Free energy profiles as a function of the separation distance between the center of mass of hydrophobic amino acid side chain analogs.
+PMFs towards larger values, which is a direct consequence of using CG beads to represent groups of atoms with anisotropic structures. An implication is that HyRes likely remains limited in the accurate description of side chain packing. However, the main objective of developing HyRes is to provide a better CG modeling for the MSES simulation of atomistic ensembles. A highly precise long-range interaction at the CG level is not expected to be critical.
+Tuning of electrostatic interactions
+The Debye–Hu¨ckel-type potential has proven highly successful in the description of nonspecific protein interactions.84 A main parameter subject to tuning in eqn (10) is the effective dielectric constant er, which directly scales the strengths of electrostatic interactions. The optimal value for a given CG model should be chosen to provide the appropriate balance among various competing short- and long-range interactions. We evaluate such a balance by examining the conformational properties of a set of 30 variants of (EK)25 peptide, which were originally designed by Das and Pappu70 to study how charge patterning governs the conformational preferences of the IDPs. A parameter, k, ranging from 0 to 1, has been defined to quantify the charge patterning, with low values for well-mixed sequences and high values for the segregation of oppositely charged
+
+residues in the sequence. As shown Fig. 7, the ensemble averaged radius of gyration (Rg) of the (EK)25 peptide decreases as k increases, a trend that is well reproduced by HyRes with er = 20. This suggests that the overall balance between the electrostatic and other interactions is reasonable. Nonetheless, HyRes tends to generate conformational ensembles more compact than ABSINTH for some sequences with intermediate k (e.g., between 0.1 and 0.4). This again likely reflects the inherent limitations associated with CG representations and the greatly simplified energy function employed (particularly, treatment of solvation).
+Balancing backbone hydrogen-bonding and torsion potentials
+Once all vdW parameters were assigned, the strength of the backbone hydrogen bonding interactions was tuned together with the f/c CMAP term to recapitulate the secondary structure propensities of model peptides. In this work, we mainly focused on helix–coil transitions and used (AAQAA)3 as a primary model peptide in backbone tuning. (AAQAA)3 is partially helical that is about 20% folded at 300 K;85 it has been frequently used in atomistic and CG force field optimization.21,57,86 The backbone parameters optimized based on (AAQAA)3 were then fine-tuned using KID, a slightly more complex IDP that folds into two helices upon binding to a specific target KIX.72 The NMR secondary chemical shifts and atomistic simulations have shown that the N-terminal helical segment is about 50–60% folded, while the second helical segment is only 10–15% folded.87,88 The final CMAP is shown in Fig. S7 (ESI†), and the hydrogen bond interaction strength (eHB in eqn (7)) is set to 1.5 kcal molÀ1. Fig. 8 depicts the residual helicity profiles of (AAQAA)3 and KID calculated from the HyRes model, with representative structures shown in Fig. S8 and S9 (ESI†), respectively. The results are highly consistent with both NMR and previous atomistic simulations, suggesting that the HyRes model is able to capture the sequence dependence of the helical propensity quite well. This property is expected to be highly
+
+32428 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+
+PCCP
+
+Paper
+
+Fig. 8 Residual helicity profiles of (A) (AAQAA)3 and (B) KID at 300 K calculated using the HyRes model.
+beneficial for driving faster atomistic sampling in MSES simulations of IDPs.
+HyRes simulations of nontrivial IDPs
+The HyRes model was used to study the RS peptide, a highly charged, disordered peptide that has been extensively characterized by NMR,89 small angle X-ray scattering (SAXS),90 and various atomistic simulations.65,90,91 RS peptide in HyRes simulations showed an averaged Rg of 10.1 Å at 300 K (Fig. S10, ESI†), which agreed well with SAXS measurements (12.62 Å)90 by considering CG bead radii of 2–3 Å (Table 3). The optimized HyRes model was further validated using two longer IDPs with more complex conformational properties, ACTR and NCBD. These two IDPs can synergistically fold into a stable helical complex upon binding.92 In the unbound state, ACTR has a very low level of residual helices, while NCBD contains has molten globule characteristics with folded-like helical contents.93,94 Key conformational properties obtained from T-REX simulations in HyRes are summarized in Fig. 9. The results show that HyRes yields residual helices in the correct regions revealed in previous studies.50 It also successfully predicts higher helical contents in NCBD than ACTR, even though the model over-estimates the helical content of ACTR while under-estimating that of NCBD. The calculated Rg distribution of ACTR also agrees well with the result from ABSINTH simulations. However, the overall dimension of ACTR seems to be under-estimated compared to SAXS measurements, which yielded an average Rg B 26.3 Å at 278 K
+
+for a longer 71-residue construct95 (vs. the 47-residue segment simulated here). Over-estimation of the helical content is likely a key contributing factor here. For the larger peptide NCBD (59 residues), HyRes generates largely globular conformational ensembles with an averaged Rg of B11.4 Å, which is in reasonable agreement with the value of B15.2 Å derived from SAXS (after taking into account the CG bead radii of 2–3 Å in HyRes, see Table 3).96 For a b-hairpin peptide GB1m3, which is B86% folded at 298 K based on NMR measurement,71 the current HyRes model could sample the folded state, but underestimates its stability (Fig. S11, ESI†). All together, these benchmark simulations support the notion that HyRes has achieved the main design objective, which is to provide a semi-quantitative description of the secondary structures and a qualitative description of the long-range conformational properties. We note that the model could be further improved by including a better treatment of hydrogen bonds and solvation.
+Eﬃciency of HyRes in driving helix–coil transitions in MSES simulations
+Previous work has shown that the MSES approach is able to accelerate the sampling of protein conformations in rough, complex atomistic energy landscapes, even when the atomistic model is only coupled with a simple Ca-based Go¯-like model.20,21 MSES simulations of disordered proteins should benefit further from CG models that can generate both local and long-range structural fluctuations consistent with those observed in atomistic models. The performance of the newly developed HyRes model in MSES simulations is examined using the model peptide (AAQAA)3. As shown in Fig. S12 (ESI†), the atomistic helicity profiles obtained from T-REX and MSES simulations, coupled to either the Ca-only Go¯-like model or HyRes, are essentially identical as expected. This validates that MSES simulations are able to generate the appropriate canonical ensemble free of bias due to MSES coupling. The eﬃcacy of
+
+Fig. 9 Averaged residue helicity profiles and distributions of Rg of ACTR and NCBD calculated using HyRes.
+
+Fig. 10 Reversible helix–coil transition rates for each residue of (AAQAA)3 at the atomistic level. For each replica, we first computed the helix/coil transition rate as the number of reversible helix/coil transitions divided by simulation time. The results for each simulation shown here are averaged values over all replicas. Note that only the second half of each trajectory was used in these calculations.
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32429
+
+Paper
+
+PCCP
+
+Fig. 11 Convergence rates of (AAQAA)3 residual helicity profiles obtained from MSES/HyRes, MSES/Go , and T-REX simulations. At each time point t, we first the computed residual helicity profile using trajectory from the beginning to time t. RMSD(t) is calculated between the profile at time t and the averaged one calculated from all the six simulations shown in Fig. S12 (ESI†).
+
+simulations of several IDPs with various level of complexities demonstrate that the HyRes model has achieved all the design objectives. Initial application to simple model IDPs suggests HyRes can drive faster atomistic transitions in MSES and leads to faster convergence in atomistic structure ensembles. With further optimization of this CG model using more peptides containing b strands, the HyRes model could be extended to study IDPs with more complex secondary structures. We also note that achieving the best sampling efficiency with coupling to HyRes will require further optimization of the MSES coupling scheme and the H/T-REX protocol. These developments are ongoing, which can be anticipated to further improve the efficiency of MSES for studies of larger and more complex IDPs frequently involved in cellular signaling and regulation.
+
+using HyRes to accelerate atomistic conformational transitions in MSES simulations is then assessed by computing the reversible helix/coil transition rate for each residue in (AAQAA)3 at the atomistic level. As summarized in Fig. 10, the atomistic helix/coil transition rate observed in MSES/Go¯ simulation is B2 fold that in atomistic T-REX simulations. Using the HyRes model in MSES simulations further accelerates atomistic structural transitions to B3 fold (red traces in Fig. 10). Although the exact values of the helix–coil transition rate depend on a lot of factors, such as capping groups, peptide length,97 concentration, temperature,98 hydrodynamics,99,100 etc., our result demonstrates that the HyRes model could drive faster conformational transitions in atomistic energy landscapes. Faster helix–coil transitions translate well into a faster convergence rate in averaged conformational properties such as residue helicity profiles. As shown in Fig. 11, the residual helicity profiles of (AAQAA)3 obtained from MSES/HyRes simulations converge rapidly in both control and folding runs. In particular in the folding runs, the MSES/HyRes simulation converged faster than both the MSES/Go¯ and T-REX simulations.
+Conclusions
+Understanding the structural basis of IDP recognition and regulation is critical in unveiling the mechanisms of IDP functions and associated diseases. Previous studies have demonstrated that the MSES scheme is highly suitable for characterizing the conformational properties of IDPs. One of the factors that limits the MSES sampling eﬃciency is the ability of CG models to generate both local and long-range structural fluctuations that are largely consistent with AT models. Ca-only G¯o-like models have proven to be inadequate. Here, we describe a new HyRes model designed especially for MSES simulations of IDPs. The model treats solvent molecules implicitly. The peptide backbone is at atomistic resolution, which allows for a semi-quantitative description of the secondary structure propensities of the IDPs. Side chains are represented at an intermediate resolution with one or more CG beads, whose parameters were carefully tuned to provide a qualitative description of the transient peptide–peptide interactions and long-range conformational properties. Benchmark
+
+Conflicts of interest
+There are no conflicts to declare.
+Acknowledgements
+This work is supported by the National Institutes of Health (GM114300). The computing was performed at the Massachusetts Green High Performance Computing Center (MGHPCC).
+References
+1 P. E. Wright and H. J. Dyson, Nat. Rev. Mol. Cell Biol., 2015, 16, 18–29.
+2 V. N. Uversky, C. J. Oldfield and A. K. Dunker, J. Mol. Recognit., 2005, 18, 343–384.
+3 H. J. Dyson and P. E. Wright, Nat. Rev. Mol. Cell Biol., 2005, 6, 197–208.
+4 J. H. Chen, Arch. Biochem. Biophys., 2012, 524, 123–131. 5 P. Romero, Z. Obradovic, X. H. Li, E. C. Garner, C. J. Brown
+and A. K. Dunker, Proteins: Struct., Funct., Genet., 2001, 42, 38–48. 6 D. M. Mitrea and R. W. Kriwacki, FEBS Lett., 2013, 587, 1081–1088. 7 M. M. Babu, R. van der Lee, N. S. de Groot and J. Gsponer, Curr. Opin. Struct. Biol., 2011, 21, 432–440. 8 R. G. Smock and L. M. Gierasch, Science, 2009, 324, 198–203. 9 D. D. Boehr, R. Nussinov and P. E. Wright, Nat. Chem. Biol., 2009, 5, 789–796. 10 J. Gsponer, M. E. Futschik, S. A. Teichmann and M. M. Babu, Science, 2008, 322, 1365–1368. 11 H. C. Lu, S. S. Chung, A. Fornili and F. Fraternali, Front. Mol. Biosci., 2015, 2, 47. 12 V. Vacic, P. R. Markwick, C. J. Oldfield, X. Zhao, C. Haynes, V. N. Uversky and L. M. Iakoucheva, PLoS Comput. Biol., 2012, 8, e1002709. 13 L. M. Iakoucheva, C. J. Brown, J. D. Lawson, Z. Obradovic and A. K. Dunker, J. Mol. Biol., 2002, 323, 573–584.
+
+32430 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+
+PCCP
+
+Paper
+
+14 V. N. Uversky, V. Dave, L. M. Iakoucheva, P. Malaney, S. J. Metallo, R. R. Pathak and A. C. Joerger, Chem. Rev., 2014, 114, 6844–6879.
+15 T. H. Click, D. Ganguly and J. Chen, Int. J. Mol. Sci., 2010, 11, 5292–5309.
+16 C. K. Fisher and C. M. Stultz, Curr. Opin. Struct. Biol., 2011, 21, 426–431.
+17 D. Kruschel and B. Zagrovic, Mol. BioSyst., 2009, 5, 1606–1616. 18 B. Schuler and W. A. Eaton, Curr. Opin. Struct. Biol., 2008,
+18, 16–26. 19 K. Moritsugu, T. Terada and A. Kidera, J. Chem. Phys., 2010,
+133, 224105. 20 W. H. Zhang and J. H. Chen, J. Chem. Theory Comput.,
+2014, 10, 918–923. 21 K. H. Lee and J. Chen, J. Comput. Chem., 2016, 37, 550–557. 22 T. Z. Lwin and R. Luo, J. Chem. Phys., 2005, 123, 194904. 23 P. Liu, Q. Shi, E. Lyman and G. A. Voth, J. Chem. Phys.,
+2008, 129, 114103. 24 E. Lyman and D. M. Zuckerman, J. Chem. Theory Comput.,
+2006, 2, 656–666. 25 A. Liwo, M. Khalili, C. Czaplewski, S. Kalinowski, S. Oldziej,
+K. Wachucik and H. A. Scheraga, J. Phys. Chem. B, 2007, 111, 260–285. 26 A. Liwo, S. Oldziej, M. R. Pincus, R. J. Wawak, S. Rackovsky and H. A. Scheraga, J. Comput. Chem., 1997, 18, 849–873. 27 A. Liwo, M. R. Pincus, R. J. Wawak, S. Rackovsky, S. Oldziej and H. A. Scheraga, J. Comput. Chem., 1997, 18, 874–887. 28 S. Oldziej, C. Czaplewski, A. Liwo, M. Chinchio, M. Nanias, J. A. Vila, M. Khalili, Y. A. Arnautova, A. Jagielska, M. Makowski, H. D. Schafroth, R. Kazmierkiewicz, D. R. Ripoll, J. Pillardy, J. A. Saunders, Y. K. Kang, K. D. Gibson and H. A. Scheraga, Proc. Natl. Acad. Sci. U. S. A., 2005, 102, 7547–7552. 29 A. Liwo, M. Khalili and H. A. Scheraga, Proc. Natl. Acad. Sci. U. S. A., 2005, 102, 2362–2367. 30 G. G. Maisuradze, P. Senet, C. Czaplewski, A. Liwo and H. A. Scheraga, J. Phys. Chem. A, 2010, 114, 4471–4485. 31 A. V. Smith and C. K. Hall, Proteins: Struct., Funct., Genet., 2001, 44, 344–360. 32 M. Cheon, I. Chang and C. K. Hall, Proteins, 2010, 78, 2950–2960. 33 H. D. Nguyen and C. K. Hall, Proc. Natl. Acad. Sci. U. S. A., 2004, 101, 16180–16185. 34 H. D. Nguyen and C. K. Hall, J. Am. Chem. Soc., 2006, 128, 1890–1901. 35 T. Bereau and M. Deserno, J. Chem. Phys., 2009, 130, 235106. 36 J. Maupetit, P. Tuﬀery and P. Derreumaux, Proteins, 2007, 69, 394–408. 37 P. Derreumaux, J. Chem. Phys., 1999, 111, 2301–2310. 38 Y. Chebaro and P. Derreumaux, Proteins: Struct., Funct., Bioinf., 2009, 75, 442–452. 39 Y. Chebaro, S. Pasquali and P. Derreumaux, J. Phys. Chem. B, 2012, 116, 8741–8752. 40 P. Kynast, P. Derreumaux and B. Strodel, BMC Biophys., 2016, 9, 4.
+
+41 P. Kar, S. M. Gopal, Y. M. Cheng, A. Predeus and M. Feig, J. Chem. Theory Comput., 2013, 9, 3769–3788.
+42 L. Monticelli, S. K. Kandasamy, X. Periole, R. G. Larson, D. P. Tieleman and S. J. Marrink, J. Chem. Theory Comput., 2008, 4, 819–834.
+43 D. H. de Jong, G. Singh, W. F. D. Bennett, C. Arnarez, T. A. Wassenaar, L. V. Schafer, X. Periole, D. P. Tieleman and S. J. Marrink, J. Chem. Theory Comput., 2013, 9, 687–697.
+44 W. Han and K. Schulten, J. Chem. Theory Comput., 2012, 8, 4413–4424.
+45 S. Kmiecik, D. Gront, M. Kolinski, L. Wieteska, A. E. Dawid and A. Kolinski, Chem. Rev., 2016, 116, 7898–7936.
+46 H. I. Ingolfsson, C. A. Lopez, J. J. Uusitalo, D. H. de Jong, S. M. Gopal, X. Periole and S. J. Marrink, Wiley Interdiscip. Rev.: Comput. Mol. Sci., 2014, 4, 225–248.
+47 S. J. Marrink and D. P. Tieleman, Chem. Soc. Rev., 2013, 42, 6801–6822.
+48 F. Sterpone, S. Melchionna, P. Tuﬀery, S. Pasquali, N. Mousseau, T. Cragnolini, Y. Chebaro, J. F. St-Pierre, M. Kalimeri, A. Barducci, Y. Laurin, A. Tek, M. Baaden, P. H. Nguyen and P. Derreumaux, Chem. Soc. Rev., 2014, 43, 4871–4893.
+49 Z. G. Jia and J. H. Chen, J. Comput. Chem., 2016, 37, 1725–1733.
+50 W. Zhang, D. Ganguly and J. Chen, PLoS Comput. Biol., 2012, 8, e1002353.
+51 G. Parigi, N. Rezaei-Ghaleh, A. Giachetti, S. Becker, C. Fernandez, M. Blackledge, C. Griesinger, M. Zweckstetter and C. Luchinat, J. Am. Chem. Soc., 2014, 136, 16201–16209.
+52 Z. Jia and J. Chen, J. Comput. Chem., 2016, 37, 1725–1733. 53 A. D. MacKerell, D. Bashford, M. Bellott, R. L. Dunbrack,
+J. D. Evanseck, M. J. Field, S. Fischer, J. Gao, H. Guo, S. Ha, D. Joseph-McCarthy, L. Kuchnir, K. Kuczera, F. T. K. Lau, C. Mattos, S. Michnick, T. Ngo, D. T. Nguyen, B. Prodhom, W. E. Reiher, B. Roux, M. Schlenkrich, J. C. Smith, R. Stote, J. Straub, M. Watanabe, J. Wiorkiewicz-Kuczera, D. Yin and M. Karplus, J. Phys. Chem. B, 1998, 102, 3586–3616. 54 A. D. MacKerell, M. Feig and C. L. Brooks, J. Am. Chem. Soc., 2004, 126, 698–699. 55 A. D. MacKerell, M. Feig and C. L. Brooks, J. Comput. Chem., 2004, 25, 1400–1415. 56 E. Neria, S. Fischer and M. Karplus, J. Chem. Phys., 1996, 105, 1902–1921. 57 J. H. Chen, W. P. Im and C. L. Brooks, J. Am. Chem. Soc., 2006, 128, 3728–3736. 58 N. A. Pierson, L. X. Chen, D. H. Russell and D. E. Clemmer, J. Am. Chem. Soc., 2013, 135, 3186–3192. 59 A. D. Mackerell, M. Feig and C. L. Brooks, J. Comput. Chem., 2004, 25, 1400–1415. 60 S. Miyazawa and R. L. Jernigan, J. Mol. Biol., 1996, 256, 623–644. 61 B. R. Brooks, R. E. Bruccoleri, B. D. Olafson, D. J. States, S. Swaminathan and M. Karplus, J. Comput. Chem., 1983, 4, 187–217. 62 B. R. Brooks, C. L. Brooks, A. D. Mackerell, L. Nilsson, R. J. Petrella, B. Roux, Y. Won, G. Archontis, C. Bartels,
+
+This journal is © the Owner Societies 2017
+
+Phys. Chem. Chem. Phys., 2017, 19, 32421--32432 | 32431
+
+Paper
+
+PCCP
+
+S. Boresch, A. Caflisch, L. Caves, Q. Cui, A. R. Dinner, M. Feig, S. Fischer, J. Gao, M. Hodoscek, W. Im, K. Kuczera, T. Lazaridis, J. Ma, V. Ovchinnikov, E. Paci, R. W. Pastor, C. B. Post, J. Z. Pu, M. Schaefer, B. Tidor, R. M. Venable, H. L. Woodcock, X. Wu, W. Yang, D. M. York and M. Karplus, J. Comput. Chem., 2009, 30, 1545–1614. 63 J. P. Ryckaert, G. Ciccotti and H. J. C. Berendsen, J. Comput. Phys., 1977, 23, 327–341. 64 K. Lindorﬀ-Larsen, S. Piana, K. Palmo, P. Maragakis, J. L. Klepeis, R. O. Dror and D. E. Shaw, Proteins, 2010, 78, 1950–1958. 65 J. Huang, S. Rauscher, G. Nawrocki, T. Ran, M. Feig, B. L. de Groot, H. Grubmuller and A. D. MacKerell, Jr., Nat. Methods, 2017, 14, 71–73. 66 M. J. Abraham, T. Murtola, R. Schulz, S. P´all, J. C. Smith, B. Hess and E. Lindahl, SoftwareX, 2015, 1, 19–25. 67 W. L. Jorgensen, J. Chandrasekhar, J. D. Madura, R. W. Impey and M. L. Klein, J. Chem. Phys., 1983, 79, 926–935. 68 T. Darden, D. York and L. Pedersen, J. Chem. Phys., 1993, 98, 10089–10092. 69 S. Kumar, D. Bouzida, R. H. Swendsen, P. A. Kollman and J. M. Rosenberg, J. Comput. Chem., 1992, 13, 1011–1021. 70 R. K. Das and R. V. Pappu, Proc. Natl. Acad. Sci. U. S. A., 2013, 110, 13392–13397. 71 R. M. Fesinmeyer, F. M. Hudson and N. H. Andersen, J. Am. Chem. Soc., 2004, 126, 7238–7243. 72 I. Radhakrishnan, G. C. PerezAlvarado, D. Parker, H. J. Dyson, M. R. Montminy and P. E. Wright, Cell, 1997, 91, 741–752. 73 M. Feig, J. Karanicolas and C. L. Brooks, J. Mol. Graphics Modell., 2004, 22, 377–395. 74 S. J. Demarest, M. Martinez-Yamout, J. Chung, H. Chen, W. Xu, H. J. Dyson, R. M. Evans and P. E. Wright, Nature, 2002, 415, 549–553. 75 A. Vitalis and R. V. Pappu, J. Comput. Chem., 2009, 30, 673–699. 76 A. H. Mao, S. L. Crick, A. Vitalis, C. L. Chicoine and R. V. Pappu, Proc. Natl. Acad. Sci. U. S. A., 2010, 107, 8183–8188. 77 R. K. Das and R. V. Pappu, Proc. Natl. Acad. Sci. U. S. A., 2013, 110, 13392–13397. 78 R. K. Das, K. M. Ruﬀ and R. V. Pappu, Curr. Opin. Struct. Biol., 2015, 32, 102–112. 79 C. Clementi, A. E. Garcia and J. N. Onuchic, J. Mol. Biol., 2003, 326, 933–954.
+
+80 A. Chakrabartty, T. Kortemme and R. L. Baldwin, Protein Sci., 1994, 3, 843–852.
+81 C. N. Pace and J. M. Scholtz, Biophys. J., 1998, 75, 422–427. 82 J. A. Drake and B. M. Pettitt, J. Comput. Chem., 2015, 36,
+1275–1285. 83 J. H. Chen, J. Chem. Theory Comput., 2010, 6, 2790–2803. 84 Y. C. Kim and G. Hummer, J. Mol. Biol., 2008, 375,
+1416–1433. 85 W. Shalongo, L. Dugad and E. Stellwagen, J. Am. Chem.
+Soc., 1994, 116, 8288–8293. 86 R. B. Best, Curr. Opin. Struct. Biol., 2012, 22, 52–61. 87 I. Radhakrishnan, G. C. Perez-Alvarado, H. J. Dyson and
+P. E. Wright, FEBS Lett., 1998, 430, 317–322. 88 D. Ganguly and J. Chen, J. Am. Chem. Soc., 2009, 131,
+5214–5223. 89 S. Xiang, V. Gapsys, H. Y. Kim, S. Bessonov, H. H. Hsiao,
+S. Mohlmann, V. Klaukien, R. Ficner, S. Becker, H. Urlaub, R. Luhrmann, B. de Groot and M. Zweckstetter, Structure, 2013, 21, 2162–2174. 90 S. Rauscher, V. Gapsys, M. J. Gajda, M. Zweckstetter, B. L. de Groot and H. Grubmuller, J. Chem. Theory Comput., 2015, 11, 5513–5524. 91 K. H. Lee and J. H. Chen, J. Comput. Chem., 2017, 38, 1332–1341. 92 S. J. Demarest, M. Martinez-Yamout, J. Chung, H. W. Chen, W. Xu, H. J. Dyson, R. M. Evans and P. E. Wright, Nature, 2002, 415, 549–553. 93 S. J. Demarest, S. Deechongkit, H. J. Dyson, R. M. Evans and P. E. Wright, Protein Sci., 2004, 13, 203–210. 94 M. O. Ebert, S. H. Bae, H. J. Dyson and P. E. Wright, Biochemistry, 2008, 47, 1299–1308. 95 M. Kjaergaard, A.-B. Nørholm, R. Hendus-Altenburger, S. F. Pedersen, F. M. Poulsen and B. B. Kragelund, Protein Sci., 2010, 19, 1555–1564. 96 M. Kjaergaard, K. Teilum and F. M. Poulsen, Proc. Natl. Acad. Sci. U. S. A., 2010, 107, 12535–12540. 97 T. Wang, Y. Zhu, Z. Getahun, D. Du, C. Y. Huang, W. F. Degrado and F. Gai, J. Phys. Chem. B, 2004, 108, 15301–15310. 98 J. L. Gornall and E. M. Terentjev, Phys. Rev. E: Stat., Nonlinear, Soft Matter Phys., 2008, 77, 031908. 99 F. Sterpone, P. Derreumaux and S. Melchionna, J. Chem. Theory Comput., 2015, 11, 1843–1853. 100 M. Chiricotto, S. Melchionna, P. Derreumaux and F. Sterpone, J. Chem. Phys., 2016, 145, 035102.
+
+32432 | Phys. Chem. Chem. Phys., 2017, 19, 32421--32432
+
+This journal is © the Owner Societies 2017
+

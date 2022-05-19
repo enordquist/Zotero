@@ -1,0 +1,201 @@
+Downloaded from https://www.pnas.org by UNIVERSITY OF MASSACHUSETTS on May 16, 2022 from IP address 128.119.202.117.
+
+Escaping free-energy minima
+
+Alessandro Laio and Michele Parrinello*
+
+Centro Svizzero di Calcolo Scientiﬁco, Via Cantonale, CH-6928 Manno, Switzerland; and Department of Chemistry, Eidgeno¨ ssische Technische Hochschule, Ho¨ nggerberg HCI, CH-8093 Zurich, Switzerland
+
+Communicated by David Chandler, University of California, Berkeley, CA, July 18, 2002 (received for review May 8, 2002)
+
+We introduce a powerful method for exploring the properties of the multidimensional free energy surfaces (FESs) of complex many-body systems by means of coarse-grained non-Markovian dynamics in the space deﬁned by a few collective coordinates. A characteristic feature of these dynamics is the presence of a history-dependent potential term that, in time, ﬁlls the minima in the FES, allowing the efﬁcient exploration and accurate determination of the FES as a function of the collective coordinates. We demonstrate the usefulness of this approach in the case of the dissociation of a NaCl molecule in water and in the study of the conformational changes of a dialanine in solution.
+M olecular dynamics (MD) and the Monte Carlo simulation method have had a very deep influence on the most diverse fields, from materials science to biology and from astrophysics to pharmacology. Yet, despite their success, these simulation methods suffer from limitations that reduce the scope of their applications. A severe constraint is the limited time scale that present-day computer technology and sampling algorithms explore. In particular, there are many circumstances where the free energy surface (FES) has several local minima separated by large barriers. Examples of these situations include conformational changes in solution, protein folding, first-order phase transitions, and chemical reactions. In such circumstances a simulation started in one minimum will be able to move spontaneously to the next minimum only under very favorable circumstances. A host of methods have been suggested to lift this restriction and explore the FES (1–13) or to characterize the transition state (14, 15). Here we propose a solution to this problem by combining the ideas of coarse-grained dynamics (16, 17) on the FES (10, 12) with those of adaptive bias potential methods (2, 11), obtaining a procedure that allows the system to escape from local minima in the FES and, at the same time, permits a quantitative determination of the FES as a byproduct of the integrated process.
+Methodology We shall assume here that there exists a finite number of relevant collective coordinates si, i ϭ 1,n where n is a small number, and we consider the dependence of the free energy Ᏺ(s) on these parameters. Practical examples of appropriate choices of these variables will be given below. The exploration of the FES is guided by the forces Fit ϭ ϪѨᏲ͞Ѩsit. To estimate these forces efficiently, we introduce an ensemble of P replicas of the system, each obeying the constraint that the collective coordinates have a preassigned value si ϭ sit, and each evolved independently at the same temperature T. Since the P replicas are statistically independent, the estimate of thermodynamic observables (e.g., the forces on the constraints) is improved with respect to an evaluation on a single replica, and it can be parallelized in a straightforward manner. The constraints are imposed on each replica via the standard methods of constrained molecular dynamics (18) by adding to the Lagrangean a term ⌺iϭ1,n␭i(si Ϫsit) where ␭i are Lagrange multipliers. Averaging over the time and over the replicas we can evaluate the derivative of the free energy relative to sit as Fit ϭ ͗␭i͘ (1, 4). For the sake of simplicity we neglect here the small kinematic correction term discussed in ref. 4, although this can be added easily. Taking a cue from the work of Kevrikidis et al. (16), we use these forces, determined by
+
+microscopic dynamics, to define coarse-grained dynamics in the space of the sis. In our case the definition of these dynamics is rather arbitrary and designed only to explore the FES efficiently. The dynamics is defined from the discretized evolution equation:
+
+␴it
+
+ϩ
+
+1
+
+ϭ
+
+␴it
+
+ϩ
+
+␦␴
+
+␾it ͉␾t͉
+
+.
+
+[1]
+
+In Eq. 1 we have the scaled forces
+
+introduced the scaled ␾it ϭ Fit⌬si, where ⌬si is
+
+variables ␴it ϭ the estimated
+
+sit͞⌬si and size of the
+
+FES well in dimensional
+
+the direction vector ␾it and
+
+si, ␦␴
+
+͉␾t͉ is the modulus of the n-th is a dimensionless stepping pa-
+
+rameter. It should be stressed that Eq. 1 has the form of a
+
+steepest descent equation in the direction given by the forces ␾i
+
+and does not imply any real dynamical evolution. The index t is
+
+only used to label the states. After the collective coordinates are
+
+updated by using Eq. 1, a new ensemble of replicas of the system
+
+with values ␴itϩ1 is prepared, and new forces Fitϩ1 are calculated for the next iteration. At the same time the driving forces are
+
+evaluated from the microscopic Hamiltonian in short standard
+
+microscopic MD runs. Since there is no dynamical continuity
+
+between the P replicas at different iterations, one can use large
+
+values of ␦␴ and move very efficiently in the space of the
+
+collective coordinates.
+
+Clearly Eq. 1 alone cannot guarantee an efficient exploration
+
+of the FES, nor is it useful to determine the FES. This task can
+
+be achieved if we replace the forces in Eq. 1 with a history-
+
+dependent term (2, 11):
+
+͸ ͹ ␾i
+
+3
+
+␾i
+
+Ϫ
+
+Ѩ Ѩ␴i
+
+W
+
+tЈ
+
+Յ
+
+t
+
+i
+
+͉␴i Ϫ ␴itЈ͉2
+eϪ 2␦␴2 ,
+
+[2]
+
+where the height and the width of the Gaussian W and ␦␴ are chosen to provide a reasonable compromise between accuracy and efficiency in exploring the FES, as we will show below. The component of the forces coming from the Gaussian will discourage the system from revisiting the same spot and encourage an efficient exploration of the FES. As the system diffuses although the FES, the Gaussian potentials accumulate and fill the FES well, allowing the system to migrate from well to well. After a while the sum of the Gaussian terms will almost exactly compensate the underlying FES well. A typical example of this behavior is shown in Fig. 1, in which the dynamics in Eq. 1 is used to explore a one-dimensional potential energy surface (PES) V(␴) with three wells. The dynamics start from a local minimum that is filled by the Gaussians in Ϸ20 steps. Then the dynamics escapes from the well from the lowest energy saddle point, filling the second well in Ϸ80 steps. The second highest saddle point is reached in Ϸ160 steps, and the full PES is filled in a total of Ϸ320 steps. Hence, in the case of this example, since the form of the potential is known, it can be verified that, for large t and if the width of the Gaussians is sufficiently small with respect to the length of a typical variation of V,
+
+Abbreviations: FES, free energy surface; PES, potential energy surface; MD, molecular dynamics.
+*To whom reprint requests should be addressed. E-mail: parrinello@cscs.ch.
+
+12562–12566 ͉ PNAS ͉ October 1, 2002 ͉ vol. 99 ͉ no. 20
+
+www.pnas.org͞cgi͞doi͞10.1073͞pnas.202427399
+
+Downloaded from https://www.pnas.org by UNIVERSITY OF MASSACHUSETTS on May 16, 2022 from IP address 128.119.202.117.
+CHEMISTRY
+
+Fig. 1. Time evolution of the sum of a one-dimensional model potential V(␴) and the accumulating Gaussian terms of Eq. 2. The dynamic evolution (thin lines) is labeled by the number of dynamical iterations (Eq. 1). The starting potential (thick line) has three minima and the dynamics is initiated in the second minimum.
+
+͸Ϫ
+
+͉␴ Ϫ ␴tЈ͉2
+WeϪ 2␦␴2
+
+3
+
+V͑s͒
+
+[3]
+
+tЈ Յ t
+
+modulus an additive constant. The same property can be verified for any multidimensional potential if the variables ␴i are allowed to vary in a finite region. Hence, we assume that Eq. 3 holds also if the method is used to explore the FES, and that the free energy can be estimated from Eq. 3 for large t. This procedure resembles the algorithm recently proposed by Wang and Landau (11), in which a time-dependent bias is introduced to modify the density of states to produce locally flat histograms.
+We observe an interesting isomorphism between our dynamics and the ordered deposition of the beads of a polymer chain on the FES. In fact, we can regard ␴it as the position of a monomer in the n-dimensional parameter space. Each monomer is held at a distance ␦␴ from the previous one and monomers repel each other with the Gaussian term of Eq. 2. Neglecting terms of order ␦␴2 each monomer is placed by Eq. 1 in the position of free energy minimum compatible with the requirement of minimum overlap with previous beads. Hence, the polymer chain generated in this manner fills the wells in the FES. This isomorphism helps to clarify how our approach works and why it can be made more precise by reducing ␦␴.
+The efficiency of the method in filling a well in the PES (or in the FES) can be estimated by the number of Gaussians that are needed to fill the well. This number is proportional to (1͞␦␴)n, where n is the dimensionality of the problem. Hence, the efficiency of the method scales exponentially with the number of dimensions involved. If n is large, the only way to obtain reasonable efficiencies is to use Gaussians with a size comparable to that of the well. On the other hand, a sum of Gaussians can only reproduce features of the FES on a scale larger than Ϸ␦␴. A judicious choice of ⌬si, W, and ␦␴ will ensure the right compromise between accuracy and sampling efficiency, and the optimal height and width of the Gaussians are determined by the typical variations of the FES.
+If prior information on the nature of the free-energy well is not available, the scaling parameters ⌬si are chosen by performing short coarse-grained dynamic runs without bias potential (see Eq. 1). In such a case the system moves around the minimum. The scaling parameters are chosen so that the elongations have approximately the same value in all directions. This amounts to
+
+an empirical form of preconditioning that makes the FES minimum nearly spherical in n dimensions and easy to fill with n-dimensional Gaussians.
+The metastep length ␦␴ determines the efficiency of the method in a manner that is exponential in n and it should be made as large as possible. However, the dynamics in Eq. 1 is able to reconstruct details of the FES only on the length scale of ␦␴. Moreover, an over-large value of ␦␴ would cause the system to jump irregularly from one basin to the other. The value of ␦␴ is chosen requiring the metatrajectory to remain localized in the FES minimum if the bias potential is not applied. With this choice of ␦␴, a single step of the dynamics in Eq. 1 cannot lead a system from a FES minimum to another, and the initial state at each new iteration can be generated from the last MD step of the previous iteration without creating major overlaps. Since the shake algorithm is used to impose a new set of ␴itϩ1 values, large forces on the constraints are generated at the beginning of each microscopic dynamics, and the initial part of the trajectory has to be discarded for the calculation of F itϩ1.
+The height of the Gaussians W can be estimated as follows. We notice that we want to reach a situation in which the modified FES is flat. In such a case the forces coming from the FES and that coming from the Gaussian approximately balance each other. If we require the maximum value of the Gaussian forces to be smaller than the typical FES force, we arrive at the relation W͞␦␴eϪ1/2 ϭ ␣͗Fi2͘1/2 with ␣ Ͻ 1. In all cases so far studied a value of ␣ close to 0.5 allows a fast escape from the local minima in the FES without significant loss of the underlying structure.
+In the future adaptive ways of determining all of these parameters should be considered for adapting the procedure in an optimal manner to the local shape of the FES.
+Results Dissociation of NaCl in Water. We first discuss an application of the method to the dissociation of a NaCl molecule in water. The most stable state is the dissociated one, whereas the undissociated contact ion pair corresponds to a metastable local minimum. Here we shall study how the system escapes from this metastable state. We model the system by using the AMBER95 force field (20) and solvate the NaCl complex in 215 TIP3P water molecules with periodic boundary conditions. The electrostatic interaction between classical atoms is taken into account by the P3M method (19). As collective coordinates, we use the distance rNa-Cl between Na and Cl, and, to take into account the dynamics of the solvation shell during the dissociation, we also use the electric fields VNa and VCl on the Na and on the Cl due to the water molecules within Ϸ6.5 Å of the ions. VNa and VCl depend significantly on the hydration pattern around the Na and on the Cl ion. If, for example, a hydrogen bond to one of the two ions is formed or broken, the field on the ion changes by several kcal͞mol. A dynamic of the form in Eq. 1 was performed on the system, with ␦␴ ϭ 0.25 and W ϭ 0.3 kcal͞mol. The scaling parameters ⌬si were 0.53 Å, 32 and 32 kcal͞mol for rNa-Cl, VNa, and VCl, respectively. The forces in Eq. 1 were evaluated by short MD runs with a time step of 0.7 fs performed on six replicas of the system. The replicas were equilibrated for 200 MD steps at 300 K, and the forces were evaluated by averaging over the following 500 MD steps. Starting from a distance of 2.6 Å, corresponding to a contact pair, the ions dissociate after 120 coarse-grained iterations. The dynamics was then continued for another 350 steps, imposing a maximum separation of the ion pair of 5 Å, to study the structure of the FES around the transition state (see Fig. 2). Seven recrossings for the coarsegrained dynamics were observed. The transition state is located rNa-Cl Ϸ4.02 Å, VNa ϷϪ120 kcal͞mol, and VCl Ϸ81.5 kcal͞mol (see Fig. 2). The overall topology of the FES confirms the importance of the solvent degrees of freedom for describing the reaction, since the transition region is in transverse orientation
+
+Laio and Parrinello
+
+PNAS ͉ October 1, 2002 ͉ vol. 99 ͉ no. 20 ͉ 12563
+
+Downloaded from https://www.pnas.org by UNIVERSITY OF MASSACHUSETTS on May 16, 2022 from IP address 128.119.202.117.
+
+Fig. 2. Free energy as a function of the collective coordinates rNa-Cl, VNa, and VCl for a Na-Cl complex in water. The two-dimensional free energy F2 shown here are obtained as F2 ϭ Ϫ1␤log[͐dz exp(Ϫ␤F3)], where ␤ is the inverse temperatures, z is the coordinate not shown here, and the three-dimensional free energy F3 is estimated with Eq. 3. The contours are plotted every 0.5 kcal͞mol. The zero of the free energy corresponds to the metastable minimum of F in the contact ion pair (C).
+relative to the axis of the coordinates (21), and hence neither the distance nor the fields alone can provide an exhaustive description of the dissociation. The transition barrier (S in Fig. 2), estimated with thermodynamic integration (4) along rNa-Cl, is of 3.3 kcal͞mol. The one-dimensional free energy as a function of rNa-Cl can also be obtained by integrating the three-dimensional FES (F3) with respect to VNa and VCl as F1 ϭ 1͞␤log[͐dVNadVCl exp(Ϫ␤F3)]. This leads to a barrier of 3.4 kcal͞mol. Hence, the method is able to reproduce the one-dimensional free energy profile estimated with thermodynamic integration.
+We have verified that these collective coordinates identify the transition state and the reaction coordinate also in the dynamical sense (14). To this effect we prepared a set of replicas of the system with the critical values of the collective coordinates. We then followed the procedure described in ref. 21, assigning to the particles values of the velocity chosen from a Maxwellian distribution at 300 K, and following the trajectory backward and forward in time. By this procedure, we found that, within a time scale of 200 fs, the overwhelming majority of the replicas fell into one of the two basins of attraction without any recrossing. Moreover, the time-reversed dynamics leads systematically to the opposite basin of attraction (14). Finally, if we prepare the systems with the SHAKE algorithm (18) for a given value of the collective coordinates, and if the particle velocities are not reassigned before letting the system evolve freely, the time needed to go in either of the attraction basins is of the order of a few ps, and several recrossings are observed. This is due to the fact that the SHAKE algorithm imposes zero velocities in the
+
+direction of the constraint and it is only after thermalization, which takes place in a time scale of picoseconds, that the collective coordinates acquire sufficient velocity to evolve toward the FES minima. This is a strong confirmation that we have identified the correct transition state.
+To characterize the solvent structure during the dissociation, we have computed the Na–water pair correlation function at the transition state S. The coordination number, obtained by integrating the pair correlation function up to a distance of 3 Å, is 5.28. This value is consistent with the picture depicted in ref. 21, in which the sodium at the transition state is shown to be typically only 5-fold coordinated.
+Isomerization of Alanine Dipeptide in Water. As a second application, we used our method to explore the FES of an alanine dipeptide as a function of the backbone dihedral angles ⌽ and ⌿ (ref. 22 and references therein). The system is described by the all-atom AMBER95 force field (20) and solvated in 287 TIP3P water molecules. The parameters of the coarse-grained dynamics of Eq. 1 are ␦␴ ϭ 0.25 and W ϭ 0.25 kcal͞mol, while the scaling parameters ⌬si are 60° for both ⌽ and ⌿. The other settings are the same as for the simulation of the Na-Cl complex. The FES of alanine dipeptide in water has been studied in detail by other authors [refs. 22 (and references therein) and 23], who identified several minima. Our dynamics (1) is able to capture the overall features of the FES extremely quickly. Starting from a configuration close to the state C7eq [refs. 22 (and references therein) and 23], the dynamics fills this attraction basin in approximately 45 steps. The minimum is localized at ⌽ Ϸ Ϫ80° and ⌿ Ϸ 150°. The estimated free energy at the saddle point is 2 kcal͞mol higher than the free energy in C7eq. This compares to a value of 2.1 kcal͞mol obtained in ref. 22 by thermodynamic integration. Our estimate is obtained with 45 steps of coarse-grained dynamics on six replicas, corresponding to a total of only Ϸ120 ps of microscopic dynamics. After another 150 steps, the dynamics fills the attraction basin of the state ␣r, which corresponds to the equilibrium configuration of the system, and recrosses to C7eq. Finally, the dynamics visits the ⌽ Ͼ 0 region of the configuration space after Ϸ300 steps. In Fig. 3 we plot the free energy as a function of ⌽ and ⌿ after 40, 100, and 200 steps of coarsegrained dynamics. Also small details of the free energy landscape, like the location of the saddle points and the presence of secondary minima [e.g., the state C5 (23)], can be detected graphically after a few steps of coarse-grained dynamics. The one-dimensional free energy profile as a function of ⌿ obtained by analytic integration of the FES reproduces the profile obtained in ref. 22 within 0.2 kcal͞mol for all of the values of ⌿. Concerning the choice of the collective coordinates for this system, it should be remarked that the dihedral angles ⌽ and ⌿ do not provide a complete description of the dialanine isomerization reaction (ref. 22 and references therein), and the real reaction coordinate also should take into account the solvent degrees of freedom. Still, our results show that the method is able to reproduce the overall feature of the FES even if relevant degrees of freedom are not explicitly included in the collective coordinate space. This shows that the neglected degrees of freedom, although relevant for determining the reaction coordinate, are associated with relatively small barriers and are sampled efficiently during the microscopic dynamics for each value of ⌽ and ⌿, despite the relatively short runs. This is due to the use of the replicas and to the ability of the dynamics to retrace the same region of parameter space during the dynamics.
+Discussion The method is based on the combination of the ideas of coarse-grained dynamics (16) in the space defined by a few collective coordinates and the introduction of a historydependent bias (2, 11). Constructing dynamics on a FES that
+
+12564 ͉ www.pnas.org͞cgi͞doi͞10.1073͞pnas.202427399
+
+Laio and Parrinello
+
+Downloaded from https://www.pnas.org by UNIVERSITY OF MASSACHUSETTS on May 16, 2022 from IP address 128.119.202.117.
+CHEMISTRY
+
+Fig. 3. Free energy as a function of the backbone dihedral angles ⌽ and ⌿ for an alanine dipeptide in water after 40, 100, and 200 steps of coarse-grained dynamics (1). The zero of the free energy corresponds to the state ␣r, located at ⌽ ϭ Ϫ63 and ⌿ ϭ Ϫ30. The contours are plotted every 0.2 kcal͞mol. The state C7eq is located at ⌽ ϭ Ϫ70 and ⌿ ϭ 165 and 1.3 kcal͞mol. Finally, the transition state between ␣r and C7eq is located at ⌽ ϭ Ϫ80 and ⌿ ϭ 35 and 3.3 kcal͞mol. If the dynamics is continued, less favorable areas of the phase space are explored (e.g., the region with ⌽ Ͼ 0), but the free energy differences reported here are unchanged within the accuracy of the calculation.
+depends on a few collective coordinates, we simplify enormously the complexity of the problem, which depends exponentially on the number of degrees of freedom. The FES is much smoother than the underlying PES and it is topologically simpler, with a greatly reduced number of local minima. The history-dependent bias prevents the system from visiting regions it has already explored. This term is crucial for the efficiency of the method: for example, Langevin dynamics in the space of the collective coordinates would provide scant information on the underlying
+
+FES and it would be slower in locating global minima. This has been checked by performing a Langevin dynamics for the dissociation of a NaCl molecule in water, with the same collective variables introduced in Results and adding to Eq. 1 a Gaussian noise at a temperature T that is gradually reduced (24). The number of evaluations of the forces required to converge to the minimum of the FES (i.e., the dissociated state) is well above 1,000, if the temperature is decreased with a logarithic schedule, as required to ensure quasi-ergodicity in the collective coordinate space (25). A history-dependent bias potential as defined in Eq. 2 but applied in a regular MD simulation without coarse graining the dynamics would be efficient in finding escapes from the local minima, as has been shown (2), but it would not provide quantitative information about the FES. In particular, Eq. 3 holds only because the dynamic is performed in the collective coordinates space using the derivatives of the free energy. Hence, both the coarse-grained dynamics on the FES and the history-dependent bias are essential ingredients of the method, and only their combination allows an efficient and accurate determination of the FES.
+Another advantage of our search algorithm is that it can be easily parallelized over the P replicas, thus optimally exploiting present-day computer architectures and, moreover, does not require a very accurate determination of the forces. In fact, in model calculations on an analytic PES, we have found that the algorithm is effective even for noise levels as large as 20–30% of the forces, since the height and the width of the Gaussians is such that the coarse-grained dynamics explores a region of space of the size of a Gaussian several times. and the system is only discouraged (and not prevented) from revisiting the same spot of configuration space. Hence, the errors in the forces tend to even out during the evolution. The dynamics (1) is ‘‘self-healing,’’ i.e., it is in principle capable to compensate the effect of completely wrongly located Gaussians or of a wrong additional bias potential. We can therefore use quite short runs and a small number of replicas to evaluate the forces. This is at variance with thermodynamic integration (18) and the blue moon ensemble method (1, 4), where a very precise determination of the forces is needed and where treating multidimensional reaction coordinates is a daunting task. Other techniques, like the umbrella sampling or bias potential methods (5, 6, 9, 18), allow an accurate estimate of the FES in many dimensions. The drawback of these methods is that they are efficient only if a good approximation for the FES is known a priori, whereas this is not required in our method.
+A last advantage of the method is its ability to provide qualitative information on the free energy of a system in a very short time. For example, the overall topology of a FES can be determined by very few coarse-grained dynamics steps by using large Gaussians. Subsequently, our qualitative knowledge of the FES can be improved by using smaller Gaussians, eventually reducing the dimensionality of the problem by exploiting the topological information obtained with the large Gaussians. M.P. thanks Yannis Kevrikidis for a very illuminating discussion on the coarse-grained method and David Chandler for having patiently shared his understanding of the statistical mechanics of transition paths. A.L. thanks Joost VandeVondele for many precious suggestions.
+
+1. Carter, E. A., Ciccotti, G., Hynes, J. T. & Kapral, R. (1989) Chem. Phys. Lett. 156, 472–477.
+2. Huber, T., Torda, A. E. & van Gunsteren, W. F. (1994) J. Comput. 8, 695–708. 3. Grubmu¨ller, H. (1995) Phys. Rev. E 52, 2893–2906. 4. Sprik, M. & Ciccotti, G. (1998) J. Chem. Phys. 109, 7737–7744. 5. Voter, A. F. (1997) J. Chem. Phys. 106, 4665–4677. 6. Voter, A. F. (1997) Phys. Rev. Lett. 78, 3908–3911. 7. Steiner, M. M., Genilloud, P.-A. & Wilkins, J. W. (1998) Phys. Rev. B 57,
+10236 –10239.
+
+8. Gong, X. G. & Wilkins, J. W. (1999) Phys. Rev. B 59, 54–57. 9. VandeVondele, J. & Rothlisberger, U. (2000) J. Chem. Phys. 113,
+4863– 4868. 10. Okuyama-Yoshida, N., Kataoka, K., Nagaoka, M. & Yamabe, T. (2000)
+J. Chem. Phys. 113, 3519–3524. 11. Wang, F. & Landau, D. P. (2001) Phys. Rev. Lett. 86, 2050–2053. 12. VandeVondele, J. & Rothlisberger, U. (2002) J. Phys. Chem. B 106,
+203–208. 13. Rahman, J. A. & Tully, J. C. (2002) J. Chem. Phys. 116, 8750–8760.
+
+Laio and Parrinello
+
+PNAS ͉ October 1, 2002 ͉ vol. 99 ͉ no. 20 ͉ 12565
+
+14. Bolhuis, P. G., Chandler, D., Dellago, C. & Geissler, P. (2002) Annu. Rev. Phys. Chem. 59, 291–318.
+15. Passerone, D. & Parrinello, M. (2001) Phys. Rev. Lett. 87, 108302–108305. 16. Kevrekidis, I. G., Theodoropoulos, C. & Gear, C. W. (2002) Comput. Chem.
+Eng., in press. 17. Weinan, E. & Engquist, B. (2002) arXiv e-Print archive, http:͞͞arxiv.org͞abs͞
+physics͞0205048. 18. Allen, M. P. & Tieldslay, D. J. (1987) Computer Simulations of Liquids
+(Clarendon, Oxford). 19. Hu¨nenberger, P. (2001) J. Chem. Phys. 23, 10464–10476. 20. Cornell, W. D., Cieplak, P., Bayly, C. I., Gould, I. R., Jr., Merz, K. M., Ferguson,
+
+D. M., Spellmeyer, D. C., Fox, T., Caldwell, J. W. & Kollman, P. A. (1995) J. Am. Chem. Soc. 117, 5179–5197. 21. Geissler, P. L., Dellago, C. & Chandler, D. (1999) J. Phys. Chem. 103, 3706 –3710. 22. Bolhuis, P. G., Dellago, C. & Chandler, D. (2000) Proc. Natl. Acad. Sci. USA 97, 5877–5882. 23. Apostolakis, J., Ferrara, P. & Caf lish, A. (1999) J. Chem. Phys. 110, 2099 –2108. 24. Kirkpatrick, S., Gelatt, C. D., Jr. & Vecchi, M. P. (1983) Science 220, 671–680. 25. Geman, S. & Geman, D. (1984) IEEE Trans. Pattern Anal. Machine Intell. 6, 721–741.
+
+Downloaded from https://www.pnas.org by UNIVERSITY OF MASSACHUSETTS on May 16, 2022 from IP address 128.119.202.117.
+
+12566 ͉ www.pnas.org͞cgi͞doi͞10.1073͞pnas.202427399
+
+Laio and Parrinello
+
