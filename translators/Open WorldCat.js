@@ -1,15 +1,15 @@
 {
 	"translatorID": "c73a4a8c-3ef1-4ec8-8229-7531ee384cc4",
-	"translatorType": 12,
 	"label": "Open WorldCat",
 	"creator": "Simon Kornblith, Sebastian Karcher",
 	"target": "^https?://[^/]+\\.worldcat\\.org/",
 	"minVersion": "3.0.9",
-	"maxVersion": null,
+	"maxVersion": "",
 	"priority": 100,
 	"inRepository": true,
+	"translatorType": 12,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2022-04-08 16:45:00"
+	"lastUpdated": "2022-06-10 06:00:57"
 }
 
 /**
@@ -317,7 +317,7 @@ function doSearch(items) {
 		return;
 	}
 	
-	baseURL = "http://www.worldcat.org"; // Translator-global
+	baseURL = "https://www.worldcat.org"; // Translator-global
 	
 	var ids = [], isbns = [];
 	for (let i = 0; i < items.length; i++) {
@@ -346,7 +346,7 @@ function fetchIDs(isbns, ids, callback) {
 	}
 	
 	var isbn = isbns.shift();
-	var url = "http://www.worldcat.org/search?qt=results_page&q=isbn%3A"
+	var url = "https://www.worldcat.org/search?qt=results_page&q=isbn%3A"
 		+ encodeURIComponent(isbn);
 	ZU.processDocuments(url,
 		function (doc) {

@@ -1,15 +1,15 @@
 {
 	"translatorID": "8c1f42d5-02fa-437b-b2b2-73afc768eb07",
-	"translatorType": 4,
 	"label": "HighWire 2.0",
 	"creator": "Matt Burton, Sebastian Karcher",
 	"target": "^[^?#]+(/content/([0-9.]+[A-Z\\-]*/|current|firstcite|early)|/search\\?.*?\\bsubmit=|/search(/results)?\\?fulltext=|/cgi/collection/.|/search/.)",
 	"minVersion": "3.0",
-	"maxVersion": null,
+	"maxVersion": "",
 	"priority": 250,
 	"inRepository": true,
+	"translatorType": 4,
 	"browserSupport": "gcsibv",
-	"lastUpdated": "2022-04-04 18:45:00"
+	"lastUpdated": "2022-06-13 22:14:27"
 }
 
 /*
@@ -409,7 +409,7 @@ function detectWeb(doc, url) {
 			&& !url.includes('/suppl/')
 		) {
 			if (url.includes('medrxiv.org') || url.includes('biorxiv.org')) {
-				return "report";
+				return preprintType;
 			}
 			else {
 				return "journalArticle";

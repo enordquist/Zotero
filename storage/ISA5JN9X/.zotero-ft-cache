@@ -1,0 +1,211 @@
+
+  		
+
+    Home (v2.7)
+    Getting Started
+    Tutorials
+    Index of Actions
+
+[click to disable panel synchronisation]
+
+    ▼ PLUMED
+        ► Introduction
+        ► Change Log
+        ► Installation
+        ► Getting Started
+        ▼ Collective Variables
+            ► Groups and Virtual Atoms
+            ► CV Documentation
+            ► Distances from reference configurations
+            ► Functions
+            ▼ MultiColvar
+                  MultiColvar functions
+                  MultiColvar bias
+                  Extracting all the base quantities
+                  ANGLES
+                  BOND_DIRECTIONS
+                  BRIDGE
+                  COORDINATIONNUMBER
+                  DENSITY
+                  DISTANCES
+                  ENVIRONMENTSIMILARITY
+                  FCCUBIC
+                  HBPAMM_SH
+                  INPLANEDISTANCES
+                  MOLECULES
+                  PLANES
+                  Q3
+                  Q4
+                  Q6
+                  SIMPLECUBIC
+                  TETRAHEDRAL
+                  TORSIONS
+                  XANGLES
+                  XDISTANCES
+                  XYDISTANCES
+                  XYTORSIONS
+                  XZDISTANCES
+                  XZTORSIONS
+                  YANGLES
+                  YDISTANCES
+                  YXTORSIONS
+                  YZDISTANCES
+                  YZTORSIONS
+                  ZANGLES
+                  ZDISTANCES
+                  ZXTORSIONS
+                  ZYTORSIONS
+                  MFILTER_BETWEEN
+                  MFILTER_LESS
+                  MFILTER_MORE
+                  AROUND
+                  CAVITY
+                  INCYLINDER
+                  INENVELOPE
+                  INSPHERE
+                  TETRAHEDRALPORE
+                  GRADIENT
+                  INTERMOLECULARTORSIONS
+                  LOCAL_AVERAGE
+                  LOCAL_Q3
+                  LOCAL_Q4
+                  LOCAL_Q6
+                  MCOLV_COMBINE
+                  MCOLV_PRODUCT
+                  NLINKS
+                  PAMM
+                  POLYMER_ANGLES
+                  SMAC
+                  MTRANSFORM_BETWEEN
+                  MTRANSFORM_LESS
+                  MTRANSFORM_MORE
+                  LWALLS
+                  UWALLS
+            ► Exploiting contact matrices
+        ► Analysis
+        ► Bias
+        ► Additional Modules
+        ► Command Line Tools
+        ► Miscellaneous
+        ► Tutorials
+        ► Performances
+        ► Index of Actions
+          Todo List
+          Bug List
+          Bibliography
+
+INCYLINDER
+	This is part of the multicolvar module
+
+This quantity can be used to calculate functions of the distribution of collective variables for the atoms that lie in a particular, user-specified part of of the cell.
+
+Each of the base quantities calculated by a multicolvar can can be assigned to a particular point in three dimensional space. For example, if we have the coordination numbers for all the atoms in the system each coordination number can be assumed to lie on the position of the central atom. Because each base quantity can be assigned to a particular point in space we can calculate functions of the distribution of base quantities in a particular part of the box by using:
+
+s ⎯ ⎯ τ = ∑ i f ( s i ) σ ( r x y ) ∑ i σ ( r x y )
+
+where the sum is over the collective variables, s i , each of which can be thought to be at ( x i , y i , z i ) . The function σ is a switchingfunction that acts on the distance between the point at which the collective is located ( x i , y i , z i ) and the position of the atom that was specified using the ORIGIN keyword projected in the xy plane if DIRECTION=z is used. In other words:
+
+r x y = s q r t ( x i − x 0 ) 2 + ( y i − y 0 ) 2
+
+In short this function, σ ( r x y ) , measures whether or not the CV is within a cylinder that runs along the axis specified using the DIRECTION keyword and that is centered on the position of the atom specified using ORIGIN.
+
+The function ( s i ) can be any of the usual LESS_THAN, MORE_THAN, WITHIN etc that are used in all other multicolvars.
+
+When INCYLINDER is used with the DENSITY action the number of atoms in the specified region is calculated
+
+Examples
+
+The input below can be use to calculate the average coordination numbers for those atoms that are within a cylindrical tube of radius 1.5 nm that is centered on the position of atom 101 and that has its long axis parallel to the z-axis.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ c1:  COORDINATIONNUMBER  
+SPECIES
+this keyword is used for colvars such as coordination number.
+ =1-100 
+SWITCH
+This keyword is used if you want to employ an alternative to the continuous switching function defined above.
+ ={RATIONAL R_0=0.1}  The COORDINATIONNUMBER action with label  
+d2:  INCYLINDER  
+ATOM
+the atom whose vicinity we are interested in examining.
+ =101 
+DATA
+The multicolvar that calculates the set of base quantities that we are interested in
+ = c1  
+DIRECTION
+the direction of the long axis of the cylinder.
+ =Z 
+RADIUS
+a switching function that gives the extent of the cylinder in the plane perpendicular to the direction
+ ={TANH R_0=1.5}  
+SIGMA
+the width of the function to be used for kernel density estimation
+ =0.1 
+LOWER
+the lower boundary on the direction parallel to the long axis of the cylinder
+ =-0.1 
+UPPER
+the upper boundary on the direction parallel to the long axis of the cylinder
+ =0.1 
+MEAN
+take the mean of these variables.
+  The INCYLINDER action with label calculates a single scalar value 
+PRINT  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d2.*  
+FILE
+the name of the file on which to output these quantities
+ =colvar The PRINT action with label  
+
+Glossary of keywords and components
+
+Description of components
+
+When the label of this action is used as the input for a second you are not referring to a scalar quantity as you are in regular collective variables. The label is used to reference the full set of quantities calculated by the action. This is usual when using MultiColvar functions . Generally when doing this the previously calculated multicolvar will be referenced using the DATA keyword rather than ARG.
+
+This Action can be used to calculate the following scalar quantities directly. These quantities are calculated by employing the keywords listed below. These quantities can then be referenced elsewhere in the input file by using this Action's label followed by a dot and the name of the quantity. Some of them can be calculated multiple times with different parameters. In this case the quantities calculated can be referenced elsewhere in the input by using the name of the quantity followed by a numerical identifier e.g. label .lessthan-1, label .lessthan-2 etc. When doing this and, for clarity we have made it so that the user can set a particular label for each of the components. As such by using the LABEL keyword in the description of the keyword input you can customize the component name
+Quantity 	Keyword 	Description
+vmean 	VMEAN 	the norm of the mean vector. The output component can be referred to elsewhere in the input file by using the label.vmean
+between 	BETWEEN 	the number/fraction of values within a certain range. This is calculated using one of the formula described in the description of the keyword so as to make it continuous. You can calculate this quantity multiple times using different parameters.
+lessthan 	LESS_THAN 	the number of values less than a target value. This is calculated using one of the formula described in the description of the keyword so as to make it continuous. You can calculate this quantity multiple times using different parameters.
+mean 	MEAN 	the mean value. The output component can be referred to elsewhere in the input file by using the label.mean
+morethan 	MORE_THAN 	the number of values more than a target value. This is calculated using one of the formula described in the description of the keyword so as to make it continuous. You can calculate this quantity multiple times using different parameters.
+sum 	SUM 	the sum of values
+
+The atoms involved can be specified using
+
+ATOM 	the atom whose vicinity we are interested in examining. For more information on how to specify lists of atoms see Groups and Virtual Atoms
+
+Compulsory keywords
+
+DATA 	The multicolvar that calculates the set of base quantities that we are interested in
+KERNEL 	( default=gaussian ) the type of kernel function to be used
+DIRECTION 	the direction of the long axis of the cylinder. Must be x, y or z
+RADIUS 	a switching function that gives the extent of the cylinder in the plane perpendicular to the direction
+LOWER 	( default=0.0 ) the lower boundary on the direction parallel to the long axis of the cylinder
+UPPER 	( default=0.0 ) the upper boundary on the direction parallel to the long axis of the cylinder
+
+Options
+
+NUMERICAL_DERIVATIVES 	( default=off ) calculate the derivatives for these quantities numerically
+NOPBC 	( default=off ) ignore the periodic boundary conditions when calculating distances
+SERIAL 	( default=off ) do the calculation in serial. Do not use MPI
+LOWMEM 	( default=off ) lower the memory requirements
+TIMINGS 	( default=off ) output information on the timings of the various parts of the calculation
+OUTSIDE 	
+
+( default=off ) calculate quantities for colvars that are on atoms outside the region of interest
+
+VMEAN 	calculate the norm of the mean vector. The final value can be referenced using label .vmean. You can use multiple instances of this keyword i.e. VMEAN1, VMEAN2, VMEAN3... The corresponding values are then referenced using label .vmean-1, label .vmean-2, label .vmean-3...
+MEAN 	take the mean of these variables. The final value can be referenced using label .mean. You can use multiple instances of this keyword i.e. MEAN1, MEAN2, MEAN3... The corresponding values are then referenced using label .mean-1, label .mean-2, label .mean-3...
+LESS_THAN 	calculate the number of variables less than a certain target value. This quantity is calculated using ∑ i σ ( s i ) , where σ ( s ) is a switchingfunction . The final value can be referenced using label .lessthan. You can use multiple instances of this keyword i.e. LESS_THAN1, LESS_THAN2, LESS_THAN3... The corresponding values are then referenced using label .lessthan-1, label .lessthan-2, label .lessthan-3...
+MORE_THAN 	calculate the number of variables more than a certain target value. This quantity is calculated using ∑ i 1.0 − σ ( s i ) , where σ ( s ) is a switchingfunction . The final value can be referenced using label .morethan. You can use multiple instances of this keyword i.e. MORE_THAN1, MORE_THAN2, MORE_THAN3... The corresponding values are then referenced using label .morethan-1, label .morethan-2, label .morethan-3...
+BETWEEN 	calculate the number of values that are within a certain range. These quantities are calculated using kernel density estimation as described on histogrambead . The final value can be referenced using label .between. You can use multiple instances of this keyword i.e. BETWEEN1, BETWEEN2, BETWEEN3... The corresponding values are then referenced using label .between-1, label .between-2, label .between-3...
+HISTOGRAM 	calculate how many of the values fall in each of the bins of a histogram. This shortcut allows you to calculates NBIN quantities like BETWEEN. The final value can be referenced using label .histogram. You can use multiple instances of this keyword i.e. HISTOGRAM1, HISTOGRAM2, HISTOGRAM3... The corresponding values are then referenced using label .histogram-1, label .histogram-2, label .histogram-3...
+SUM 	calculate the sum of all the quantities. The final value can be referenced using label .sum. You can use multiple instances of this keyword i.e. SUM1, SUM2, SUM3... The corresponding values are then referenced using label .sum-1, label .sum-2, label .sum-3...
+SIGMA 	the width of the function to be used for kernel density estimation
+
+    doxygen 1.8.17
+

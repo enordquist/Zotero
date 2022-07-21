@@ -1,0 +1,95 @@
+
+  		
+
+    Home (v2.7)
+    Getting Started
+    Tutorials
+    Index of Actions
+
+[click to disable panel synchronisation]
+
+    ▼ PLUMED
+        ► Introduction
+        ► Change Log
+        ► Installation
+        ► Getting Started
+        ► Collective Variables
+        ► Analysis
+        ► Bias
+        ► Additional Modules
+        ► Command Line Tools
+        ▼ Miscellaneous
+            ► Comments
+              Continuation lines
+              Using VIM syntax file
+              Using bash autocompletion
+            ► Including other files
+            ► Loading shared libraries
+            ► Embed a separate PLUMED instance
+            ► Debugging the code
+            ► Changing exchange patterns in replica exchange
+              List of modules
+              Special replica syntax
+              Parsing constants
+            ▼ Frequently used tools
+                  histogrambead
+                  kernelfunctions
+                  pdbreader
+                  switchingfunction
+                  Regular Expressions
+                ► Files
+        ► Tutorials
+        ► Performances
+        ► Index of Actions
+          Todo List
+          Bug List
+          Bibliography
+
+switchingfunction
+
+Functions that measure whether values are less than a certain quantity. Functions that measure whether values are less than a certain quantity.
+
+Switching functions s ( r ) take a minimum of one input parameter r 0 . For r ≤ d 0 s ( r ) = 1.0 while for r > d 0 the function decays smoothly to 0. The various switching functions available in plumed differ in terms of how this decay is performed.
+
+Where there is an accepted convention in the literature (e.g. COORDINATION ) on the form of the switching function we use the convention as the default. However, the flexibility to use different switching functions is always present generally through a single keyword. This keyword generally takes an input with the following form:
+
+ KEYWORD={TYPE <list of parameters>}
+
+The following table contains a list of the various switching functions that are available in plumed 2 together with an example input.
+TYPE 	FUNCTION 	EXAMPLE INPUT 	DEFAULT PARAMETERS
+RATIONAL 	s ( r ) = 1 − ( r − d 0 r 0 ) n 1 − ( r − d 0 r 0 ) m 	{RATIONAL R_0= r 0 D_0= d 0 NN= n MM= m } 	d 0 = 0.0 , n = 6 , m = 2 n
+EXP 	s ( r ) = exp ( − r − d 0 r 0 ) 	{EXP R_0= r 0 D_0= d 0 } 	d 0 = 0.0
+GAUSSIAN 	s ( r ) = exp ( − ( r − d 0 ) 2 2 r 2 0 ) 	{GAUSSIAN R_0= r 0 D_0= d 0 } 	d 0 = 0.0
+SMAP 	s ( r ) = [ 1 + ( 2 a / b − 1 ) ( r − d 0 r 0 ) a ] − b / a 	{SMAP R_0= r 0 D_0= d 0 A= a B= b } 	d 0 = 0.0
+Q 	s ( r ) = 1 1 + exp ( β ( r i j − λ r 0 i j ) ) 	{Q REF= r 0 i j BETA= β LAMBDA= λ } 	λ = 1.8 , β = 50 n m − 1 (all-atom)
+λ = 1.5 , β = 50 n m − 1 (coarse-grained)
+CUBIC 	s ( r ) = ( y − 1 ) 2 ( 1 + 2 y ) where y = r − r 1 r 0 − r 1 	{CUBIC D_0= r 1 D_MAX= r 0 } 	
+TANH 	s ( r ) = 1 − tanh ( r − d 0 r 0 ) 	{TANH R_0= r 0 D_0= d 0 } 	
+COSINUS 	Misplaced & 	{COSINUS R_0= r 0 D_0= d 0 } 	
+CUSTOM 	s ( r ) = F U N C 	{CUSTOM FUNC=1/(1+x^6) R_0= r 0 D_0= d 0 } 	
+
+Notice that for backward compatibility we allow using MATHEVAL instead of CUSTOM . Also notice that if the a CUSTOM switching function only depends on even powers of x it can be made faster by using x2 as a variable. For instance
+
+ {CUSTOM FUNC=1/(1+x2^3) R_0=0.3}
+
+is equivalent to
+
+ {CUSTOM FUNC=1/(1+x^6) R_0=0.3}
+
+but runs faster. The reason is that there is an expensive square root calculation that can be optimized out.
+
+Attention
+    With the default implementation CUSTOM is slower than other functions (e.g., it is slower than an equivalent RATIONAL function by approximately a factor 2). Checkout page Making lepton library faster to see how to improve its performance.
+
+For all the switching functions in the above table one can also specify a further (optional) parameter using the parameter keyword D_MAX to assert that for r > d max the switching function can be assumed equal to zero. In this case the function is brought smoothly to zero by stretching and shifting it.
+
+ KEYWORD={RATIONAL R_0=1 D_MAX=3}
+
+the resulting switching function will be s ( r ) = s ′ ( r ) − s ′ ( d m a x ) s ′ ( 0 ) − s ′ ( d m a x ) where s ′ ( r ) = 1 − r 6 1 − r 12 Since PLUMED 2.2 this is the default. The old behavior (no stretching) can be obtained with the NOSTRETCH flag. The NOSTRETCH keyword is only provided for backward compatibility and might be removed in the future. Similarly, the STRETCH keyword is still allowed but has no effect.
+
+Notice that switching functions defined with the simplified syntax are never stretched for backward compatibility. This might change in the future.
+
+Glossary of keywords and components
+
+    doxygen 1.8.17
+

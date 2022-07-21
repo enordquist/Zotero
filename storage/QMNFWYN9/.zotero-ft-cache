@@ -1,0 +1,569 @@
+
+  		
+
+    Home (v2.7)
+    Getting Started
+    Tutorials
+    Index of Actions
+
+[click to disable panel synchronisation]
+
+    ▼ PLUMED
+        ► Introduction
+        ► Change Log
+        ► Installation
+        ► Getting Started
+        ► Collective Variables
+        ► Analysis
+        ▼ Bias
+              ABMD
+              BIASVALUE
+              EXTENDED_LAGRANGIAN
+              EXTERNAL
+              LOWER_WALLS
+              MAXENT
+              METAD
+              MOVINGRESTRAINT
+              PBMETAD
+              RESTRAINT
+              UPPER_WALLS
+              RESTART
+        ► Additional Modules
+        ► Command Line Tools
+        ► Miscellaneous
+        ► Tutorials
+        ► Performances
+        ► Index of Actions
+          Todo List
+          Bug List
+          Bibliography
+
+METAD
+	This is part of the bias module
+
+Used to performed metadynamics on one or more collective variables.
+
+In a metadynamics simulations a history dependent bias composed of intermittently added Gaussian functions is added to the potential [67] .
+
+V ( s ⃗  , t ) = ∑ k τ < t W ( k τ ) exp ( − ∑ i = 1 d ( s i − s ( 0 ) i ( k τ ) ) 2 2 σ 2 i ) .
+
+This potential forces the system away from the kinetic traps in the potential energy surface and out into the unexplored parts of the energy landscape. Information on the Gaussian functions from which this potential is composed is output to a file called HILLS, which is used both the restart the calculation and to reconstruct the free energy as a function of the CVs. The free energy can be reconstructed from a metadynamics calculation because the final bias is given by:
+
+V ( s ⃗  ) = − F ( s ⃗  )
+
+During post processing the free energy can be calculated in this way using the sum_hills utility.
+
+In the simplest possible implementation of a metadynamics calculation the expense of a metadynamics calculation increases with the length of the simulation as one has to, at every step, evaluate the values of a larger and larger number of Gaussian kernels. To avoid this issue you can store the bias on a grid. This approach is similar to that proposed in [5] but has the advantage that the grid spacing is independent on the Gaussian width. Notice that you should provide either the number of bins for every collective variable (GRID_BIN) or the desired grid spacing (GRID_SPACING). In case you provide both PLUMED will use the most conservative choice (highest number of bins) for each dimension. In case you do not provide any information about bin size (neither GRID_BIN nor GRID_SPACING) and if Gaussian width is fixed PLUMED will use 1/5 of the Gaussian width as grid spacing. This default choice should be reasonable for most applications.
+
+Metadynamics can be restarted either from a HILLS file as well as from a GRID, in this second case one can first save a GRID using GRID_WFILE (and GRID_WSTRIDE) and at a later stage read it using GRID_RFILE.
+
+Another option that is available in plumed is well-tempered metadynamics [8] . In this variant of metadynamics the heights of the Gaussian hills are scaled at each step so the bias is now given by:
+
+V ( s , t ) = ∑ t ′ = 0 , τ G , 2 τ G , … t ′ < t W e − V ( s ( q ( t ′ ) , t ′ ) / Δ T exp ( − ∑ i = 1 d ( s i ( q ) − s i ( q ( t ′ ) ) 2 2 σ 2 i ) ,
+
+This method ensures that the bias converges more smoothly. It should be noted that, in the case of well-tempered metadynamics, in the output printed the Gaussian height is re-scaled using the bias factor. Also notice that with well-tempered metadynamics the HILLS file does not contain the bias, but the negative of the free-energy estimate. This choice has the advantage that one can restart a simulation using a different value for the Δ T . The applied bias will be scaled accordingly.
+
+Note that you can use here also the flexible Gaussian approach [24] in which you can adapt the Gaussian to the extent of Cartesian space covered by a variable or to the space in collective variable covered in a given time. In this case the width of the deposited Gaussian potential is denoted by one value only that is a Cartesian space (ADAPTIVE=GEOM) or a time (ADAPTIVE=DIFF). Note that a specific integration technique for the deposited Gaussian kernels should be used in this case. Check the documentation for utility sum_hills.
+
+With the keyword INTERVAL one changes the metadynamics algorithm setting the bias force equal to zero outside boundary [7] . If, for example, metadynamics is performed on a CV s and one is interested only to the free energy for s > boundary, the history dependent potential is still updated according to the above equations but the metadynamics force is set to zero for s < boundary. Notice that Gaussian kernels are added also if s < boundary, as the tails of these Gaussian kernels influence VG in the relevant region s > boundary. In this way, the force on the system in the region s > boundary comes from both metadynamics and the force field, in the region s < boundary only from the latter. This approach allows obtaining a history-dependent bias potential VG that fluctuates around a stable estimator, equal to the negative of the free energy far enough from the boundaries. Note that:
+
+    It works only for one-dimensional biases;
+    It works both with and without GRID;
+    The interval limit boundary in a region where the free energy derivative is not large;
+    If in the region outside the limit boundary the system has a free energy minimum, the INTERVAL keyword should be used together with a UPPER_WALLS or LOWER_WALLS at boundary.
+
+As a final note, since version 2.0.2 when the system is outside of the selected interval the force is set to zero and the bias value to the value at the corresponding boundary. This allows acceptances for replica exchange methods to be computed correctly.
+
+Multiple walkers [98] can also be used. See below the examples.
+
+The c ( t ) reweighting factor can also be calculated on the fly using the equations presented in [110] . The expression used to calculate c ( t ) follows directly from Eq. 3 in [110] , where F ( s ⃗  ) = − γ / ( γ − 1 ) V ( s ⃗  ) . This gives smoother results than equivalent Eqs. 13 and Eqs. 14 in that paper. The c ( t ) is given by the rct component while the bias normalized by c ( t ) is given by the rbias component (rbias=bias-rct) which can be used to obtain a reweighted histogram. The calculation of c ( t ) is enabled by using the keyword CALC_RCT. By default c ( t ) is updated every time the bias changes, but if this slows down the simulation the keyword RCT_USTRIDE can be set to a value higher than 1. This option requires that a grid is used.
+
+Additional material and examples can be also found in the tutorials:
+
+    Lugano tutorial: Metadynamics simulations with PLUMED
+
+Concurrent metadynamics as done e.g. in Ref. [51] . This indeed can be obtained by using the METAD action multiple times in the same input file.
+
+Examples
+
+The following input is for a standard metadynamics calculation using as collective variables the distance between atoms 3 and 5 and the distance between atoms 2 and 4. The value of the CVs and the metadynamics bias potential are written to the COLVAR file every 100 steps.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ d1:  DISTANCE  
+ATOMS
+the pair of atom that we are calculating the distance between.
+ =3,5 The DISTANCE action with label calculates a single scalar value 
+d2:  DISTANCE  
+ATOMS
+the pair of atom that we are calculating the distance between.
+ =2,4 The DISTANCE action with label calculates a single scalar value 
+restraint:  METAD  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d1 , d2  
+SIGMA
+the widths of the Gaussian hills
+ =0.2,0.2 
+HEIGHT
+the heights of the Gaussian hills.
+ =0.3 
+PACE
+the frequency for hill addition
+ =500 The METAD action with label calculates the following quantities:  
+PRINT  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d1 , d2 , restraint.bias  
+STRIDE
+the frequency with which the quantities of interest should be output
+ =100 
+FILE
+the name of the file on which to output these quantities
+ =COLVAR The PRINT action with label  
+
+(See also DISTANCE PRINT ).
+
+    If you use adaptive Gaussian kernels, with diffusion scheme where you use a Gaussian that should cover the space of 20 time steps in collective variables. Note that in this case the histogram correction is needed when summing up hills.
+    Click on the labels of the actions for more information on what each action computes
+    tested on v2.7
+
+     d1:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =3,5 The DISTANCE action with label calculates a single scalar value 
+    d2:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =2,4 The DISTANCE action with label calculates a single scalar value 
+    restraint:  METAD  
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2  
+    SIGMA
+    the widths of the Gaussian hills
+     =20 
+    HEIGHT
+    the heights of the Gaussian hills.
+     =0.3 
+    PACE
+    the frequency for hill addition
+     =500 
+    ADAPTIVE
+    use a geometric (=GEOM) or diffusion (=DIFF) based hills width scheme.
+     =DIFF The METAD action with label calculates the following quantities:  
+    PRINT  
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2 , restraint.bias  
+    STRIDE
+    the frequency with which the quantities of interest should be output
+     =100 
+    FILE
+    the name of the file on which to output these quantities
+     =COLVAR The PRINT action with label  
+
+    If you use adaptive Gaussian kernels, with geometrical scheme where you use a Gaussian that should cover the space of 0.05 nm in Cartesian space. Note that in this case the histogram correction is needed when summing up hills.
+    Click on the labels of the actions for more information on what each action computes
+    tested on v2.7
+
+     d1:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =3,5 The DISTANCE action with label calculates a single scalar value 
+    d2:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =2,4 The DISTANCE action with label calculates a single scalar value 
+    restraint:  METAD  
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2  
+    SIGMA
+    the widths of the Gaussian hills
+     =0.05 
+    HEIGHT
+    the heights of the Gaussian hills.
+     =0.3 
+    PACE
+    the frequency for hill addition
+     =500 
+    ADAPTIVE
+    use a geometric (=GEOM) or diffusion (=DIFF) based hills width scheme.
+     =GEOM The METAD action with label calculates the following quantities:  
+    PRINT  
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2 , restraint.bias  
+    STRIDE
+    the frequency with which the quantities of interest should be output
+     =100 
+    FILE
+    the name of the file on which to output these quantities
+     =COLVAR The PRINT action with label  
+
+    When using adaptive Gaussian kernels you might want to limit how the hills width can change. You can use SIGMA_MIN and SIGMA_MAX keywords. The sigmas should specified in terms of CV so you should use the CV units. Note that if you use a negative number, this means that the limit is not set. Note also that in this case the histogram correction is needed when summing up hills.
+    Click on the labels of the actions for more information on what each action computes
+    tested on v2.7
+
+     d1:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =3,5 The DISTANCE action with label calculates a single scalar value 
+    d2:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =2,4 The DISTANCE action with label calculates a single scalar value 
+    restraint:  METAD  ...
+       
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2  
+    SIGMA
+    the widths of the Gaussian hills
+     =0.05 
+    HEIGHT
+    the heights of the Gaussian hills.
+     =0.3 
+    PACE
+    the frequency for hill addition
+     =500 
+    ADAPTIVE
+    use a geometric (=GEOM) or diffusion (=DIFF) based hills width scheme.
+     =GEOM 
+       
+    SIGMA_MIN
+    the lower bounds for the sigmas (in CV units) when using adaptive hills.
+     =0.2,0.1 
+    SIGMA_MAX
+    the upper bounds for the sigmas (in CV units) when using adaptive hills.
+     =0.5,1.0 
+    ... The METAD action with label calculates the following quantities:  
+    PRINT  
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1 , d2 , restraint.bias  
+    STRIDE
+    the frequency with which the quantities of interest should be output
+     =100 
+    FILE
+    the name of the file on which to output these quantities
+     =COLVAR The PRINT action with label  
+
+    Multiple walkers can be also use as in [98] These are enabled by setting the number of walker used, the id of the current walker which interprets the input file, the directory where the hills containing files resides, and the frequency to read the other walkers. Here is an example
+    Click on the labels of the actions for more information on what each action computes
+    tested on v2.7
+
+     d1:  DISTANCE  
+    ATOMS
+    the pair of atom that we are calculating the distance between.
+     =3,5 The DISTANCE action with label calculates a single scalar value 
+    restraint:  METAD  ...
+       
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = d1  
+    SIGMA
+    the widths of the Gaussian hills
+     =0.05 
+    HEIGHT
+    the heights of the Gaussian hills.
+     =0.3 
+    PACE
+    the frequency for hill addition
+     =500 
+       
+    WALKERS_N
+    number of walkers
+     =10 
+       
+    WALKERS_ID
+    walker id
+     =3 
+       
+    WALKERS_DIR
+    shared directory with the hills files from all the walkers
+     =../ 
+       
+    WALKERS_RSTRIDE
+    stride for reading hills files
+     =100 
+    ... The METAD action with label calculates the following quantities:  
+
+    where WALKERS_N is the total number of walkers, WALKERS_ID is the id of the present walker (starting from 0 ) and the WALKERS_DIR is the directory where all the walkers are located. WALKERS_RSTRIDE is the number of step between one update and the other. Since version 2.2.5, hills files are automatically flushed every WALKERS_RSTRIDE steps.
+
+    The c ( t ) reweighting factor can be calculated on the fly using the equations presented in [110] as described above. This is enabled by using the keyword CALC_RCT, and can be done only if the bias is defined on a grid.
+    Click on the labels of the actions for more information on what each action computes
+    tested on v2.7
+
+     phi:  TORSION  
+    ATOMS
+    the four atoms involved in the torsional angle
+     =1,2,3,4 The TORSION action with label calculates a single scalar value 
+    psi:  TORSION  
+    ATOMS
+    the four atoms involved in the torsional angle
+     =5,6,7,8 The TORSION action with label calculates a single scalar value 
+    metad:  METAD  ...
+       
+       
+    ARG
+    the input for this action is the scalar output from one or more other actions.
+     = phi , psi  
+    SIGMA
+    the widths of the Gaussian hills
+     =0.20,0.20 
+    HEIGHT
+    the heights of the Gaussian hills.
+     =1.20 
+    BIASFACTOR
+    use well tempered metadynamics and use this bias factor.
+     =5 
+    TEMP
+    the system temperature - this is only needed if you are doing well-tempered metadynamics
+     =300.0 
+    PACE
+    the frequency for hill addition
+     =500 
+       
+    GRID_MIN
+    the lower bounds for the grid
+     =-pi,-pi 
+    GRID_MAX
+    the upper bounds for the grid
+     =pi,pi 
+    GRID_BIN
+    the number of bins for the grid
+     =150,150 
+       
+    CALC_RCT
+    ( default=off ) calculate the \f$c(t)\f$ reweighting factor and use that to obtain the normalized bias [rbias=bias-rct].This
+      
+       
+    RCT_USTRIDE
+    the update stride for calculating the \f$c(t)\f$ reweighting factor.The
+     =10 
+    ... The METAD action with label calculates the following quantities:  
+
+    Here we have asked that the calculation is performed every 10 hills deposition by using RCT_USTRIDE keyword. If this keyword is not given, the calculation will by default be performed every time the bias changes. The c ( t ) reweighting factor will be given in the rct component while the instantaneous value of the bias potential normalized using the c ( t ) reweighting factor is given in the rbias component [rbias=bias-rct] which can be used to obtain a reweighted histogram or free energy surface using the HISTOGRAM analysis.
+
+    The kinetics of the transitions between basins can also be analyzed on the fly as in [109] . The flag ACCELERATION turn on accumulation of the acceleration factor that can then be used to determine the rate. This method can be used together with COMMITTOR analysis to stop the simulation when the system get to the target basin. It must be used together with Well-Tempered Metadynamics. If restarting from a previous metadynamics you need to use the ACCELERATION_RFILE keyword to give the name of the data file from which the previous value of the acceleration factor should be read, otherwise the calculation of the acceleration factor will be wrong.
+
+    By using the flag FREQUENCY_ADAPTIVE the frequency adaptive scheme introduced in [122] is turned on. The frequency for hill addition then changes dynamically based on the acceleration factor according to the following equation
+
+    τ d e p ( t ) = min [ τ 0 ⋅ max [ α ( t ) θ , 1 ] , τ c ]
+
+    where τ 0 is the initial hill addition frequency given by the PACE keyword, τ c is the maximum allowed frequency given by the FA_MAX_PACE keyword, α ( t ) is the instantaneous acceleration factor at time t , and θ is a threshold value that acceleration factor has to reach before triggering a change in the hill addition frequency given by the FA_MIN_ACCELERATION keyword. The frequency for updating the hill addition frequency according to this equation is given by the FA_UPDATE_FREQUENCY keyword, by default it is the same as the value given in PACE. The hill hill addition frequency increase monotonously such that if the instantaneous acceleration factor is lower than in the previous updating step the previous τ d e p is kept rather than updating it to a lower value. The instantaneous hill addition frequency τ d e p ( t ) is outputted to pace component. Note that if restarting from a previous metadynamics run you need to use the ACCELERATION_RFILE keyword to read in the acceleration factors from the previous run, otherwise the hill addition frequency will start from the initial frequency.
+
+    You can also provide a target distribution using the keyword TARGET [124] [76] [52] The TARGET should be a grid containing a free-energy (i.e. the - k B T*log of the desired target distribution). Gaussian kernels will then be scaled by a factor
+
+    e β ( F ̃  ( s ) − F ̃  m a x )
+
+    Here F ̃  ( s ) is the free energy defined on the grid and F ̃  m a x its maximum value. Notice that we here used the maximum value as in ref [52] This choice allows to avoid exceedingly large Gaussian kernels to be added. However, it could make the Gaussian too small. You should always choose carefully the HEIGHT parameter in this case. The grid file should be similar to other PLUMED grid files in that it should contain both the target free-energy and its derivatives.
+
+Notice that if you wish your simulation to converge to the target free energy you should use the DAMPFACTOR command to provide a global tempering [42] Alternatively, if you use a BIASFACTOR your simulation will converge to a free energy that is a linear combination of the target free energy and of the intrinsic free energy determined by the original force field.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ d1:  DISTANCE  
+ATOMS
+the pair of atom that we are calculating the distance between.
+ =3,5 The DISTANCE action with label calculates a single scalar value 
+t1:  METAD  ...
+   
+   
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d1  
+SIGMA
+the widths of the Gaussian hills
+ =0.05 
+TAU
+in well tempered metadynamics, sets height to (\f$k_B \Delta T\f$*pace*timestep)/tau
+ =200 
+DAMPFACTOR
+damp hills with exp(-max(V)/(\f$k_B\f$T*DAMPFACTOR)
+ =100 
+PACE
+the frequency for hill addition
+ =250 
+   
+GRID_MIN
+the lower bounds for the grid
+ =1.14 
+GRID_MAX
+the upper bounds for the grid
+ =1.32 
+GRID_BIN
+the number of bins for the grid
+ =6 
+   
+TARGET
+target to a predefined distribution
+ =dist.grid 
+... The METAD action with label calculates the following quantities:  
+PRINT  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d1 , t1.bias  
+STRIDE
+the frequency with which the quantities of interest should be output
+ =100 
+FILE
+the name of the file on which to output these quantities
+ =COLVAR The PRINT action with label  
+
+The file dist.dat for this calculation would read:
+
+ #! FIELDS d1 t1.target der_d1
+#! SET min_d1 1.14
+#! SET max_d1 1.32
+#! SET nbins_d1  6
+#! SET periodic_d1 false
+   1.1400   0.0031   0.1101
+   1.1700   0.0086   0.2842
+   1.2000   0.0222   0.6648
+   1.2300   0.0521   1.4068
+   1.2600   0.1120   2.6873
+   1.2900   0.2199   4.6183
+   1.3200   0.3948   7.1055
+
+Notice that BIASFACTOR can also be chosen as equal to 1. In this case one will perform unbiased sampling. Instead of using HEIGHT, one should provide the TAU parameter.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ d:  DISTANCE  
+ATOMS
+the pair of atom that we are calculating the distance between.
+ =3,5 The DISTANCE action with label calculates a single scalar value 
+METAD  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d  
+SIGMA
+the widths of the Gaussian hills
+ =0.1 
+TAU
+in well tempered metadynamics, sets height to (\f$k_B \Delta T\f$*pace*timestep)/tau
+ =4.0 
+TEMP
+the system temperature - this is only needed if you are doing well-tempered metadynamics
+ =300 
+PACE
+the frequency for hill addition
+ =100 
+BIASFACTOR
+use well tempered metadynamics and use this bias factor.
+ =1.0 The METAD action with label  
+
+The HILLS file obtained will still work with plumed sum_hills so as to plot a free-energy. The case where this makes sense is probably that of RECT simulations.
+
+Regarding RECT simulations, you can also use the RECT keyword so as to avoid using multiple input files. For instance, a single input file will be
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ d:  DISTANCE  
+ATOMS
+the pair of atom that we are calculating the distance between.
+ =3,5 The DISTANCE action with label calculates a single scalar value 
+METAD  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = d  
+SIGMA
+the widths of the Gaussian hills
+ =0.1 
+TAU
+in well tempered metadynamics, sets height to (\f$k_B \Delta T\f$*pace*timestep)/tau
+ =4.0 
+TEMP
+the system temperature - this is only needed if you are doing well-tempered metadynamics
+ =300 
+PACE
+the frequency for hill addition
+ =100 
+RECT
+list of bias factors for all the replicas
+ =1.0,1.5,2.0,3.0 The METAD action with label  
+
+The number of elements in the RECT array should be equal to the number of replicas.
+
+Glossary of keywords and components
+
+Description of components
+
+By default this Action calculates the following quantities. These quantities can be referenced elsewhere in the input by using this Action's label followed by a dot and the name of the quantity required from the list below.
+Quantity 	Description
+bias 	the instantaneous value of the bias potential
+work 	accumulator for work
+
+In addition the following quantities can be calculated by employing the keywords listed below
+Quantity 	Keyword 	Description
+rbias 	CALC_RCT 	the instantaneous value of the bias normalized using the c ( t ) reweighting factor [rbias=bias-rct].This component can be used to obtain a reweighted histogram.
+rct 	CALC_RCT 	the reweighting factor c ( t ) .
+acc 	ACCELERATION 	the metadynamics acceleration factor
+maxbias 	CALC_MAX_BIAS 	the maximum of the metadynamics V(s, t)
+transbias 	CALC_TRANSITION_BIAS 	the metadynamics transition bias V*(t)
+pace 	FREQUENCY_ADAPTIVE 	the hill addition frequency when employing frequency adaptive metadynamics
+
+Compulsory keywords
+
+SIGMA 	the widths of the Gaussian hills
+PACE 	the frequency for hill addition
+FILE 	( default=HILLS ) a file in which the list of added hills is stored
+
+Options
+
+NUMERICAL_DERIVATIVES 	( default=off ) calculate the derivatives for these quantities numerically
+CALC_RCT 	( default=off ) calculate the c ( t ) reweighting factor and use that to obtain the normalized bias [rbias=bias-rct].This method is not compatible with metadynamics not on a grid.
+GRID_SPARSE 	( default=off ) use a sparse grid to store hills
+GRID_NOSPLINE 	( default=off ) don't use spline interpolation with grids
+STORE_GRIDS 	( default=off ) store all the grid files the calculation generates. They will be deleted if this keyword is not present
+WALKERS_MPI 	( default=off ) Switch on MPI version of multiple walkers - not compatible with WALKERS_* options other than WALKERS_DIR
+FLYING_GAUSSIAN 	( default=off ) Switch on flying Gaussian method, must be used with WALKERS_MPI
+ACCELERATION 	( default=off ) Set to TRUE if you want to compute the metadynamics acceleration factor.
+CALC_MAX_BIAS 	( default=off ) Set to TRUE if you want to compute the maximum of the metadynamics V(s, t)
+CALC_TRANSITION_BIAS 	( default=off ) Set to TRUE if you want to compute a metadynamics transition bias V*(t)
+FREQUENCY_ADAPTIVE 	
+
+( default=off ) Set to TRUE if you want to enable frequency adaptive metadynamics such that the frequency for hill addition to change dynamically based on the acceleration factor.
+
+ARG 	the input for this action is the scalar output from one or more other actions. The particular scalars that you will use are referenced using the label of the action. If the label appears on its own then it is assumed that the Action calculates a single scalar value. The value of this scalar is thus used as the input to this new action. If * or *.* appears the scalars calculated by all the proceeding actions in the input file are taken. Some actions have multi-component outputs and each component of the output has a specific label. For example a DISTANCE action labelled dist may have three components x, y and z. To take just the x component you should use dist.x, if you wish to take all three components then use dist.*.More information on the referencing of Actions can be found in the section of the manual on the PLUMED Getting Started . Scalar values can also be referenced using POSIX regular expressions as detailed in the section on Regular Expressions . To use this feature you you must compile PLUMED with the appropriate flag. You can use multiple instances of this keyword i.e. ARG1, ARG2, ARG3...
+HEIGHT 	the heights of the Gaussian hills. Compulsory unless TAU and either BIASFACTOR or DAMPFACTOR are given
+FMT 	specify format for HILLS files (useful for decrease the number of digits in regtests)
+BIASFACTOR 	use well tempered metadynamics and use this bias factor. Please note you must also specify temp
+RECT 	list of bias factors for all the replicas
+DAMPFACTOR 	damp hills with exp(-max(V)/( k B T*DAMPFACTOR)
+TTBIASFACTOR 	use transition tempered metadynamics with this bias factor. Please note you must also specify temp
+TTBIASTHRESHOLD 	use transition tempered metadynamics with this bias threshold. Please note you must also specify TTBIASFACTOR
+TTALPHA 	use transition tempered metadynamics with this hill size decay exponent parameter. Please note you must also specify TTBIASFACTOR
+TARGET 	target to a predefined distribution
+TEMP 	the system temperature - this is only needed if you are doing well-tempered metadynamics
+TAU 	in well tempered metadynamics, sets height to ( k B Δ T *pace*timestep)/tau
+GRID_MIN 	the lower bounds for the grid
+GRID_MAX 	the upper bounds for the grid
+GRID_BIN 	the number of bins for the grid
+GRID_SPACING 	the approximate grid spacing (to be used as an alternative or together with GRID_BIN)
+RCT_USTRIDE 	the update stride for calculating the c ( t ) reweighting factor.The default 1, so c ( t ) is updated every time the bias is updated.
+GRID_WSTRIDE 	write the grid to a file every N steps
+GRID_WFILE 	the file on which to write the grid
+GRID_RFILE 	a grid file from which the bias should be read at the initial step of the simulation
+ADAPTIVE 	use a geometric (=GEOM) or diffusion (=DIFF) based hills width scheme. Sigma is one number that has distance units or time step dimensions
+WALKERS_ID 	walker id
+WALKERS_N 	number of walkers
+WALKERS_DIR 	shared directory with the hills files from all the walkers
+WALKERS_RSTRIDE 	stride for reading hills files
+INTERVAL 	one dimensional lower and upper limits, outside the limits the system will not feel the biasing force.
+SIGMA_MAX 	the upper bounds for the sigmas (in CV units) when using adaptive hills. Negative number means no bounds
+SIGMA_MIN 	the lower bounds for the sigmas (in CV units) when using adaptive hills. Negative number means no bounds
+ACCELERATION_RFILE 	a data file from which the acceleration should be read at the initial step of the simulation
+TRANSITIONWELL 	This keyword appears multiple times as TRANSITIONWELL followed by an integer. Each specifies the coordinates for one well as in transition-tempered metadynamics. At least one must be provided. You can use multiple instances of this keyword i.e. TRANSITIONWELL1, TRANSITIONWELL2, TRANSITIONWELL3...
+FA_UPDATE_FREQUENCY 	the frequency for updating the hill addition pace in frequency adaptive metadynamics, by default this is equal to the value given in PACE
+FA_MAX_PACE 	the maximum hill addition frequency allowed in frequency adaptive metadynamics. By default there is no maximum value.
+FA_MIN_ACCELERATION 	only update the hill addition pace in frequency adaptive metadynamics after reaching the minimum acceleration factor given here. By default it is 1.0.
+RESTART 	allows per-action setting of restart (YES/NO/AUTO)
+UPDATE_FROM 	Only update this action from this time
+UPDATE_UNTIL 	Only update this action until this time
+
+    doxygen 1.8.17
+
