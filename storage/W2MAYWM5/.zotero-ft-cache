@@ -1,0 +1,775 @@
+Journal of Sedimentary Research, 2018, v. 88, 1261–1275 Research Article
+DOI: http://dx.doi.org/10.2110/jsr.2018.63
+QUANTIFYING DETECTION LIMITS AND UNCERTAINTY IN X-RAY DIFFRACTION MINERALOGICAL ASSESSMENTS OF BIOGENIC CARBONATES
+KAREN L. VYVERBERG, JOHN M. JAEGER, AND ANDREA DUTTON Department of Geological Sciences, University of Florida, P.O. Box 112120, Gainesville, Florida 32611, U.S.A.
+e-mail: kvyverberg@gmail.com
+ABSTRACT: Mineralogical assessments of carbonates are widely used in environmental and diagenetic studies as well as to identify well-preserved archives for the reconstruction of past climate. Efforts to improve the quantiﬁcation of phases in biogenic carbonates are ongoing and critical to accurately interpreting paleoclimate data. X-ray diffraction (XRD) is a standard quantitative mineralogical tool for many applications, but previous studies vary in their precision and determination of errors. Here we present a quantitative bimodal XRD calibration of marine, biogenic carbonates that we developed to assess the relative amounts of aragonite, low-Mg calcite, and high-Mg calcite in fossil coral samples. We compare the accuracy and precision of an ordinary-least-squares and a weighted-least-squares regression technique for low-concentration standard mixtures, and extend this comparison to two other published calibration studies. We also compare a polynomial ﬁt and a spline ﬁt for an overall calibration regression. The calibrations in this study are then compared with a model calibration using synthetic XRD data to test for sources of bias and uncertainty in the experimental calibrations. This test leads us to conclude that variation in the grain size and crystallinity of a natural aragonite standard is one source of uncertainty in these calibrations. Reproducibility of standard peak-area ratios has the largest control on calibration precision and limits of decision, detection, and quantiﬁcation. Calibration accuracy is determined by the slope of the model regressions, which may be inﬂuenced by a number of factors, including mineralogical-standard crystallinity. Based on these results we include a set of best practices for XRD calibration procedures that are dependent on the carbonate phase and precision requirements of the end-user’s sample assessment. This method is made available and reproducible with an open-source R programming language code in GitHub and represents a robust procedure for bimodal quantitative mineralogical assessment in biogenic carbonates, with wide-ranging applications to environmental studies.
+
+INTRODUCTION
+The chemistry and mineralogy of carbonates are widely utilized to infer their depositional and postdepositional environmental conditions and play a particularly important role in paleoclimate reconstructions. In many cases, it is important to quantify the relative abundance of carbonate phases present, such as aragonite, high-Mg calcite, intermediate-Mg calcite, or low-Mg calcite, to infer environmental processes, context, or preservation of primary mineralogy. For example, an array of geochemical and isotope proxies (d18O, d13C, minor-element/Ca ratios, d11B, etc.) have been developed to reconstruct past changes in climate or seawater chemistry (e.g., pH or elemental or isotopic composition) (Grossman and Ku 1986; Ivany et al. 2000; Dutton et al. 2002; Pagani et al. 2005; Tripati et al. 2009; Petersen et al. 2016), but all of these proxies require preservation of the primary carbonate phase to produce a high-ﬁdelity reconstruction. Additionally, there are a range of applications where understanding the mixture of carbonate phases present is critical to their genetic interpretation such as authigenic carbonates at submarine methane seeps (Ritger et al. 1987; Lu et al. 2015) or studies addressing the formation of dolomite (Vasconcelos et al. 1995). Multi-phase biogenic carbonate sediments record sources and production processes on carbonate platforms (Bone and James 1993; Gischler and Zingeler 2002; Gischler et al. 2013; O’Connell and James 2015). Diagenetic studies of deep-sea sediment cores are used to
+
+constrain the sources and postdepositional history of platform carbonates (Rendle et al. 2000; Malone et al. 2001).
+The present study was initially motivated by a desire to quantify the presence of contaminating calcite in a biogenic aragonite (coral skeletal material) to assess the suitability of individual samples for subsequent geochemical analyses. Biogenic aragonites such as mollusks, otoliths, and corals have been extensively used to provide valuable insights on past climate and seawater evolution as well as paleoecology and extinction events (e.g., Grossman and Ku 1986; Ivany et al. 2000; Dutton et al. 2002; Tripati et al. 2009; Petersen et al. 2016). Scleractinian corals, in particular, are suitable to resolve seasonal-resolution sea-surface temperature, salinity, or pH (Gagan et al. 1998; Abram et al. 2001; Cobb et al. 2001; Pelejero et al. 2005; Cobb et al. 2013) and are commonly used to reconstruct past sealevel position (Fairbanks 1989; Chen et al. 1991; Stirling et al. 1995, 1998; Thompson et al. 2003; Blanchon et al. 2009; Thompson et al. 2011; O’Leary et al. 2013; Dutton et al. 2015). These applications also require precise radiometric dating through C-14 or U-series dating techniques to provide a temporal framework for the geochemical data. Corals also are sometimes used to calibrate between these two radiometric dating techniques, where absolute U-series ages are used to calibrate the C-14 timescale (Yokoyama et al. 2000; Fairbanks et al. 2005; Reimer et al. 2013). Collectively, coral-derived geochemical proxies of past climate and
+
+Published Online: November 2018 Copyright Ó 2018, SEPM (Society for Sedimentary Geology) 1527-1404/18/088-1261
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1262
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+sea-level change have provided tremendous insight on the dynamics of the climate system.
+Our goal is to develop an accurate and precise quantiﬁcation of carbonate phases present in fossil corals to assess preservation and suitability for subsequent U-series dating in the context of developing sealevel reconstructions. Fossil corals collected from submerged and emergent settings are utilized in sea-level research. Thus, we generated a calibration method for quantifying the various phases of aragonite, high-, intermediate-, and low-Mg calcite that we would expect to ﬁnd in the depositional and collection settings of fossil coral samples. Coral studies that employ XRD analyses often rely only on minimum detection limits, variously reported at somewhere in the range of ~1–4% calcite, to screen out altered samples (Chen et al. 1991; Fruijtier et al. 2000; Reimer et al. 2006; Dutton et al. 2015; Dechnik et al. 2017). Hence, one goal was to assess the detection limit with the aim of minimizing it. Here, though, we also were interested in developing a quantitative assessment of the various carbonate phases present to understand the paired relationship between the mineralogical changes and the geochemical composition of the coral skeleton to provide more insight on diagenetic processes. U-series dating of fossil corals provides extremely precise and accurate age control on past sea-level conditions (Edwards et al. 2003). However, post depositional diagenesis of primary aragonitic skeleton material, known as open-system behavior, can mobilize both parent and daughter radionuclides in the Useries decay chain and alter the isotopic ratios used to calculate precise ages (Bar-Matthews et al. 1993; Henderson et al. 1993; Gallup et al. 1994; Fruijtier et al. 2000; Thompson et al. 2003). While open-system age models can ‘‘back-track’’ altered radioisotope values down speciﬁc diagenetic pathways to reach an ‘‘unaltered’’ age (Gallup et al. 1994; Thompson et al. 2003; Thompson and Goldstein 2005; Scholz et al. 2007; Thompson et al. 2011), there are inherent uncertainties associated with these methods that decrease the precision in the ﬁnal determination of coral age. Hence, it is of high priority to identify and measure the best-preserved corals to provide more robust assessments of age.
+PURPOSE
+The purpose of this study is to develop a new quantitative approach for the use of XRD bimodal carbonate mineralogical determinations. This was achieved by applying statistical techniques appropriate for spectroscopic X-ray diffraction calibration data and considering potential sources of uncertainty. We compare two different regression types and discuss the appropriate choice for carbonate mixtures. Additionally, we explored the sources of uncertainty in the calibrations by comparison with other published calibration curves and modeling of XRD patterns to test for the inﬂuence of sample preparation and/or natural inﬂuences on the crystallinity of carbonate end members. Finally, we provide a set of best practices for constructing an XRD carbonate calibration curve. We emphasize that the choice of end-member standards and number of replicates should be tailored to the type of materials and precision requirements of the subsequent sample XRD measurement.
+BACKGROUND OF METHODS EMPLOYED
+Investigations establishing limits of detection and quantiﬁcation of spectroscopic data are numerous, and produced a series of guidelines for proper development and interpretation of calibration data sets. Hubaux and Vos (1970) describe the importance of recognizing the difference between instrument calibration versus method calibration; the former uses only replicate measurements of a blank whereas the latter uses a full range of concentration standards that result in a calibration curve (Hubaux and Vos 1970; Zorn et al. 1997; Burdge et al. 1999; Currie 1999; Lavagnini and Magno 2006; Evard et al. 2016a). The method based only on blank measurements is not recommended for application to unknown samples, or
+
+establishing detection and quantiﬁcation limits because of the tendency for spectroscopic calibration data to have non-constant variance with increasing concentration (i.e., heteroscedasticity) (Zorn et al. 1997; Burdge et al. 1999; Currie 1999; Lavagnini and Magno 2006; Evard et al. 2016a). Also, calibration data often have a nonlinear trend with increasing concentration. Nonlinearity and the scedasticity of the data will produce widely varying detection limits and uncertainty when analyzed using standard ordinary least-squares (OLS) methods (Zorn et al. 1997; Lavagnini and Magno 2006). Establishing limits of detection and quantiﬁcation for powder XRD analyses of carbonates require developing a proper calibration method, consistent XRD measurement protocol, and evaluation of calibration data for modeling (i.e., linearity, scedasticity) (Evard et al. 2016a).
+XRD Analyses of Carbonates
+Alteration of coral skeletons often manifests as neomorphism to low-Mg calcite (LMC), visible in hand sample and traditional microscopy (Sherman et al. 1999; Fruijtier et al. 2000). Though not consistent between sites and/or time periods, in some cases, even alteration of 1% of the primary aragonite to calcite is associated with open-system behavior of stable oxygen and carbon isotopes (Reimer et al. 2002; McGregor and Gagan 2003; Chiu et al. 2005) and diagenetic overprinting of elemental Sr/ Ca ratios (Allison et al. 2007; Dalbeck et al. 2011). It has not been independently established whether the same level of alteration can signiﬁcantly bias U-series ages, though we note that open-system behavior of U-series isotopes has been noted even in samples with 100% aragonite. Signiﬁcant amounts of primary and secondary calcite, as well as secondary aragonite, may also be present in coral skeletons. Some shallow-water, scleractinian coral genera initially precipitate their skeletons from LMC, especially in high-energy environments, leaving primary calcite behind in the basal and aboral sections of the skeletons (Vandermeulen and Watabe 1973; Goffredo et al. 2012). Secondary high-Mg calcite (HMC) cements and aragonite cements are indicators of early-marine diagenesis in shallow reef environments, sometimes forming concurrently with skeletal deposition (Sherman et al. 1999; Allison et al. 2007). Secondary LMC calcite cements precipitate during meteoric diagenesis, can be patchy throughout the aragonite skeleton, and form in a variety of morphologies (Sherman et al. 1999) including meniscus structures nucleated directly on primary skeletal aragonite (Dalbeck et al. 2011).
+X-ray diffraction (XRD) screening is the most widely used and efﬁcient way to detect mineralogical conversion of aragonite to calcite that would be expected to entail contemporaneous changes in carbonate geochemistry (and provide evidence of open-system alteration), as well as the presence of LMC and HMC cements. While the presence of secondary aragonite may also distort the primary geochemistry, XRD techniques cannot readily distinguish between primary and secondary aragonite. Determining if LMC and aragonite are primary or secondary phases in a particular coral requires additional techniques such as SEM or EDX (Allison et al. 2007; Goffredo et al. 2012). Hence, XRD screening of coral mineralogy is but one step towards determining the preservation of primary geochemical signals.
+Very small (, 1%) amounts of secondary calcite in aragonitic corals have been associated with altered geochemical parameters (Reimer et al. 2002; McGregor and Gagan 2003; Chiu et al. 2005; Allison et al. 2007; Dalbeck et al. 2011). Quantiﬁcation of such small amounts of secondary carbonate phases is important not only for identifying which carbonate samples may be appropriate for further geochemical analyses, but also for constraining the relationship between mineralogical alteration and geochemical changes. Previous studies have proposed quantifying very small (, 1%) amounts of calcite by conventional XRD (Chiu et al. 2005; Sepulcre et al. 2009) and 2D XRD (Smodej et al. 2015) using bimodal mixtures of carbonate standards. However, limits of detection and
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1263
+
+quantiﬁcation in this use are dependent on the quality (slope, standard deviation and trend of residuals, number of standards, etc.) of calibration curves (Hubaux and Vos 1970; Zorn et al. 1997; Lavagnini and Magno 2006; Evard et al. 2016a) rather than just instrumental and blank uncertainty (Sepulcre et al. 2009). Calibration-curve sensitivity (i.e., slope; Currie 1999; Evard et al. 2016a) of previous studies depends on the XRD carbonate mineral peak-area ratios (PARs), and even when calibration curves are created using nearly identical carbonate reference materials they can result in modeled calcite concentrations that can vary by a factor of 4 (Sepulcre et al. 2009; Smodej et al. 2015).
+Quantitative mineralogical studies considering trimodal mixtures of carbonates are limited to low-Mg calcite, aragonite, and vaterite mixtures (Kontoyannis and Vagenas 2000; Dickinson and McGrath 2001; Vagenas et al. 2003). Calibration curves are created for XRD using bimodal standard mixtures (Dickinson and McGrath 2001) or the trimodal quantitative analyses are performed using Fourier-transform infrared spectroscopy or Raman spectroscopy (Kontoyannis and Vagenas 2000; Vagenas et al. 2003). Of these three spectroscopic techniques, XRD has been shown to generate more accurate quantitative limits of detection (Dickinson and McGrath 2001). Moreover, similar to the conventional XRD bimodal standard calibrations we compare our study to, these trimodal studies do not take into account statistical best practices for using spectroscopic data or generating calibration curves, and sources of uncertainty are not explored. While the approach presented here becomes semiquantitative for trimodal mixtures without a large trimodal standard data set, the methodological discussion and best practices remain applicable for carbonate calibration applications in general. An additional confounding factor was noted by Milliman (1974), who demonstrated that the diffraction characteristics of carbonate minerals (e.g., peak intensity) are very sensitive to sample preparation and carbonate source. Previous calibration attempts fail to consider this additional uncertainty in modeling calcite abundance and establishing limits of detection and quantiﬁcation.
+
+Calibration Standards
+
+Detection and quantiﬁcation limits, and the precision of a calibration, are strongly affected by the nature of the calibration method. There are many detailed tutorials on the proper design of a calibration curve (Hubaux and Vos 1970; Zorn et al. 1997; Burdge et al. 1999; Lavagnini and Magno 2006; Evard et al. 2016a), but we highlight several key points that are relevant to carbonate XRD data. Calibration sensitivity is set by the slope of the linear calibration curve (Currie 1999; Evard et al. 2016a), whereas the uncertainty in detection and quantiﬁcation limits in a test sample value depends on the variance of the calibration-standard measurements. The signal used in a carbonate XRD calibration is the calcite/aragonite peakarea ratio, where the peak intensity refers to the net peak area (Sepulcre et al. 2009).
+
+Peak-Area
+
+Ratio
+
+¼
+
+ðCalcite
+
+Calcite Peak Intensity Peak Intensity þ Aragonite
+
+IntensityÞ
+
+ð1Þ
+
+Sepulcre et al. (2009) demonstrated that the ratio of the net area under the largest aragonite peak (26.24 82hCu) to the calcite peak (29.43 82hCu) (Eq. 1) has a higher reproducibility than the ratio of the peak heights. This difference is attributed to natural variation in the carbonate phases (e.g., amount of Mg in secondary calcite), which can cause the calcite peaks to broaden and reduce their heights. Peak areas, rather than heights, are generally favored in spectra-based calibration measurements (Evard et al. 2016b).
+The choice of mineral standard and its preparation into replicate aliquots at varying abundances of calcite and aragonite will directly control the peak intensity and its reproducibility. It has been proposed that carbonate mineral standards used in a calibration should have an origin that matches the unknown because of the potential for certain sources to have widely
+
+varying crystallinity, which in turn dictates peak intensity (Milliman 1974). In this application, the use of a calcite standard with higher crystallinity and/or an aragonite standard with lower crystallinity will result in a higher PAR for a given concentration mixture. Sample preparation is known to alter the crystallinity of carbonate minerals (Milliman and Bornhold 1973; Milliman 1974) and potential for preferred orientation during sample loading will also impact peak intensities (Moore and Reynolds 1997), so it is imperative to prepare standards and unknowns with a similar grinding and sampling loading protocol to limit experimental uncertainty.
+Development of a Calibration Curve
+Limits of detection and quantiﬁcation of spectroscopic methods can be established several ways, but all require the development of a calibration curve. The preferred approach is to create several calibration standards spanning a factor of 3–4 in concentration, but with a higher proportion of standards in the expected range of the detection limits (Lavagnini and Magno 2006; Evard et al. 2016a). Ideally, ten replicates of each standard are preferred, so as to properly evaluate the scedasticity of the data (Evard et al. 2016a). In most calibration experiments, these limits are derived from the calibration curve using the prediction bands with a given probability. The width of the prediction band is heavily dependent on the concentration spacing of calibration samples, the variance of replicates, the number of replicates, and the number of calibration samples (Hubaux and Vos 1970; Zorn et al. 1997; Lavagnini and Magno 2006; Evard et al. 2016a). It has been well shown that heteroscedastic data will markedly change all these parameters (Zorn et al. 1997; Lavagnini and Magno 2006; Evard et al. 2016a). Proper distribution of calibration points, and an increased number of calibration samples and replicates, will reduce uncertainty and therefore detection and quantiﬁcation limits.
+Detection limits exist for both the instrument and the calibration method. The derivation and statistical difference of the two is well described (Lavagnini and Magno 2006; Evard et al. 2016a). Instrumental limits are usually much lower than the calibration limits, and are therefore used only for evaluating the instrument response and not the calibration approach (Thompson et al. 2002). Detection limits are established for the signal (instrument) and the method (Lavagnini and Magno 2006; Loock and Wentzell 2012; Evard et al. 2016a). Signal limits are based on repeated blank measurements, whereas method limits require the construction of a calibration curve to convert from signal to analyte concentration. For this application, we review and illustrate the most pertinent characteristics to demonstrate how we deﬁne and derive these metrics (Fig. 1, Table 1).
+Calibration Metrics
+The terms deﬁned in this section are summarized in Table 1. In the signal domain (i.e., PAR), the decision limit (critical level) (YC) is the signal above which we can state that it is not caused solely by noise at a probability a (Fig. 1) (Zorn et al. 1997; Lavagnini and Magno 2006; Evard et al. 2016a). a is a type-I error rate (i.e., a false positive) and speciﬁes the signal level at which the probability of a false positive is below a. The value of a can be set to meet the needs of the method, but it is usually chosen so that the reliability (1-a) is 95% or better (Evard et al. 2016a). YC should be reported in signal units, as it represents the measure above which the value of the signal rises above the variance in the signal domain. Several approaches have been proposed for establishing the variance, ranging from measurement of several blanks (i.e., 100% aragonite), replicate measurements made at a ﬁxed known concentration (Sx), or from the sum of the variance of standard samples around the calibration curve (Syx) (Lavagnini and Magno 2006; Evard et al. 2016a). Evard et al. (2016a) and Lavagnini and Magno (2006) recommend use of Syx because of the potential for heteroscedasticity, which results in variance measurements made at one concentration not applicable to the remainder of the curve.
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1264
+
+K.L. VYVERBERG ET AL.
+
+TABLE 1.—Deﬁnition of terms.
+
+JSR
+
+Term
+
+Definition
+
+FIG. 1.—Graphical representation of determination and detection limits, and uncertainties in the signal (Y) and concentration (X) domains. The limit of determination, Yc, is the signal above which a concentration can be attributed to the presence of an analyte with a level (probability of a false positive; gray shading) conﬁdence. b0 is the intercept of the regression with the y axis. sb0 is the 1r uncertainty around b0 and is controlled by the reproducibility of the measurement of multiple blank analytes. The limit of detection, XD, is deﬁned where the intersection of Yc with the lower conﬁdence band corresponds to the lowest analyte concentration which can a priori be recognized with b level (gray shading) conﬁdence. The mean of the signal distribution at XD is YD. Syx is the sum of the 1r variance around each data point in the regression, and is considered an appropriate variance for a regression containing heteroscedastic data. For the weighted parameters (denoted with subscript w), the values are all reduced from the ordinary least squares values.
+
+Using Syx, the decision limit YC can be calculated from the upper intercept of the prediction band t(1-a, n-2) from the OLS calibration curve (after Lavagnini and Magno 2006) where n¼ number of calibration samples:
+
+!1
+
+1
+
+x2
+
+2
+
+YC ¼ b0 þ tð1Àa;nÀ2ÞSyx
+
+1
+
+þ
+
+n
+
+þ
+
+Pn
+i¼1
+
+ðxi
+
+À
+
+xÞ2
+
+ð2Þ
+
+The weighted regression decision limit, YCw, can also be calculated in the same way for the weighted least squares (WLS) calibration (after
+
+Lavagnini and Magno 2006) where Syxw and Xw have been weighted by 1/ si2 where s is the standard deviation, and YCw is smaller than YC (Fig. 1):
+
+!1
+
+YCw ¼ b0w þ tð1Àa;nÀ2ÞSyxw
+
+1
+
+þ
+
+1 n
+
+þ
+
+Pn
+i¼1
+
+x2w ðxi À
+
+xw Þ2
+
+2
+
+ð3Þ
+
+YC can also be estimated as 1.65 (a ¼ 0.05) times the standard deviation of choice (sx0, sx, or syx) (e.g., 1.65*syx; Lavagnini and Magno 2006). The most conservative calibrations use multiple samples to establish regression uncertainty (i.e., Syx) rather than multiple measurements of a blank and at a single concentration (Loock and Wentzell 2012; Evard et al. 2016a).
+In the concentration domain, we can establish detection and quantiﬁcation limits based on the decision limit, YC. The limit of detection, XD (LOD, Ld, or CCb) is deﬁned as the smallest analyte concentration in an unknown sample that can be reliably distinguished from zero with b signiﬁcance (type-II error rate, false negative) (Currie 1999; Lavagnini and Magno 2006). It can be calculated several ways, with the preferred method utilizing the prediction bands from the linear regression, calculated as the abscissa of the intersection of the parallel line to the x axis passing through YC, with the lower one-sided band (1-b) of the prediction function. It can
+
+a b
+b0 b1 FWHM HMC LMC n OLS PAR PDF RIR s Sx
+Sx0 sb0 sYC Syx w WLS XD XQ YC
+YD
+
+Type-I Error Rate: a false positive; we set a at the 95% confidence level Type-II Error Rate: a false negative; we set b at the 95% confidence
+level y intercept of the regression Slope of the regression Full width at half maximum High-Mg calcite Low-Mg calcite Number of samples Ordinary least-squares Peak-area ratio Powder diffraction file Reference intensity ratio Standard deviation Sum of the variance of replicate measurements of a fixed known
+concentration standard Sum of the variance of replicate measurements of a blank 1u uncertainty around b0 Standard deviation of the regression at the x position of the critical level Sum of the variance of standard samples around the calibration curve Weighting term ¼ 1/si2 Weighted least-squares Limit of detection Limit of quantification Decision limit: the signal level above which the signal is not caused
+solely by noise at probability a Mean of the signal distribution at XD
+
+also be calculated using Syx and the slope of the regression, b1:
+
+XD ¼ 3 Ã Syx=b1
+
+ð4Þ
+
+The limit of quantiﬁcation, XQ, in the concentration domain is derived from the signal domain, where it is deﬁned several ways, but in general, reﬂects 10 times the standard deviation of signal noise. XQ is determined as follows,
+
+XQ ¼ ½10 Ã sYC þ b0=b1
+
+ð5Þ
+
+where sYC is the standard deviation of the regression at the x position of the critical level, and b0 is the y intercept of the regression (Zorn et al. 1997). The choice of a value of 10 has been debated (Zorn et al. 1997), but it is the accepted value used in most calibration studies. The quantiﬁcation limit conceptually represents the concentration of analyte in an unknown that can be reliably determined (Zorn et al. 1997). Because XD and XQ are in the concentration domain, we can use them as a means to evaluate interlaboratory comparison of calibration methods (Evard et al. 2016a), as done in this study.
+A key point is that all of these limits are a function of the calibration response, and therefore are sensitive to how it is developed and interpreted. Parameters of critical importance include the regression slope, intercept, Syx, number of calibration samples, and spacing of samples. For example, a lower regression variance (Syx) and a model that uses many samples (n) leads to lower limit values (Eq. 2; Evard et al. 2016a). Consequently, it is highly recommended that the linearity and scedasticity of the data be interpreted to identify potential bias from these in a calibration model. It is notable that previous carbonate XRD calibration models demonstrate clear heteroscedasticity (Sepulcre et al. 2009; Smodej et al. 2015), yet this is not considered in the subsequent analyses. In general, many calibration models are linear in the lowest concentration ranges used for determining limits, and if not, the end user can limit the data used in the model to a linear range (Evard et al. 2016a). The alternative is a polynomial or spline model
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1265
+
+previous work by documenting several challenges that we encountered through this process, as well as considering the role of calibration-curve quality (slope, standard deviation and trend of residuals, number of standards, etc.) in establishing limits of decision, detection, and quantiﬁcation. We tested the hypothesis that altering the sources of carbonates used to develop a calibration curve will measurably alter the calibration accuracy and precision. We conducted all data analyses using open-source code created in the R programming language that provides reproducible limits of decision, detection, and quantiﬁcation with uncertainties within the 0–100% calcite concentration range of standard mixtures.
+
+Calibration Standards
+
+FIG. 2.—Diffraction proﬁles for the three carbonate standards used for calibrations. The aragonite is from a modern Acropora cervicornis; the low-Mg calcite (LMC) is from an inorganic laboratory standard, and the high-Mg calcite (HMC) is from several modern sand dollars (Mellita isometra), which have varying amounts of magnesium (9–13 mol %), but range between 29.70 and 29.83 82hCu. All three standards were measured at 40 mA, 40 kV, with a 0.018 step and counting time of 1 s/ step. Diffraction patterns are shown after the subtraction of the background.
+that ﬁts the data better or is more appropriate over the full concentration range, with statistical tests used to determine the best model ﬁt (Lavagnini and Magno 2006; Evard et al. 2016a).
+A more serious concern to model sensitivity is the scedasticity of the data; not accounting for it can result in overprediction of limits (Zorn et al. 1997; Evard et al. 2016a). If calibration data are heteroscedastic, then the incorporation of more calibration points at higher concentration levels will increase Syx, increasing the limit values (Zorn et al. 1997; Evard et al. 2016a). There are many approaches used to evaluate this inﬂuence (Lavagnini and Magno 2006; Evard et al. 2016a), with the simplest being the visual inspection of residuals from the model ﬁt. The recommended approach to dealing with heteroscedasticity is the use of a weighted linear model (Garden et al. 1980; Zorn et al. 1997; Burdge et al. 1999; Lavagnini and Magno 2006; Evard et al. 2016a). We have evaluated several WLS approaches and determined that the model results are most sensitive to the weighting scheme used. Most often, weights are assigned as the inverse of the replicate variance (1/r2) (Garden et al. 1980; Zorn et al. 1997; Burdge et al. 1999; Lavagnini and Magno 2006; Evard et al. 2016a). For establishing limits, this weighting scheme involves establishing the variance for blank measurements, which are not always included in the regression, (e.g., Sepulcre et al. 2009), although it is highly recommended (Evard et al. 2016a). The WLS approach necessitates that variance needs to be modeled as a function of concentration, which results in inherent uncertainty (Zorn et al. 1997). Consequently, it is recommended that limits derived from WLS results not be presented with a high level of precision (Loock and Wentzell 2012).
+METHODS
+Here we developed calibrations with a conventional XRD for two separate bimodal mixtures: (1) aragonite and LMC, and (2) aragonite and HMC. We carried this out by closely following the preparation and measurement procedures of Sepulcre et al. (2009). We improved on
+
+The precision and accuracy of XRD carbonate calibrations is sensitive to the type of material used to generate calibration models. It has been recommended that standards be similar in source to the unknown to be tested (Milliman 1974); yet often such end members are not readily available, nor is the source always known. For example, both Sepulcre et al. (2009) and Smodej et al. (2015) use powered inorganic single crystals of LMC rather than biogenic calcite. We tested potential standard end members using our XRD to identify their mineralogical content before creating standard mixtures. Our tested carbonate standards are from natural and manufactured sources, but many sources we tested had unwanted mineral contamination, which required robust screening procedures not well described in previous work.
+Aragonite Standard.—We tested four different aragonite standards for purity. An Alfa Aesar laboratory-grade standard aragonite powder contained gypsum, which has a peak at 29.19 82hCu and thus had peak overlap with the primary LMC peak at 29.43 82hCu. A second aragonite standard from a modern Porites collected from the Great Barrier Reef that we tested had secondary LMC that would reduce the precision and accuracy in any subsequent calibrations. A piece of modern Porites coral rubble from Paradise Island, Bahamas, also had detectable LMC. The aragonite standard we ultimately used in our calibrations was from a modern Acropora cervicornis collected from the Bahamas and contained no detectable calcite (Fig. 2). However, we found that some preparation techniques could introduce calcite into a pure aragonite standard. Mechanical powdering of the aragonite from the Bahamian A. cervicornis using a McCrone mill for 3 minutes generated a detectable amount of LMC due to lattice alteration (Milliman 1974). We measured 43, one-g-aliquots of the A. cervicornis to screen for any detectable calcite before using it as the pure aragonite end member in our standard mixtures. After handpowdering the A. cervicornis in an agate mortar and pestle for 5–10 minutes and passing the powder through a 250 lm sieve, we added 50 ml of deionized water to 2 g aliquots to dissolve any halite and centrifuged each aliquot at 2500 RPM (revolutions per minute) for sixty minutes before pouring off the saline supernatant. The remaining powder was dried overnight at 50 8C.
+Low-Mg Calcite Standard.—We chose to avoid using a ground single calcite crystal or using a biogenic source of LMC, so as to isolate the inﬂuence of the standards on sources of uncertainty in calibration models. We used an inorganically precipitated laboratory powder standard from EMD Millipore with 0.02% Mg (Fig. 2). To ensure purity we prescreened 2 g of this LMC, before incorporating it into standard mixtures. We chose this laboratory standard over Iceland spar because grinding a single large crystal into powder could result in a calcite standard with unnaturally high crystallinity and diffraction-peak characteristics. We test this by analyzing a LMC spar standard for comparison (see below). Reagent-grade calcites may have larger peak intensities than biogenic
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1266
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+calcites due to potentially larger crystal sizes, and so have been argued homogeneous mixture but not too long to reduce calcite peak intensities
+
+against using in marine carbonate XRD studies (Milliman 1974).
+
+(Milliman 1974).
+
+High-Mg Calcite Standard.—For the HMC standard, no commercially prepared sources are available, so we used modern sand dollars (Mellita isometra) as our standard. While red coralline algae has been used as an HMC standard (Sepulcre et al. 2009; Smodej et al. 2015), M. isometra were easily accessible and abundant to us. HMC in bulk coral samples has been attributed to several sources, including marine cementation (Henderson et al. 1993), other colonizing organisms such as crustose coralline algae, and biological precipitation during substrate colonization (Goffredo et al. 2012). The M. isometra have varying amounts of magnesium in their skeletons, which can sometimes produce multiple phases of HMC in the standard. All of the HMC mixed into the standards was prescreened for purity with a single, dominant peak between 29.70 and 29.83 82hCu which corresponds to 9–13 mol % MgCO3 (Tucker 1988) (Fig. 2). Hence the range of % MgCO3 in our HMC standard largely overlaps with the upper end of the range ascribed to intermediate-Mg calcite (Bone and James 1993), even though we refer to our standard as HMC. Most of the HMC we have since observed in seventy natural coral samples (not reported here) was also multi-phase, though with a larger range of Mg concentrations of 4–15 mol %, and so we deemed the M. isometra an appropriate standard. Before powdering, the M. isometra were coarsely crushed by hand and rinsed thoroughly with deionized water to remove any quartz sand, which has a diffraction peak at 26.67 82hCu and could cause interference with the aragonite peaks in the standard mixtures. The HMC standards were powdered by hand in an agate mortar with ethanol until they could be passed in entirety through a 250 lm sieve. Powdering time varied from 5 to 10 minutes.
+To examine the effect of carbonate crystallinity on our calibration regressions, we checked peak intensities (crystallinity) of the aragonite, LMC, and HMC standards used in our standards and a powdered single Icelandic spar crystal by performing corundum/carbonate reference intensity ratio (RIR) measurements following the RIR protocol (Hubbard and Snyder 1988; corundum standard AL-OX-03-P with nominal grain size of 3.5 microns American Elements Corp.; Eberl 2003). We generated four standard mixtures with 50% corundum to measure the RIRs of the carbonate standards (Table 2). Reference intensity ratios using corundum as the internal standard are useful, laboratory-independent standards for quantitative phase analysis using XRD (Hubbard and Snyder 1988), and are available in the Powder Diffraction File-4 (PDF-4) database (ICDD 1987).
+Standard Mixtures
+Bimodal mixtures of aragonite/LMC and aragonite/HMC were prepared gravimetrically on a balance. We created twelve standard mixtures for each mineral pair that ranged in composition from 0.3% to 50% LMC or HMC. The standards from 0.3% to 5% LMC/HMC were prepared in triplicate to determine reproducibility of phase quantiﬁcation at lower end members and to facilitate the uncertainty calculations. It is recommended that at least four samples of each concentration standard be prepared to document the scedasticity of the data and at least six calibration levels be created to test for linearity in the low-concentration range (Evard et al. 2016a), but the number of calibration samples was less than this because of a limited supply of pure aragonite available to us. We established 0–3% calcite as the target range of these replicated standard mixtures to determine if we could improve calibration metrics in this range from the XD (limit of detection) ~ 1–4% commonly used in coral studies (Edwards et al. 2003; Dutton et al. 2015). After being weighed out, each standard mixture was homogenized by hand in the mortar and pestle with ethanol for ﬁfteen minutes, the same duration as by Sepulcre et al. (2009), to ensure a
+
+Measurement Settings
+Powder diffraction measurements were made using a Rigaku Ultima IV with a Copper Ka tube. After testing several measurement conditions, we found the ideal settings at 40 mA, 40 kV, with a 0.018 step and 1 s/step. Samples were scanned from 25.5 to 31 82hCu. Sample holders were rotated during analyses at three RPM to maximize the sample area scanned by the X-rays. Each scan was repeated three times. The number of counts/second for each step in the three runs were summed to maximize the signal/ background ratio in the ﬁnal diffraction pattern.
+Each standard mixture was side-loaded into notched aluminum sample holders to maximize the random orientation of the grains on the XRD slide following the method of Moore and Reynolds (1997). Individual standards and standard mixtures were prepared and loaded by the same person to minimize any variations due to sample preparation. One aliquot of the aragonite standard was loaded and measured three times to verify the consistency of the loading technique.
+Development of the Calibration Curves
+Peak-area ratios are used in the development of our calibration curves (see Background of Methods Employed). All analyses are performed using the R programming language (R Core Team 2013) and publicly available packages ‘‘dplyr’’ (Wickham et al. 2017), ‘‘knitr’’ (Xie 2014), ‘‘ezknitr’’ (Attali 2016), ‘‘chemical’’ (Ranke 2015), ‘‘reshape2’’ (Wickham 2007), ‘‘RColorBrewer’’ (Neuwirth 2014), ‘‘ggplot2’’ (Wickham 2009), and the ‘‘splines’’ library (R Core Team 2013). All data analyses performed here are available in supplemental R-markdown ﬁles that can be run by individuals (Supplemental Files 1–7). Limits of detection and quantiﬁcation are calculated using the R code created by Evard et al. (2016a). For the low-end (0–5% calcite) standard mixtures, we import into R the raw peakarea values from the XRD measurements for the LMC and HMC standard mixtures, as well as from three aliquots of our 100% aragonite standard (i.e., the blank) and calculate PARs according to Eq. 1. We ﬁrst develop an OLS linear calibration model from which we create a residual plot to examine for homoscedasticity and whether a linear model is an appropriate ﬁt (Evard et al. 2016a). We then develop a WLS linear regression model that uses the normalized inverse of the standard deviation of measurements at each calibration point to generate the weight values for the linear regression (see Evard et al. 2016a for weighing scheme employed). Next, we determine the decision (YC), detection (XD), and quantiﬁcation (XQ) limits for the OLS and the WLS regressions according to Equations 2–5. Blanks are used in the regression, so Syx here also includes the variance around the blank measurement, Sb0. Finally, we establish prediction bands for the WLS calibration and then generate an inverse model for establishing %LMC with uncertainty from peak-area values. Additionally, we applied the OLS and WLS regression approaches to the low-end LMC concentration standards of Sepulcre et al. (2009) and the conventional XRD measurements of Smodej et al. (2015) to compare the different calibration techniques using a common metric (Table 3). For the full range of standard mixtures, 0–100% calcite, we import the peak-area values, calculate PARs, and plot the residual values. Next, we ﬁt a third-order polynomial to the full range of standard mixture data and develop 95% conﬁdence intervals. We then repeat the regression and uncertainty procedure with a spline ﬁt.
+Calibration Metrics
+We use inverse models to establish the uncertainty in mass % calcite at the critical 3% calcite cutoff (Suppl. Files 1, 2). We use the chemCal
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1267
+
+TABLE 2.—Determination of I/Ic Reference Intensity Ratio (RIR) for carbonate standards. To determine why our low-Mg calcite (LMC) calibration is not identical to the synthetic LMC calibration generated from mineralogical properties, we computed the RIRs for our three carbonate standards and compared them to the PDF-4 database RIRs. Full width at half maximum (FWHM) values show how peak shape, and thus peak area, varies between and among standards. While the computed LMC RIR is equivalent to the database LMC RIR, our aragonite RIR is 0.32 rather than 1.00, suggesting that the deviation from the synthetic calibration is due to the aragonite standard. No PDF-4 database RIR exists for high-Mg calcite (HMC), and we would
+expect it to vary with magnesium content, but the RIR for this particular HMC is within error of the LMC RIR.
+
+Corundum Peak
+
+Sample
+
+(82h)
+
+Area
+
+FWHM
+
+Cor_AC
+
+35.21
+
+63565
+
+0.13
+
+Cor_AC_2
+
+35.21
+
+61564
+
+0.13
+
+Cor_AC_3
+
+35.19
+
+65995
+
+0.13
+
+50% Corundum and 50% Aragonite: Database RIR ¼ 1
+
+(82h)
+26.23 26.24 26.22
+
+Aragonite Peak
+
+Area
+
+FWHM
+
+25504
+
+0.16
+
+24799
+
+0.15
+
+22051
+
+0.16
+
+Corundum Peak
+
+Low-Mg Calcite Peak
+
+Sample
+
+(82h)
+
+Area
+
+FWHM
+
+(82h)
+
+Area
+
+FWHM
+
+Cor_LLMC
+
+35.18
+
+38406
+
+0.13
+
+29.41
+
+120751
+
+0.19
+
+Cor_LLMC_2
+
+35.19
+
+39768
+
+0.13
+
+29.41
+
+124783
+
+0.20
+
+Cor_LLMC_3
+
+35.16
+
+38481
+
+0.13
+
+29.41
+
+115602
+
+0.20
+
+50% Corundum and 50% Low-Mg Calcite: Database RIR¼1.99
+
+Corundum Peak
+
+Sample
+
+(82h)
+
+Area
+
+FWHM
+
+Cor_HMC2
+
+35.17
+
+52140
+
+0.14
+
+Cor_HMC2_2
+
+35.19
+
+49231
+
+0.13
+
+Cor_HMC2_3
+
+35.20
+
+51534
+
+0.13
+
+50% Corundum and 50% High-Mg Calcite: No Database RIR
+
+High-Mg Calcite Peak
+
+(82h)
+
+Area
+
+FWHM
+
+29.77
+
+112287
+
+0.16
+
+29.78
+
+93581
+
+0.12
+
+29.78
+
+118817
+
+0.15
+
+Corundum Peak
+
+Icelandic Spar Peak
+
+Sample
+
+(82h)
+
+Area
+
+FWHM
+
+(82h)
+
+Area
+
+FWHM
+
+Cor_IS1_1
+
+35.18
+
+50038
+
+0.14
+
+29.45
+
+185487
+
+0.13
+
+Cor_IS1_2
+
+35.18
+
+50865
+
+0.13
+
+29.46
+
+261507
+
+0.21
+
+Cor_IS1_3
+
+35.17
+
+50304
+
+0.14
+
+29.43
+
+180181
+
+0.14
+
+50% Corundum and 50% Icelandic Spar Low-Mg Calcite: No Database RIR
+
+RIR
+
+Average RIR
+
+0.40
+
+0.38
+
+0.40
+
+0.33
+
+RIR
+
+Average RIR
+
+3.14
+
+3.10
+
+3.14
+
+3.00
+
+RIR
+
+Average RIR
+
+2.15
+
+2.12
+
+1.90
+
+2.31
+
+RIR
+
+Average RIR
+
+2.24
+
+2.15
+
+1.84
+
+2.36
+
+Std. Dev
+
+6
+
+0.04
+
+Std. Dev
+
+6
+
+0.08
+
+Std. Dev
+
+6
+
+0.20
+
+Std. Dev
+
+6
+
+0.27
+
+package for R (Ranke 2015) to generate the OLS regression models between the PAR and calcite concentration of replicate samples of the 0– 5% LMC and HMC mixtures (Fig. 3). To test the reverse linear LMC OLS model (calcite concentration from a PAR value), we establish a PAR value from the forward calibration associated with 3% LMC calcite and used that PAR (0.133) to test the accuracy and precision of the reverse model (Suppl. File 1). This test yields a calcite concentration of 3.00% 61.02%. We also applied an inverse test to the LMC WLS model, which is developed on the equations of Burdge et al. (1998) that we implement in R. Using the critical 3% calcite cutoff yields a result of 2.99 6 0.04% calcite. Both inverse models allow for robust estimation of calcite quantities, as well as interpolation of the prediction uncertainty between calibration data points, with the WLS model generating a smaller uncertainty at this concentration.
+We compare our empirical LMC OLS regressions with a model derived from synthetic diffraction data to explore the sources of uncertainty in the model, recognizing that it can come from natural variability in the carbonate mineral crystallinity and/or the sample preparation (Milliman 1974). We use a suite of 29 synthetic LMC-aragonite standard mixtures ranging from 0 to 100% LMC using Materials Data Inc. Jade v.9.1.1 software (Supplemental File). The crystallinity (RIR) of the mineral phases are set in Jade equivalent to the measured RIRs of our aragonite and LMC standards (Table 2). Mass ratios of mineral phases are set in Jade, peak intensities are then calculated for these ratios, and peak areas are modeled using a pseudo-Voight shape as set in Jade. We performed this analysis
+
+only with LMC because of the inherent variability in Mg concentration (and thus peak character) in HMC.
+RESULTS
+Calibration Standards
+Because peak intensities are mainly inﬂuenced by crystallinity, we can evaluate our standards for this effect by performing RIR measurements with corundum. We ﬁnd the highest and most reproducible calcite RIR values for laboratory-grade calcite. HMC calcite from sand dollars has comparable RIR values and reproducibility with spar calcite (Table 2). The RIR values of aragonite from powdered A. cervicornis are reduced by ~ 70% from the values obtained from powdered inorganic aragonite standards, as described in PDF-4 examples.
+The results of the RIR determination for each carbonate standard and Icelandic spar are reported in Table 2. The RIR of our biogenic aragonite is 0.38 6 0.04, which is only 30% of that of PDF #00-041-1475 (Table 2) that is based on aragonite from the karst caves of Horenz, Czech Republic (Jarosch and Heger 1986), and not modern marine biogenic aragonite. Our low RIR value may reﬂect low crystallinity that is the result of powdering of the acicular crystals that are broken down into the amorphous state in which they originally precipitated (Von Euw et al. 2017). The RIR of our LMC is higher than the LMC PDF #00-005-0586, which indicates that it is more crystalline. There are no PDF-4 ﬁles for HMC or Icelandic spar with
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1268
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+TABLE 3.—Ordinary least squares (OLS) and weighted least squares (WLS) LMC and HMC regression metrics for this study, Sepulcre et al. (2009), and the conventional XRD calibration of Smodej et al. (2015). The regression slopes are primarily a function of the crystallinity of the carbonate standards used in each calibration. Syx is the sum of the variance of each set of calibration data points. *Syx values are weighted and normalized according to Lavagnini and Magno (2006). Decision (YC), detection (XD), and quantiﬁcation (XQ) limits are smaller for the WLS regressions than the OLS regressions as sample sets with smaller variances are more heavily weighted in the overall WLS regressions. Smaller slopes result in improved regression limits. The large Syx, XD, and XQ in our HMC OLS regression caused by variation in the Mg content of our HMC standard are reduced to values comparable with, and indeed lower than, the
+LMC limits due to the weighting of the small variance in the standard mixtures from 0 to 0.5% HMC.
+
+OLS WLS
+OLS WLS
+
+LMC
+This Study Sepulcre et al. (2009) Smodej et al. (2015) This Study Sepulcre et al. (2009) Smodej et al. (2015)
+LMC
+This Study Smodej et al. (2015) This Study Smodej et al. (2015)
+
+Slope
+0.044 0.025 0.082 0.040 0.026 0.079
+Slope
+0.036 0.036 0.031 0.036
+
+Syx
+0.014 0.006 0.030 0.002* 0.004* 0.011*
+Syx
+0.041 0.009 0.004* 0.005*
+
+YC (Area Ratio)
+0.026 0.014 0.074 0.006 0.005 0.039
+YC (Area Ratio)
+0.073 0.022 0.005 0.009
+
+XD (% Calcite)
+1.1 0.8 1.2 0.6 0.5 0.6
+XD (% Calcite)
+4.0 0.9 0.2 0.3
+
+XQ (% Calcite)
+3.3 2.3 3.6 2.2 1.1 2.3
+XQ (% Calcite)
+11.3 2.5 0.5 0.6
+
+RIR values in PDF-4, but both minerals have similar measured RIR values. Repeat measurements of these RIR values were less consistent than the RIR values of biogenic aragonite and laboratory-grade calcite. While the crystallinity of our LMC standard is higher than the Icelandic spar, the standard deviation in our RIR measurement is small (0.08), indicating that its crystallinity is more homogeneous than our HMC standard (0.20) or the single-crystal Icelandic Spar we tested (0.27) (Table 2).
+Calibration Curves
+Calibration curves between the PAR and the amount of calcite (LMC or HMC) over the entire concentration range follow other previous calibration data sets (Fig. 3). We observe a third-order polynomial relationship as the best ﬁt between the PAR and the amount of calcite (LMC or HMC) over the entire suite of samples mixtures (Fig. 3; Supplemental Files 5, 6). A linear relationship at lower (0–5%) amounts of calcite provides a high degree of ﬁt (Supplemental Files 1, 2; Adjusted R-squared: 0.9603) and is chosen for this concentration range to limit the inﬂuence of data points outside this range on the regression uncertainty used for establishing calibration limits (Fig. 3).
+Calibration Metrics
+The decision (YC), detection (XD), and quantiﬁcation (XQ) limits for the OLS and the WLS regressions are reported in Table 3. The synthetic data closely follow the same area-ratio/concentration trend as our measured data over the whole calibration curve with a slope that is within the prediction bands of our measured empirical data, except between 30 and 55% calcite (Fig. 3). In the linear calibration, the synthetic data have a lower slope (concentration/PAR) than our standard data but align with the Smodej et al. (2015) data set. The difference is in the full width at half maximum (FWHM) value of the simulated pattern peaks compared to our measured standard peaks. The peak model used in Jade to simulate diffraction patterns produces a smaller FWHM value for the aragonite and calcite peaks than is measured in our standard data, as it assumes the modeled minerals have homogeneous crystallinity. The program underestimates the
+
+peak areas for both calcite and aragonite, but the effect is magniﬁed in the lower-concentration standards, as there is so little calcite that a reduced aragonite peak area has a larger effect on the PAR than it does at the higher-concentration standards. As with our measured data, a linear ﬁt is appropriate for the 0–5% LMC synthetic data, and a spline- or third-orderpolynomial ﬁt is appropriate for the 0–100% LMC synthetic data (Supp. File 7). We repeated the synthetic mixture process using aragonite and LMC ‘‘standards’’ with larger RIRs from the PDF database to explore the control of the standard crystallinity on the slope of the calibration curve. The resulting calibration curve had a higher slope than the synthetic curve generated with our measured RIR values.
+INTERPRETATIONS
+These calibration results are consistent with other recent studies. Sepulcre et al. (2009) and Smodej et al. (2015) are two of the most comprehensive and detailed carbonate XRD calibration studies in the published literature, and thus contain well-described calibration metrics with which to compare our results. In all three LMC calibrations, WLS limits are smaller than OLS limits, and Sepulcre et al. (2009) produce the smallest limits of both regressions (Table 3). Only our calibration and that of Smodej et al. (2015) examined aragonite-HMC standards, and again the WLS limits are smaller than the OLS limits in both regressions. In the 0– 100% calibrations, Sepulcre et al. (2009) observe third-order polynomial relationships for HMC-LMC and LMC-aragonite. Smodej et al. (2015) observe a third-order polynomial relationship for LMC-aragonite and a second-order polynomial relationship for HMC-aragonite. Likely due to phase heterogeneity in our HMC standard, one-sigma PAR uncertainties are larger for our HMC standard mixtures than the LMC standard mixtures (Fig. 3).
+DISCUSSION
+The expectation that carbonate XRD calibration metrics (decision, detection, and quantiﬁcation limits) depend only on the source of carbonates of the standards is not supported by our study. Importantly,
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1269
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1270
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+the crystallinity of the carbonate standards does inﬂuence the overall precision and accuracy of calibrations and can have an impact on calibration metrics through its effect on regression slope. Although our calcite and aragonite calibration standards are different from other published calibration models, the detection and quantiﬁcation limits are similar (Table 3). We can simulate calibration curves that match within uncertainty those made with real standards (Fig. 3). In these simulations, PARs of varying carbonate content can be directly attributed to the RIR and FWHM values of the relative standards used in the models. Referenceintensity-ratio and FWHM values will differ depending on the calibration standard source and crystallinity, but comparison of three different calibration studies shows that calibration metrics are only slightly dependent upon the type of carbonate used in the calibration. Standards with higher crystallinities, and/or standards with less variable crystallinity, will have lower FWHM values which affect PAR values and thus calibration slope. Homogeneity of calibration standards results in lower scatter and thus narrower prediction bands used to calculate calibration metrics (i.e., Syx in Eqs. 2–5). We argue here that natural variability in carbonate-mineral crystallinity will exceed the reproducibility of standards used in a calibration, and that, although precise carbonate-mineral abundance values can be derived from the model, in reality, the uncertainty in the ‘‘true’’ value is larger than supplied by the model because the accuracy depends on the sensitivity (slope) of the calibration.
+Calibration Curves
+Low-End Regressions.—Before applying a linear regression to the low-end (0–5% calcite) calibration standards, we ﬁrst create a residual plot to examine for homoscedasticity and to determine whether a linear model is an appropriate ﬁt to this subset of data (Evard et al. 2016a) (Supplemental Files 1, 2). Upon visual inspection, the residuals show no trend and cluster around zero, indicating that a linear model is appropriate, though we recognize that a larger sample size is needed to fully explore the normal distribution of the data. The variance in residuals does not have a distinctive ‘‘funnel’’ shape; however, it is not constant with concentration, so the data are considered heteroscedastic. Our limited sample size may be contributing to a greater likelihood of heteroscedastic data, and more standards may indicate a homoscedastic data set. However, given the number of replicates in our study, and because our calibration data is heteroscedastic, we choose to use a WLS model for the regression, which can account for changes in variance throughout the calibration. Previous calibration studies have heteroscedastic carbonate data but have only used OLS models (Chiu et al. 2005; Sepulcre et al. 2009; Smodej et al. 2015). However, we have shown that using a WLS model improves the decision, detection, and quantiﬁcation limits of the regression because weights (and prediction band width) are assigned according to the spread of the data, which tends to be less at the lower concentration values where limit values are set (Table 3). Moreover, as recommended (Lavagnini and Magno 2006; Evard et al. 2016a), our regression includes a set of blanks (i.e., 100% aragonite) with a small variance, which is weighted heavily in the WLS model, further reducing prediction band widths and improving the overall limits of the regression. The blanks force the regression to a near-zero intercept, but the intercept is not zero due to instrument variability (i.e.,
+
+noise). The WLS regressions have lower slopes than the OLS regressions, which may result in slightly less sensitivity; however, we deem a WLS appropriate as the calibration data for this study, as well as others, that are clearly heteroscedastic.
+Full-Fit Regressions.—While a third-order polynomial can be ﬁt to the full suite of standard mixtures, we propose using a spline ﬁt for determination of calcite concentrations above 5%. In both cases, we model here only an inverse regression [PAR (x axis) – calcite (y axis)] because the full calibration is not used for determining the decision, detection, and quantiﬁcation limits, which require a forward regression model. Spline ﬁts have the advantage over polynomials of minimizing the variance around knots and/or anchor points and allowing for a more precise relationship determination (Wold 1974). We model both a thirdorder polynomial and a spline ﬁt to the LMC and HMC set of measured standards (Fig. 3). In both data sets, however, there is a relatively ﬂat slope between a PAR of 0.20 and 0.50 where any measured value within that range could equate to 6–7% calcite within a large uncertainty. Above a PAR of 0.50, i.e., 7% calcite, the calibration solutions result in a reduced uncertainty range. Therefore, if phase quantiﬁcation between 6 and 7% is critical, users may need to generate a larger number of standard mixtures in that range to improve the calibration. This ﬂatness of slope at low– intermediate calcite concentrations (6–7%) is present in other inverse calibration models as well; it is less pronounced in Sepulcre et al. (2009) and ﬂatter in the Smodej et al. (2015) calibration. It should be noted that because these are inverse models, the regression slope values are opposite in terms of sensitivity from the forward models (Fig. 4). The lower relative crystallinity of the Sepulcre et al. (2009) standards results in a higher slope in an inverse full-range model.
+Calibration Metrics
+Decision, detection, and quantiﬁcation limits based on variance of measurements can be established many ways: from the variance from a single spiked sample, from variance of a blank, or from the sum of the variance of all of the calibration data. Use of the ﬁrst two cases is based on assumption of constant variance and perfect experimental approach, which is hard to justify in most cases, especially when the data are heteroscedastic. Resolving limits based on the variance of the entire linear regression curve (i.e., Syx) is the preferred approach because of the experimental variability. Whereas previous calibration works (Chiu et al. 2005; Sepulcre et al. 2009; Smodej et al. 2015) based limits of detection and quantiﬁcation only on variance of blanks, we adopt the more robust and conservative calibration-curve method (Hubaux and Vos 1970). Doing so allows for inter-method comparison that informs on the relative controls on the sensitivity and precision of carbonate-mineral quantiﬁcation (Table 3).
+Applying an OLS regression to our low-end LMC data set, as well as the low-end LMC data sets of Sepulcre et al. (2009) (Supp. File 3) and conventional XRD of Smodej et al. (2015) (Suppl. File 4), we ﬁnd that our decision limit (YC) is quite small, 0.026 PAR. This value is in between the decision limits of previous studies (Table 3). The decision limit is in the
+
+FIG. 3.—Standard mixture PAR-calcite concentration calibrations. A) Low-Mg calcite (LMC) standard mixture peak-area ratio (PAR)-calcite concentrations from 0 to 100% calcite for this study (solid blue circles), synthetic mixtures for this study (open blue circles), data reported by Smodej et al. (2015) (open red squares), and data reported by Sepulcre et al. (2009) (open purple squares). Error bars are one-sigma uncertainty where available. The measured data from this study have been ﬁtted with a third-order polynomial (gray solid line with dashed 95% conﬁdence intervals) and a spline (black solid line with dotted 95% conﬁdence intervals). Inset: zoom of the 0–5% calcite range in A. The predicted linear ﬁt (black line) with 95% conﬁdence intervals (dotted black lines) and prediction intervals (dot-dash black lines) for the standard mixtures analyzed here. B) High-Mg calcite (HMC) standard mixture PAR-calcite concentrations from 0 to 100% calcite for this study (solid yellow circles), and Smodej et al. (2015) (open red squares). Error bars are one-sigma uncertainty where available. Third-order polynomial and spline ﬁt with 95% conﬁdence intervals as in Part A. Inset: Zoom of the 0–5% calcite range in Part B. The predicted linear ﬁt (black line) with 95% conﬁdence intervals (dotted black lines) and prediction intervals (dot-dash black lines) for the standard mixtures analyzed here.
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1271
+
+decrease to comparable levels with data with less standard variability (Smodej et al. 2015) (Table 3).
+While the limits (precision) of the WLS regressions are similar among the three calibrations described here, determining the accuracy of each regression is more difﬁcult. Using peak areas and the same regression techniques should account for systematic inter-laboratory offsets (loading technique, XRD manufacturer, etc.; Evard et al. 2016a). We have shown here that for a given % calcite, the scatter in the PARs of the standards used in the calibration regression affects the precision of the regressions, and therefore the width of the uncertainty from an inverse model (Fig. 4). However, we show that the slope (i.e., sensitivity) of each regression has the largest control on the absolute amounts of calcite quantiﬁed. Because the slopes of the WLS regressions differ, the absolute amount of calcite estimated from a PAR will differ between the calibrations (Fig. 4). We compared the amount of calcite estimated for a sample PAR of 0.06 for each LMC inverse WLS regression. The estimates were 0.5% (0.3–0.8%) for Smodej et al. (2015), 1.5% (1.0–2.2%) for this study, and 2.3% (1.9– 2.9%) for Sepulcre et al. (2009). The estimates varied systematically with the slope of the inverse regression; the curve with the steepest calcite (x axis) – PAR (y axis) slope yielded the lowest estimate of calcite content (Fig. 4). Our synthetic models show that PAR values reﬂect the crystallinity of the sources used in the calibration. This comparison shows that while the relative crystallinity of the calibration standards does not signiﬁcantly affect the metric values of the calibration regression, crystallinity will affect the regression slope and therefore the accuracy of the regression (i.e., Table 3). Therefore, it is critical that the crystallinity of carbonates chosen for the calibration regression be characterized ﬁrst using an RIR approach so that the resulting calibration sensitivity can be established for the relative application of the curve to unknowns (e.g., Fig. 4).
+
+Sources of Calibration Uncertainty
+
+FIG. 4.—Inverse weighted least squares low-Mg calcite (LMC) regressions for this study, Sepulcre et al. (2009), and the conventional XRD of Smodej et al. (2015). Variations in the accuracy of the three calibrations are apparent for the same peakarea ratio (PAR) of 0.06. Predicted LMC concentrations range from 0.5 to 2.3% calcite and vary inversely with the steepness of the regression slope. Both the slope and the variance around the calibration data points contribute to the uncertainty on the estimate.
+signal domain (PAR), and it is not appropriate to convert it into the concentration domain (% calcite) as that value is highly dependent on the slope of the individual regression; therefore, we only report decision limits in signal units. The limits of detection and quantiﬁcation in the LMC calibrations are similar for this study and previous work ranging from 0.9 to 1.2% calcite, and 2.3 to 3.6 % calcite, respectively, even though we used different carbonate sources in our mixture. This and previous studies (Sepulcre et al. 2009; Smodej et al. 2015) have heteroscedastic data sets that beneﬁt from the application of a WLS approach. When this approach is used, YC, XD, and XQ values all decrease for each study (Table 3). This improvement in decision, detection, and quantiﬁcation limits shows the beneﬁt of using a WLS approach because of the narrowing of prediction bands where the data scatter is reduced in the low calcite-concentration range. Similarly, for the HMC calibrations, even though the OLS regression for our data reﬂects the large variance in the sand-dollar HMC crystallinity, a WLS regression weights the small variance at the lowHMC concentrations (0–0.5% calcite), and the YC, XD, and XQ values all
+
+Because we used carbonate standards in our calibrations that have their own variability in crystal characteristics, we attempted to limit other potential sources of variability that could inﬂuence the ﬁnal calibration equations. Our calibration curve constructed with A. cervicornis (coral) aragonite and laboratory-grade calcite has the same general slope and scatter as those constructed with Porites (coral) and powdered spar calcite. Our measured calibration slope matches within uncertainty with a synthetic calibration based on RIR values of our measured standards, which suggests that sample preparation alone has minimal inﬂuence on the resulting slope, and therefore, relative accuracy.
+Rather, differences in regression slope between different studies may be due to one or more of a number of factors. Grinding biogenic aragonite may introduce heterogeneity in crystallinity and grain size or alter the crystallinity completely. Biogenic aragonite itself may vary in structure internally with a transition from amorphous to crystalline aragonite within a single coral (Von Euw et al. 2017). Therefore, even between specimens of the same coral species, homogeneity is not guaranteed. Variability may also be present in the crystallinity of the calcite source, as shown by the larger standard deviation of the RIR values of spar calcite and HMC (e.g., Table 3). Manual grinding of a single, large spar crystal could also result in heterogeneity in crystal (grain) size of the resulting powder.
+In an effort to determine the source of scatter in our low-end (0–5% calcite) calibrations, we compared the area of the individual aragonite and calcite peaks to the total PAR in each replicated standard mixture (Fig. 5). When performed using synthetic carbonate values, there is a smooth, but nonlinear, relationship that reﬂects the overall higher crystallinity of calcite relative to aragonite (Fig. 5; Milliman 1974). With our standards, the area of the LMC and HMC peaks varies by a third-order polynomial relationship with the PAR, similar to the synthetic data. The area under the aragonite peaks, however, has large scatter at lower PARs. We attribute
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1272
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+FIG. 5.—Normalized Peak-Area-PAR relationships for LMC and HMC measured standards, and synthetic LMC standards. A) Normalized Peak-Area-PAR relationship for LMC and aragonite in the LMC-aragonite standard mixtures from 0 to 100% calcite. The normalized low-Mg calcite (LMC) peak area varies as a third-order polynomial with the peak-area ratio (PAR), while the aragonite peak area variation is less uniform. B) Normalized Peak Area-PAR relationship for synthetic LMC and aragonite in synthetic mixtures with reference intensity ratios (RIR) set to measured values. Normalized aragonite peak areas are consistent beginning around a PAR of 0.5, but PARs do change with increasing calcite areas, unlike the measured data, which have more scatter. C) Normalized Peak Area-PAR relationship for HMC and aragonite in the HMC-aragonite standard mixtures from 0 to 100% calcite. The normalized high-Mg calcite (HMC) peak area varies as a third-order polynomial with the PAR, while the normalized aragonite peak area is more variable.
+
+this variability to grain size and/or crystallinity heterogeneity in a biogenic aragonite standard (Von Euw et al. 2017), which will lead to wider peaks (larger FWHM values). Crystal size and preferred orientation are dominant controls on peak height (Davies and Hooper 1963; Milliman and Bornhold 1973) and thus peak area. While our loading method would randomize grain orientation, the hand grinding is possibly responsible for the variable grain-size distribution. Another possibility is the relative crystal heterogeneity of the biogenic source (Von Euw et al. 2017). While the synthetic data have the same RIR values as our standards, there is no scatter in the relationship between aragonite peak area and PAR, suggesting that the measured standards have more variability in their crystallinity (Fig. 5). While these artifacts are likely contributing to the increased data scatter in our lower-end calibrations, the relationship between the amount of calcite (peak area) and the relative intensity of the peak remains predictable (Fig. 5), and hand grinding is necessary to eliminate any calcite produced by over-grinding (Milliman 1974).
+Efforts to reduce the impact of these inﬂuences on the calibration model are limited. One approach to minimizing these sources of scatter in the data
+
+would be to better homogenize the grain-size distribution of the aragonite, for example through a longer grinding process, but this runs the risks of altering aragonite to calcite or reducing crystalline aragonite to an amorphous precursor phase (Von Euw et al. 2017). More standard mixtures with different calcite concentrations would improve the accuracy of the overall calibrations by minimizing the interpolation between standard data points. While both of these examples could improve the accuracy and precision of a calibration, users would need to determine if the added time and material needed to prepare such standards would result in signiﬁcantly better calibration results for their speciﬁc application. Additionally, we stress the importance of establishing the target range of calcite determination before mixing standards in order to produce calibration curves most useful to the end user’s application. The lowest amount of uncertainty in a calibration model, as established from the 95% prediction bands, will be around the median analyte (calcite) value of the suite of standards used (OLS; spline model; Eq. 2) or where the variance in the calibration points is minimal and near the median value (WLS; Fig. 4; Eq. 3).
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1273
+
+Use of Calibration Curves
+As mentioned (see Standard Mixtures), the target calcite concentration we chose was 0–3%, which had minimal variance amongst replicates. To identify the best-preserved corals for further geochemical analyses using our WLS calibration, we would accept samples with a concentration of
+2.2% LMC (which is the WLS XQ), given that we cannot quantitatively distinguish the % LMC below this threshold and above the detection limit of 0.6%. The WLS HMC model provides for a smaller XQ (0.5%), so this could be used as the threshold for accepting or rejecting samples containing HMC, yet it remains to be rigorously determined if such small percentages of calcite make a signiﬁcant change to the U-series age.
+Additionally, because it is possible to detect small amounts of calcite (e.g., fractions of a percent), if all samples containing detectable calcite are discarded from a U-series dataset due to potential diagenetic overprinting of geochemical signals, this may result in a very small number of remaining samples to work with for coral dating. Because small amounts of detectable calcite may not signiﬁcantly inﬂuence the U-series age of a coral specimen—though this has yet to be rigorously demonstrated—discarding all samples with calcite that is above ‘‘background’’ may be unnecessarily removing samples from the working dataset.
+Improving the limits of detection and quantiﬁcation of carbonate phases is also useful for other applications, including provenance of modern carbonate shelf sediments (O’Connell and James 2015), carbonate diagenesis and platform evolution (Rendle et al. 2000; Malone et al. 2001), convergent-margin tectonic processes (Ritger et al. 1987), cold-seep evolution (Lu et al. 2015), and dolomite formation (Vasconcelos et al. 1995). The development of a robust method of quantitative bimodal XRD, as presented here, will help to establish acceptable limits of calcite in a given dataset and also has the potential to elucidate the magnitude of geochemical overprinting associated with secondary alteration.
+Finally, we recognize the limit of this approach as applied to trimodal mixtures. Predicting appropriate HMC (i.e., mol-% Mg) end members for use in a linear calibration model is difﬁcult given the variability expected, and observed, in natural samples. Software programs can deconvolve diffraction peaks, but calibration metrics remain limited by the choice of standards and their relative, combined inﬂuence on the aragonite peak area (i.e., Fig. 5). The approach presented here becomes semiquantitative when dealing with trimodal mixtures. While the synthetic data suggest no appreciable inﬂuence on the aragonite peak area from calcite concentrations 10%, our standard data do display aragonite peak-area variability even at these low calcite concentrations (Fig. 5). Therefore, we cannot rule out the possibility that small values of combined LMC and HMC will inﬂuence the aragonite peak area, making it lower than for a pure bimodal mixture and thus overpredicting the concentration of either calcite phase. Thus, while our synthetic data imply that our calibration limits and our quantiﬁcation method should apply to trimodal mixtures with calcite concentrations 10%, there is too much scatter in our standard data to make this claim without expanding our calibration data set.
+Presently, XRD studies focusing on trimodal carbonate mixtures are limited. They do not include a LMC-HMC end member, and rely on additional analytical techniques which increase the calibration metrics (Kontoyannis and Vagenas 2000; Dickinson and McGrath 2001; Vagenas et al. 2003). A trimodal calibration could be generated with a large number and range of aragonite, LMC, and HMC mixtures to quantify the effect of multiple calcite phases on aragonite peak area, the necessity of which would be determined by the end user’s research needs.
+Possible quantitative mineralogical approaches for multiphase powdered samples include the RockJock method (Eberl 2003) and a singular value decomposition approach (Fisher and Underwood 1995), with the latter approach able to provide robust conﬁdence limits on abundance. The Rietveld reﬁnement method is another technique for mineralogical quantiﬁcation that relies on predictable changes in crystal lattice
+
+parameters with elemental substitutions (i.e., Mg for Ca in CaCO3) (Rietveld 1969), but may have limitations users should be aware of. Our analysis here showed that published calibrations which use the same carbonate standards have very different peak-area ratios (Sepulcre et al. 2009; Smodej et al. 2015), suggesting that the crystal properties of even the same carbonate source (biogenic aragonite, spar calcite, etc.) can be variable, and thus not always predictable. Additionally, Titschack et al. (2011) showed that quantiﬁcation of multiple Mg-calcite phases using the Rietveld method is limited to phases with relatively large (4.9 mol%) differences in Mg content and comprising a minimum weight-% of a sample.
+CONCLUSIONS
+We tested the hypothesis that the metric values of calibration regressions are a function of calibration sensitivity and variance; calcite standards with higher peak intensities (higher crystallinity) and/or aragonite standards with lower peak intensities will result in a more sensitive calibration curve. We ﬁnd that peak intensities (PARs) are inﬂuenced mainly by crystallinity, which can be evaluated by performing RIR measurements with corundum. We ﬁnd the highest, but most reproducible, calcite RIR values for laboratory-grade calcite and lower, but more variable, RIR values for HMC from sand dollars and powdered Iceland Spar. The RIR values of powdered-coral aragonite are reduced by ~ 70% relative to powdered inorganic standards, suggesting that biologically mediated precipitation has an inﬂuence on the relative crystallinity. Small differences in slope and scatter between our regressions, our synthetic regression, and those constructed with other carbonate sources suggest that crystal heterogeneity in carbonate standards may be a source of uncertainty in these types of regressions. Additionally, this approach becomes semiquantitative when working with trimodal samples and determining the correct HMC end member for standard mixtures remains challenging and applicationspeciﬁc.
+Calibration data used for low-calcite (0–5%) range curves are ﬁtted with a linear model, but can demonstrate heteroscedasticity, suggesting that an OLS approach, which depends on constant variance, may not be as appropriate given the limited sample size. A WLS approach is recommended but might result in slightly different sensitivity associated with the weighted slope.
+Our calibration curves for full (0.3–100 %) range LMC and HMC fall within uncertainty with other published curves. This result suggests that crystallinity control on the ﬁt of the regression model is not overly dependent on the source of calibration standard. We demonstrate, however, that the aragonite peak area is variable at low calcite concentrations, suggesting that variance in PAR at the low end is due to crystallinity characteristics of the aragonite standard (i.e., natural coral).
+Absolute values of limits of decision, detection, and quantiﬁcation for this bimodal calibration method are largely independent of the carbonate source (e.g., spar versus laboratory-grade calcite) used in standards. Importantly, the largest inﬂuence on the precision of the calibration curve is the standard deviation of residuals on the calibration curve (Syx).
+The overall accuracy of the estimates of calcite concentration from the linear calibrations is dependent on the regression slope. Previous studies using exactly the same bimodal mixture of standards resulted in calibration regressions with very different slopes. This difference may be attributable to a number of causes outlined above, including standard crystallinity. Our calibration used different standard materials and produced calibration slopes in between those of these previous works. One approach to reconciling this issue would be to designate a community standard with which to establish a consistent accuracy reference frame. However, this method may not be critical for all geochemical applications.
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+1274
+
+K.L. VYVERBERG ET AL.
+
+JSR
+
+Based on the results of this study and comparison with the literature, we recommend the following best practices when creating a calibration model for quantitative XRD analysis of carbonates:
+1. Crystallinity of standards should be tested using the Reference Intensity Ratio to determine potential inﬂuence on regression slope and XD.
+2. From 4 to 10 replicate measurements of unique replicates are made at each concentration level to test for scedasticity.
+3. More than six calibration measurements be made to test for linearity.
+4. At least three of the calibration samples be at a concentration above XD.
+5. Denser spacing of calibration samples be used near the decision and detection limits.
+6. Calibration samples span a three-fold range. 7. At least three blank measurements be used in the calibration model. 8. Peak area, rather than peak intensity, be used for the signal. 9. Calibration samples be measured in a random order during the XRD
+analyses; they are not sequentially measured according to calcite concentration. 10. Signal-to-noise approaches for setting limits should be avoided, as they are instrument dependent and thus can vary as the instrument changes (e.g., X-ray tube intensity decreases). 11. Calibration data distribution should be tailored to center around the critical phase mass desired for subsequent geochemical analyses.
+We recognize that several of these recommendations will be challenging for quantitative carbonate XRD analyses. Use of the calibration models created here in R allows the LMC and HMC calibration procedures to be run and interchanged easily when applying them to unknown carbonate samples. The R code used to perform these calculations is available and applicable to a wide variety of carbonate quantiﬁcation studies, as well as to reproduce the work described here. In general, it is readily apparent that developing a robust method of quantitative XRD assessments of the relative amount of aragonite and calcite in an unknown is signiﬁcantly more challenging than determining whether the calcite is above detection limits. Therefore, the implementation of a comprehensive quantitative XRD protocol, as presented here, will help establish the limits of carbonate concentrations suitable for a variety of research applications.
+SUPPLEMENTAL MATERIAL
+Supplemental Files 1–7 and datasets are available from JSR’s Data Archive: https://www.sepm.org/pages.aspx?pageid¼229.
+ACKNOWLEDGMENTS
+We would like to thank Roger Portell for providing aragonite standard material. This work was supported through National Science Foundation (NSFOCE) grants to A. Dutton (1155495 and1559040).
+REFERENCES
+ABRAM, N.J., WEBSTER, J.M., DAVIES, P.J., AND DULLO, W.C., 2001, Biological response of coral reefs to sea surface temperature variation: evidence from the raised Holocene reefs of Kikai-jima (Ryukyu Islands, Japan): Coral Reefs, v. 20, p. 221–234. doi: 10.1007/ s003380100163
+ALLISON, N., FINCH, A.A., WEBSTER, J.M., AND CLAGUE, D.A., 2007, Palaeoenvironmental records from fossil corals: the effects of submarine diagenesis on temperature and climate estimates: Geochimica et Cosmochimica Acta, v. 71, p. 4693–4703. doi: 10.1016/ j.gca.2007.07.026
+ATTALI, D., 2016, ezknitr: Avoid the typical working directory pain when using ‘‘knitr’’: R package version 0.6, https://cran.r-project.org/package¼ezknitr.
+BAR-MATTHEWS, M., WASSERBURG, G.J., AND CHEN, J.H., 1993, Diagenesis of fossil coral skeletons: correlation between trace elements, textures and 234U/238U: Geochemica et Cosmochemica Acta, v. 57, p. 257–276.
+
+BLANCHON, P., EISENHAUER, A., FIETZKE, J., AND LIEBETRAU, V., 2009, Rapid sea-level rise and reef back-stepping at the close of the last interglacial highstand: Nature, v. 458, p. 881– 884. doi: 10.1038/nature07933
+BONE, Y., AND JAMES, N.P., 1993, Bryozoans as carbonate sediment producers on the coolwater Lacepede Shelf, southern Australia: Sedimentary Geology, v. 86, p. 247–271.
+BURDGE, J.R., MACTAGGART, D.L., AND FARWELL, S.O., 1999, Realistic detection limits from conﬁdence bands: Journal of Chemical Education, v. 76, p. 434–439.
+CHEN, J.H., CURRAN, H.A., WHITE, B., AND WASSERBURG, G.J., 1991, Precise chronology of the last interglacial period: 234U-230Th data from fossil coral reefs in the Bahamas: Geological Society of America, Bulletin, v. 103, p. 82–97.
+CHIU, T.C., FAIRBANKS, R.G., MORTLOCK, R.A., AND BLOOM, A.L., 2005, Extending the radiocarbon calibration beyond 26,000 years before present using fossil corals: Quaternary Science Reviews, v. 24, p. 1797–1808.
+COBB, K.M., CHARLES, C.D., AND HUNTER, E., 2001, A central tropical Paciﬁc coral demonstrates Paciﬁc, Indian, and Atlantic decadal climate connections: Geophysical Research Letters, v. 28, p. 2209–2212.
+COBB, K.M., WESTPHAL, N., SAYANI, H.R., WATSON, J.T., CHENG, H., EDWARDS, R.L., AND CHARLES, C.D., 2013, Highly variable El Nin˜o–Southern Oscillation throughout the Holocene: Science, v. 339, p. 67–70.
+CURRIE, L.A., 1999, Detection and quantiﬁcation limits: origins and historical overview: Analytica Chimica Acta, v. 391, p. 127–134.
+DALBECK, P., CUSACK, M., DOBSON, P.S., ALLISON, N., FALLICK, A.E., TUDHOPE, A.W., AND EIMF, 2011, Identiﬁcation and composition of secondary meniscus calcite in fossil coral and the effect on predicted sea surface temperature: Chemical Geology, v. 280, p. 314– 322.
+DAVIES, T.T., AND HOOPER, P.R., 1963, The determination of the calcite:aragonite ratio in mollusc shells by X-ray diffraction: Mineralogical Magazine, v. 33, p. 608–612.
+DECHNIK, B., WEBSTER, J.M., WEBB, G.E., NOTHDURFT, L., DUTTON, A., BRAGA, J.C., ZHAO, J. XIN, DUCE, S., AND SADLER, J., 2017, The evolution of the Great Barrier Reef during the Last Interglacial Period: Global and Planetary Change, v. 149, p. 53–71.
+DICKINSON, S.R., AND MCGRATH, K.M., 2001, Quantitative determination of binary and tertiary calcium carbonate mixtures using powder X-ray diffraction: The Analyst, v. 126, p. 1118–1121. doi: 10.1039/b103004n
+DUTTON, A.L., LOHMANN, KC., AND ZINSMEISTER, W.J., 2002, Stable isotope and minor element proxies for Eocene climate of Seymour Island, Antarctica: Paleoceanography, v. 17, p. 6-1–6-13. doi: 10.1029/2000PA000593
+DUTTON, A., WEBSTER, J.M., ZWARTZ, D., LAMBECK, K., AND WOHLFARTH, B., 2015, Tropical tales of polar ice: evidence of Last Interglacial polar ice sheet retreat recorded by fossil reefs of the granitic Seychelles islands: Quaternary Science Reviews, v. 107, p. 182–196.
+EBERL, D.D., 2003, User’s guide to RockJock: a program for determining quantitative mineralogy from powder X-ray diffraction data: U.S. Geological Survey, Open-File Report 03-78, p. 1–47.
+EDWARDS, R.L., GALLUP, C.D., AND CHENG, H., 2003, Uranium-series dating of marine and lacustrine carbonates: Reviews in Mineralogy and Geochemistry, v. 52, p. 363–405. doi: 10.2113/0520363
+EVARD, H., KRUVE, A., AND LEITO, I., 2016a, Tutorial on estimating the limit of detection using LC-MS analysis, part I: theoretical review: Analytica Chimica Acta, v. 942, p. 23– 39. doi: 10.1016/j.aca.2016.08.043
+EVARD, H., KRUVE, A., AND LEITO, I., 2016b, Tutorial on estimating the limit of detection using LC-MS analysis, part II: practical aspects: Analytica Chimica Acta, v. 942, p. 40– 49. doi: 10.1016/j.aca.2016.08.042
+FAIRBANKS, R.G., 1989, A 17,000-year glacio-eustatic sea level record: inﬂuence of glacial melting rates on the Younger Dryas event and deep-ocean circulation: Nature, v. 342, p. 637–642. doi: 10.1038/342637a0
+FAIRBANKS, R.G., MORTLOCK, R.A., CHIU, T.C., CAO, L., KAPLAN, A., GUILDERSON, T.P., FAIRBANKS, T.W., BLOOM, A.L., GROOTES, P.M., AND NADEAU, M.J., 2005, Radiocarbon calibration curve spanning 0 to 50,000 years BP based on paired 230Th/234U/238U and 14C dates on pristine corals: Quaternary Science Reviews, v. 24, p. 1781–1796.
+FISHER, A.T., AND UNDERWOOD, M.B., 1995, Calibration of an X-ray diffraction method to determine relative mineral abundances in bulk powders using matrix singular value decomposition: a test from the Barbados accretionary complex: Proceedings of the Ocean Drilling Program, Initial Results, v. 156, p. 29–37.
+FRUIJTIER, C., ELLIOTT, T., AND SCHLAGER, W., 2000, Mass-spectrometric 234U-230Th ages from the Key Largo Formation, Florida Keys, United States: constraints on diagenetic age disturbance: Geological Society of America, Bulletin, v. 112, p. 267–277.
+GAGAN, M.K., AYLIFFE, L.K., HOPLEY, D., CALI, J.A., MORTIMER, G.E., CHAPPELL, J., MCCULLOCH, M.T., AND HEAD, M.J., 1998, Temperature and surface-ocean water balance of the Mid-Holocene tropical Western Paciﬁc: Science, v. 279, p. 1014–1018. doi: 10.1126/science.279.5353.1014
+GALLUP, C.D., EDWARDS, R.L., AND JOHNSON, R.G., 1994, The timing of high sea levels over the past 200,000 years: Science, v. 263, p. 796–800. doi: 10.1126/science.263.5148.796
+GARDEN, J.S., MITCHELL, D.G., AND MILLS, W.N., 1980, Nonconstant variance regression techniques for calibration-curve-based analysis: Analytical Chemistry, v. 52, p. 2310– 2315.
+GISCHLER, E., AND ZINGELER, D., 2002, The origin of carbonate mud in isolated carbonate platforms of Belize, Central America: International Journal of Earth Sciences, v. 91, p. 1054–1070.
+GISCHLER, E., DIETRICH, S., HARRIS, D., WEBSTER, J.M., AND GINSBURG, R.N., 2013, A comparative study of modern carbonate mud in reefs and carbonate platforms: mostly
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+
+JSR
+
+DETECTION AND UNCERTAINTY IN BIOGENIC CARBONATE X-RAY DIFFRACTION ANALYSES
+
+1275
+
+biogenic, some precipitated: Sedimentary Geology, v. 292, p. 36–55. doi: 10.1016/j. sedgeo.2013.04.003 GOFFREDO, S., CAROSELLI, E., MEZZO, F., LAIOLO, L., VERGNI, P., PASQUINI, L., LEVY, O., ZACCANTI, F., TRIBOLLET, A., DUBINSKY, Z., AND FALINI, G., 2012, The puzzling presence of calcite in skeletons of modern solitary corals from the Mediterranean Sea: Geochimica et Cosmochimica Acta, v. 85, p. 187–199. doi: 10.1016/j.gca.2012.02.014 GROSSMAN, E.L., AND KU, T.-L., 1986, Oxygen and carbon isotope fractionation in biogenic aragonite: temperature effects: Chemical Geology, v. 59, p. 59–74. HENDERSON, G.M., COHEN, A.S., AND O’NIONS, R.K., 1993, 234U/238U ratios and 230Th ages for Hateruma Atoll corals: implications for coral diagenesis and seawater 234U/238U ratios: Earth and Planetary Science Letters, v. 115, p. 65–73. HUBAUX, A., AND VOS, G., 1970, Decision and detection limits for calibration curves: Analytical Chemistry, v. 42, p. 849–855. doi: 10.1021/ac60290a013 HUBBARD, C.R., AND SNYDER, R.L., 1988, RIR: measurement and use in quantitative XRD: Powder Diffraction, v. 3, p. 74–77. ICDD, 1987, PDF-4 1987, Database, S. Kabekkodu, ed., Newtown Square, Pennsylvania, International Center for Diffraction Data. IVANY, L.C., PATTERSON, W.P., AND LOHMANN, KC., 2000, Cooler winters as a possible cause of mass extinctions at the Eocene/Oligocene boundary: Nature, v. 407, p. 887–890. JAROSCH, D., AND HEGER, G., 1986, Neutron diffraction reﬁnement of the crystal structure of aragonite: TMPM Tschermaks Mineralogische und Petrographische Mitteilungen, v. 35, p. 127–131. KONTOYANNIS, C.G., AND VAGENAS, N.V., 2000, Calcium carbonate phase analysis using XRD and FT-Raman spectroscopy: The Analyst, v. 125, p. 251–255. doi: 10.1039/a908609i LAVAGNINI, I., AND MAGNO, F., 2006, A statstical overview on univariate calibration, inverse regression, and detection limits: application to gas chromatography/mass spectromretry technique: Mass Spectrometry Reviews, v. 26, p. 1–18. doi: 10.1002/mas LOOCK, H.-P., AND WENTZELL, P.D., 2012, Detection limits of chemical sensors: applications and misapplications: Sensors and Actuators B: Chemical, v. 173, p. 157–163. LU, Y., SUN, X., LIN, Z., XU, L., GONG, J., AND LU, H., 2015, Cold seep status archived in authigenic carbonates: mineralogical and isotopic evidence from Northern South China Sea: Deep-Sea Research II, v. 122, p. 95–105. doi: 10.1016/j.dsr2.2015.06.014 MALONE, M.J., SLOWEY, N.C., AND HENDERSON, G.M., 2001, Early diagenesis of shallowwater periplatform carbonate sediments, leeward margin, Great Bahama Bank (Ocean Drilling Program Leg 166): Geological Society of America, Bulletin, v. 113, p. 881–894. MCGREGOR, H.V., AND GAGAN, M.K., 2003, Diagenesis and geochemistry of Porites corals from Papua New Guinea: implications for paleoclimate reconstruction: Geochimica et Cosmochimica Acta, v. 67, p. 2147–2156. MILLIMAN, J.D., 1974, Marine Carbonates, in Milliman, J.D., Muller, G., and Forstner, U., eds., Recent Sedimentary Carbonates: New York, Springer-Verlag, 380 p. MILLIMAN, J.D., AND BORNHOLD, B.D., 1973, Peak height versus peak intensity analysis of X-ray diffraction data: Sedimentology, v. 20, p. 445–448. MOORE, D.M., AND REYNOLDS, R.C., 1997, X-Ray Diffraction and the Identiﬁcation and Analysis of Clay Minerals: Oxford, Oxford University Press, 373 p. NEUWIRTH, E., 2014, RColorBrewer: ColorBrewer Palettes: R package version 1.1–2, https://cran.r-project.org/package¼RColorBrewer. O’CONNELL, L.G., AND JAMES, N.P., 2015, Composition and genesis of temperate, shallowmarine carbonate muds: Spencer Gulf, South Australia: Journal of Sedimentary Research, v. 85, p. 1275–1291. doi: 10.2110/jsr.2015.73 O’LEARY, M.J., HEARTY, P.J., THOMPSON, W.G., RAYMO, M.E., MITROVICA, J.X., AND WEBSTER, J.M., 2013, Ice sheet collapse following a prolonged period of stable sea level during the last interglacial: Nature Geoscience, v. 6, p. 796–800. PAGANI, M., LEMARCHAND, D., SPIVACK, A., AND GAILLARDET, J., 2005, A critical evaluation of the boron isotope-pH proxy: the accuracy of ancient ocean pH estimates: Geochimica et Cosmochimica Acta, v. 69, p. 953–961. PELEJERO, C., CALVO, E., MCCULLOCH, M.T., MARSHALL, J.F., GAGAN, M.K., LOUGH, J.M., AND OPDYKE, B.N., 2005, Preindustrial to modern interdecadal variability in coral reef pH: Science, v. 309, p. 2204–2207. doi: 10.1126/science.1113692 PETERSEN, S.V., DUTTON, A., AND LOHMANN, KC., 2016, End-Cretaceous extinction in Antarctica linked to both Deccan volcanism and meteorite impact via climate change: Nature Communications, v. 7, p. 1–9. R CORE TEAM, 2013, R: A language and environment for statistical computing: Vienna, Austria, R Foundation for Statistical Computing. RANKE, J., 2015, chemCal: calibration functions for analytical chemistry: R package version 0.1–37, https://cran.r-project.org/package¼chemCal. REIMER, P.J., HUGHEN, K.A., GUILDERSON, T.P., ET AL., 2002, Preliminary report of the ﬁrst workshop of the IntCal04 radiocarbon calibration/comparison working group: Radiocarbon, v. 44, p. 653–661. REIMER, P.J., BAILLIE, M.G.L., BARD, E., ET AL., 2006, Comment on ‘‘Radiocarbon Calibration Curve Spanning 0 to 50,000 Years B.P. Based on Paired 230Th/234U/238U and 14C Dates on Pristine Corals’’ by Fairbanks, R.G., Mortlock, R.A. Chiu,T.-C., Cao, L., Kaplan, A., Guilderson, T.P., Fairbanks, A.L., and Bloom, P.,: Quaternary Science Reviews, v. 25, p. 855–862. REIMER, P.J., BARD, E., BAYLISS, A., BECK, J.W., ET AL., 2013, IntCal13 and Marine13 Radiocarbon Age Calibration Curves 0–50,000 Years cal BP: Radiocarbon, v. 55, p. 1869–1887. doi: 10.2458/azu_js_rc.55.16947 RENDLE, R.H., REIJMER, J.J.G., KROON, D., AND HENDERSON, G.M., 2000, Mineralogy and Sedimentology of the Pleistocene To Holocene on the Leeward Margin of Great Bahama
+
+Bank, in Swart, P.K., Eberli, G.P., Malone, M.J., and Sarg, J.F., eds., Proceedings of the Ocean Drilling Program, Scientiﬁc Results, v. 166, p. 61–76. RIETVELD, H.M., 1969, A proﬁle reﬁnement method for nuclear and magnetic structures: Journal of Applied Crystallography, v. 2, p. 65–71. RITGER, S., CARSON, B., AND SUESS, E., 1987, Methane-derived authigenic carbonates formed by subduction-induced pore-water expulsion along the Oregon/ Washington margin: Geological Society of America, Bulletin, v. 98, p. 147–156. SCHOLZ, D., MANGINI, A., AND MEISCHNER, D., 2007, U-redistribution in fossil reef corals from Barbados, West Indies, and sea-level reconstruction for MIS 6.5: Developments in Quaternary Science, v. 7, p. 119–139. SEPULCRE, S., DURAND, N., AND BARD, E., 2009, Mineralogical determination of reef and periplatform carbonates: calibration and implications for paleoceanography and radiochronology: Global and Planetary Change, v. 66, p. 1–9. SHERMAN, C.E., FLETCHER, C.H., AND RUBIN, K.H., 1999, Marine and meteoric diagenesis of Pleistocene carbonates from a nearshore submarine terrace, Oahu, Hawaii: Journal of Sedimentary Research, v. 69, p. 1083–1097. doi: 10.2110/jsr.69.1083 SMODEJ, J., REUNING, L., WOLLENBERG, U., ZINKE, J., PFEIFFER, M., AND KUKLA, P.A., 2015, Two-dimensional X-ray diffraction as a tool for the rapid, nondestructive detection of low calcite quantities in aragonitic corals: Geochemistry, Geophysics, Geosystems, v. 16, p. 3778–3788. doi: 10.1002/2015GC006009 STIRLING, C.H., ESAT, T.M., MCCULLOCH, M.T., AND LAMBECK, K., 1995, High-precision Useries dating of corals from Western Australia and implications for the timing and duration of the Last Interglacial: Earth and Planetary Science Letters, v. 135, p. 115–130. STIRLING, C.H., ESAT, T.M., LAMBECK, K., AND MCCULLOCH, M.T., 1998, Timing and duration of the Last Interglacial: evidence for a restricted interval of widespread coral reef growth: Earth and Planetary Science Letters, v. 160, p. 745–762. THOMPSON, M., ELLISON, S.L.R., AND WOOD, R., 2002, Harmonized guidelines for singlelaboratory validation of methods of analysis (IUPAC Technical Report): Pure and Applied Chemistry, v. 74, p. 835–855. THOMPSON, W.G., AND GOLDSTEIN, S.L., 2005, Open-system coral ages reveal persistent suborbital sea-level cycles: Science, v. 308, p. 401–404. THOMPSON, W.G., SPIEGELMAN, M.W., GOLDSTEIN, S.L., AND SPEED, R.C., 2003, An opensystem model for U-series age determinations of fossil corals: Earth and Planetary Science Letters, v. 210, p. 365–381. THOMPSON, W.G., CURRAN, H.A., WILSON, M.A., AND WHITE, B., 2011, Sea-level oscillations during the last interglacial highstand recorded by Bahamas corals: Nature Geoscience, v. 4, p. 684–687. doi: 10.1038/ngeo1253 TITSCHACK, J., GOETZ-NEUNHOEFFER, F., AND NEUBAUER, J., 2011, Magnesium quantifcation in calcites [(Ca, Mg)CO3] by Rietveld-based XRD analysis: revisiting a well-established method: American Mineralogist, v. 96, p. 1028–1038. doi: 10.2138/am.2011.3665 TRIPATI, A.K., ALLMON, W.D., AND SAMPSON, D.E., 2009, Possible evidence for a large decrease in seawater strontium/calcium ratios and strontium concentrations during the Cenozoic: Earth and Planetary Science Letters, v. 282, p. 122–130. TUCKER, M.E., 1988, Techniques in Sedimentology: Oxford, U.K., Blackwell Scientiﬁc Publications, 394 p. VAGENAS, N.V., GATSOULI, A., AND KONTOYANNIS, C.G., 2003, Quantitative analysis of synthetic calcium carbonate polymorphs using FT-IR spectroscopy: Talanta, v. 59, p. 831–836. VANDERMEULEN, J.H., AND WATABE, N., 1973, Studies on reef corals. I. Skeleton formation by newly settled planula larva of Pocillopora damicornis: Marine Biology, v. 23, p. 47– 57. VASCONCELOS, C., MCKENZIE, J.A., BERNASCONI, S., GRUJIC, D., AND TIEN, A.J., 1995, Microbial mediation as a possible mechanism for natural dolomite formation at low temperatures: Nature, v. 377, p. 220–222. VON EUW, S., ZHANG, Q., MANICHEV, V., MURALI, N., GROSS, J., FELDMAN, L.C., GUSTAFSSON, T., FLACH, C., MENDELSOHN, R., AND FALKOWSKI, P.G., 2017, Biological control of aragonite formation in stony corals: Science, v. 356, p. 933–938. WICKHAM, H., 2007, Reshaping Data with the reshape Package: Journal of Statistical Software, v. 21, p. 1–20, http://www.jstatsoft.org/v21/i12/. WICKHAM, H., 2009, ggplot2: Elegant Graphics for Data Analysis: New York, SpringerVerlag. WICKHAM, H., FRANCOIS, R., HENRY, L., AND MU¨ LLER, K., 2017, dplyr: A Grammar of Data Manipulation: R package version 0.7.1, https://cran.r-project.org/package¼dplyr. WOLD, S., 1974, Spline functions in data analysis: Technometrics, v. 16, p. 1–11. XIE, Y., 2014, knitr: a comprehensive tool for reproducible research in R, in Stodden, V., Leisch, F., and Peng, R.D. eds., Implementing Reproducible Computational Research: Chapman and Hall. YOKOYAMA, Y., ESAT, T.M., LAMBECK, K., AND FIFIELD, L.K., 2000, Last Ice Age millennial scale climate changes recorded in Huon Peninsula corals: Radiocarbon, v. 42, p. 383– 401. ZORN, M.E., GIBBONS, R.D., AND SONZOGNI, W.C., 1997, Weighted least-squares approach to calculating limits of detection and quantiﬁcation by modeling variability as a function of concentration: Analytical Chemistry, v. 69, p. 3069–3075.
+Received 20 September 2017; accepted 23 August 2018.
+
+Downloaded from http://pubs.geoscienceworld.org/sepm/jsedres/article-pdf/88/11/1261/4541612/i1527-1404-88-11-1261.pdf by Univ of Massachusetts Amherst user
+

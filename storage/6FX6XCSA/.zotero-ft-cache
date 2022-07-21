@@ -1,0 +1,479 @@
+Protein folding rates and thermodynamic stability are key determinants for interaction with the Hsp70 chaperone system
+
+Ashok Sekhar, Hon Nam Lam, and Silvia Cavagnero*
+Biophysics Program and Department of Chemistry, University of Wisconsin-Madison, Madison, Wisconsin 53706
+Received 25 March 2012; Revised 31 July 2012; Accepted 3 August 2012 DOI: 10.1002/pro.2139 Published online 10 August 2012 proteinscience.org
+
+Abstract: The Hsp70 family of molecular chaperones participates in vital cellular processes including the heat shock response and protein homeostasis. E. coli’s Hsp70, known as DnaK, works in concert with the DnaJ and GrpE co-chaperones (K/J/E chaperone system), and mediates cotranslational and post-translational protein folding in the cytoplasm. While the role of the K/J/E chaperones is well understood in the presence of large substrates unable to fold independently, it is not known if and how K/J/E modulates the folding of smaller proteins able to fold even in the absence of chaperones. Here, we combine experiments and computation to evaluate the significance of kinetic partitioning as a model to describe the interplay between protein folding and binding to the K/J/E chaperone system. First, we target three nonobligatory substrates, that is, proteins that do not require chaperones to fold. The experimentally observed chaperone association of these client proteins during folding is entirely consistent with predictions from kinetic partitioning. Next, we develop and validate a computational model (CHAMP70) that assumes kinetic partitioning of substrates between folding and interaction with K/J/E. CHAMP70 quantitatively predicts the experimentally measured interaction of RNase HD as it refolds in the presence of various chaperones. CHAMP70 shows that substrates are posed to interact with K/J/E only if they are slow-folding proteins with a folding rate constant kf <50 s21, and/or thermodynamically unstable proteins with a folding free energy DG0UN !22 kcal mol21. Hence, the K/J/E system is tuned to use specific protein folding rates and thermodynamic stabilities as substrate selection criteria.
+Keywords: protein folding; Hsp70; DnaK; DnaJ; GrpE; chaperone-substrate interactions; kinetic partitioning
+
+Introduction Living cells contain a variety of molecular chaperones whose major role is to prevent protein aggrega-
+Additional Supporting Information may be found in the online version of this article. Ashok Sekhar’s current address is Department of Molecular Genetics, University of Toronto, Toronto, Ontario, Canada M5S 1A8. Grant sponsors: NIH and NSF; Grant numbers: GM-068538; MCB-0951209. *Correspondence to: Silvia Cavagnero, Department of Chemistry, University of Wisconsin-Madison, 1101 University Avenue, Madison, Wisconsin 53706. E-mail: cavagnero@chem. wisc.edu
+
+tion and assist folding.1,2 The 70-kDa heat shock factors (Hsp70s) are a ubiquitous family of proteins involved in a variety of cellular processes such as protein homeostasis and stress response.3 DnaK, that is, Escherichia coli’s Hsp70, is the best studied member of the Hsp70 chaperone family.4 It functions as a chaperone both cotranslationally and posttranslationally. DnaK consists of a 45-kDa ATPase domain and a 25-kDa substrate-binding domain. The two domains communicate allosterically. Specifically, ATP binding to DnaK facilitates substrate release, and substrate binding promotes ATP hydrolysis. In physiological environments, DnaK acts in concert with two co-chaperones, DnaJ and GrpE, which
+
+Published by Wiley-Blackwell. VC 2012 The Protein Society
+
+PROTEIN SCIENCE 2012 VOL 21:1489—1502 1489
+
+modulate its ATPase activity. The kinetic and thermodynamic aspects of the interaction of DnaK with its co-chaperones and with peptide substrates have been extensively characterized.5–26 In the cell, substrates are believed to enter the DnaK/DnaJ/GrpE (K/J/E) chaperone cycle mainly by binding DnaJ or ATP-DnaK. Stimulation of ATP hydrolysis by the substrate and DnaJ locks the substrate in the DnaK peptide-binding pocket. Subsequently, the nucleotide exchange factor GrpE facilitates release of the bound ADP. Binding of ATP to the empty nucleotide-binding pocket of DnaK releases the bound substrate, resetting the chaperone cycle.
+The DnaK substrate binding motif comprises about five hydrophobic residues flanked on either side by positively charged side chains. DnaK binding sites are very common in protein sequences and are predicted to occur with an average frequency of once every 40 residues.27 However, the average total protein concentration in E. coli is 5–8 mM,28 that is, much larger than the in vivo DnaK concentration ($30 lM).3,29 Thus, it is clear that it is not possible for every protein in the cell to be associated with one DnaK molecule at all times. Consequently, additional, more stringent substrate selection mechanisms than the local binding motif mentioned above must inherently exist for the K/J/E chaperone machinery.
+Indeed, in vivo 35S-methionine pulse-chase experiments probing polypeptide flux through the K/ J/E chaperone network showed that only a few proteins interact with DnaK at equilibrium.30–32 A large fraction of substrates bind DnaK transiently, before folding reaches completion. DnaK seems to associate preferentially with newly synthesized polypeptide chains of 30–75-kDa molecular mass, though it lacks an obvious molecular weight selection mechanism unlike, for instance, GroEL/GroES. In this chaperone system, a definite size selection is imposed by the dimensions of the substrate-binding cavity.33
+In summary, the kinetic competition between protein folding and chaperone binding has not been carefully analyzed, especially in the context of proteins that are able to fold independently even in the absence of molecular chaperones. In particular, there are open questions pertaining to the DnaK’s substrate selection mechanism and how the substrate’s kinetic and thermodynamic properties modulate DnaK–substrate interactions.
+Here, we show that the experimentally detected behavior of three client proteins differing in kinetic and thermodynamic stabilities, RNase HD, drkN SH3, and ubiquitin, during folding and at equilibrium, is consistent with the expectations from simple kinetic partitioning between independent folding and K/J/E chaperone binding. To generate quantitative predictions consistent with this experimentally validated idea, we develop a computational model
+
+Figure 1. Cartoon representation of the kinetic partitioning hypothesis underlying the computational model of protein folding mediated by the K/J/E chaperone system. The unfolded substrate partitions between competing folding and chaperone binding pathways en route to the native state.
+for protein folding/unfolding in the presence of K/J/E based on the experimentally supported assumption of kinetic partitioning of the substrate between folding/unfolding and chaperone binding. Slow-folding proteins significantly interact with DnaK transiently during their initial conformational search to the native state, while thermodynamically unstable proteins are more likely to associate with DnaK at equilibrium. We find that the kinetics of the K/J/E chaperone system is tailored to select substrates based on specific regimes of unfolded state lifetimes, before folding reaches equilibrium. These results have important implications for the interplay between protein folding and K/J/E chaperone binding and for the substrate selection criteria adopted by K/J/E in the cellular environment.
+Results and Discussion
+Kinetic partitioning as a mode of K/J/E–substrate interaction Here, we investigate the hypothesis that kinetic partitioning is a pertinent mechanism for K/J/E’s interaction with folding-competent substrates that do not require the chaperone to fold. This concept is schematically illustrated in Figure 1. A preliminary analysis of the model in Figure 1 reveals that the extent of substrate interaction with K/J/E must depend on a number of physicochemical features of the unfolded state. Specifically, the unfolded state lifetime is expected to influence the degree of chaperone association of an ensemble of unfolded substrates on their way to the native state. On the other hand, at equilibrium, the unfolded state population, which directly relates to protein thermodynamic stability, is expected to determine the extent of interaction with K/J/E.
+To test the above predictions from the kinetic partitioning mechanism, we chose three proteins known to fold according to a two-state mechanism as
+
+1490 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+Figure 2. Three-dimensional structures and DnaK-binding scores of (A) RNase HD (PDB ID: 1F21), (B) drkN SH3 (PDB ID: 2A36), and (C) ubiquitin (PDB ID: 1UBQ). The predicted local DnaK binding site of each protein is shown in red.
+
+model substrates, RNase HD, drkN SH3, and ubiquitin. The first protein, RNase HD, is a stable slow-folding two-state variant of E. coli RNase H that retains the enzymatic activity of the parent protein.34 The drkN SH3 protein, that is, the N-terminal SH3 domain from the drk adaptor from Drosophila melanogaster, is a thermodynamically unstable protein with significant amount of unfolded population at equilibrium.35,36 Ubiquitin, on the other hand, is a stable fast-folding protein.37 The chosen proteins span five and six orders of magnitude in folding rate and thermodynamic stability, respectively. We limited our choice to two-state-folding proteins to avoid complications arising from the potential interaction of multiple nonnative substrate conformations with K/J/ E. All three substrates bear one predicted high-
+
+affinity local DnaK binding site within their primary structure (Fig. 2). Hence, their unfolded states are expected to have some affinity for DnaK.
+The extent of interaction of K/J/E with the model substrates was assessed experimentally by size-exclusion chromatography (SEC). Transient interactions of client proteins with K/J/E were identified on kinetic trapping of DnaK-substrate complexes during client protein refolding. Unfolded substrates were subject to refolding in a buffer containing DnaK, DnaJ, and ATP, but not GrpE. Under these conditions, substrates are recruited by DnaJ to ATP-DnaK. Subsequent rapid ATP hydrolysis, stimulated by substrate and DnaJ ensures substrate trapping as a complex with DnaK. The dissociation of the DnaK–substrate complex is
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1491
+
+limited by the slow ADP release from DnaK. The transient chaperone–substrate interaction during substrate folding is thereby trapped as a long-lived complex, which facilitates analysis by SEC, in the absence of ATP in the elution buffer. In addition, interactions of client proteins with DnaK at equilibrium were probed on mixing the substrate with ADP-DnaK followed by extensive incubation (30 min)38,39 and chromatographic analysis. The ADP state of DnaK, which has high substrate-binding affinity and is generated most effectively in vitro upon direct mixing of DnaK and substrate, was chosen to optimize the fraction of chaperone–substrate complex at equilibrium.
+As illustrated in Figure 3, the experimental trends observed on chaperone association are fully consistent with a kinetic partitioning mechanism. Specifically, panel A shows that both the slow-folding RNase HD and drkN SH3 associate with DnaK significantly while folding to the native state. The slowest folding RNase HD (kf ¼ 0.03 sÀ1) interacts the most, while drkN SH3 (kf ¼ 1.0 sÀ1) associates to a smaller extent. Conversely, the fast-folding ubiquitin folds to its native state without interacting with K/J/E. As shown in panel B, at equilibrium the extent of interaction is governed by the intrinsic thermodynamic stability (see folding DG0H2O,UNs in Fig. 3) of the client proteins. Only the thermodynamically unstable drkN SH3 interacts to a detectable extent with DnaK, once folding/unfolding has already reached equilibrium. RNase HD and ubiquitin are too stable to associate with DnaK, once they have reached their native state. We did not characterize the substrate-K/J/E interactions in exhaustive detail, given that the scope of our experiments is simply to support the presence of an interaction between substrates and K/J/E under different conditions. These observed trends are valid irrespective of the exact details of the K/J/E chaperone–substrate interactions.
+In summary, the data in Figure 3 provide sound evidence in support of a simple kinetic partitioning mechanism to describe the interaction of the DnaK chaperone with folding-competent substrates. Interestingly, kinetic partitioning of client proteins between chaperone binding and folding has also been proposed as a fundamental mechanism in the case of other chaperones.40,41 Given the encouraging results of Figure 3, we proceeded to develop a detailed computational model encompassing kinetic partitioning and enabling quantitative predictions on the folding of two-state proteins in the presence of K/J/E.
+Development, validation, and general features of the kinetic model To identify quantitative predictions associated with the kinetic partitioning mode of interaction of K/J/E
+
+Figure 3. Experimental assessment of client protein–DnaK interaction (A) during refolding and (B) at equilibrium for the three substrates: RNase HD, drkN SH3, and ubiquitin. The interaction between the client protein and the DnaK chaperone was quantitatively evaluated as the percent reduction in the native protein SEC peak intensity (See the Materials and Methods section). For each reversible step, arrow lengths denote the relative rates of the forward and backward steps.
+with folding-competent proteins, we developed CHAMP70, a kinetic model for two-state protein folding/unfolding in the presence of the K/J/E chaperones. The CHAMP70 acronym highlights the model’s capability to predict Hsp70 chaperone-mediated protein folding kinetics.
+CHAMP70 assumes that unfolded protein substrates undergo kinetic partitioning between competing pathways either leading to folding or chaperone binding, as pictorially illustrated in Figure 1. The model also assumes that only unfolded polypeptides interact with DnaK and DnaJ. This assumption is justified by the fact that DnaK is known to preferentially bind large solvent-exposed aliphatic hydrophobic side chains27 that are usually42 (though not
+
+1492 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+Figure 4. (A) Schematic representation of the interactions between DnaK, DnaJ, GrpE, and substrate present in the CHAMP70 computational model. Numbers have been assigned to reactions, and the corresponding rate constants are listed in Table I. The abbreviation for each molecular species is noted in red. (B) Computationally predicted time-course for the population of various chaperone–substrate complexes during the folding of the representative substrate protein mAcP in the presence of the K/J/E chaperone system. The molecular species corresponding to each trace of the plot is color-coded as shown. Protein folding is initiated at time t ¼ 0.
+
+exclusively43) inaccessible and sequestered within the nonpolar core in native proteins.
+CHAMP70 was constructed by identifying experimentally observed steps in the K/J/E chaperone cycle and assigning microscopic rate constants to each of them [Fig. 4(A) and Supporting Information]. It was then refined and validated against experimentally observed ATPase and peptide-binding rates of various combinations of DnaK, DnaJ, and GrpE (Supporting Information Tables S1 and S2).
+The detailed steps of the CHAMP70 model are shown in Figure 4(A). Relevant rate constants are listed in Table I. Protein-specific folding simulations
+
+using CHAMP70 are carried out by incorporating the appropriate folding and unfolding rate constants for the chosen substrate. As shown in Figure 4(B), CHAMP70 is able to effectively capture the experimentally observed temporal sequence for the formation of complexes between the unfolded substrate and different chaperones or chaperone substates, before folding to the native state. CHAMP70 shares some similarities with a previously proposed K/J/E model44 and complements it in many respects. There are, however, important differences.
+The scope of CHAMP70 is to establish to role of K/J/E chaperones in the folding of substrate proteins
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1493
+
+Table I. Rate Constants Used in CHAMP70
+
+Index
+
+Rate constant
+
+References
+
+1
+
+2.8 Â 105 MÀ1 sÀ1
+
+2
+
+3.7 sÀ1
+
+3
+
+1.5 Â 103 MÀ1 sÀ1a
+
+4
+
+1.0 Â 10À3 sÀ1a
+
+5
+
+7.5 Â 103 MÀ1 sÀ1
+
+6
+
+4.0 Â 10À4 sÀ1
+
+7
+
+1.0 Â 105 MÀ1 sÀ1
+
+8
+
+1.0 sÀ1
+
+9
+
+9.0 Â 104 MÀ1 sÀ1b
+
+10
+
+4.2 Â 10À3 sÀ1
+
+11
+
+2.2 Â 105 MÀ1 sÀ1c
+
+12
+
+1.2 Â 10À2 sÀ1c
+
+13
+
+2.2 Â 105 MÀ1 sÀ1c
+
+14
+
+1.2 Â 10À2 sÀ1c
+
+15
+
+1.2 sÀ1d
+
+16
+
+1 sÀ1e
+
+17
+
+5.0 Â 105 MÀ1 sÀ1f
+
+18
+
+0.11 sÀ1f
+
+19
+
+5.0 Â 105 MÀ1 sÀ1f
+
+20
+
+0.11 sÀ1f
+
+21
+
+1.0 Â sÀ1e
+
+22
+
+127 sÀ1g
+
+23
+
+1.0 Â 105 MÀ1 sÀ1
+
+24
+
+2.2 Â 105 MÀ1 sÀ1h
+
+25
+
+1.2 Â 10À2 sÀ1h
+
+26
+
+7.5 Â 10À4 sÀ1
+
+27
+
+1.2 sÀ1d
+
+28
+
+1.0 Â sÀ1e
+
+29
+
+5.0 Â 105 MÀ1 sÀ1f
+
+30
+
+0.11 sÀ1f
+
+31
+
+2.2 Â 10À2 sÀ1
+
+32
+
+1.7 Â 105 MÀ1 sÀ1
+
+33
+
+5.0 Â 105 MÀ1 sÀ1
+
+34
+
+0.11 sÀ1
+
+35
+
+1.0 Â sÀ1h
+
+36
+
+127 sÀ1
+
+37
+
+1.3 Â 105 MÀ1 sÀ1
+
+38
+
+1.3 Â 10À4 sÀ1
+
+39
+
+3.4 Â 105 MÀ1 sÀ1
+
+40
+
+3.3 Â 10À2 sÀ1
+
+41
+
+1.5 Â 105 MÀ1 sÀ1
+
+kf
+
+Protein dependent
+
+ku
+
+Protein dependent
+
+25 25
+9 9
+10 17
+23 19 19
+7 17
+10 10 11,21 11,21 11 16 16
+4 4 4
+
+a Determined using a slow-folding substrate RNaseH I53D. b Adjusted to fit ATP-induced peptide release kinetics data
+in the referenced article (Supporting Information). c Assumed to be equal to reactions 24 and 25. This may not
+be always true, as the substrate may influence the interac-
+tion between DnaK and DnaJ. d Adjusted to fit the DnaJ concentration-dependence of
+stimulation of DnaK ATP hydrolysis rate in the referenced
+article (Supporting Information Fig. S2). e There is no information in literature pertaining to the
+stage in the K/J/E cycle, as well as rate at which DnaJ dis-
+sociates from complexes with DnaK. These rate constants have been set to a rate of 1 sÀ1 because the release of DnaJ is not rate limiting.16 f Assumed to be equal to reactions 33 and 34, because the
+presence of DnaJ and/or substrate has not been shown to
+have any impact on the binding of GrpE to DnaK. g Assumed to be equal to reaction 36, because the presence
+of substrate is not known to influence the rate of nucleotide
+release induced by GrpE. h Adjusted to fit DnaJ-stimulated ATP hydrolysis data in
+the referenced article (Supporting Information, Fig. S1).
+
+capable of exhibiting independent folding/unfolding. Consistent with this goal, CHAMP70 incorporates a spontaneous substrate folding/unfolding step. In contrast, the previously published model assumes DnaK to act as a folding catalyst and is tailored specifically to substrates that unable to fold independently. The potential catalytic role of K/J/E is still subject of active debate and has been conclusively shown to apply only to the case of very large multidomain substrates such as luciferase.45,46 Our model, on the other hand, is intended to be more generally applicable to all proteins that exhibit independent two-state folding, assuming that folding catalysis by K/J/E does not play a role in their folding kinetics. Finally, a number of specific kinetic steps and rate constants are different between the two models, as discussed in the Supporting Information.
+CHAMP70 can quantitatively account for RNase HD refolding measurements We recently performed a detailed characterization of the folding of RNase HD in the presence of the Hsp70 chaperone system by stopped-flow and analytical SEC chromatography.47 To represent key sections of the K/J/E chaperone network, we took advantage of the successive action of DnaK, DnaJ, and GrpE and analyzed the folding of RNase HD in the presence of individual chaperones and chaperone combinations, as detailed.
+Folding measurements using either ATP-DnaK or DnaJ were designed to test the initial section of the K/J/E mechanistic network in which the unfolded client protein enters the K/J/E cycle by associating either with DnaJ or with ATP-DnaK. The cooperative action of DnaK and DnaJ in locking the substrate in the ADP-bound high-affinity state of DnaK was evaluated by carrying out folding measurements with ATP-DnaK and DnaJ. Nucleotide exchange, substrate release, folding, and rebinding were analyzed by carrying out experiments using the entire K/J/E chaperone system. Under each chaperone condition, apparent rate constants and client-chaperone association were measured using circular dichroism-detected stopped-flow measurements and SEC, respectively. We tested whether CHAMP70 is able to predict the folding rates and extents of chaperone association observed in experiments. Addressing this question involved several steps.
+First, the experimental refolding kinetics data in the presence of DnaJ, DnaK/ATP, and DnaJ/ DnaK/ATP [Fig. 5(A)] were fit to CHAMP70. The binding (kon) and release (koff) rate constant for RNase HD binding to DnaJ, ATP-DnaK, and ADPDnaK, respectively, were used as adjustable parameters (see Materials and Methods section). We observed that CHAMP70 accurately models the observed RNase HD kinetics under all three above
+
+1494 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+Figure 5. Comparison between experimentally observed and computationally predicted (A) stopped-flow rate constants and (B) SEC-detected transient complex formation associated with the interaction of RNase HD with K/J/E. Experimental data are reproduced from Sekhar et al.47 Computational predictions were generated via CHAMP70. Black bars denote experimental data and hatched bars are CHAMP70 predictions, derived without using any adjustable parameters. The gray bars in (A) are computational predictions derived by fitting CHAMP70 to the corresponding experimental data, using kon and koff as adjustable parameters.
+conditions [Fig. 5(A), black and gray bars]. Importantly, both the ‘‘faster’’ apparent kinetics (due to a significant extent of fast complex formation followed by negligible folding) observed in the presence of both ATP-DnaK and DnaJ, and the ‘‘slower’’ apparent kinetics (due to the damped rates of folding due to interaction with the chaperone) observed in the presence of either DnaK or DnaJ alone, or the whole K/J/E system, are predicted correctly.
+Second, we analyzed the kon and koff values derived from the above model fitting routine (Table II) to ensure that the values obtained are plausible and consistent with the K/J/E chaperone literature. Specifically, first we compared the numerical kon and koff values with published kinetic measurements. We found that kon, koff, and Kd values pertaining to the interaction of RNase HD with ATP-DnaK and ADPDnaK are completely consistent with the literature.13,15,21,26 Kd and kon for the DnaJ-RNase HD binding also agree with previously reported measurements.22,23,25 However, the koff for release of RNase HD from DnaJ is larger than previously published values. The discrepancy may be explained by the fact that there are only very few published measurements documenting the kinetics of substrate binding/release to DnaJ and almost all the sub-
+
+strates analyzed are rather short peptides.22,23,25 It is known that DnaJ recognizes protein nonpolar surfaces9 and may interact with peptides and proteins differently. Hence, the apparently ‘‘large’’ koff that we obtain from model analysis may merely reflect the lack of appropriate standards for comparison. Then, we confirmed that the trends in the kon and koff are consistent with the role of ATP in regulating DnaK binding kinetics and thermodynamics. Notably, the dissociation equilibrium constant (Kd) of RNase HD for ATP-DnaK is about 100-fold larger than for ADP-DnaK,21 the binding rate constant (kon) for the ATP-DnaK state is about 100-fold greater,21 and the rate constant for release (koff) is about 10,000-fold larger than the ADP-bound form.4 All of the above trends match the order of magnitude reported in the literature, and confirm the specific nature of the interaction between RNase HD and the substrate-binding cavity of DnaK.
+Third, we incorporated the RNase HD binding/ release kinetic rate constants into CHAMP70 and predicted the folding of RNase HD in the presence of the entire K/J/E chaperone system without using any adjustable parameters. The rate constant for production of native protein predicted by CHAMP70 is identical within error to the experimentally observed rate constant [Fig. 5(A), black and hatched bars]. Therefore, CHAMP 70 is able to successfully predict the folding kinetic deceleration induced by the presence of the K/J/E chaperone system (compare with the black bar on the far left of Figure 5(A).
+Finally, we used CHAMP70 without any adjustable parameters to predict the amount of complex formation observed experimentally by SEC [Fig. 5(B)]. We obtained very good agreement between computationally predicted and experimentally observed extents of complex formation under all the size-exclusion conditions [Fig. 5(B), black and hatched bars], except in the presence of DnaJ alone. In the latter case, it is quite likely, that a fraction of RNase HD–DnaJ complexes dissociate on the timescale of elution from the size-exclusion column (6–12 min) and fold to native RNase HD. Our kinetic simulations do not take into account the time that elapses between sample injection and elution on the
+
+Table II. Kinetic Rate Constants for the Binding (kon) and Release (koff) of RNase HD to DnaJ, ATP-DnaK, and ADP-DnaK and Corresponding Thermodynamic
+Dissociation Constants (Kd)
+
+Chaperone species
+DnaJ ATP-DnaK ADP-DnaK
+
+kon (MÀ1sÀ1)
+9.7 Â 105 2.8 Â 105 1.8 Â 103
+
+koff (sÀ1)
+10 27 1.5 Â 10À3
+
+Kd (lM)
+11 94
+0.8
+
+These values were derived from fitting the CHAMP70 kinetic model to the experimental data.
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1495
+
+Figure 6. Plot illustrating the known folding rates (ln kf) and thermodynamic stabilities (DG0UN) of 59 two-state-folding proteins studied computationally (black). The dashed vertical and horizontal lines denote the boundaries between the four different regimes (fast-folding/stable, slow-folding/ stable, slow-folding/unstable, and fast-folding/unstable) identified by CHAMP70, for the interaction of two-statefolding substrate proteins with the K/J/E chaperone system. The three proteins studied experimentally are also shown (color-coded according to Fig. 2).
+size-exclusion column and only predict the fraction of chaperone-RNase HD complexes existing before sample injection. Overall, we conclude that CHAMP70 is able to predict fairly well the modulation in the degree of complex formation induced by the different components of the K/J/E system.
+In summary, the computational model based on kinetic partitioning is able to quantitatively explain the experimentally observed folding rate constants and chaperone-association of a folding-competent substrate protein with the K/J/E chaperone system.
+The client’s specific kinetic and thermodynamic characteristics determine the extent of chaperone–substrate interactions To investigate the interplay between substrate folding and chaperone binding in greater detail, we chose 59 model substrate proteins whose folding/ unfolding proceeds via an apparent two-state mechanism in the absence of chaperones.48 The kinetic and thermodynamic parameters for these proteins span a wide range, as shown in Figure 6. As a reference, the three proteins studied experimentally in this work are also shown in the graph. CHAMP70 was used to simulate the folding of the above proteins in the presence of the K/J/E chaperone system. Folding is initiated at time t ¼ 0, starting with unfolded protein (U ¼ 100%) and no chaperone-associated substrate. This approach enables capturing the time-dependent protein folding perturbations induced by K/J/E. The average values of kon and koff for substrate binding to ATP-DnaK, ADP-DnaK, NF-
+
+DnaK, and DnaJ were used, unless otherwise stated (Table I). All the folding simulations were carried out with physiologically relevant concentrations of DnaK (25 lM), DnaJ (5 lM), and GrpE (10 lM).3,26,29 The ATP-dependent interactions between DnaK, DnaJ, and GrpE were allowed to reach a steady state in the presence of a constant supply of 2-mM ATP28 and in the absence of substrate, before folding was computationally initiated. For simplicity, 1:1 substrate:chaperone stoichiometry was assumed for complexes with both DnaK and DnaJ. Simulations were carried out until the concentrations of all molecular species included in the model reached a constant value as a function of time.
+To quantify the extent of chaperone–substrate interactions, we define the flux of substrate–chaperone complex F(t) as the time-dependent sum of concentrations of any type of complexes involving substrate and a chaperone, generated within the K/J/E cycle.
+FðtÞ ¼ ½U À ðATPÞDnaKðtÞ þ ½U À ðADPÞDnaKðtÞ þ ½U À DnaKðtÞ þ ½U À ðATPÞDnaK À DnaJðtÞ þ ½U À ðADPÞDnaK À DnaJðtÞ þ ½U À DnaJ À ðADPÞDnaK À GrpE2ðtÞ þ ½U À ðADPÞDnaK À GrpE2ðtÞ þ½U À DnaK À GrpE2ðtÞ: ð1Þ
+[F(0)¼0]. The maximum value of the function F(t) is Fmax, and its value at equilibrium (after folding is complete), is Feq.
+Figure 7(A,C) shows the dependence of Fmax and Feq on ln kf (where kf is the substrate folding rate constant) for all the substrate proteins. Figure 7(A) shows that the substrate folding rate governs the degree of binding to DnaK before folding reaches completion. The slow-folding proteins interact significantly with DnaK, up to 60%. DnaK associates with polypeptides with folding rates ranging from $0.1 to $50 sÀ1. Figure 7(B,D) shows the maximum (Fmax) and equilibrium (Feq) amounts of chaperone-associated substrate as a function of the substrate’s thermodynamic stability DG0UN. At equilibrium, the extent of DnaK–substrate interactions is determined by the thermodynamic stability of the substrate. Thermodynamically unstable proteins with DG0UN ! À2 kcal molÀ1 interact up to 60% with DnaK, at equilibrium. The above kinetic and thermodynamic regimes were used to define the boundaries (dashed lines) among the four regions shown in Figure 6. The Supporting Information provides additional representative computations.
+In summary, taken together, Figure 7(A,D) shows that the specific kinetic and thermodynamic folding parameters of the substrate govern the extent of chaperone–substrate interactions during distinct stages of a protein’s lifetime. Folding kinetics
+
+1496 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+Figure 7. Plot illustrating the computationally predicted maximum percent of chaperone-associated substrate during folding
+(A and B) and at equilibrium (C and D), as functions of the substrate folding rate constant (ln kf, A and C) and thermodynamic stability (DG0UN, B and D).
+
+controls the extent of K/J/E recruitment as the protein traverses the path to its native state, while folding thermodynamics determines the association of the protein with K/J/E once conformational equilibrium is attained. In contrast, protein stability does not determine the extent of association with DnaK before its folding is complete [Fig. 7(B)]. Similarly, once the protein has folded to its native state, the folding rate constant does not correlate with the extent of DnaK binding [Fig. 7(C)]. Finally, the protein unfolding rate constants do not play a significant role in the extent of chaperone–substrate interactions both before and at equilibrium (data not shown).
+Virtually all of the 59 proteins in our set are smaller than 20 kDa. Even though DnaK is traditionally regarded to preferentially bind substrates larger than 20 kDa,31,32 it is important to note that CHAMP70 predicts that there is no kinetic deterrent for the transient association of small slow-folding substrates with K/J/E.
+The kinetics of the K/J/E chaperone system is tailored to use protein folding rates as a criterion for substrate selection The folding rate constants are a fundamental biophysical property of polypeptide chains. As seen in the previous section, only the slow-folding proteins with folding rate constants 50 sÀ1 bind K/J/E, while attaining their native state. Figure 7(A) also
+
+reveals that chaperone–substrate interactions are switched on within a narrow range of folding rates, spanning a $50-fold difference in kf. This result is significant considering that the protein folding rate constants vary across more than 10 orders of magnitude.49 The steep response of the K/J/E chaperone system to protein folding rates makes it an effective switch to regulate the chaperone association of folding-competent substrates.
+Moreover, as seen in Figure 7(A), the folding rate cutoff for interaction with the K/J/E chaperone system occurs at a value of 50 sÀ1, which is ideally suited for a sizable portion (i.e., at least 25%) of the proteins in Figure 7(A) to associate with the Hsp70 chaperone system on folding. Therefore, the kinetics of the K/J/E chaperone cycle appears tuned to use protein folding rates as a primary substrate selection mechanism.
+In contrast, the K/J/E chaperone system interacts with only very few proteins [i.e., $12%, Fig. 7(D)] that have reached their folding equilibrium. Further, five out of the six substrates in Figure 7(D) that interact with DnaK at equilibrium are smaller than 5 kDa. Such small proteins are negligibly represented in the pool of naturally occurring E. coli proteins.
+It is important to note that our simulations are restricted to two-state folding single domain proteins with published folding/unfolding rates. Larger
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1497
+
+proteins are expected to have slower folding rates50 and higher thermodynamic stabilities51 than the proteins in the current set. These proteins are therefore expected to populate the left regions of both panels A and D in Figure 7. As a result, a more comprehensive dataset is expected to reinforce the above observation further.
+In summary, the kinetics of the K/J/E machinery is thus tailored to enable several substrates to interact extensively with chaperones before the folding process is complete, but not once folding has reached equilibrium.
+A greater extent of chaperone–substrate interactions during folding rather than at equilibrium is biologically meaningful. It emphasizes the cotranslational role of K/J/E. Indeed, chaperone–substrate complexes involving proteins that have already reached a conformational equilibrium would be deleterious for two reasons: first, by depleting the bioactive protein pool, and second by depleting a chaperone pool best suited to transiently assist other proteins that have not yet maximized their bioactive population. Nature has conveniently minimized this undesirable outcome by tuning protein stability just enough to prevent extensive interactions of folded clients with the K/J/E chaperone machinery, once the folding/unfolding equilibrium has been reached.
+
+Substrate binding rates and thermodynamic affinities for ATP-DnaK provide an additional substrate selection mechanism All the folding simulations described so far were carried out with average experimentally detected affinities and binding rates of substrate to nucleotide free-, ADP- ATP-DnaK, and DnaJ. There is, however, a great deal of variability in the Kd and kon values for the substrate–ATP-DnaK interactions. Kd values vary from 1 to 100 lM, whereas kon values range from 102 to 106 MÀ1sÀ1.15 It has been hypothesized that this variability leads to sequence-specific selection for the K/J/E chaperone machinery.
+To study the role of substrate affinity and binding rate constants within the K/J/E cycle, we selected a fast-folding protein (kf ¼ 11 sÀ1) that does not interact with DnaK, and a slow-folding substrate (kf ¼ 0.05 sÀ1) that interacts with DnaK significantly on folding. For average values of the experimentally determined affinity and binding rates (Table I), F(t ¼ 1/kf) ¼ 2% for the fast-folding protein and 20% for the slow-folding protein. We then varied Kd and kon within the experimentally observed range.
+Figure 8(A,B) shows the changes in the extent of interaction of DnaK with the above substrates estimated from F(t ¼ 1/kf). It is clear that modulating the binding characteristics of the substrate– ATP-DnaK interaction within experimental limits can have a dramatic effect on the flux of the substrate through the chaperone cycle. Under condi-
+
+Figure 8. Three-dimensional histograms representing the computationally predicted percent of chaperone-associated substrate as a function of the binding rate constant (kon) and dissociation constant (Kd) for the substrate’s interaction with ATP-DnaK, in the case of (A) slow-folding and (B) fastfolding substrates. The amount of chaperone-associated client protein was measured after time t ¼ 1/kf, following folding initiation.
+tions of slow and weak binding, the slow-folding protein completely relinquishes its interaction with DnaK. On the other hand, conditions of fast and high-affinity binding stimulate up to 15% interaction of the fast-folding substrate with DnaK.
+From the above results, it is clear that the kinetics and thermodynamics of substrate–ATPDnaK interactions complement folding rate-based substrate selectivity. The exact nature of the interplay between these two selectivity modes inherent to the K/J/E machinery cannot currently be determined in detail because of the lack of experimental data. The link between the primary protein sequence and its kon and koff values to ATP-DnaK has not yet been established. For instance, despite the presence of identical hydrophobic DnaK-binding core residues, peptides are known to display orders of magnitude
+
+1498 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+differences in binding kinetics.15 Given such deficiencies in experimental data and mechanistic understanding, it is presently not possible to reliably gauge the relative importance of the selection criteria based on folding rates and ATP-DnaK binding.
+In summary, the sequence-specific variability in Kd and kon for substrate binding to ATP-DnaK serves as an additional modulatory switch, which turns on, when needed, interactions with DnaK that would otherwise not exist (e.g., see the fast-folding proteins). Modulation of Kd and kon can also turn these interactions off in the case of slow-folding proteins, which would normally significantly interact with ATP-DnaK. This variability constitutes an additional exquisite layer of selectivity superimposed on the intrinsic thermodynamic and kinetic folding properties of the chaperone substrates. It is tempting to speculate that such a switch might be tailored by nature to chaperone misfolding- and aggregationprone polypeptide sequences that would normally tend to bury hydrophobic surface in nonnative fashion through intramolecular or intermolecular contacts.
+Conclusions This study addresses the leading factors governing the interaction of the K/J/E chaperone system with folding-competent substrate proteins. The experimentally measured extents of chaperone–substrate interaction of RNase HD, drkN SH3, and ubiquitin during folding and at equilibrium is consistent with a simple kinetic partitioning model. We also developed the CHAMP70 computational model as an aid to quantify the interplay between substrate folding and binding to the K/J/E chaperone system. CHAMP70 is able to account for the rate of folding and the amount of chaperone binding of RNase HD on its way to the native state.
+Before equilibrium is established, slow-folding substrates preferentially interact with DnaK, while thermodynamically unstable substrates are more likely to bind DnaK at equilibrium. The bacterial Hsp70 chaperone system possesses an intrinsic substrate selection mechanism that relies on the folding kinetics of the client protein. Under physiologically relevant conditions, the kinetics of the Hsp70 chaperone cycle is optimized for recruiting proteins before the folding/unfolding process reaches equilibrium.
+Finally, the predictive power of CHAMP70 is also very useful in the design of experiments involving different combinations and concentrations of DnaK, DnaJ, GrpE, and ATP. The modular design of CHAMP70 is particularly convenient, and it facilitates the incorporation of additional kinetic schemes. For instance, CHAMP70 is amenable to extensions including three-state folding and protein aggregation processes, if the relevant rate constants and mecha-
+
+nistic details can be reliably estimated. CHAMP70 can also be used to generate predictions on the interaction of a specific substrate with K/J/E, and hence investigate for the possible presence of noncanonical trends in chaperone–substrate association. The current shortcomings of this first-generation CHAMP70 model, arising primarily from lack of experimental data, will be addressed in future implementations.
+Materials and Methods
+Expression and purification of proteins The substrate proteins RNase HD and drkN SH3, and the three chaperones DnaK, DnaJ, and GrpE were overexpressed and purified according to previously published procedures.11,34,35,52,53 Ubiquitin was purchased from Sigma-Aldrich (St. Louis, MO).
+Size-exclusion chromatography SEC was carried out at room temperature by highperformance liquid chromatography (HPLC, Shimadzu, Columbia, MD) with a TSK-GEL G2000SWXL column [Tosoh Bioscience, King of Prussia, PA] and detection of electronic absorption intensity at 214 nm. The SEC elution buffers were 50 mM Tris pH 7.5, 100 mM KCl, and 5 mM MgCl2 for ubiquitin and drkN SH3 and 20 mM sodium acetate, 100 mM KCl, and 5 mM MgCl2 for RNase HD. For experiments measuring the extent of client-DnaK interaction at equilibrium, native substrates were incubated in elution buffer containing ADP-DnaK for 30 min before injection onto the SEC column. For experiments measuring the extent of interaction during folding, the substrates were first unfolded in elution buffer containing 6M urea (ubiquitin and RNase HD) or 2M guanidinium chloride (drkN SH3). In addition, DnaK, DnaJ, and ATP were added to the SEC elution buffer and incubated for 1 min at room temperature. The unfolded substrate solution was then diluted 10-fold into the elution buffer containing chaperones and incubated for 1 min before injection onto the column. The final concentrations of substrate proteins, DnaK, DnaJ, and nucleotides (ATP and ADP) were 15, 27, 5.4 lM, and 1 mM, respectively.
+Development of the computational model The CHAMP70 kinetic model was generated with the Gepasi (version 3.30) software package.54 The final version of the model consists of 15 reversible and 13 irreversible mass action reactions, as well as 24 metabolite species. For each kinetic step, the reaction order is assumed identical to the molecularity. Each kinetic process is defined by one or two differential equations for irreversible and reversible steps, respectively. The rate constants for the various reactions included in CHAMP70 were derived from literature and are detailed in Table I. The
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1499
+
+time-dependent concentrations of various metabolites were obtained from Gepasi by numerically solving the system of differential equations defining the kinetic model.
+All simulations were carried out with the concentration of ATP fixed at 2 mM,28 as the reservoir of ATP in the E. coli cell is continuously replenished. The K/J/E chaperone system was allowed to attain a steady state in the absence of substrates before every simulation. Substrate folding simulations in the absence and presence of the chaperone system were carried out for a total time of 20 t1/2 using 5000 data points. This ensures identical time resolution in the simulations for all substrates relative to their folding lifetimes. To determine the extent of chaperone– substrate interactions at equilibrium, the folding time was increased to 50 s uniformly for all substrates.
+
+Analysis of experimental kinetic data with CHAMP70 The computational model CHAMP70 was used to analyze stopped-flow RNase HD refolding kinetics and size-exclusion data reporting the extent of RNase HD-chaperone binding in the presence of different chaperone combinations.
+
+Model fitting to stopped-flow kinetic traces. We used the CHAMP70 computational model, written within the Gepasi software, for fitting stopped-flow kinetic traces in the presence of DnaJ and DnaK/ATP. The average apparent experimental rate constant values (kobs) were used to generate the time-dependent increase in the fraction of native RNase HD using an equation of the form:
+
+NðtÞ ¼ Nð0Þð1 À expðÀkobstÞÞ;
+
+(2)
+
+where N(0) is the fraction of native RNase HD at
+time t ¼ 0. The dataset comprising N(t) was then fit to CHAMP70 using the Levenberg–Marquardt algorithm55–57 inbuilt into the Gepasi fitting module.
+The binding (kon) and release (koff) rate constants of RNase HD to DnaJ and ATP-DnaK were designated as adjustable parameters for RNase HD-DnaJ and RNase HD-DnaK/ATP stopped-flow data, respec-
+tively. We did not fit the raw stopped-flow data
+directly to the kinetic model, as CHAMP70 evaluates
+time-dependent concentrations and not ellipticity
+and because the CD data are inherently noisy. In the case of stopped-flow RNase HD refolding
+in the presence of DnaJ/DnaK/ATP, we used a man-
+ual iterative procedure for data fitting. Briefly, the binding and release rate constants of RNase HD to
+DnaJ and ATP-DnaK obtained earlier were incorporated into CHAMP70. Then, RNase HD-ADP-DnaK
+kon and koff values were iteratively adjusted until a good agreement between the experimentally
+
+observed and computationally predicted apparent rate constants was reached. We did not use the Levenberg–Marquardt algorithm to fit RNase HD-DnaJ/ DnaK/ATP data, because we did not have a good estimate of the fraction of native RNase HD at the end of the experimental stopped-flow refolding necessary for generating N(t) data.
+For predicting the apparent rate constant for refolding of RNase HD in the presence of DnaJ/ DnaK/GrpE/ATP, we incorporated the binding (kon) and release (koff) rate constants for DnaJ, ATPDnaK, and ADP-DnaK obtained earlier into CHAMP70. kon and koff values for the RNase HDNF-DnaK association were approximated to values observed in the literature for substrate binding to DnaK. In the presence of ATP, the concentration of NF-DnaK very small and transient, and the binding of RNase HD to NF-DnaK does not significantly affect the refolding process. N(t) was then simulated using CHAMP70 using microscopic substrate binding/release and folding/unfolding rate constants, and fit to Eq. (4) to obtain the predicted kobs value. It is important to note that this prediction is carried out without using any adjustable parameters.
+We did not integrate size-exclusion data with stopped-flow kinetics measurements as inputs for data-fitting for two reasons. First, the size-exclusion experiments were done under different chaperone and RNase HD concentrations compared to stoppedflow refolding. Second, size-exclusion data are not as rigorously quantitative as stopped-flow measurements, and are subject to several uncontrollable factors.
+Predicting the extent of RNase HD–chaperone interaction during refolding. We used CHAMP70 containing, as input, the RNase HD binding/release and folding/unfolding rate constants (obtained as outlined earlier) to predict the extent of complex formation in the presence of different chaperone combinations. The CHAMP70 simulations were run for 5 min, to reproduce the experimental size-exclusion conditions. The computationally predicted reduction in native RNase HD peak intensity was evaluated by subtracting from 100, the percentage of native protein present after 5 min.
+Acknowledgments The authors thank F. Ulrich Hartl for a useful suggestion of an article showing data consistent with kinetic partitioning.
+References
+1. Hartl FU, Hayer-Hartl M (2009) Converging concepts of protein folding in vitro and in vivo. Nat Struct Mol Biol 16:574–581.
+2. Frydman J (2001) Folding of newly translated proteins in vivo: the role of molecular chaperones. Ann Rev Biochem 70:603–647.
+
+1500 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+
+3. Hartl FU, Hayer-Hartl M (2002) Molecular chaperones in the cytosol: from nascent chain to folded protein. Science 295:1852.
+4. Mayer MP, Rudiger S, Bukau B (2000) Molecular basis for interactions of the DnaK chaperone with substrates. Biol Chem 381:877–885.
+5. Chesnokova LS, Slepenkov SV, Protasevich II, Sehorn MG, Brouillette CG, Witt SN (2003) Deletion of DnaK’s lid strengthens binding to the nucleotide exchange factor, GrpE: a kinetic and thermodynamic analysis. Biochemistry 42:9028–9040.
+6. Gamer J, Bujard H, Bukau B (1992) Physical interaction between heat shock proteins DnaK, DnaJ, and GrpE and the bacterial heat shock transcription factor [sigma] 32. Cell 69:833–842.
+7. Schmid D, Baici A, Gehring H, Christen P (1994) Kinetics of molecular chaperone action. Science 263: 971.
+8. McCarty JS, Buchberger A, Reinstein J, Bukau B (1995) The role of ATP in the functional cycle of the DnaK chaperone system. J Mol Biol 249:126–137.
+9. Brehmer D, Ru¨ diger S, Ga€ssler CS, Klostermeier D, Packschies L, Reinstein J, Mayer MP, Bukau B (2001) Tuning of chaperone activity of Hsp70 proteins by modulation of nucleotide exchange. Nat Struct Mol Biol 8: 427–432.
+10. Sch€onfeld HJ, Schmidt D, Schr€oder H, Bukau B (1995) The DnaK chaperone system of Escherichia coli: quaternary structures and interactions of the DnaK and GrpE components. J Biol Chem 270:2183.
+11. Theyssen H, Schuster HP, Packschies L, Bukau B, Reinstein J (1996) The second step of ATP binding to DnaK induces peptide release. J Mol Biol 263: 657–670.
+12. Packschies L, Theyssen H, Buchberger A, Bukau B, Goody RS, Reinstein J (1997) GrpE accelerates nucleotide exchange of the molecular chaperone DnaK with an associative displacement mechanism. Biochemistry 36:3417–3422.
+13. Pierpaoli EV, Sandmeier E, Baici A, Sch€onfeld HJ, Gisler S, Christen P (1997) The power stroke of the DnaK/ DnaJ/GrpE molecular chaperone system. J Mol Biol 269:757–768.
+14. Gisler SM, Pierpaoli EV, Christen P (1998) Catapult mechanism renders the chaperone action of Hsp70 unidirectional. J Mol Biol 279:833–840.
+15. Pierpaoli EV, Gisler SM, Christen P (1998) Sequencespecific rates of interaction of target peptides with the molecular chaperones DnaK and DnaJ. Biochemistry 37:16741–16748.
+16. Pierpaoli EV, Sandmeier E, Sch€onfeld HJ, Christen P (1998) Control of the DnaK chaperone cycle by substoichiometric concentrations of the co-chaperones DnaJ and GrpE. J Biol Chem 273:6643.
+17. Russell R, Jordan R, McMacken R (1998) Kinetic characterization of the ATPase cycle of the DnaK molecular chaperone. Biochemistry 37:596–607.
+18. Laufen T, Mayer MP, Beisel C, Klostermeier D, Mogk A, Reinstein J, Bukau B (1999) Mechanism of regulation of hsp70 chaperones by DnaJ cochaperones. Proc Natl Acad Sci USA 96:5452.
+19. Mayer MP, Laufen T, Paal K, McCarty JS, Bukau B (1999) Investigation of the interaction between DnaK and DnaJ by surface plasmon resonance spectroscopy. J Mol Biol 289:1131–1144.
+20. Russell R, Karzai AW, Mehl AF, McMacken R (1999) DnaJ dramatically stimulates ATP hydrolysis by DnaK: insight into targeting of Hsp70 proteins to polypeptide substrates. Biochemistry 38:4165–4176.
+
+21. Mayer MP, Schr€oder H, Ru¨ diger S, Paal K, Laufen T, Bukau B (2000) Multistep mechanism of substrate binding determines chaperone activity of Hsp70. Nat Struct Mol Biol 7:586–593.
+22. Han W, Christen P (2003) Mechanism of the targeting action of DnaJ in the DnaK molecular chaperone system. J Biol Chem 278:19038.
+23. Han WJ, Christen P (2003) Interdomain communication in the molecular chaperone DnaK. Biochem J 369: 627–634.
+24. Brehmer D, GO¨ ssler C, Rist W, Mayer MP, Bukau B (2004) Influence of GrpE on DnaK-substrate interactions. J Biol Chem 279:27957.
+25. Han W, Christen P (2004) cis-Effect of DnaJ on DnaK in ternary complexes with chimeric DnaK/DnaJ-binding peptides. FEBS Lett 563:146–150.
+26. Siegenthaler RK, Christen P (2006) Tuning of DnaK chaperone action by nonnative protein sensor DnaJ and thermosensor GrpE. J Biol Chem 281:34448.
+27. Ru¨ diger S, Germeroth L, Schneider-Mergener J, Bukau B (1997) Substrate specificity of the DnaK chaperone determined by screening cellulose-bound peptide libraries. EMBO J 16:1501–1507.
+28. Sundararaj S, Guo A, Habibi-Nazhad B, Rouani M, Stothard P, Ellison M, Wishart DS (2004) The CyberCell Database (CCDB): a comprehensive, self-updating, relational database to coordinate and facilitate in silico modeling of Escherichia coli. Nucleic Acids Res 32: D293.
+29. Mogk A, Tomoyasu T, Goloubinoff P, Ru¨ diger S, R€oder D, Langen H, Bukau B (1999) Identification of thermolabile Escherichia coli proteins: prevention and reversion of aggregation by DnaK and ClpB. EMBO J 18: 6934–6949.
+30. Calloni G, Chen T, Schermann SM, Chang H-C, Genevaux P, Agostini F, Tartaglia GG, Hayer-Hartl M, Hartl FU (2012) DnaK functions as a central hub in the E. coli chaperone network. Cell Rep 1:251–264.
+31. Teter SA, Houry WA, Ang D, Tradler T, Rockabrand D, Fischer G, Blum P, Georgopoulos C, Hartl FU (1999) Polypeptide flux through bacterial Hsp70: DnaK cooperates with trigger factor in chaperoning nascent chains. Cell 97:755–765.
+32. Deuerling E, Schulze-Specking A, Tomoyasu T, Mogk A, Bukau B (1999) Trigger factor and DnaK cooperate in folding of newly synthesized proteins. Nature 400: 693–696.
+33. Ellis RJ (2003) Protein folding: importance of the Anfinsen cage. Curr Biol 13:R881–R883.
+34. Spudich GM, Miller EJ, Marqusee S (2004) Destabilization of the Escherichia coli RNase H kinetic intermediate: switching between a two-state and three-state folding mechanism. J Mol Biol 335:609–618.
+35. Zhang O, Forman-Kay JD (1995) Structural characterization of folded and unfolded states of an SH3 domain in equilibrium in aqueous buffer. Biochemistry 34: 6784–6794.
+36. Farrow NA, Zhang OW, Forman-Kay JD, Kay LE (1994) A heteronuclear correlation experiment for simultaneous determination of 15N longitudinal decay and chemical-exchange rates of systems in slow equilibrium. J Biomol NMR 4:727–734.
+37. Krantz BA, Sosnick TR (2000) Distinguishing between two-state and three-state models for ubiquitin folding. Biochemistry 39:11696–11701.
+38. Palleros DR, Shi L, Reid KL, Fink AL (1994) Hsp70protein complexes—complex stability and conformation of bound substrate protein. J Biol Chem 269: 13107–13114.
+
+Sekhar et al.
+
+PROTEIN SCIENCE VOL 21:1489—1502 1501
+
+39. Mayer MP, Schroder H, Rudiger S, Paal K, Laufen T, Bukau B (2000) Multistep mechanism of substrate binding determines chaperone activity of Hsp70. Nat Struct Biol 7:586–593.
+40. Hardy SJS, Randall LL (1991) A kinetic partitioning model of selective binding of nonnative proteins by the bacterial chaperone Secb. Science 251:439–443.
+41. Jakob U, Gaestel M, Engel K, Buchner J (1993) Small heat-shock proteins are molecular chaperones. J Biol Chem 268:1517–1520.
+42. Kurt N, Rajagopalan S, Cavagnero S (2006) Effect of hsp70 chaperone on the folding and misfolding of polypeptides modeling an elongating protein chain. J Mol Biol 355:809–820.
+43. Kim SY, Sharma S, Hoskins JR, Wickner S (2002) Interaction of the DnaK and DnaJ chaperone system with a native substrate, P1 RepA. J Biol Chem 277: 44778.
+44. Hu B, Mayer MP, Tomita M (2006) Modeling hsp70mediated protein folding. Biophys J 91:496–507.
+45. Schr€oder H, Langer T, Hartl FU, Bukau B (1993) DnaK, DnaJ and GrpE form a cellular chaperone machinery capable of repairing heat-induced protein damage. EMBO J 12:4137.
+46. Szabo A, Langer T, Schr€oder H, Flanagan J, Bukau B, Hartl FU (1994) The ATP hydrolysis-dependent reaction cycle of the Escherichia coli Hsp70 system DnaK, DnaJ, and GrpE. Proc Natl Acad Sci USA 91:10345.
+47. Sekhar A, Santiago M, Lam HN, Lee JH, Cavagnero S (2012) Transient interactions of a slow-folding protein with the Hsp70 chaperone machinery. Protein Sci 21: 1042–1055.
+
+48. Bogatyreva NS, Osypov AA, Ivankov DN (2009) KineticDB: a database of protein folding kinetics. Nucleic Acids Res 37:D342–D346.
+49. Ivankov DN, Finkelstein AV (2004) Prediction of protein folding rates from the amino acid sequence-predicted secondary structure. Proc Natl Acad Sci USA 101:8942.
+50. Naganathan AN, Mun~oz V (2005) Scaling of folding times with protein size. J Am Chem Soc 127:480–481.
+51. Ghosh K, Dill KA (2009) Computing protein stabilities from their chain lengths. Proc Natl Acad Sci USA 106: 10649.
+52. Linke K, Wolfram T, Bussemer J, Jakob U (2003) The roles of the two zinc binding sites in DnaJ. J Biol Chem 278:44457–44466.
+53. Buchberger A, Valencia A, McMacken R, Sander C, Bukau B (1994) The chaperone function of Dnak requires the coupling of ATPase activity with substrate-binding through residue E171. EMBO J 13: 1687–1695.
+54. Mendes P (1993) GEPASI: a software package for modelling the dynamics, steady states and control of biochemical and other systems. Comput Appl Biosci 9: 563–572.
+55. Levenberg K (1944) A method for the solution of certain nonlinear problems in least squares. Quart Appl Math 2:164–168.
+56. Marquardt DW (1963) An algorithm for least-squares estimation of nonlinear parameters. J Soc Ind Appl Math 11:431–441.
+57. More JJ (1978) The Levenberg-Marquardt algorithm: implementation and theory. Num Anal, Lecture Notes in Mathematics 630:105–116.
+
+1502 PROTEINSCIENCE.ORG
+
+Protein Folding Rates, Stability and Hsp70 Binding
+

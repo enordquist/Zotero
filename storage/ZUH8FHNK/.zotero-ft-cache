@@ -1,0 +1,520 @@
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+PCCP
+
+PAPER
+
+View Article Online
+View Journal | View Issue
+
+Cite this: Phys. Chem. Chem. Phys., 2020, 22, 22796
+
+Accessing slow diﬀusion in solids by employing metadynamics simulation†
+Krishnanjan Pramanik, Sangkha Borah and P. Padma Kumar *
+
+Received 16th June 2020, Accepted 6th September 2020 DOI: 10.1039/d0cp03239e
+rsc.li/pccp
+
+Molecular dynamics (MD) is a powerful tool to investigate microscopic transport of atoms and molecules in condensed matter. However, there lies a large class of systems wherein atomic diﬀusion is too slow a process relative to the feasible time scales of typical atomistic simulations. Here, we demonstrate that with judicial implementation of a metadynamics (MTD) technique, the microscopic mechanism of atomic transport in solids can be accessed within a reasonable computational time. The calculations are carried out on the two end members of the true NASICON solid solutions, namely NaZr2(PO4)3 and Na4Zr2(SiO4)3, wherein Na+ diﬀusion is too slow to be accessed through standard MD simulations. The study also provides fresh insights on correlated ion hops and their implications on the eﬀective diﬀusion barrier. The results are compared with climbing image nudged elastic band (CI-NEB) calculation, and available experimental results.
+
+1 Introduction
+Over the last couple of decades, molecular dynamics (MD) simulation has emerged as an extremely powerful tool to investigate physico-chemical processes in condensed states of matter.1,2 The technique renders a description of matter at the atomic length and time-scales that are otherwise often inaccessible through experiments. MD simulations are now routinely employed across a variety of research fields, such as biophysics, materials science, physical chemistry, etc. However, despite its popularity, the MD technique suﬀers from certain limitations pertaining to the length and time scales of the simulation. The ‘classical’ MD simulations (which employ a predefined interaction between constituent particles) are capable of exploring systems typically of the size of several thousands of particles for over hundreds of nano-seconds,1,2 while its advanced counterpart, namely ab initio MD simulations (which calculate the interatomic interactions ‘on the fly’, based on density functional theory) can tackle only a few hundred atoms for a few hundred pico-seconds, at best.3–5 Thus, both the variants of MD simulations leave out a very large number of processes of interest, be it materials science related or of biological interest, practically outside of their ambit.
+Several methods have been proposed in the past to deal with such ‘rare events’, meaning those where the time-scales of the process of interest are much larger than the aﬀordable simulation time-scales.6–12 Metadynamics (MTD) simulations,
+Indian Institute of Technology, Guwahati, India. E-mail: padmakumarp@iitg.ac.in † Electronic supplementary information (ESI) available. See DOI: 10.1039/ d0cp03239e
+
+originally proposed by Laio and Parrinello,13 are arguably one of the most promising approaches in this pursuit. The MTD algorithm involves standard MD, but additionally includes application of small external potentials or ‘hills’ to act on a select subset of degrees of freedom of the system (called ‘collective variables’) over regular intervals of time. This essentially results in ‘accelerating’ the event of interest to be observed within MD time-scales. Thus, the method retains many of the virtues of standard MD and maintains a minimal ‘bias’ in terms of the microscopic mechanism of the event investigated, but admittedly at the expense of direct temporal information.
+Since its inception, the MTD approach has been successfully adapted to a variety of problems of interest.14–22 Consequently, the technique has evolved, with several improvements and modifications, providing prescriptions for its optimal implementation, balancing both efficiency and accuracy.12,23–30 Since Jug et al.31 examined oxide ion transport in rutile TiO2, a few more studies have employed the MTD technique for investigation of transport in condensed matter systems, such as proton transport in zirconia (ZrO2),32 Li transport in garnets (Li7La3Zr2O12),33 Cu diffusion in CuZr-alloys,34 and molecular transport in porous organic network solids.35
+The present demonstration of the implementation of the technique involves Na+ transport in one of the promising structural class of solid electrolytes, namely NASICONs (an acronym for Na Super Ionic Conductors). Solid electrolytes are of colossal concurrent interest for the development of all solid state batteries, which promise high energy-density, along with better safety and a low environmental footprint.36–41 Since their inception by Hong42 and Goodenough et al.43 NASICON
+
+22796 | Phys. Chem. Chem. Phys., 2020, 22, 22796--22804
+
+This journal is © the Owner Societies 2020
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+Paper
+
+View Article Online
+PCCP
+
+solid solutions, Na1+xZr2SixP3ÀxO12 (where 0 r x r 3.0), have received protracted attention from materials scientists, for a variety of technological applications, such as in all-solidstate batteries, super-capacitors, gas sensors, for packaging of electronic components, and as materials for nuclear waste confinement.44–47
+The intermediate composition of this solid solution with x = 2, Na3Zr2Si2PO12, exhibits very high Na+ conductivity, and has been extensively studied, both experimentally and employing MD simulations. However, the two end members of the family, NaZr2(PO4)3 and Na4Zr2(SiO4)3, exhibits much slower Na+ diﬀusion with respect to the time-scales of MD simulation, thus serving as good prototypical candidates for the present MTD calculations.
+
+2 Methodology
+
+Classical MD and MTD simulations on NaZr2(PO4)3 and Na4Zr2(SiO4)3 are carried out in the canonical ensemble (NVT) at 500 K, employing the Vashishta–Rahman form of the interaction potential,48
+
+U ðrij Þ
+
+¼
+
+1 4pe0
+
+qi qj rij
+
+þ
+
+Aij ðsi þ rnijij
+
+sj Þnij
+
+À
+
+Cij ; rij
+
+(1)
+
+where qi and qj are the partial charges, and si and sj are the ionic radius of the ith and jth species, respectively. Aij and Cij are respectively the overlap repulsive energy and dispersion energy between the ith and jth ions. Listed in Table 1 are the potential parameters employed taken from a previous study by Kumar and Yashonath.49,50
+The initial structures of the NASICONs are taken from the X-ray study of Boilot et al.51 The simulation box is made from 3 Â 3 Â 1 unit cells having rhomohedral (R3%C) symmetry. The simulation super-cell thus includes a total of 972 ions (54-Na, 108-Zr, 162-P and 648-O) for NaZr2(PO4)3 and 1134 ions (216-Na, 108-Zr, 162-P and 648-O) for Na4Zr2(SiO4)3. The initial X-ray structures51 of both systems are relaxed using the isothermal–isobaric (NPT) ensemble at 500 K. The dimensions of the relaxed simulation box are a = b = 26.989 Å, c = 22.672 Å for NaZr2(PO4)3 and a = b = 27.680 Å, c = 22.379 Å for Na4Zr2(SiO4)3. At an integration time-step of 2 fs, the production run for NaZr2(PO4)3 was 100 ns long, while that for Na4Zr2(SiO4)3 was 200 ns long for better convergence of properties.
+Molecular dynamics that powers the MTD calculation is carried out employing the software LAMMPS (Large-scale Atomic/Molecular
+
+Table 1 Inter-ionic potential parameters for diﬀerent ion pairs taken from a previous study49,50
+
+Species (X)
+
+qx
+
+sx
+
+Axo
+
+Cxo
+
+nxo
+
+Na
+
+0.7020
+
+1.13
+
+0.1716
+
+0
+
+9
+
+Zr
+
+2.808
+
+0.86
+
+1.2126
+
+11.917
+
+9
+
+Si
+
+2.808
+
+0.40
+
+2.8089
+
+11.529
+
+9
+
+P
+
+3.510
+
+0.31
+
+3.6158
+
+9.217
+
+9
+
+O
+
+À1.404
+
+1.21
+
+0.3252
+
+47.999
+
+7
+
+ANa–Na = 5 eV; nNa–Na = 11.
+
+Massively Parallel Simulator).52 MTD simulation of the system is invoked by interfacing PLUMED53 with LAMMPS. Our imple-
+
+mentation of the techniques for the expedition of the ion
+
+transport process in the systems employs coordinates of a single, arbitrarily chosen, Na+ ion, r%s = (xs,ys,zs), as the ‘collective variable’ (CV). The net external potential imposed on this
+
+tagged ion or ‘walker’ at any instant, t, is the sum of the
+
+Gaussian ‘hills’ deposited at regular intervals (100 MD steps in the present work), during the period of t = 0 to t = t0, and is
+
+given by
+
+X t0 t Vðrs; tÞ ¼ Hðt 0Þ exp
+t0
+
+!
+
+Àðrs
+
+ðtÞ
+
+À rs 2w2
+
+ðt
+
+0ÞÞ2
+
+;
+
+(2)
+
+where w is the width of the Gaussian, kept constant at a value of 0.35 Å. H(t0) is the height of the Gaussian imposed at a MTD step t = t0. In the ‘well tempered’ MTD formalism,25 the
+
+Gaussian heights are tuned as
+
+Hðt 0Þ
+
+¼
+
+H0
+
+ V
+exp À
+
+ðrs
+
+;
+
+t
+
+0
+
+ Þ;
+
+kBDT
+
+(3)
+
+where T is the instantaneous temperature of the system, and DT = (g À 1)T. The initial height H0 is chosen as 0.006 eV, and g = 6 following Barducci et al.25 However, to validate the choice of g, we have carried out additional runs – with g = 3 and with g = 9. These results are summarized in the ESI.†
+Free energy calculation: some of the most useful information from MTD simulation is the mechanism of the process and its underlying free energy landscape. It should be noted that the free energy of a ‘process’ (except for an insignificant additive term due to the reference state) as a function of CV (in the present case, the position of the tagged particle, r%s), is given by25
+
+F ðrsÞ
+
+¼
+
+À
+
+lim
+t 0!1
+
+T
+
+þ DT DT Vðrs;
+
+t 0Þ:
+
+(4)
+
+In the present work, the free energy profile for the Na+ along the migration channel is calculated by mapping F(r%s) as a function of the distance of the location, r%s, with respect to any two of its nearest Na1-sites, l, under periodic boundary conditions. Note that the mapping of F(r%s) from space coordinates, r%s, to F(l), is in the spirit of introducing a ‘reaction coordinate’, which reduces the dimensionality of the information and helps to visualize the free energy profile along the migration channel.
+Below, we shall note certain technicalities of the mapping procedure:
+The separation between two neighboring Na1 sites (B6.4 Å) is divided into fine bins (of size 0.1 Å). The distance r%s1(i) = r%s À r%1(i), where r%1(i) is the location of the ith Na1 site, is searched over all Na1 sites in the simulation cell. Whenever this distance is less than 6.4 Å under PBCs, F(r%s) is cumulated in an appropriate bin, say indexed j, which spans the reaction coordinate, l. The quantity is then averaged over the counts registered in each bin. That is,
+
+F(lj) = hF(PBC(r%s1(i)))ij, if r%s1(i) o 6.4 Å
+
+(5)
+
+This journal is © the Owner Societies 2020
+
+Phys. Chem. Chem. Phys., 2020, 22, 22796--22804 | 22797
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+PCCP
+
+View Article Online
+Paper
+
+where h. . .ij represent the average over the trajectory in a given bin j. It should be noted that with the migration channel being the one connecting two neighboring Na1 (which shall be demonstrated in the later sections), for every hill-drop location, r%s, there would be two i values (that is, Na1 sites), which would meet the above criterion. It should be remarked further that the above mapping procedure is not unique and any other method of mining F(r%s) data onto repeating segments of trajectories may also be employed.
+The free-energy profile from MTD simulation is compared with other compatible quantities, such as the potential energy profile of individual Na+ ions, and potential energy barrier employing nudged-elastic-band (NEB) calculations, detailed as below:
+(1) The potential energy profile: the average potential energy of individual Na+ ions at a given location, r%i, due to all the rest of the ions in the system,
+
+X N
+
+UðriÞ ¼
+
+U ðrij Þ
+
+(6)
+
+j¼1;jai
+
+where N is the total number of ions (including mobile as well as those of the framework) in the system and U(r%ij) is the pair-wise interaction potential as in eqn (1). The quantity U(r%i), computed from the MTD trajectory, is mapped on to reaction coordinate li (under periodic boundary conditions), as discussed earlier. U(li) thus calculated is averaged over all the Na+ ions and over the entire MD trajectory.
+(2) From climbing-image nudged elastic band (CI-NEB)54,55 for a single Na+ ion crossing over from one Na1 site to its neighbouring site.
+3 Results and discussions
+Structural stability: radial distribution functions (RDFs) for Zr–O, P/Si–O, O–O pairs have been calculated to check the stability of the framework, during the MTD as well as MD simulations at 500 K. Fig. 1 shows the dynamic RDFs for NaZr2(PO4)3 (top panel) and Na4Zr2(PO4)3 (bottom panel), along with the corresponding static RDFs calculated from the X-ray structure.51 The first peak positions of Zr–O are around 2.09 Å for both NaZr2(PO4)3 and Na4Zr2(SiO4)3 systems. For the RDFs of the P–O (top panel) and Si–O pairs (bottom panel), they are around 1.52 Å and 1.61 Å, respectively. These distances essentially correspond to their respective bond lengths, and are in good agreement with the experimental reports.51,56,57 The nearest-neighbour coordination numbers, C(n), for Zr–O are 6, while those of P–O and Si–O are 4, as expected for the polyhedral structure of NASICONs involving ZrO6 octahedra and (P/Si)O4 tetrahedra. These observations confirm the structural stability of the NASICON framework during MD and MTD simulation at 500 K. Having confirmed the structural stability, we shall demonstrate how the MTD simulations accelerate the ion transport, facilitating access to relevant microscopic insights, where the standard MD fails. The results on NASICON systems, NaZr2(PO4)3 and Na4Zr2(SiO4)3, chosen for these
+
+Fig. 1 Dynamic RDFs (g(r)) of selected ion pairs are shown along with that of the corresponding X-ray structure (bars) from both MTD and MD simulations at 500 K. Top panel: for NaZr2(PO4)3. Bottom panel: for Na4Zr2(SiO4)3. The nearest-neighbour coordination numbers, C(n), of Zr–O, P–O, and Si–O are also marked in the respective sub-panels. The plots are systematically shifted-up, along the y-axis, for clarity.
+demonstrations shall be discussed separately in the next two sub-sections.
+3.1 NaZr2(PO4)3 Fig. 2 (top) shows the distribution of Na+-ions in the simulation super-cell (consisting of 3 Â 3 Â 1 rhombohedral unit cells) sampled over 100 ns of standard MD simulations. Evidently, the Na+ ions exhibit only thermal vibrations about their equilibrium positions without making any visible jump to neighbouring sites. Thus, weighed down by the timescale of ion hops, the standard MD simulation does not yield any practical insights on the nature or mechanism of ion transport. On the other hand, the MTD trajectory of the ‘tagged’ Na+ ion (Fig. 2, bottom), on which the external potential has been applied, explores nearly the entire simulation cell gradually over the 100 ns of simulation. The external potential or ‘hills’, gradually deposited at locations, already visited by the ions, build up over the period and compensate for the underlying local minimum,
+
+22798 | Phys. Chem. Chem. Phys., 2020, 22, 22796--22804
+
+This journal is © the Owner Societies 2020
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+Paper
+
+View Article Online
+PCCP
+
+Fig. 2 Top: Distribution of all the Na+-ions in the simulation super-cell sampled over 100 ns of standard MD simulations of NaZr2(PO4)3 at 500 K. Bottom: Distribution of the single ‘tagged’ Na+ ion in the system from 100 ns of MTD simulation at 500 K. The trajectory of the ion is shown in diﬀerent colors to highlight the progress over time (olive green: 0–20 ns, gray: 20–40 ns, red: 40–100 ns). The framework ions are not shown for the sake of clarity.
+
+enabling the ions to migrate to other favorable sites. A more quantitative measure of this ‘accelerated dynamics’ is presented in Fig. 3, where the mean square displacement (MSD) of Na+ ions,
+
+MSD(t) = h[-r(t) À -r(0)]2i,
+
+(7)
+
+where -r(t) is the position vector of an ion at time t, and h. . .i indicate averaging over all ions of the same species and over several time-origins, is compared. However, to note a disadvantage, though in typical MD studies, the self-diﬀusion coeﬃcient
+
+can be estimated directly, by the Einstein’s relation,
+
+D
+
+¼
+
+MSDðtÞ 6t ,
+
+the
+
+same
+
+does
+
+not
+
+apply
+
+in
+
+MTD
+
+simulations
+
+as
+
+the process is ‘artificially’ accelerated.
+
+The Na+–Na+ RDF (Fig. 4), calculated from the MTD trajec-
+
+tory, offers insights on the ion transport in the system. The first
+
+peak of the RDF appears at around 6.3 Å, which measures the
+
+distance between two neighbouring Na1 sites (6b positions of the R3%c space group). The second peak at around 9.1 Å
+
+corresponds to the next-neighbour distance between two Na1 sites. This reflects the fact that in NaZr2(PO4)3, all the Na+ ions prefer to occupy the Na1 sites, and also Na+ hops occur from
+
+one Na1 to the nearest Na1 site. Most experimental and
+
+computer simulation studies on this material have suggested this mechanism earlier.49–51,58,59
+
+For better convergence of the free energy profile, the ‘tagged’
+
+particle needs to sample a significant fraction of the individual
+
+local minima and the saddle points connecting them. For
+
+instance, in Fig. 5, the free energy barrier measures 0.24 eV
+
+after 10 ns, while from 20 ns onward, the barrier starts conver-
+
+ging, and settles to the value of 0.34 eV over the period of
+
+100 ns.
+
+Fig. 6 shows the free energy (eqn (4) and (5)) and potential
+
+energy profiles (eqn (6)) calculated from the entire MTD trajec-
+
+tory of 100 ns, along with that from the NEB calculations. The
+
+barriers calculated from diﬀerent profiles show comparable values ranging between B0.35 and 0.4 eV. It should be noted
+
+that all the energy profiles indicate an energy minimum at the
+
+Na1 sites, and the saddle point is located at the Na2 site. This is in agreement with the Na+–Na+ dynamic RDF shown in Fig. 4, wherein the Na+ ions preferentially occupy the Na1 sites in
+
+NaZr2(PO4)3. The calculated values of the microscopic barriers are also in good agreement with the previous studies.60,61
+
+The ion migration channel connecting two Na1-sites and the
+
+built-up external potential along it are illustrated in Fig. 7. The
+
+observed migration channel is consistent with the previous MD
+
+Fig. 3 Mean squared displacement (MSD) of Na+ ions, averaged over all Na+ ions, from MTD and MD simulations of NaZr2(PO4)3 at 500 K.
+
+Fig. 4 The radial distribution function (RDF) between the Na+ ions calculated from MTD simulation of NaZr2(PO4)3 at 500 K. The bars indicate the static RDF between Na1–Na1, Na1–Na2 and Na2–Na2 sites.
+
+This journal is © the Owner Societies 2020
+
+Phys. Chem. Chem. Phys., 2020, 22, 22796--22804 | 22799
+
+PCCP
+
+View Article Online
+Paper
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+Fig. 7 Left: The three dimensional distribution hills deposited between two Na1 sites over the MTD simulation of NaZr2(PO4)3 at 500 K. The colormap (on an arbitrary scale) helps to compare the relative intensities of regions. Right: The minimum energy path for the Na+ ion between two neighbouring Na1-sites calculated using the NEB method.
+
+Fig. 5 Evolution of the free energy profiles (calculated using (5)) as a function of l, chosen as the reaction coordinate, during the MTD simulation of NaZr2(PO4)3 at 500 K.
+
+Having examined the utility of MTD simulations for ion transport in NaZr2(PO4)3, we shall demonstrate the same for Na4Zr2(SiO4)3, where the results are less direct, or more intriguing on a primary inspection.
+
+3.2 Na4Zr2(SiO4)3
+The silicate end member of NASICONs, Na4Zr2(SiO4)3, shares the same structural feature as its phosphate counterpart, NaZr2(PO4)3, discussed above. However, the former packs-up four times as many Na+ ions in about the same volume. This high ‘packing ratio’ makes it much harder for the Na+ ions to move in the lattice. Fig. 8 (top) shows the distribution of Na+ ions in the simulation cell, consisting of 3 Â 3 Â 1 rhombohedral unit cells, sampled from 100 ns of standard MD. As in the previous case, standard MD simulations observe only the thermal vibrations of Na+ about their equilibrium positions
+
+Fig. 6 The converged free energy profile (FE) as a function of l from 100 ns of MTD simulation of NaZr2(PO4)3 is compared with the individual potential energy profile of Na+ ions (averaged over all the ions and over the entire MTD trajectory), and with potential energy profile calculated from NEB calculations.
+
+simulations on the high conducting Na3Zr2Si2PO12 system.50,58,59 Fig. 7 (left) shows the minimum energy path (MEP) of Na+ from one Na1-site to the neighbouring Na1 site obtained from the NEB calculation. This compares well with the profile of external potential deposited over the 100 ns long MTD run on a selected plane containing two neighbouring Na1-sites and the Na2-site in the channel, shown in Fig. 7 (right). It can be seen that the ‘hills’ develop at the two energetically favorable Na1-sites, with a low-ridge connecting the two, depicting the migration channel. The nature of the channel is qualitatively very similar to that of the minimum energy path from the NEB calculations, and the absence of any local maximum in the channel is indicative of the fact that Na2-sites are energetically not favorable.
+
+Fig. 8 Top: Distribution of all the Na+ ions in the simulation super-cell
+sampled from standard MD simulation of Na4Zr2(SiO4)3 at 500 K. Bottom: The progress of the tagged Na+ ion in the super-cell during the MTD
+simulation of Na4Zr2(SiO4)3 at 500 K highlighted for the first 100 ns in red, and that of the next 100–200 ns in olive green.
+
+22800 | Phys. Chem. Chem. Phys., 2020, 22, 22796--22804
+
+This journal is © the Owner Societies 2020
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+Paper
+
+View Article Online
+PCCP
+
+during the period. Thus, the Na+ transport remains inaccessible due to the long time scales of the process. Fig. 8 (bottom) shows the MTD trajectory of the single Na+ ion on which the external potential is applied. Due to its slower transport, the Na+ ion could not explore the simulation box suﬃciently during the 100 ns of time (shown in red) initially dedicated. Hence, the simulation was continued for another 100 ns of MTDsimulation (shown in olive green). The mean squared displacement of Na+ ions calculated from the MTD trajectory (averaged over all Na+ ions and over several time-origins, as in the previous case) is presented in Fig. 9.
+Fig. 10 shows the Na+–Na+ RDF calculated from MTD trajectory, along with the X-ray distribution of the sites, Na1–Na1 (brown), Na1–Na2 (green) and Na2–Na2 (blue). The first peak of the dynamic RDF corresponds to the Na1–Na2 distance (3.4 Å), the second peak corresponds to the Na2–Na2 distance (4.9 Å), and the third and fourth peaks respectively correspond to the first and second Na1–Na1 neighbor distances. Thus, as required by the composition, all the Na1 and Na2 sites remain occupied. The diffusion channel of Na+ revealed by the MTD trajectory also remains the same, as the one connecting Na1–Na2–Na1-sites.
+Calculation of the energy profile, F, for Na4Zr2(SiO4)3 has been carried out based on the accumulated external potential in a similar fashion as in the previous case. The convergence of the profile (plotted as a function of the reaction coordinate, li) with the progress of the MTD run is demonstrated in Fig. 11. As can be seen, the profile significantly varies for run-lengths of 20 ns, 60 ns and 70 ns. For run-lengths of 80 ns and larger, the profile starts converging, measuring a barrier of about 0.34 eV. In Fig. 12, the converged free energy profile, F, from MTD simulation is compared with the average potential energy profiles of individual Na+ ions sampled from the MTD trajectory, and that from the Nudged Elastic Band (NEB) calculations. The NEB calculations are performed only between two neighboring Na1 and Na2 sites.
+The free energy barriers for Na+ transport in Na4Zr2(SiO4)3 can be observed to be qualitatively diﬀerent from that of
+Fig. 9 MSD of Na+ ions from MTD and MD simulations of Na4Zr2(SiO4)3 at 500 K.
+
+Fig. 10 The Na+–Na+ RDF for Na4Zr2(SiO4)3 at 500 K, along with the distribution of Na sites (shown as bars) from the X-ray structure.
+Fig. 11 Evolution of the free energy profile during the 200 ns long MTD simulation of Na4Zr2(SiO4)3 at 500 K.
+NaZr2(PO4)3 in Fig. 5. Unlike in NaZr2(PO4)3, the Na2-location is now a local minimum, with the peak of the profile shifting to, roughly, mid-way along the Na1–Na2 channel. The free energy barrier of 0.34 eV obtained from MTD is in good agreement with the experimental activation barrier of 0.347 eV reported by Tran Qui et al.57
+The most intriguing aspect in Fig. 12 is that the potential energy profiles of individual Na+ ions, both from MTD and NEB calculations, are in sharp contrast to the free-energy profiles. The barrier heights of the potential energy profiles are about 0.15 eV, which is much lower than the barrier obtained from the free energy profile (B0.34 eV) as well as the experimental activation energy. This behaviour is attributed to the high degree of ion–ion correlation in the system. In the NASICON solid solution Na1+xZr2SixP3ÀxO12 (0 r x r 3.0), ion–ion correlations are expected to increase with the concentration of the mobile ions x. It should be recalled that many studies in the past51,62,63 have attributed the anomalously high conductivity of
+
+This journal is © the Owner Societies 2020
+
+Phys. Chem. Chem. Phys., 2020, 22, 22796--22804 | 22801
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+PCCP
+
+View Article Online
+Paper
+
+Fig. 12 The converged free energy profile (FE) of Na+ migration from a 200 ns long MTD simulation of Na4Zr2(SiO4)3 is compared with the individual potential energy profile of Na+ ions (from the MTD trajectory) and that from the NEB calculation.
+Na3Zr2Si2PO12 to an ‘optimal’ ion–ion correlation. From a contextual perspective, we shall note that the Na4Zr2(SiO4)3 system contains four times more Na+ ions compared to NaZr2(PO4)3, necessitating that all the Na1 and Na2-sites in the lattice be occupied. With the migration channel in the structure being the one connecting Na1–Na2–Na1-sites,50,58,59 no Na+ ions can jump to any of the neighbouring sites independently. Thus, it should be inferred that the Na+ transport in the framework involves correlated hops of multiple Na+ ions. In Fig. S1 (see ESI†), the correlated hops of Na+ ions are demonstrated using the trajectories of arbitrarily picked ions along with some of their neighbours. In MTD simulations, the tagged Na+ ion (on which the external potential is imposed) propels all the participating Na+ ions in this correlated motion, thus the ‘total effective cost’ of the event is reflected in F, while individual Na+ ions experience only a ‘fractional share’ of it. Thus, F is the more appropriate measure of the diffusion barrier.
+Fig. 13 demonstrates the MEP for Na+ hopping from one Na1-site to the neighbouring Na2 site obtained from the NEB calculation. This is compared with the profile of the external
+
+potential deposited over one segment of the conduction channel connecting Na1–Na2–Na1-sites. Like in the previous case, two neighbouring Na1 sites develop a maximum external potential, indicating free-energy minima at Na1 sites. However, in contrast, for the Na4Zr2(SiO4)3 system, there is a local maximum of the external potential formed between the two Na1-sites that corresponds to the local free-energy minimum at the Na2 site.
+Before summarizing the results, we shall briefly examine the results for diﬀerent values of the bias factors, namely for g = 3 and g = 9, relative to g = 6, for which the above results are discussed. It should be noted that in Fig. S2 (see the ESI†), for g = 3, the tagged particle does not explore the configurational space eﬃciently. In NaZr2(PO4)3, for g = 3, the tagged particle makes several unsuccessful attempts to hop to its six neighbouring Na1 sites during the 100 ns of simulation, while for Na4Zr2(SiO4)3, the tagged ion successfully hops to one of its neighbouring Na1 sites, but fails to explore any further during the 200 ns of simulation. On the other hand, for bias factor g = 9, visually, the entire simulation cell is visited by the tagged ion in both the systems, as was the case for g = 6. Demonstrated in Fig. S3 (ESI†) (for g = 6) is the fact that for a large enough bias factor, the tagged particle attempts several hops to neighbouring sites before being successful. As this process continues in each of the minima (Na-sites) encountered by the tagged ion, the corresponding wells gets filled out evenly by the dropped hills. However, for very large bias factors (not shown), say g = N (that is, without the ‘tuning’ of the hills), the tagged ion explores the configuration space rather too fast, that is, without sampling the local minima suﬃciently. This causes uneven filling of the minima, causing larger errors in the free energy estimates. Thus, for an optimal range of g values, the tagged ion samples the local minima fairly extensively, while also exploring the rest of the accessible configuration space within aﬀordable time scales. And as shown in Fig. S4 (ESI†), the resulting free energy profile for g = 9 is very similar to that of g = 6 for both the systems. Thus, the choice of g in the range of 6 to 9 for these systems seems adequate.
+4 Conclusion
+
+Fig. 13 Left: Three dimensional map of hills deposited on the tagged Na+-ion in Na4Zr2(SiO4)3. The color-map (on an arbitrary scale) helps to compare the relative intensities of regions. Right: The corresponding minimum energy path of the Na+ ion between two neighbouring Na1–
+Na2-sites obtained from the NEB calculation.
+
+The general utility of the metadynamics technique in accessing slow diﬀusion in solid electrolytes is explored for the prototypical phosphate and silicate end members of the ‘true’ NASICON solid solution, Na1+xZr2SixP3ÀxO12 (where 0 r x r 3.0). We shall note in passing that in contrast to previous MTD implementations,31–35 where a distance measure from a selected origin was chosen as the collective variable, the present simulation employs the Cartesian coordinates of a ‘tagged’ ion as the collective variable. However, without further investigation, it is hard to compare the efficiencies of these two implementations.
+The MTD method involves imposition of external Gaussian ‘hills’ on the tagged ion or the ‘walker’, at regular intervals following the well-tempered variant of the algorithm. As the
+
+22802 | Phys. Chem. Chem. Phys., 2020, 22, 22796--22804
+
+This journal is © the Owner Societies 2020
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+Paper
+
+View Article Online
+PCCP
+
+hills start filling out the local energy minimum, the ion starts exploring other parts of the configurational space, resulting in the transport of ions across the matrix. The migration channel of the ions in the NASICON structure is found to be the one connecting Na1–Na2–Na1-sites, consistent with the previous MD simulations on the high conducting Na3Zr2Si2PO12 system. The hills imposed are reconstructed, and mapped on to the separation between two neighbouring Na+ sites (namely, Na1 and Na2) in the conduction channel, chosen as the ‘reaction coordinate’. Thus, the microscopic free-energy profile of the ions in the migration channel is constructed. As demonstrated, for better convergence of the free-energy barrier, the walker needs to explore a significant fraction of the individual local minima and the saddle points connecting them.
+In the phosphate end member, NaZr2(PO4)3, the free energy profiles from MTD calculations are in agreement with the individual potential energy of ions and with nudged-elastic band (NEB) calculations. And the estimated barrier agrees well with the activation barrier reported in experiments. For the silicate end member, Na4Zr2(SiO4)3, the MTD free energy barrier remains in good agreement with experimental values, however quantitative diﬀerence between the potential energy profiles obtained from MTD and from the NEB calculations is observed. This has been attributed to the high-degree of correlated hops of Na+ ions. The situation is analogous to a freight engine pulling several carriages over a mountainous terrain, wherein the engine (akin to the ‘walker’) accounts for the entire energy expended, while the work done by individual carriers (akin to the other ions) measures only the fractional share of the gross.
+Thus, the metadynamics approach facilitates investigation of the mechanism and microscopic energetics of diﬀusion in condensed phases, overcoming to a great extent the time-scale limitations typical for atomistic simulation studies. We hope that the present study will further stimulate and guide metadynamics studies of atomic/molecular diﬀusion in condensed states of matter.
+Conflicts of interest
+There are no conflicts to declare.
+Acknowledgements
+The authors acknowledge use of the supercomputer facility, Param Ishan, at Indian Institute of Technology (IIT) Guwahati, India.
+References
+1 M. P. Allen and D. J. Tildesley, Computer simulation of liquids, Oxford University Press, 2017.
+2 D. Frenkel and B. Smit, Understanding molecular simulation: from algorithms to applications, Elsevier, 2001, vol. 1.
+3 R. Car and M. Parrinello, Phys. Rev. Lett., 1985, 55, 2471. 4 D. K. Remler and P. A. Madden, Mol. Phys., 1990, 70,
+921–966.
+
+5 D. Marx and J. Hutter, Modern Methods and Algorithms of Quantum Chemistry, 2000, vol. 1, p. 141.
+6 G. M. Torrie and J. P. Valleau, J. Comput. Phys., 1977, 23, 187–199.
+7 H. Grubmu¨ller, Phys. Rev. E: Stat. Phys., Plasmas, Fluids, Relat. Interdiscip. Top., 1995, 52, 2893.
+8 E. Darve and A. Pohorille, J. Chem. Phys., 2001, 115, 9169–9183. 9 S. Park and K. Schulten, J. Chem. Phys., 2004, 120,
+5946–5961. 10 T. Huber, A. E. Torda and W. F. Van Gunsteren, J. Comput.-
+Aided Mol. Des., 1994, 8, 695–708. 11 L. C. Pierce, P. R. Markwick, J. A. McCammon and
+N. L. Doltsinis, J. Chem. Phys., 2011, 134, 174107. 12 S. Awasthi and N. N. Nair, Wiley Interdiscip. Rev.: Comput.
+Mol. Sci., 2019, 9, e1398. 13 A. Laio and M. Parrinello, Proc. Natl. Acad. Sci. U. S. A., 2002,
+99, 12562–12566. 14 M. Iannuzzi, A. Laio and M. Parrinello, Phys. Rev. Lett., 2003,
+90, 238302. 15 A. Stirling, M. Iannuzzi, A. Laio and M. Parrinello, Chem-
+PhysChem, 2004, 5, 1558–1568. 16 P. Raiteri, A. Laio, F. L. Gervasio, C. Micheletti and
+M. Parrinello, J. Phys. Chem. B, 2006, 110, 3533–3539. 17 C. Ceriani, A. Laio, E. Fois, A. Gamba, R. Martonˇ´ak and
+M. Parrinello, Phys. Rev. B: Condens. Matter Mater. Phys., 2004, 70, 113403. 18 R. Martonˇ´ak, D. Donadio, A. R. Oganov and M. Parrinello, Phys. Rev. B: Condens. Matter Mater. Phys., 2007, 76, 014120. 19 L.-M. Liu, A. Laio and A. Michaelides, Phys. Chem. Chem. Phys., 2011, 13, 13162–13166. 20 J. To´bik, R. Martonˇ´ak and V. Cambel, Phys. Rev. B, 2017, 96, 140413. 21 P. P. Kumar, A. G. Kalinichev and R. J. Kirkpatrick, J. Chem. Phys., 2007, 126, 204315. 22 N. N. Nair, E. Schreiner and D. Marx, J. Am. Chem. Soc., 2006, 128, 13815–13826. 23 C. Micheletti, A. Laio and M. Parrinello, Phys. Rev. Lett., 2004, 92, 170601. 24 G. Bussi, A. Laio and M. Parrinello, Phys. Rev. Lett., 2006, 96, 090601. 25 A. Barducci, G. Bussi and M. Parrinello, Phys. Rev. Lett., 2008, 100, 020603. 26 G. Bussi and A. Laio, Nat. Rev. Phys., 2020, 1–13. 27 O. Valsson, P. Tiwary and M. Parrinello, Annu. Rev. Phys. Chem., 2016, 67, 159–184. 28 S. Awasthi, V. Kapil and N. N. Nair, J. Comput. Chem., 2016, 37, 1413–1424. 29 S. Awasthi and N. N. Nair, J. Chem. Phys., 2017, 146, 094108. 30 B. Ensing, M. De Vivo, Z. Liu, P. Moore and M. L. Klein, Acc. Chem. Res., 2006, 39, 73–81. 31 K. Jug, N. N. Nair and T. Bredow, Phys. Chem. Chem. Phys., 2005, 7, 2616–2621. 32 J. Rabone and P. Van Uﬀelen, J. Nucl. Mater., 2015, 459, 30–36. 33 K. Meier, T. Laino and A. Curioni, J. Phys. Chem. C, 2014, 118, 6668–6679.
+
+This journal is © the Owner Societies 2020
+
+Phys. Chem. Chem. Phys., 2020, 22, 22796--22804 | 22803
+
+Published on 10 September 2020. Downloaded by University of Massachusetts - Amherst on 7/21/2022 9:59:55 PM.
+
+PCCP
+
+View Article Online
+Paper
+
+34 Y.-J. Wang, J.-P. Du, S. Shinzato, L.-H. Dai and S. Ogata, Acta Mater., 2018, 157, 165–173.
+35 E. Jackson, M. Miklitz, Q. Song, G. A. Tribello and K. E. Jelfs, J. Phys. Chem. C, 2019, 123, 21011–21021.
+36 T. Famprikis, P. Canepa, J. A. Dawson, M. S. Islam and C. Masquelier, Nat. Mater., 2019, 1–14.
+37 G. Åvall, J. Mindemark, D. Brandell and P. Johansson, Adv. Energy Mater., 2018, 8, 1703036.
+38 B. Zhang, R. Tan, L. Yang, J. Zheng, K. Zhang, S. Mo, Z. Lin and F. Pan, Energy Storage Mater., 2018, 10, 139–159.
+39 W. Zhao, J. Yi, P. He and H. Zhou, Electrochem. Energy Rev., 2019, 1–32.
+40 J. C. Bachman, S. Muy, A. Grimaud, H.-H. Chang, N. Pour, S. F. Lux, O. Paschos, F. Maglia, S. Lupart and P. Lamp, et al., Chem. Rev., 2015, 116, 140–162.
+41 Z. Zhang, Y. Shao, B. Lotsch, Y.-S. Hu, H. Li, J. Janek, L. F. Nazar, C.-W. Nan, J. Maier and M. Armand, et al., Energy Environ. Sci., 2018, 11, 1945–1976.
+42 H.-P. Hong, Mater. Res. Bull., 1976, 11, 173–182. 43 J. B. Goodenough, H.-P. Hong and J. Kafalas, Mater. Res.
+Bull., 1976, 11, 203–220. 44 N. Anantharamulu, K. K. Rao, G. Rambabu, B. V.
+Kumar, V. Radha and M. Vithal, J. Mater. Sci., 2011, 46, 2821–2837. 45 B. Scheetz, D. K. Agrawal, E. Breval and R. Roy, Waste Manage., 1994, 14, 489–505. 46 Y. Saito and T. Maruyama, Solid State Ionics, 1988, 28, 1644–1647. 47 J. W. Fergus, Sens. Actuators, B, 2008, 134, 1034–1041. 48 P. Vashishta and A. Rahman, Phys. Rev. Lett., 1978, 40, 1337.
+
+49 P. P. Kumar and S. Yashonath, J. Am. Chem. Soc., 2002, 124, 3828–3829.
+50 P. P. Kumar and S. Yashonath, J. Phys. Chem. B, 2002, 106, 7081–7089.
+51 J.-P. Boilot, G. Collin and P. Colomban, J. Solid State Chem., 1988, 73, 160–171.
+52 S. Plimpton, J. Comput. Phys., 1995, 117, 1–19. 53 G. A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and
+G. Bussi, Comput. Phys. Commun., 2014, 185, 604–613. 54 G. Henkelman, B. P. Uberuaga and H. J´onsson, J. Chem.
+Phys., 2000, 113, 9901–9904. 55 G. Henkelman and H. Jo´nsson, J. Chem. Phys., 2000, 113,
+9978–9985. 56 R. Hazen, L. Finger, D. K. Agrawal, H. McKinstry and
+A. J. Perrotta, J. Mater. Res., 1987, 2, 329–337. 57 D. T. Qui, J. Capponi, M. Gondrand, M. Saib, J. Joubert and
+R. Shannon, Solid State Ionics, 1981, 3, 219–222. 58 S. Roy and P. P. Kumar, Phys. Chem. Chem. Phys., 2013, 15,
+4965–4969. 59 K. Pramanik, K. Sau and P. P. Kumar, J. Phys. Chem. C, 2020,
+124, 4001–4009. 60 Y. Miyajima, T. Miyoshi, J. Tamaki, M. Matsuoka,
+Y. Yamamoto, C. Masquelier, M. Tabuchi, Y. Saito and H. Kageyama, Solid State Ionics, 1999, 124, 201–211. 61 A. Ivanov-Schitz and A. Bykov, Solid State Ionics, 1997, 100, 153–155. 62 X. He, Y. Zhu and Y. Mo, Nat. Commun., 2017, 8, 15893. 63 Z. Zhang, Z. Zou, K. Kaup, R. Xiao, S. Shi, M. Avdeev, Y.-S. Hu, D. Wang, B. He and H. Li, et al., Adv. Energy Mater., 2019, 9, 1902373.
+
+22804 | Phys. Chem. Chem. Phys., 2020, 22, 22796--22804
+
+This journal is © the Owner Societies 2020
+

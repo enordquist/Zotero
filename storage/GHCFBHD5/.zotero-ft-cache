@@ -1,0 +1,789 @@
+Web Server
+
+ANuPP: A Versatile Tool to Predict Aggregation Nucleating Regions in Peptides and Proteins
+
+R. Prabakaran 1, Puneet Rawat 1, Sandeep Kumar 2⇑ and M. Michael Gromiha 1,3⇑
+1 - Protein Bioinformatics Lab, Department of Biotechnology, Indian Institute of Technology Madras, Chennai, Tamil Nadu, India 2 - Biotherapeutics Discovery, Boehringer Ingelheim Pharmaceutical Inc., Ridgeﬁeld, CT, USA 3 - School of Computing, Institute of Innovative Research, Tokyo Institute of Technology, Yokohama, Kanagawa, Japan
+Correspondence to Sandeep Kumar, M. Michael Gromiha: Sandeep_2.Kumar@Boehringer-Ingelheim.com (Sandeep Kumar), gromiha@iitm.ac.in (M. Michael Gromiha) https://doi.org/10.1016/j.jmb.2020.11.006 Edited by Michael Sternberg
+Abstract
+Short aggregation prone sequence motifs can trigger aggregation in peptide and protein sequences. Most algorithms developed so far to identify potential aggregation prone regions (APRs) use amino acid residue composition and/or sequence pattern features. In this work, we have investigated the importance of atomic-level characteristics rather than residue level to understand the initiation of aggregation in proteins and peptides. Using atomic-level features an ensemble-classiﬁer, ANuPP has been developed to predict the aggregation-nucleating regions in peptides and proteins. In a dataset of 1279 hexapeptides, ANuPP achieved an area under the curve (AUC) of 0.831 with 77% accuracy on 10-fold cross-validation and an AUC of 0.883 with 83% accuracy in a blind test dataset of 142 hexapeptides. Further, it showed an average SOV of 48.7% on identifying APR regions in 37 proteins. The performance of ANuPP is better than other methods reported in the literature on both amyloidogenic hexapeptide prediction and APR identiﬁcation. We have developed a web server for ANuPP and it is available at https://web.iitm.ac.in/bioinfo2/ ANuPP/. Insights gained from this work demonstrate the importance of atomic and functional group characteristics towards diversity of atomic level origins as well as mechanisms of protein aggregation.
+Ó 2020 Elsevier Ltd. All rights reserved.
+
+Introduction
+Even though proteins have been continually evolving over a long time, aggregation remains a persistent threat to productive protein folding and function. This is evident from various protein aggregate depositions such as Lewy bodies and Amyloids implicated in many proteinopathies.1 At the same time, various studies have also reported that aggregation propensities of proteins are related to their native state stability.2–4 For example, Ma et al. 2 have shown that aggregation propensities of the subunit interfaces are greater than those of the molecular surfaces, and the differences between surface and interface aggregation
+
+propensities are directly correlated with optimal growth temperatures of organisms. By analyzing large datasets of protein structures, Buck et al. 4 and Prabakaran et al. 5 have shown that aggregation prone regions (APRs) in protein sequences contribute signiﬁcantly more toward native state stability than other regions of similar lengths. Proteins have also evolved to control aggregation via negative design by interrupting the APRs through gate keeping residues.6–7 Thangakani et al. 8 compared the incidence of APRs among thermophilic and mesophilic proteins, and showed that thermophilic proteins are better able to either interrupt APRs via gatekeeping residues or stow them in
+
+0022-2836/Ó 2020 Elsevier Ltd. All rights reserved.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+their cores than their mesophilic homologues. The ability to control protein aggregation is also essential for the production of functional amyloid ﬁbrils both in vivo and in vitro such as peptide hormone storage, scaffold support for melanin granules, bioﬁlm formation and heritable information transfer.9 Aggregation is a challenge for the design, development and storage of biotherapeutic molecules.10
+Ability of the APRs to dictate the fates of proteins has attracted considerable research efforts. Understanding and accurate identiﬁcation of the APRs has several potential applications in human diseases, development of biotherapeutics and design of nanomaterials.11 Studies have shown that properties such as hydrophobicity, b-propensity, buriedness, and solvent isolatedness can identify APRs in protein sequences and structures.4–5,12–13
+Most of the algorithms which have been developed to predict APRs in proteins are either sequence-based or structure-based mathematical models. The structure-based models such as SAP and Aggscore 14–15 quantiﬁed size and solvent exposure of the hydrophobic patches on the protein surface. Sequence-based methods, such as PAGE, TANGO, WALTZ and GAP, have highlighted the importance of sequence patterns, position-speciﬁc residue preferences and residue-pair preferences as well as charge, hydrophobicity and b-strand propensity to identify potential APRs in protein sequences.13,16–18 Other methods such as Aggrescan3D and Solubis,19–20 use a combination of both sequence and structure-based approaches.
+While several algorithms have been devised to identify potential APRs in protein sequences and structures over the past couple of decades, no single algorithm currently succeeds consistently when used for aggregation prediction in diverse datasets. In fact, a recent comparative analysis of the existing methods has revealed that there is still a need for improvements in their predictive performances.21 We postulate that use of amino acid residue-level features such as sequence patterns, residue preferences, and amino acid physicochemical properties limit the predictive power of these models because of the lack of large and diverse datasets of peptides and protein sequences currently available for training.
+In this work, we have developed a new model called Aggregation Nucleation Prediction in Peptides and Proteins (ANuPP). ANuPP is an ensemble-classiﬁer that identiﬁes potential APRs in peptides and proteins by taking into account atomic-level features of hexapeptides. It showed an accuracy of 83% with an AUC of 0.883 in a test dataset of 142 hexapeptides and an average SOV of 48.7% for identifying APRs in 37 proteins. ANuPP is freely available for academic use at https://web.iitm.ac.in/bioinfo2/ANuPP/.
+
+Methods
+
+Datasets
+
+ANuPP was trained on a dataset of hexapeptides
+
+that have been shown experimentally to be either
+
+amyloidogenic
+
+or
+
+non-amyloidogenic.
+
+Hexapeptides were chosen as the ideal length for
+
+the model because of availability of experimental
+
+data on a large number of them. Currently, 1421
+
+experimentally validated amyloidogenic and non-
+
+amyloidogenic hexapeptides are available in literature.22–26 In contrast, numbers of experimen-
+
+tally validated tri-, quadra-, penta- or hepta-pep-
+
+tides (lengths 3, 4, 5 or 7) are currently 1, 4, 16 and 50, respectively.25 The hexapeptide dataset
+
+consists of 512 amyloidogenic and 909 non-
+
+amyloidogenic unique peptide sequences obtained
+
+from CPAD 2.0, WALTZ-DB, and AmyLoad databases.22–26 The dataset was divided into two
+
+groups: 90% for training and cross-validation
+
+(Hex1279) and 10% as a blind test set for evaluat-
+
+ing the performance of the method (Hex142).
+
+Further, we validated ANuPP against APR annotations in AmyPro database.27 We collected
+
+a dataset of 162 proteins from AmyPro. The data-
+
+set consists of annotations of identiﬁed Aggrega-
+
+tion Prone Regions (APRs). However, we
+
+observed that the annotation of the APRs is incom-
+
+plete and approximate. Several large proteins,
+
+such as AChE, BAP, CPEB, etc., are annotated
+
+with only one APR, and several APR segments
+
+are longer than 100 residues. The dataset was ﬁl-
+
+tered to remove sequences without APR annota-
+
+tion, ambiguous annotations, and APR residue
+
+fraction is less than 10% or greater than 95%. Fur-
+
+ther, we performed clustering at 40% sequence
+
+identity using CD-HIT to reduce the redundancy and obtained a set of 54 proteins.28 These protein
+
+sequences were analyzed for presence of
+
+hexapeptides from Hex1279, training dataset.
+
+Based on the number of hexapeptides present in
+
+the protein sequence, we divided the 54 proteins
+
+into Amy17 (>1 hexapeptide from Hex1279) and
+
+Amy37 (0 or 1 hexapeptide from Hex1279) data-
+
+sets for calibration and assessment. The cut-off
+
+of 1 was chosen to avoid reducing the validation
+
+dataset size (Amy37). However, the choice of cut-
+
+off did not affect the conclusion of the analysis.
+
+The calibration set of 17 protein sequences are
+
+used to select an optimum value for parameters
+
+such as minimum nucleating window and threshold
+
+cut-offs (see “Identiﬁcation of Aggregation Prone
+
+Regions”). Sequences in Amy17 and Amy37 share
+
+less than 40% sequence identity. All the datasets
+
+used in study are listed in the Appendixes (see
+
+Supplementary Information) and also available for
+
+download at https://web.iitm.ac.in/bioinfo2/
+
+ANuPP/datasets/.
+
+2
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+Features design and selection
+
+aggregation of a hexapeptide containing polar
+
+ANuPP uses atom compositions of peptides and protein segments as features for training the algorithm. Along with the size and branching of side chains, the presence or absence of speciﬁc functional groups underpins different physicochemical properties of the 20 amino acids (Supplementary Table S1). The use of atomic characteristics helps to expand the training feature sets. For example, atoms Cb, Cc, Cd1, and Cd2 represent Leucine in the atom feature space. These atoms represent the presence of a side chain (Cb), length of the side chain, lack of nonaliphatic polar or charged functional groups, lack of branching at Cb and extension of the side chain by a methyl group (Cc), presence of nextlevel branching at Cc (C d1 and Cd2), respectively. Since each amino acid contains multiple atomic level features, 1279 hexapeptide sequences in the training dataset contain several instances of occurrences for all the 36 atom types. Frequency of an atom type i is the number of atoms of type i normalized by the total number of atoms in a hexapeptide, as shown in equation (1) and illustrated in Supplementary Figure S1.
+
+and charged residues. A few well-known examples include DFNKF from human calcitonin and GNNQQNY from yeast Sup35 protein.30–31 The arrangement of Gln/Asn residues in the ﬁbrils leads to the stacking of amide groups, which results in additional inter-strand hydrogen bonds.32,33
+Supplementary Figure S2 shows the schematic representation of ANuPP architecture. ANuPP was developed as an ensemble-classiﬁer to address the diversity in aggregation mechanisms. Initially, the 461 amyloidogenic hexapeptide sequences from the training dataset (Hex1279) were grouped into clusters using on K-means clustering based on physicochemical amino acid properties such as Hydrophobicity (Hp), total charge, number of charged residues, and total extended ASA (size) of the peptides. The 461 amyloidogenic sequences were clustered into various number of clusters (k) and an optimum k of nine clusters was selected such that each cluster contains a minimum of 20 sequences and have low Davies-Bouldin score and high silhouette score.34–35
+An ensemble of nine independent logistic
+
+Fracatom i ðsegmentÞ ¼ P3iN¼61aNtomatoi ðmsieðgsemgemnetÞnt Þ
+
+ð1Þ
+
+PDB atom-naming convention29 has been used
+
+to denote different atom types present in each
+
+amino acid residue. In this work, we focused only
+
+on ‘heavy’ atoms and excluded all hydrogen atoms.
+
+In all, 36 distinct atom types were deﬁned to repre-
+
+sent all twenty standard amino acids. Further, 15 out of 36 atom types, namely, Cc1, Cd2, Sd, Ne2, Cb, Ce2, OH, Sc, Od2, Ce3, Ne, Nd1, Ce1, Cf and Cg2 were chosen to represent a given hexapeptide
+
+sequence via sequential forward feature selection.
+
+The selected features highlight diversity of physico-
+
+chemical attributes of different atom types and
+
+functional groups that constitute each of the twenty naturally occurring amino acids. For example, Cd1
+
+regression classiﬁers were built and trained on
+
+each of the nine clusters along with a randomly
+
+chosen subset of non-amyloidogenic
+
+hexapeptides (Supplementary Figure S2). To
+
+avoid class imbalance in the training dataset, we
+
+performed under-sampling, where the number of
+
+randomly
+
+chosen
+
+non-amyloidogenic
+
+hexapeptides was kept equal to the number of
+
+amyloidogenic hexapeptides. For a given
+
+segment, the predicted scores from the nine
+
+independent classiﬁers were combined using a
+
+Bayesian approach to derived the consensus
+
+score (Eqs. (2)–(4)).
+
+P agg cluster
+
+i ðsegmentÞ
+
+¼
+
+1
+
+þ
+
+1 e ð Þ À bi;0þbi;1x 1þbi;2x 2þÁÁÁ:þbi;n x n
+
+;
+
+i ¼ 1 to 9; n ¼ 1 to 15
+
+ð2Þ
+
+atom represents carbon atom at the delta position
+
+of branched amino acids such as Phe, Ile, Leu, Trp, and Tyr. Cd1 is present in both Ile and Leu; however, Cd1 and Cd2 are present in Leu and Ile, respectively. Nf and Ng1 together indicate uniquely the presence of positively charged residues: Arg and Lys, respectively.
+Model architecture ANuPP hypothesizes that aggregation
+
+pr P cluster
+
+i
+
+ðsegment
+
+Þ
+
+¼
+
+pﬃﬃ1ﬃﬃﬃﬃ 2
+
+e ﬃ Àðxpi À2rlii
+
+2
+Þ
+
+i
+
+ð3Þ
+
+X9
+
+P agg ðsegmentÞ ¼
+
+P cluster i :P agg cluster i
+
+ð4Þ
+
+i ¼1
+
+In Eq. (2), Pai gg represents the score for a given segment from the independent models, ‘i’ varies
+
+from 1 to 9, bi,n represents the weight of the logistic regression model i for the nth atom
+
+mechanisms for amyloidogenic hexapeptide composition feature, ‘n’ varies from 1 to 15. In Eq.
+
+sequences vary depending upon their atomic compositions. For example, the isolation of hydrophobic side chains from the solvent would
+
+(3), Pcluster represents the probability of the segment belonging to the cluster; xi is the distance of the sequence from the center of the
+
+be the driving force for aggregation of the cluster as measured using the physicochemical
+
+hexapeptide sequence rich in aliphatic and properties used for clustering, mi and ri are mean aromatic residues. On the other hand, hydrogen and standard deviation of the distance of the
+
+bonds and ion pairs may play active roles in the original cluster members from the center. Pagg is
+
+3
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+the consensus score for the segment derived by combining the individual predicted scores in a Bayesian approach.
+
+Identiﬁcation of aggregation prone regions
+To identify APR in protein sequences, a 4-step approach similar to Chou-Fasman secondary prediction algorithm was applied.36 Initially, for a given sequence S of n residues is split into n-5 overlapping hexapeptide segments, and Pagg is predicted for each segment. Second, the residue aggregation score (Paregsg) is calculated from the segment scores (Pagg) predicted by ANuPP. Aggregation score for a residue j in a sequence is the average of the predicted aggregation scores of all hexapeptide segments that contain the residue j. For example, aggregation score for residue number 5 is average of the predicted scores for hexapeptides spanning residues 1–6, 2–7, 3–8, 4–9 and 5–10. Following the residue score (Paregsg) calculation, nucleating regions of minimum length (w = 5 residues) with average residue score (<Paregsg >) higher than threshold 1 (th1 = 0.49) are identiﬁed across the sequence. These nucleating regions are further extended in N-terminal and Cterminal direction such that the residues have Paregsg higher than threshold 2 (th2 = 0.31). The parameters involved in the prediction, i.e., minimum nucleating window length (w), threshold 1 (th1), and threshold 2 (th2) were optimized to score higher SOVoverall on the calibration dataset of 17 AmyPro sequences (Amy17).
+
+Performance measures
+
+The performance of the present method in hexapeptide datasets are assessed using the measures sensitivity, speciﬁcity, accuracy, Matthew’s correlation coefﬁcient and F1 score.
+
+True
+
+Positive
+
+Rate
+
+ðSensitivity=RecallÞ; TPR
+
+¼
+
+TP TP þ FN
+
+ð5Þ
+
+addition, Receiver Operating Characteristic (ROC) curve and area under the curve (AUC) was computed to evaluate the performance. Further, the performance of ANuPP was compared with other predictors through Bootstrap sampling (n = 1000), Student’s t-test, and Mann–Whitney ranksum test using SciPy.37
+Segment OVerlap scores (SOVAPR, SOVnon-APR, and SOVoverall) are used to evaluate the performance of predicting APRs in proteins.38 SOV scores the prediction accuracy based on the overlap between the predicted and actual segments instead of residues, which is more appropriate for segment prediction similar to secondary structure prediction. Further, exact residues in APRs are not well deﬁned and hence prediction of APR regions is more reliable. In addition, SOVaverage was calculated as an average of SOVAPR and SOVnon-APR.
+Results and Discussion
+Development of a prediction model through ensemble approach
+ANuPP was trained with Hex1279 dataset, containing 461 amyloidogenic and 818 nonamyloidogenic hexapeptides using an ensemblebased approach. It provides a robust framework to address diversity in amyloidogenic hexapeptides through independent model training. The performance of the method is presented in Table S2. We observed that ANuPP showed an accuracy, sensitivity and speciﬁcity of 79%, 68%, and 85%, respectively, with an Area under the ROC curve (AUC) of 0.852. Further, we have evaluated the performance using 10-fold crossvalidation and the results are included in Table S2. ANuPP showed a consistent performance with an average sensitivity, speciﬁcity, accuracy and AUC of 63%, 86%, 77% and 0.831, respectively.
+
+True
+
+Negative
+
+Rate
+
+ðSpecificityÞ; TNR
+
+¼
+
+TN TN þ FP
+
+Assessment of ANuPP on the hexapeptide test ð6Þ dataset, Hex142
+
+Accuracy; ACC
+
+¼
+
+TP þ TN Total sample
+
+size
+
+ANuPP was validated using a blind test dataset, ð7Þ Hex142, which contain 51 and 91 experimentally
+studied amyloid and non-amyloid hexapeptides,
+
+QÀvalue; Q
+
+¼
+
+TPR
+
+þ 2
+
+TNR
+
+respectively. ANuPP showed a consistent ð8Þ performance with an AUC of 0.883 (Tables 1 and
+S3). Further, 83% of the hexapeptides are
+
+Matthews Correlation Coefficient; MCC ¼ pﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃðﬃﬃTﬃﬃﬃPﬃﬃﬃﬃﬃÃﬃﬃﬃTﬃﬃﬃNﬃﬃﬃﬃÞﬃﬃﬃÀﬃﬃﬃﬃﬃðﬃﬃFﬃﬃﬃPﬃﬃﬃﬃÃﬃﬃﬃﬃFﬃﬃﬃNﬃﬃﬃﬃÞﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃﬃ ðTP þ FPÞðTP þ FNÞðTN þ FPÞðTN þ FNÞ
+
+correctly classiﬁed as amyloids and non-amyloids with a sensitivity and speciﬁcity of 82% and 83%, ð9Þ respectively. To elucidate importance of the side chain functional group (atomic) features, we
+
+F1score;
+
+F1
+
+¼
+
+2TP
+
+2TP þ FN
+
+þ
+
+FP
+
+ð10Þ
+
+In the above equations, TP, TN, FP, and FN stands for true positive, true negative, false
+
+adapted the ANuPP model by re-training it with
+amino acid composition as input feature. The
+performance of the new model, ANuPPAA is listed in Table S2. ANuPPAA performed lower than ANuPP with an accuracy and AUC of 78% and
+
+positive, and false negative, respectively. In 0.845, respectively in the test dataset. These
+
+4
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+Table 1 Comparison of performances of different APR prediction methods on test dataset, Hex142.
+
+Sensitivity (%)
+
+Speciﬁcity (%)
+
+Accuracy (%)
+
+ANuPP
+
+82.4
+
+83.5
+
+83.1
+
+Aggrescan
+
+68.6
+
+85.7
+
+79.6
+
+FishAmyloid
+
+45.1
+
+82.4
+
+69.0
+
+GAP
+
+94.1
+
+27.5
+
+51.4
+
+Pasta2
+
+37.3
+
+96.7
+
+75.4
+
+TANGO
+
+5.9
+
+97.8
+
+64.8
+
+WALTZ
+
+39.2
+
+95.6
+
+75.4
+
+*AGGRESCAN39; Fish Amyloid40; GAP13; Pasta241; TANGO17; WALTZ18.
+
+Q (%)
+82.9 77.2 63.8 60.8 67.0 51.8 67.4
+
+F1 score (%)
+77.8 70.7 51.1 58.2 52.1 10.7 53.3
+
+MCC
+0.645 0.551 0.296 0.26 0.45 0.096 0.446
+
+AUC
+0.883 0.855 0.798 0.721 0.855 0.597 0.675
+
+results highlight the contribution of atomic features to enhance the predictive power of the model.
+The performance of our method is compared with other existing methods in the literature. Table 1 lists the performance of ANuPP against six existing predictors on the test dataset. ANuPP clearly showed the topmost performance with a Mathews Correlation Coefﬁcient (MCC) of 0.645 and a balanced accuracy (Q) of 83%. Interestingly, our method showed a balance between sensitivity and speciﬁcity of 82% and 84%, respectively. GAP showed the highest sensitivity of 94% whereas its speciﬁcity dropped to 28%. An opposite trend was observed for PASTA2, TANGO and WALTZ with high speciﬁcity and low sensitivity. In addition, we used AUC for unbiased comparison to rank the predictors. We observed that ANuPP showed the highest AUC of 0.883 followed by PASTA2 and AGGRESCAN, which showed an AUC of 0.855 (Supplementary
+
+Figure S3). FishAmyloid scored an AUC of 0.798 with 69% accuracy.
+Dependence of aggregation prediction on hydrophobicity
+Hydrophobicity plays a key role in protein and peptide aggregation. To quantify the variations in prediction accuracy with hydrophobicity, the Hex142, test dataset was grouped into three classes based on number of hydrophobic residues (0–2, 3, 4–6 residues for dominance of polar/charged residues, equal number of hydrophobic and polar/charged residues and dominance of hydrophobic residues to represent the mechanisms of aggregation due to charged/ polar and hydrophobic residues) containing 46, 46 and 56 hexapeptides, respectively. Following residues were considered as hydrophobic: Gly, Ala, Cys, Tyr, Val, Leu, Ile, Met, Phe and Trp.
+
+Figure 1. Variations in Balanced accuracy (Q) with hydrophobicity in Hex142, test dataset. The Hex142, test
+
+dataset was split into three classes based on number of hydrophobic residues (0–2, 3, 4–6 residues) containing 46,
+
+46 and 56 hexapeptides, respectively. The balanced accuracy (Q) of different predictors was computed in each of
+
+these classes.
+
+5
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+Table 2 Comparison of performance measures on the prediction of aggregation prone regions in amyloidogenic proteins based on Segment Overlap Score.
+
+SOVAPR
+
+SOVnon-
+APR
+
+SOVOverall SOVAverage
+
+No. of correctly predicted APRsǂ
+
+No. of correctly
+predicted NonAPRsǂ
+
+ANuPP
+
+45.2
+
+52.3
+
+50.2
+
+48.7
+
+28
+
+50
+
+Aggrescan
+
+34.3
+
+36.5
+
+32.4
+
+35.4
+
+17
+
+37
+
+FishAmyloid
+
+14.5
+
+45.2
+
+37.5
+
+29.9
+
+6
+
+56
+
+PASTA2 (85%
+
+13.2
+
+24.9
+
+23.2
+
+19.1
+
+5
+
+32
+
+speciﬁcity)
+
+TANGO
+
+19.1
+
+57.8
+
+48.1
+
+38.5
+
+7
+
+69
+
+WALTZ
+
+44.4
+
+28.9
+
+28.7
+
+36.6
+
+25
+
+28
+
+*Segment Overlap score was computed as in Zemla et al. 38. ǂA segment (APR or non-APR) is counted as correctly predicted if more than 50% residues of the segment were identiﬁed by the method. In total, there are 58 APRs and 81 non-APRs in the Amy37 dataset.
+
+Figure 1 shows the performance of ANuPP along with the 6 other predictors over the three classes. ANuPP scored a balanced accuracy of greater 79% is all the three classes. In comparison, with the overall performance of 83% (Table 1), the difference was subtle. Though AGGRESCAN showed the second highest performance, there was a signiﬁcant reduction in balanced accuracy (69%) in Class 2 hexapeptides with 3 hydrophobic residues in comparison with its overall accuracy of 77%.
+Identiﬁcation of aggregation prone regions
+Further, we have validated the predictive power of our model to identify aggregation prone regions using the dataset of 37 amyloidogenic proteins collected from the AmyPro database, Amy37 (see “Datasets”). We have evaluated the performance of the method using Segment Overlap scores and the results are presented in Table 2. SOVs for each class (APR and NonAPR) are calculated along with overall and average SOV to compare the performance of ANuPP with other existing methods. The results presented in Table 2 showed that ANuPP scored the highest overall and average SOV of 50.2% and 48.7%, respectively. TANGO showed the overall and average SOV of 48% and 39%, respectively. In addition, ANuPP showed a balance between SOVAPR (45.2%) and SOVnonAPR (52.3%) scores whereas TANGO had SOVAPR and SOVnon-APR scores of 19.1% and 57.8, respectively. On the other hand, Aggrescan showed a balanced performance with SOVAPR and SOVnon-APR of 34% and 36%, respectively. Similar, imbalance was found in other methods except PASTA2.
+
+APRs, lists aggregation score for every hexapeptide segment, and draws an interactive aggregation spectrum (Figure S4). The web server is available at https://web.iitm.ac.in/ bioinfo2/ANuPP/.
+ANuPP web server can accept up to 50,000 sequences in a single run to assist proteomelevel analysis of aggregation propensity. ANuPP also acts as a repository as it hosts predictions for the human proteome and 64 million hexapeptide sequences. These predictions show that approximately 10,881,439 (17%) of the 64 million hexapeptide sequences are aggregation prone. Additionally, analysis of the human proteome using ANuPP identiﬁed 261,246 potential APRs in 42,357 human protein sequences (which includes 20,379 proteins and their isoforms). Interesting, only 2.4% of the 261,246 APRs were not ﬂanked by gatekeeper residues (charged residues and proline). A repository of these predictions is available on our server.
+Limitations of ANuPP
+As stated earlier, a major limitation towards developing an accurate aggregation prone region prediction model is the limited availability of experimentally validated data. We have tried to overcome this problem by considering atomiclevel chemical properties of different functional groups in hexapeptide sequences in the Hex1279 dataset. Availability of experimental data on a larger number of hexapeptides shall further improve ANuPP’s predictive performance.
+Conclusions
+
+ANuPP, prediction server and a repository
+
+In this work, we have developed ANuPP, a webbased meta-classiﬁer, to identify aggregation prone
+
+ANuPP web server is a user-friendly open peptides and regions in proteins. The performance
+
+platform built using Bootstrap, Django, and of ANuPP was evaluated using several different
+
+MySQL and runs on an apache server. For a datasets, which demonstrate its superior
+
+given input sequence, ANuPP identiﬁes potential predictive power and versatility. While several
+
+6
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+APR prediction programs are currently available in literature, ANuPP is unique. It is the ﬁrst sequencebased method that uses atom-based features and considers diversity of aggregation mechanisms. Results presented here provide credence to our hypothesis that aggregation in peptides and proteins originates at atomic rather than residue level.
+Acknowledgements
+We thank Bioinformatics Infrastructure facility, Department of Biotechnology and Indian Institute of Technology Madras for computational facilities and Ministry of human resource and development (MHRD) for HTRA scholarship to PR. We thank WALTZ developers for sharing the executable.
+Declaration of Competing Interest
+Sandeep Kumar is an employee of Boehringer Ingelheim Pharmaceutical Inc. USA.
+Appendix A. Supplementary material
+Supplementary data to this article can be found online at https://doi.org/10.1016/j.jmb.2020.11.006.
+References
+1. Chiti, F., Dobson, C.M., (2017). Protein misfolding, amyloid formation, and human disease: a summary of progress over the last decade. Annu. Rev. Biochem., 86, 27–68.
+2. Ma, B.G. et al, (2010). Thermophilic adaptation of protein complexes inferred from proteomic homology modeling. Structure, 18 (7), 819–828.
+3. Berezovsky, I.N., (2011). The diversity of physical forces and mechanisms in intermolecular interactions. Phys. Biol., 8 (3) 2011 Jun; 035002.
+4. Buck, P.M. et al, (2013). On the role of aggregation prone regions in protein evolution, stability, and enzymatic catalysis: insights from diverse analyses. PLoS Comput. Biol., 9 e1003291.
+5. Prabakaran, R. et al, (2017). Aggregation prone regions in human proteome: Insights from large-scale data analyses. Proteins Struct. Funct. Bioinforma., 85, 1099–1118.
+6. Reumers, J. et al, (2009). Protein sequences encode safeguards against aggregation. Hum. Mutat., 30 (3), 431– 437. https://doi.org/10.1002/humu.20905.
+7. Gsponer, J., Babu, M.M., (2012). Cellular strategies for regulating functional and nonfunctional protein aggregation. Cell Rep., 2 (5), 1425–1437. https://doi.org/10.1016/j. celrep.2012.09.036.
+8. Thangakani, A.M. et al, (2012). How do thermophilic proteins resist aggregation? Proteins, 80 (4), 1003–1015.
+9. Invernizzi, G. et al, (2012). Protein aggregation: Mechanisms and functional consequences. Int. J. Biochem. Cell Biol., 44, 1541–1554.
+10. Agrawal, N.J. et al, (2011). Aggregation in protein-based biotherapeutics: Computational studies and tools to identify
+
+aggregation-prone regions. J. Pharm. Sci., 100, 5081–
+
+5095.
+
+11. Pastor, M.T. et al, (2007). Hacking the code of amyloid
+
+formation: the amyloid stretch hypothesis. Prion, 1, 9–14.
+
+12. Sawaya, M.R. et al, (2007). Atomic structures of amyloid
+
+cross-b spines reveal varied steric zippers. Nature, 447,
+
+453–457.
+
+13. Thangakani, A.M. et al, (2014). GAP: towards almost 100
+
+percent prediction for b-strand-mediated aggregating
+
+peptides with distinct morphologies. Bioinformatics, 30,
+
+1983–1990.
+
+14. Sankar, K. et al, (2018). AggScore: prediction of
+
+aggregation-prone regions in proteins based on the
+
+distribution of surface patches. Proteins Struct. Funct.
+
+Bioinforma., 86, 1147–1156.
+
+15. Chennamsetty, N. et al, (2009). Design of therapeutic
+
+proteins with enhanced stability. Proc. Natl. Acad. Sci. U.S.
+
+A., 106, 11937–11942.
+
+16. Tartaglia, G.G. et al, (2005). Prediction of aggregation rate
+
+and aggregation-prone segments in polypeptide
+
+sequences. Protein Sci., 14, 2723–2734.
+
+17. Fernandez-Escamilla, A.M. et al, (2004). Prediction of
+
+sequence-dependent and mutational effects on the
+
+aggregation of peptides and proteins. Nat. Biotechnol.,
+
+22, 1302–1306.
+
+18. Maurer-Stroh, S. et al, (2010). Exploring the sequence
+
+determinants of amyloid structure using position-speciﬁc
+
+scoring matrices. Nat. Methods, 7, 237–242.
+
+19. Van Durme, J. et al, (2016). Solubis: A webserver to reduce
+
+protein aggregation through mutation. Protein Eng. Des.
+
+Sel., 29, 285–289.
+
+20. Zambrano, R. et al, (2015). AGGRESCAN3D (A3D):
+
+Server for prediction of aggregation properties of protein
+
+structures. Nucleic Acids Res., 43, W306–W313.
+
+21. Prabakaran, R. et al, (2017). Inﬂuence of amino acid
+
+properties for characterizing amyloid peptides in human
+
+proteome. Lect. Notes Comput. Sci., 10362, 541–548.
+
+22. Thangakani, A.M. et al, (2016). CPAD, curated protein
+
+aggregation database: a repository of manually curated
+
+experimental data on protein and peptide aggregation.
+
+PLoS ONE, 11 e0152949.
+
+23. Beerten, J. et al, (2014). WALTZ-DB: A benchmark
+
+database of amyloidogenic hexapeptides. Bioinformatics,
+
+31, 1698–1700.
+
+24. Wozniak, P.P., Kotulska, M., (2015). AmyLoad: Website
+
+dedicated to amyloidogenic protein fragments.
+
+Bioinformatics, 31, 3395–3397.
+
+25. Rawat, P. et al, (2020). CPAD 2.0: a repository of curated
+
+experimental data on aggregating proteins and peptides.
+
+Amyloid, 27, 128–133.
+
+26. Louros, N. et al, (2020). WALTZ-DB 2.0: an updated
+
+database containing structural information of
+
+experimentally determined amyloid-forming peptides.
+
+Nucleic Acids Res., 48, D389–D393.
+
+27. Varadi, M. et al, (2018). AmyPro: a database of proteins
+
+with validated amyloidogenic regions. Nucleic Acids Res.,
+
+46, D387–D392.
+
+28. Li, W., Godzik, A., (2006). Cd-hit: a fast program for
+
+clustering and comparing large sets of protein or nucleotide
+
+sequences.
+
+Bioinformatics,
+
+22,
+
+1658–
+
+1659.
+
+29. Burley, S.K. et al, (2019). Protein data bank: the single
+
+global archive for 3D macromolecular structure data.
+
+Nucleic Acids Res., 47, D520–D528.
+
+7
+
+R. Prabakaran, P. Rawat, S. Kumar, et al.
+
+Journal of Molecular Biology 433 (2021) 166707
+
+30. Balbirnie, M. et al, (2001). An amyloid-forming peptide from the yeast prion Sup35 reveals a dehydrated b-sheet structure for amyloid. Proc. Natl. Acad. Sci. U.S.A., 98, 2375-.
+31. Nelson, R. et al, (2005). Structure of the cross-b spine of amyloid-like ﬁbrils. Nature, 435, 773–778.
+32. Bertolani, A. et al, (2017). Crystal structure of the DFNKF segment of human calcitonin unveils aromatic interactions between phenylalanines. Chemistry, 23, 2051–2058.
+33. Reddy, G. et al, (2010). Dry amyloid ﬁbril assembly in a yeast prion peptide is mediated by long-lived structures containing water wires. Proc. Natl. Acad. Sci., 107, 21459– 21464.
+34. Rousseeuw, P.J., (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis. J. Comput. Appl. Math., 20, 53–65.
+35. Davies, D.L., Bouldin, D.W., (1979). A cluster separation measure. IEEE Trans. Pattern Anal. Mach. Intell., PAMI-1, 224–227.
+
+36. Chou, P.Y., Fasman, G.D., (1974). Prediction of protein conformation. Biochemistry, 13 (2), 222–245.
+37. Oliphant, T.E., (2007). SciPy: Open source scientiﬁc tools for Python. Comput. Sci. Eng., 9, 10–20.
+38. Zemla, A. et al, (1999). A modiﬁed deﬁnition of Sov, a segment-based measure for protein secondary structure prediction assessment. Proteins Struct. Funct. Genet., 34, 220–223.
+39. Conchillo-Sole´ , O. et al, (2007). AGGRESCAN: a server for the prediction and evaluation of ‘hot spots’ of aggregation in polypeptides. BMC Bioinf., 8, 65.
+40. Gasior, P., Kotulska, M., (2014). FISH amyloid – a new method for ﬁnding amyloidogenic segments in proteins based on site speciﬁc co-occurrence of amino acids. BMC Bioinf., 15, 54.
+41. Walsh, I. et al, (2014). PASTA 2.0: An improved server for protein aggregation prediction. Nucleic Acids Res., 42, 301–307.
+
+8
+

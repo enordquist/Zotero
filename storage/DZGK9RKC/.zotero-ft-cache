@@ -1,0 +1,523 @@
+Cite This: J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Article pubs.acs.org/JCTC
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on July 21, 2022 at 20:58:18 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+Making the Best of a Bad Situation: A Multiscale Approach to Free Energy Calculation
+Michele Invernizzi*,†,§ and Michele Parrinello‡,§
+†Department of Physics, ETH Zurich c/o USI Campus, 6900 Lugano, Switzerland ‡Department of Chemistry and Applied Biosciences, ETH Zurich c/o USI Campus, 6900 Lugano, Switzerland §Facoltà di Informatica, Instituto di Scienze Computationali, and National Center for Computational Design and Discovery of Novel Materials MARVEL, Università della Svizzera Italiana (USI), Via Giuseppe Buﬃ 13, CH-6900 Lugano, Switzerland
+*S Supporting Information
+ABSTRACT: Many enhanced sampling techniques rely on the identiﬁcation of a number of collective variables that describe all the slow modes of the system. By constructing a bias potential in this reduced space, one is then able to sample eﬃciently and reconstruct the free energy landscape. In methods such as metadynamics, the quality of these collective variables plays a key role in convergence eﬃciency. Unfortunately in many systems of interest it is not possible to identify an optimal collective variable, and one must deal with the nonideal situation of a system in which some slow modes are not accelerated. We propose a two-step approach in which, by taking into account the residual multiscale nature of the problem, one is able to signiﬁcantly speed up convergence. To do so, we combine an exploratory metadynamics run with an optimization of the free energy diﬀerence between metastable states, based on the recently proposed variationally enhanced sampling method. This new method is well parallelizable and is especially suited for complex systems, because of its simplicity and clear underlying physical picture.
+
+1. INTRODUCTION
+Many systems are characterized by metastable states separated by kinetic bottlenecks. Examples of this class of phenomena are chemical reactions, ﬁrst order phase transitions, and protein folding. Calculating the diﬀerence in free energy between these states is of great importance, and various methods have been developed to reach this goal.1,2 In this work, we focus on the case in which only two states are relevant. The generalization to a multistate scenario is not too diﬃcult and will be discussed in a future publication.
+In the two-state case one can distinguish two time scales, a shorter one in which the system undergoes ﬂuctuations while remaining in one of the minima, and a longer one in which the system moves from one minimum to another. This is the socalled rare event scenario, in which the separation between the two time scales can be so large as to be inaccessible to direct molecular dynamics simulation, preventing a direct calculation of the free energy surface (FES).
+In order to address this issue, a widely used class of free energy methods, including, among others, umbrella sampling,3 metadynamics4 (MetaD), and variationally enhanced sampling5,6 (VES), aim at closing this time scale gap by speeding up the sampling of the slow modes of the system. To achieve this result, one ﬁrst identiﬁes a set of order parameters or collective variables (CVs) that are functions of the atomic coordinates s = s(R). The CVs describe the slow modes whose sampling is accelerated by means of an applied bias potential V(s). An optimal CV is such that if employed for an enhanced simulation run, it closes the time scale gap, so that intrastate
+
+and interstates exploration take place on the same time scale. A more common scenario is that the CV does not encode some slow modes, and although much reduced, the gap remains also in the enhanced sampling run. We shall refer to such CV as suboptimal. The limiting case would be that of a CV so poorly chosen that the gap falls outside the computational reach. In this case the CV would be not just suboptimal but also a bad CV. Given the crucial role of CVs, much eﬀort has been devoted to their design and their systematic improvement.7−12
+In metadynamics and variationally enhanced sampling the eﬀect of suboptimal CVs manifests itself in a hysteretic behavior, easily detectable in the CV evolution. In these cases MetaD and VES eﬃciency suﬀers.13−16 The exploration of the system is still enhanced, and the calculation does eventually converge,17 but this can require a substantial computational eﬀort because, even after depositing the bias, some slow modes are present and the system retains a multiscale nature, with two separate time scales. More in detail, in this case the shape of the free energy surface in the basins is easily reconstructed, while their relative height is much harder to converge.
+On the basis of this observation, we propose a multiscale approach that separates the calculation in two steps and aims at improving eﬃciency in a suboptimal CV scenario. First we reconstruct separately the free energy proﬁle of each basin, using MetaD. In a second step we use the properties of VES to optimize their free energy diﬀerence and ﬁnally reconstruct the
+Received: January 15, 2019 Published: March 1, 2019
+
+© 2019 American Chemical Society
+
+2187
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+global FES. The purpose of our approach is to take into consideration the multiscale nature of a suboptimally enhanced simulation to speed up convergence.
+First we shortly present to the unfamiliar reader MetaD and VES, and we introduce a simple illustrative model that is helpful in visualizing the problem; then we explain in detail the proposed method. Finally we successfully apply the new method to some representative systems.
+
+2. METADYNAMICS AND VARIATIONALLY ENHANCED SAMPLING
+In this section we recall brieﬂy the main features of the MetaD and VES methods, both used in our approach. For a more indepth review see, e.g., ref 14. Both methods enhance sampling by building on the ﬂy a bias potential that is a function of a few collective variables. This bias discourages the system from remaining trapped in a metastable basin and forces it to explore other regions. It also provides an estimate of the free energy, which is related to the probability distribution:
+
+∫ e−βF(s) = P(s) ∝ dR e−βU(R) δ[s − s(R)] Z
+
+(1)
+
+Z = ∫ ds e−βF(s) being the normalization partition function, U(R) the potential energy, and β = 1/(kBT).
+Metadynamics builds its bias as a sum of Gaussian
+contributions deposited periodically. In particular we will use its well-tempered variant (WTMetaD),18 in which the height
+of the deposited Gaussian decreases exponentially as the bias is
+deposited:
+
+n
+
+∑ Vn(s) =
+
+G(s, sk) e−β/(γ−1)Vk−1(sk)
+
+k=1
+
+(2)
+
+where G(s, sk) = We−∥s−sk∥2 is a Gaussian centered in sk, the CVs value at time tk. Independently from the choice of the Gaussian kernel parameters, this bias converges in the
+asymptotic limit to
+
+V(s) = −(1 − 1/γ)F(s) + c
+
+(3)
+
+where F(s) is the FES and c = c(t) does not depend on s. Once
+
+at convergence, e−β[F(s)+V(s)] is a
+
+the biased ensemble distribution smoother version of the unbiased
+
+PV(s) ∝ one, i.e.;
+
+PV(s) = [P(s)]1/γ. This broadening is controlled by the bias
+
+factor γ, which can go from 1 (unbiased case) up to inﬁnity
+
+(non-well-tempered MetaD).
+
+In the VES method, on the other hand, the bias is obtained
+
+as the result of the minimization of a convex functional:
+
+∫ Ω[V ]
+
+=
+
+1
+
+∫ ds e−β[F(s)+V(s)]
+log
+
++
+
+β
+
+∫ ds e−βF(s)
+
+ds p(s) V(s)
+
+(4)
+
+where p(s) is an arbitrary probability distribution called target distribution. The VES functional is related to the relative entropy, or Kullback−Leibler divergence.19 The minimum condition is reached when PV(s) = p(s), a relation that can also be written as
+
+F(s) = −V(s) − 1 log p(s)
+
+β
+
+(5)
+
+It is possible to choose as target distribution the well-tempered one, p(s) = [P(s)]1/γ. In this case the target has to be self-
+
+consistently adjusted as shown in ref 20. At convergence one obtains the same bias potential as WTMetaD.
+In order to carry out the minimization of Ω[V], the bias is usually expanded over an orthogonal basis set V(s) = ∑kαk fk(s), or parametrized according to some physically motivated FES model.19,21,22 In this way the functional becomes a function of the variational parameters and can be minimized using a stochastic gradient descent algorithm as described in ref 5. 3. ILLUSTRATIVE MODEL In order to better acquaint the reader with the problem described in the Introduction, we illustrate the phenomenology associated with the use of suboptimal CVs in a simple model. The model consists of a single particle moving with a Langevin dynamics on a 2D potential energy surface (see Figure 1) with
+Figure 1. 2D free energy surface of the considered model, with the two basins A and B.
+two metastable basins, A and B, such that transitions between them are rare. This system has only two degrees of freedom, namely, the x and y positions. If we take x as CV and perform a well-tempered MetaD run (details in the Supporting Information (SI)), we obtain the result in Figure 2. The fact that we are missing one degree of freedom can be seen from the hysteresis apparent in the CV time evolution. In order to
+Figure 2. Typical trajectory of a suboptimal CV, obtained via a WTMetaD run (γ = 10). Hysteresis can clearly be seen (highlighted by the red dashed line), and it is also visible how WTMetaD slowly reduces it, by depositing less bias as the simulation proceeds. While it is not possible to draw an horizontal line that separates the two basins, one can easily determine the basin of belonging for each point by inspecting the CV time evolution.
+
+2188
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+go from one basin to the other, one must wait for a rare y ﬂuctuation, resulting in a delay that cannot be enhanced by adding a bias on x. Nevertheless, if we put more bias in one basin we open some higher pathways and transitions are observed. However, they do not generally follow the lowest free energy path. This extra bias will also prevent the system from coming back to the same basin until it is properly compensated as the MetaD simulation progresses, and this gives rise to hysteresis.
+Well-tempering reduces the amount of bias deposited in such a way that the hysteresis will eventually disappear, and in the asymptotic limit the bias will converge.17
+If we monitor the time dependence of the bias V(x), we can see how the shape of the two basins is learned after just the ﬁrst few transitions and remains pretty much unchanged throughout the simulation. After this quick initial phase, the vast majority of the computational eﬀort is used to pin down the free energy diﬀerence, ΔF, between the two basins.
+
+4. METHOD
+The observations made earlier suggest a two-step strategy. First one obtains the shape of the free energy surface in the diﬀerent metastable basins, then optimizes the free energy diﬀerence between them. We will refer to this two-step procedure as VESΔF.
+4.1. Free Energy Surface Model. In a rare event scenario, such as the one discussed in section 3, there are by deﬁnition distinct metastable basins and it is thus possible to identify their separate contribution to the global FES. Formally this can be done by considering the conditional probability P(s|A), i.e., the probability that the CVs have value s when the system is in basin A.
+
+∫ P(s|A) ∝ dR e−βU(R) δ[s − s(R)] A
+
+(6)
+
+From P(s|A) one then can write an associated free energy:
+
+e−βFA(s) = P(s|A)
+
+ZA
+
+(7)
+
+where ZA is a normalization constant. With an identical procedure one can deﬁne FB(s|B).
+Notice that in general these probabilities are not mutually exclusive and, especially in the case of suboptimal CVs, there can be an overlapping region between them (see Figure 2).
+The global probability distribution is then obtained simply by combining these conditional probabilities:
+
+P(s) = P(s|A)PA + P(s|B)PB
+
+(8)
+
+and the global free energy (modulo a constant) can thus be
+
+written as
+
+F(s)
+
+=
+
+−1 β
+
+logÄÇÅÅÅÅÅÅÅÅÅÅ
+
+e−βFA(s) ZA
+
++
+
+e−βFB(s) ZB
+
+e−βΔF
+
+ÉÖÑÑÑÑÑÑÑÑÑÑ
+
+(9)
+
+where the free energy diﬀerence between the basins ΔF is deﬁned by
+
+e−βΔF
+
+=
+
+PB PA
+
+=
+
+∫ dR e−βU(R) B
+∫ dR e−βU(R) A
+
+(10)
+
+One could also write the global FES as a function of ΔFh, deﬁned as the diﬀerence in height between the two free energy
+
+minima. This can be a fairly good and practical approximation to ΔF, especially if the two basins have similar shapes. More
+precisely, well within the typical statistical uncertainty (see SI), the two quantities diﬀer by a constant that depends only on
+FA(s) and FB(s). If the local free energies are shifted so that min[FA(s)] = min [FB(s)] = 0, one can write
+
+ΔFh
+
+=
+
+ΔF
+
+−
+
+1 β
+
+log ZA ZB
+
+(11)
+
+F(s)
+
+=
+
+−1 β
+
+logÄÇÅÅÅÅÅe−βFA(s)
+
++
+
+e−βFB(s) e−βΔFhÉÖÑÑÑÑÑ
+
+(12)
+
+with min[F(s)] = 0.
+
+4.2. Step One: Local Basins. There are diﬀerent ways of
+
+calculating the local free energies, FA(s) and FB(s); here we suggest that a good estimate can be obtained using MetaD. We
+
+do this by accumulating the bias up to the point in which the
+
+system escapes the basin from which the simulation was
+
+started. As can be seen, e.g., in Figure 2, the ﬁrst recrossing
+
+usually happens extremely fast, even if the CVs are suboptimal.
+
+To increase the accuracy, WTMetaD can be used instead of
+
+plain MetaD, and also multiple runs can be combined, starting
+
+from diﬀerent initial conditions.
+
+With this initial estimate it is important to be able to draw
+
+the two local FES up to the transition region, because this will
+
+ensure that they combine smoothly in eq 9. Such information
+
+is always obtained in the case of suboptimal CVs, thanks to the
+
+typical hysteresis.
+
+In our approach we start N independent simulations from
+
+basin A and stop each simulation as soon as a transition occurs.
+
+The bias Vi(s) deposited by replica i is then averaged with the
+
+others to the local
+
+obtain VA(s) = 1/N∑iVi(s) free energy as FA(s) = −(1
+
+which is used to estimate − 1/γ)−1VA(s), following
+
+the usual MetaD rules. The same is done for basin B.
+
+A very simple way to automatically stop the simulation at the
+
+ﬁrst recrossing is to stop it when the CV reaches a threshold
+
+value set well beyond the transition region (e.g., at the center
+
+of the other basin), and then cut a small segment at the end of
+
+the trajectory, to make sure that only conﬁgurations from the
+
+proper basin are kept. Another option for detecting a
+
+recrossing is to use a descriptor diﬀerent from the biased
+
+CV. The only requirement for such a descriptor is that it can
+
+partition the phase space in two regions, one for each basin;
+
+thus, contrary to a CV, it can be a discontinuous function of
+
+the atomistic coordinates or even a function of past
+
+conﬁgurations, such as an exponentially decaying time average,
+
+which can greatly improve basins separation.
+
+In case one has already performed an exploratory MetaD
+
+simulation with multiple transitions between the basins,
+
+another possibility for obtaining FA(s) and FB(s) is to separate the CVs trajectory and build a diﬀerent reweighted free energy
+
+for each basin.
+
+It should be noted that at this point an extremely precise
+
+determination of the free energy basins is not needed, since a
+
+more accurate description can be obtained later with a
+
+reweighting procedure of the longer convergence run. In our
+
+experience, accuracy of the order of kBT in FA(s) and FB(s) does not slow down the overall convergence.
+
+4.3. Step Two: Free Energy Diﬀerence. Once the local
+
+basins are obtained we still need to know their relative free
+
+energy diﬀerence, ΔF, in order to build the global FES. We use
+
+VES to estimate it.
+
+2189
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+As target distribution for VES we use the well-tempered one
+
+as in ref 20, because it remains controllably close to the
+
+physical distribution, while at the same time enhancing the
+
+transition rate. We can then write the bias potential expansion
+
+as a function of a single parameter, ΔF, by combining eqs 9
+
+and 5:
+
+V (s)
+
+=
+
+(1
+
+−
+
+1/γ) 1 β
+
+logÄÇÅÅÅÅÅÅÅÅÅÅ
+
+e−βFA(s) ZA
+
++
+
+e−βFB(s) ZB
+
+e−β
+
+ΔF
+
+ÉÖÑÑÑÑÑÑÑÑÑÑ
+
+(13)
+
+We can then minimize Ω as a function of ΔF, while updating the estimate of the target distribution in a self-consistent way.
+Given the suboptimal nature of the CVs, it was somehow natural to consider the introduction of a damping factor in the optimization algorithm commonly used in VES.23 For this we took inspiration from the AdaGrad24 stochastic gradient descent algorithm, generally used for training neural networks in a sparse reward scenario. Further details can be found in the Supporting Information.
+It is relevant to note that during the minimization procedure no extra bias is added; thus, the system remains in the region of CVs space explored during step one and does not spend time unnecessarily in high free energy conﬁgurations.
+4.4. Reweighting Procedure. The reweighting procedure is a key part of the VESΔF method, because (as we will see) it converges faster than the VES optimization itself and provides a more accurate estimate of ΔF. For reweighting we employ the scheme of refs 25 and 26, where the unbiased Boltzmann distribution, P(s), is obtained by sampling the biased one, PV(s):
+
+P(s) = e−βF(s) Z
+
+= ZV e+βV(s) e−β[F(s)+V(s)]
+
+Z
+
+ZV
+
+= e−β[V(s)−c(t)] PV(s)
+
+(14)
+
+where ZV = ∫ ds e−β[F(s)+V(s)] and the ratio ZV/Z = e−βc(t) is estimated by numerical integration on a grid in the CVs space, using F(s) = −(1 − 1/γ)−1V(s). This reweighting procedure can be used only in the adiabatic limit, when the applied bias is quasi-stationary.
+When dealing with an optimal CV, a good biasing strategy is to quickly update the estimate of the underlying FES and correct accordingly the applied bias. Since the CV incorporates all the relevant slow modes of the system, this strategy ensures a faster transition rate between the metastable basins and a faster convergence. However, if the CV is suboptimal, as soon as we are close enough to a good FES estimate, the bottleneck for making a transition becomes the unbiased slow mode. In such a scenario, the choice of rapidly changing the applied bias is no more convenient, as it will only lead to hysteresis, not to faster convergence. This is one of the reasons why welltempered metadynamics outperforms plain metadynamics in many applications and why the “ﬁrst ﬁll, then converge” strategy of transition-tempered metadynamics27 can be so eﬀective.
+In VESΔF we push this strategy even further, and we design the bias optimization in such a way that it quickly reaches a value close to the optimal one, and from that one we only make gentle adjustments. This allows us to maximize the time spent in the adiabatic limit, thus improving the reweighting
+
+eﬃciency. As can be seen, e.g., in Figure 4, the result is that the
+estimate coming from the reweighting can reach convergence faster than the direct ΔF optimization.
+The other aspect that makes reweighting a convenient tool is
+accuracy. We do not spend much time in step one; thus the
+shape of the local basins may not be very accurate. In principle this can lead to a systematic error in the estimate of ΔF, since it depends not only on the relative height of the basins, ΔFh, but also on their shapes, eq 11. Thus, a safer way of estimating ΔF is to obtain a reweighted F(s) and to explicitly integrate in
+the CVs space:
+
+ΔF
+
+=
+
+−1 β
+
+∫ ds e−βF(s)
+log B
+∫ ds e−βF(s)
+
+A
+
+(15)
+
+Such an estimate is based on the much longer step-two run and
+is a very good approximation provided that the CVs are able to
+distinguish the two basins, which is usually the case even for
+suboptimal CVs. This is why in the code implementation we prefer to use the FES model of eq 12, to optimize Ω with respect to ΔFh, and then to use reweighting to estimate ΔF.
+
+5. RESULTS
+The VESΔF method has been implemented in PLUMED,28 an enhanced sampling plug-in which we used in combination with Gromacs29 and LAMMPS30 molecular dynamics packages. Our code is openly available online.31
+First we apply our approach to the case of the simple model of section 3. In order to build the local free energy basins we follow step one (section 4.2) and run ﬁve independent replicas using WTMetaD with γ = 5 enhancing x ﬂuctuations. We obtain the FA(x) and FB(x) shown in Figure 3, with a computational eﬀort that is negligible in comparison to the one needed to converge the global FES.
+
+Figure 3. (Left) Local free energies FA(x) and FB(x) in comparison with the model one Fmodel(x) obtained by combining them following eq 12. (Right) Same model free energy in comparison with the reference one, Fref(x), that can be obtained via the reweighting procedure. Parameter ΔFh is unknown and is calculated during the VES optimization.
+We use these local basins to perform step two and optimize the free energy diﬀerence through VES (γ = 10, μ = 0.05). Figure 4 shows an example of such optimization, compared to a WTMetaD run. We also show the estimate of ΔFh obtained with the reweighting procedure.
+Both WTMetaD and VESΔF reach relatively quickly a rough estimate of the ΔFh between the basins, but while the bias used by the former keeps oscillating, the latter behaves more
+
+2190
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 4. Estimate for the illustrative model of section 3 of ΔFh along x, obtained directly from the acting bias and from the reweighting procedure (Section 4.4), in the case of WTMetaD and VESΔF. In both methods a bias factor γ = 10 is used. The reference blue stripe is
+1 kBT thick.
+
+scenario MetaD presents a strong hysteresis and its
+convergence is rather slow. For the purpose of showing the
+strength of our method, we will pretend here that we do not know of the existence of the ϕ angle, and we make the unfortunate choice of biasing only ψ.
+It is important to recall that while the free energy surface as a function of ψ is very diﬀerent from the one relative to ϕ (and thus the minima relative height ΔFh is diﬀerent), the free energy diﬀerence, ΔF, between the two basins does not
+depend on the CV used, and is the same independently of the CV representation of the FES, along ψ, ϕ, or both (see SI).
+In order to reconstruct the local free energies, we run 10
+independent WTMetaD simulations for each basin, terminating them as soon as they make the ﬁrst transition. We use a bias factor γ = 10, and other simulation details can be found in
+the Supporting Information. On average it takes 0.55 ns to exit
+the most stable basin A and 0.16 ns to escape basin B. The
+combined total simulation time employed for determining FA(ψ) and FB(ψ) is about 7 ns. This provides a very good estimate, as can be seen in Figure 6. For the ΔFh optimization
+
+smoothly. We believe this is ultimately the reason why the reweighting converges faster in the case of VESΔF.
+5.1. Alanine Dipeptide. The alanine dipeptide molecule in vacuum is often used as benchmark for enhanced sampling methods. At 300 K it presents two main metastable basins, separated by a kinetic bottleneck. The most stable one, A, includes two diﬀerent conformations, C5 and C7eq, that are separated only by a small barrier. Basin B instead hosts only one metastable conformation, known as C7ax.
+The typical CVs used for this system are the two Ramachandran angles ϕ and ψ, Figure 5. The ﬁrst one, ϕ, is an almost optimal CV, which allows for very fast convergence (∼10 ns) when used in MetaD. Instead ψ is not only suboptimal but also a typical example of a bad CV. When biasing ψ, transitions between the basins are enhanced, but the system remains multiscale, with a signiﬁcant time scale gap between intrabasin and interbasins ﬂuctuations. In this
+Figure 5. Free energy surface of alanine dipeptide in vacuum, as a function of the ϕ and ψ angles. On the sides is the free energy projected onto each single angle.
+
+Figure 6. Local free energies obtained for alanine dipeptide. As reference a fully converged F(ψ) is used. The quantity ΔFh is unknown at this stage but is used here for displaying purposes.
+we use a target distribution with a well-tempered bias factor γ = 10 and a minimization step μ = 0.05. As a reference, we perform runs of WTMetaD and transition tempered metadynamics27 (TTMetaD), with γ = 10 (see SI). We also perform simulations with diﬀerent numbers of multiple walkers.32
+In order to have an estimate of the uncertainty on the calculated ΔFh, we run for each of the three methods multiple completely independent runs, always starting from basin A, but with diﬀerent initial conditions. We then look at the average and the standard deviation of these replicas, as a function of time. Some of the results are shown in Figure 7, and more can be found in the Supporting Information.
+On average TTMetaD performs better than plain WTMetaD, while VESΔF is a great improvement over either method. In particular the VESΔF reweighting is more accurate even in the case of a single walker, where error bars are large and the optimization is not yet at convergence. MetaD methods show a systematic shift which is not compatible with the estimates coming from the bias and disappears when more statistics are collected (the same happens in Figure 8).
+Increasing the number of walkers makes sampling of the neglected slow degrees of freedom more eﬃcient and improves convergence. Our method, VESΔF, scales particularly well with the number of multiple walkers.
+Finally we stress the fact that we are not suggesting to purposely pick bad CVs, because even if our method brings
+
+2191
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+Figure 7. Comparison between alanine ΔFh convergence using TTMetaD and VESΔF, with one and four multiple walkers (γ = 10). ΔFh is obtained through the reweighting procedure described in section 4.4. In the case of MetaD we must exclude from the reweighting an initial transient, in which the system is out of equilibrium and the estimate of c(t) is unreliable. We run 100 independent replicas starting from basin A with diﬀerent initial conditions. Only the average and the standard deviations are shown. The reference blue stripe is 1 kBT thick.
+Figure 8. Convergence of ΔFh between liquid and solid for sodium at 350 K, obtained directly from the acting bias and from the reweighting procedure (section 4.4), using WTMetaD and VESΔF. In both methods bias factor γ = 20 and four multiple walkers were used. The reference blue stripe is 1 kBT thick.
+better results when compared to MetaD, a simulation based on ϕ instead of ψ would still converge with a computational eﬀort smaller by orders of magnitude.
+5.2. Sodium. As a last example we study the liquid−solid transition of sodium at 350 K. It is a ﬁrst order phase transition, and the stable solid structure is a body centered cubic (bcc) lattice.
+
+Contrary to the previous case, for this example we use a CV that is one of the best available to describe the system. We consider a recently developed CV33 based on the peaks of the Debye structure factor (see SI). Such a CV is able to clearly identify the liquid and the solid phase, and can drive transitions between the two. Nevertheless it is not an optimal CV and has some hysteresis, as can be seen, e.g., in Figure 3 of ref 33.
+Although suboptimal, this CV is able in our system to drive the transitions between liquid and solid avoiding defected states, which might introduce secondary metastable minima in the FES and aﬀect the estimate of the liquid−solid ΔF.
+Similarly to what was done in the previous case, we ﬁrst build the local free energy basins by running ﬁve short WTMetaD runs (γ = 20), then use them to optimize the free energy diﬀerence. The target distribution is a well-tempered one with γ = 20, and the minimization step is μ = 1. In Figure 8 we show the convergence of VESΔF in comparison with WTMetaD. Both simulations run with four parallel multiple walkers; see SI for more details.
+Also in this less extreme case of a suboptimal CV, VESΔF outperforms the standard approaches.
+6. CONCLUSIONS
+In this work we propose a new method, based on a combination of MetaD and VES, to calculate the free energy diﬀerence between two metastable states. In order to perform such a calculation, MetaD and VES are in principle very appropriate, especially when used with an optimal CV that is able to accelerate all the slow modes of the system. In such a scenario the computational eﬀort needed for convergence is close to that needed for exploring the FES landscape.
+However, in real life applications suboptimal CVs are used, and this makes it useful to separate the free energy reconstruction into two steps. First we use MetaD to explore the basins and then a bespoken version of VES to converge the free energy diﬀerence. In doing so, our method focuses on approaching a quasi-stationary bias, which improves the eﬃciency of the reweighting procedure and thus the convergence speed.
+In some cases one does not know in advance if the available CV is suboptimal or not, and which are the relevant basins of the system under study. A typical usage scenario would then be to run a ﬁrst rough non-well-tempered MetaD simulation, aimed at discovering the relevant free energy basins and the presence (or absence) of hysteresis. If this preliminary run reveals the presence of a big number of secondary metastable minima, as it can happen, e.g., when dealing with defects in a phase transitions, then VESΔF would not be the best choice.
+We notice that in a suboptimal scenario the VES optimization is crucial, and the proper ΔF cannot be retrieved via some reweighting technique, such as weighted histogram analysis (WHAM34), applied to the MetaD simulations in the basins. This is because the overlap observed in the CV space is not actually an overlap in the phase space. This issue would not be solved by simply adding new biased windows (in an umbrella sampling spirit), since the hysteresis would still be present.35
+The present method, VESΔF, is to some extent similar to that proposed in ref 21, but its motivations are diﬀerent, as are the FES model used and the strategy to obtain the local basins.
+Previous authors have proposed variants to the MetaD algorithm to improve its convergence rate,18,27,36 but none of them connects directly to the source of the problem, namely,
+
+2192
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+
+Article
+
+the residual multiscale behavior of suboptimal CVs. We think this is a simple but important consideration, and our approach is meant to fully take into account the multiscale nature of suboptimal CVs enhanced sampling.
+Another important feature is that it is very transparent, having only ΔF as a parameter to optimize, that is the very physical quantity one is interested in. It also focuses only on the relevant part of the CV space, avoiding exploring new regions during the convergence phase. This simplicity can be very helpful, especially when dealing with complex systems.
+Furthermore, VESΔF scales very well in the case of multiple walkers, making good use of parallel simulations. For the sake of simplicity we presented here only the case of onedimensional CVs and two minima systems, but the implementation of VESΔF provided in the publicly available PLUMED code can already deal with multidimensional CVs and more than two basins. Our work points to a useful strategy that can be applied also in other circumstances and with other methods.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jctc.9b00032.
+Sampling with diﬀerent CVs; notes on eqs 12 and 11; optimization algorithm; illustrative model; computational details and more results for alanine dipeptide; computational details for sodium (PDF)
+■ AUTHOR INFORMATION
+Corresponding Author *E-mail: michele.invernizzi@phys.chem.ethz.ch.
+ORCID
+Michele Invernizzi: 0000-0002-3328-6557
+Notes The authors declare no competing ﬁnancial interest.
+■ ACKNOWLEDGMENTS
+This research was supported by the NCCR MARVEL, funded by the Swiss National Science Foundation, and European Union Grant No. ERC-2014-AdG-670227/VARMET. Calculations were carried out on the Euler cluster at ETH Zurich and on the Mönch cluster at the Swiss National Supercomputing Center. We thank Emanuele Grifoni for useful discussions, GiovanniMaria Piccini for precious help with the artwork, and Omar Valsson for carefully reading the manuscript.
+■ REFERENCES
+(1) Chipot, C.; Pohirille, A. In Free Energy Calculations: Theory and Applications in Chemistry and Biology; Chipot, C., Pohorille, A., Eds.; Springer Series in Chemical Physics; Springer: Berlin, Heidelberg, 2007; Vol. 86. (2) Abrams, C.; Bussi, G. Enhanced sampling in molecular dynamics using metadynamics, replica-exchange, and temperature-acceleration. Entropy 2014, 16, 163−199. (3) Torrie, G.; Valleau, J. Nonphysical sampling distributions in Monte Carlo free-energy estimation: Umbrella sampling. J. Comput. Phys. 1977, 23, 187−199. (4) Laio, A.; Parrinello, M. Escaping free-energy minima. Proc. Natl. Acad. Sci. U. S. A. 2002, 99, 12562−12566.
+
+(5) Valsson, O.; Parrinello, M. Variational approach to enhanced sampling and free energy calculations. Phys. Rev. Lett. 2014, 113, 090601. (6) Valsson, O.; Parrinello, M. Handbook of Materials Modeling; Springer: Cham, Switzerland, 2018; pp 1−14. (7) Branduardi, D.; Gervasio, F. L.; Parrinello, M. From A to B in free energy space. J. Chem. Phys. 2007, 126, No. 054103. (8) Pietrucci, F.; Andreoni, W. Graph Theory Meets Ab Initio Molecular Dynamics: Atomic Structures and Transformations at the Nanoscale. Phys. Rev. Lett. 2011, 107, No. 085504. (9) Tiwary, P.; Berne, B. J. Spectral gap optimization of order parameters for sampling complex molecular systems. Proc. Natl. Acad. Sci. U. S. A. 2016, 113, 2839−2844. (10) McCarty, J.; Parrinello, M. A variational conformational dynamics approach to the selection of collective variables in metadynamics. J. Chem. Phys. 2017, 147, 204109. (11) Mendels, D.; Piccini, G.; Parrinello, M. Collective Variables from Local Fluctuations. J. Phys. Chem. Lett. 2018, 9, 2776−2781. (12) Pfaendtner, J.; Bonomi, M. Efficient Sampling of HighDimensional Free-Energy Landscapes with Parallel Bias Metadynamics. J. Chem. Theory Comput. 2015, 11, 5062−5067. (13) Bussi, G.; Branduardi, D. Reviews in Computational Chemistry Vol. 28 ; John Wiley & Sons, Inc, 2015; pp 1−49. (14) Valsson, O.; Tiwary, P.; Parrinello, M. Enhancing important uctuations: Rare events and metadynamics from a conceptual viewpoint. Annu. Rev. Phys. Chem. 2016, 67, 159−184. (15) Pietrucci, F. Strategies for the exploration of free energy landscapes: Unity in diversity and challenges ahead. Reviews in Physics 2017, 2, 32−45. (16) Bussi, G.; Laio, A.; Tiwary, P. Handbook of Materials Modeling; Springer: Cham, Switzerland, 2018; pp 1−31. (17) Dama, J. F.; Parrinello, M.; Voth, G. A. Well-tempered metadynamics converges asymptotically. Phys. Rev. Lett. 2014, 112, 240602. (18) Barducci, A.; Bussi, G.; Parrinello, M. Well-Tempered Metadynamics: A Smoothly Converging and Tunable Free-Energy Method. Phys. Rev. Lett. 2008, 100, No. 020603. (19) Invernizzi, M.; Valsson, O.; Parrinello, M. Coarse graining from variationally enhanced sampling applied to the GinzburgLandau model. Proc. Natl. Acad. Sci. U. S. A. 2017, 114, 3370−3374. (20) Valsson, O.; Parrinello, M. Well-tempered variational approach to enhanced sampling. J. Chem. Theory Comput. 2015, 11, 1996− 2002. (21) McCarty, J.; Valsson, O.; Parrinello, M. Bespoke Bias for Obtaining Free Energy Differences within Variationally Enhanced Sampling. J. Chem. Theory Comput. 2016, 12, 2162−2169. (22) Piaggi, P. M.; Valsson, O.; Parrinello, M. A variational approach to nucleation simulation. Faraday Discuss. 2016, 195, 557−568. (23) Bach, F.; Moulines, E. Non-strongly-convex smooth stochastic approximation with convergence rate O(1/n). Advances in Neural Information Processing Systems 26 (NIPS 2013); Neural Information Processing Systems Foundation, 2013; pp 773−781. (24) Duchi, J.; Hazan, E.; Singer, Y. Adaptive subgradient methods for online learning and stochastic optimization. J. Mach. Learn. Res. 2011, 12, 2121−2159. (25) Tiwary, P.; Parrinello, M. A time-independent free energy estimator for metadynamics. J. Phys. Chem. B 2015, 119, 736−742. (26) Yang, Y. I.; Parrinello, M. Refining Collective Coordinates and Improving Free Energy Representation in Variational Enhanced Sampling. J. Chem. Theory Comput. 2018, 14, 2889−2894. (27) Dama, J. F.; Rotskoff, G.; Parrinello, M.; Voth, G. A. Transition-tempered metadynamics: Robust, convergent metadynamics via on-the-fly transition barrier estimation. J. Chem. Theory Comput. 2014, 10, 3626−3633. (28) Tribello, G. A.; Bonomi, M.; Branduardi, D.; Camilloni, C.; Bussi, G. PLUMED 2: New feathers for an old bird. Comput. Phys. Commun. 2014, 185, 604−613. (29) Abraham, M. J.; Murtola, T.; Schulz, R.; Paĺ l, S.; Smith, J. C.; Hess, B.; Lindahl, E. GROMACS: High performance molecular
+
+2193
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+
+Journal of Chemical Theory and Computation
+simulations through multi-level parallelism from laptops to supercomputers. SoftwareX 2015, 1−2, 19−25. (30) Plimpton, S. Fast Parallel Algorithms for Short-Range Molecular Dynamics. J. Comput. Phys. 1995, 117, 1−19. (31) Currently in the development version of PLUMED (master branch on GitHub), under the VES module, with the name VES_DELTA_F. The provided implementation can deal with multidimensional CVs and more than two FES basins. (32) Raiteri, P.; Laio, A.; Gervasio, F. L.; Micheletti, C.; Parrinello, M. Efficient reconstruction of complex free energy landscapes by multiple walkers metadynamics. J. Phys. Chem. B 2006, 110, 3533− 3539. (33) Niu, H.; Piaggi, P. M.; Invernizzi, M.; Parrinello, M. Molecular dynamics simulations of liquid silica crystallization. Proc. Natl. Acad. Sci. U. S. A. 2018, 115, 5348−5352. (34) Kumar, S.; Rosenberg, J. M.; Bouzida, D.; Swendsen, R. H.; Kollman, P. A. The weighted histogram analysis method for freeenergy calculations on biomolecules. I. The method. J. Comput. Chem. 1992, 13, 1011−1021. (35) Zhu, F.; Hummer, G. Convergence and error estimation in free energy calculations using the weighted histogram analysis method. J. Comput. Chem. 2012, 33, 453−465. (36) Branduardi, D.; Bussi, G.; Parrinello, M. Metadynamics with adaptive gaussians. J. Chem. Theory Comput. 2012, 8, 2247−2254.
+
+Article
+
+2194
+
+DOI: 10.1021/acs.jctc.9b00032 J. Chem. Theory Comput. 2019, 15, 2187−2194
+

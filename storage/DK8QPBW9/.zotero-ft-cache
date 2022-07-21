@@ -1,0 +1,723 @@
+arXiv:cond-mat/0411559v1 [cond-mat.mtrl-sci] 22 Nov 2004
+
+Simulation of structural phase transitions by metadynamics
+R. Martonˇa´k,1, ∗ A. Laio,1 M. Bernasconi,2 C. Ceriani,3 P. Raiteri,1 and M. Parrinello1 1Computational Science, Department of Chemistry and Applied Biosciences,
+ETH Zurich, USI Campus, Via Giuseppe Buﬃ 13, CH-6900 Lugano, Switzerland 2Dipartimento di Scienza dei Materiali and Istituto Nazionale per la Fisica della Materia,
+Universita` degli Studi di Milano-Bicocca, Via Cozzi 53, I-20125 Milano, Italy 3Department of Chemical, Physical and Mathematical Science,
+University of Insubria at Como, Via Lucini 3, 22100 Como, Italy (Dated: February 2, 2008)
+We describe here in detail the recently introduced methodology for simulation of structural transitions in crystals. The applications of the new scheme are illustrated on various kinds of crystals and the advantages with respect to previous schemes are emphasized. The relevance of the new method for the problem of crystal structure prediction is also discussed.
+
+I. INTRODUCTION
+The constant-pressure molecular dynamics (MD) method of Parrinello and Rahman[1] enabled for the ﬁrst time the study of structural phase transitions in bulk solid crystals by computer simulation. Starting from a known initial structure it allowed the identiﬁcation of possible candidates for the new structure without any previous knowledge. It thus achieved predictive power, in particular in combination with ab-initio methods[2], and has been successfully applied many times to a variety of crystalline systems (for few selected applications, see Refs.[3, 4, 5, 6, 7, 8, 9]). In the practical use of the method, however, several problems arise related mainly to the fact that structural transitions are often ﬁrst order. This is by necessity the case when the symmetries of the two crystal structures are not in a group-subgroup relation. Experimentally, such transitions proceed via nucleation of the new phase, which often starts on the surface or on structural defects. For simulations of crystals, however, periodic boundary conditions that eliminate surface are commonly used. The systems used in simulations are typically relatively small and therefore contain no structural defects. The simulation setup therefore suppresses the possibilities for a heterogeneous nucleation of the new phase. As a consequence, the transformation of the system proceeds in a collective way, involving all atoms, which results in a high barrier. This might cause a metastability of the initial phase far beyond the thermodynamic transition point and large hysteretic eﬀects are frequently observed. Should there be a substantial diﬀerence in volume between the phases, increasing pressure favors the new phase with a smaller volume, due to the contribution of the P V term in the Gibbs potential. In order to observe the transition within the accessible simulation time one often has to overpressurize the system close to the point of mechanical instability[10]. Un-
+∗Permanent address: Department of Physics (FEI), Slovak University of Technology, Ilkoviˇcova 3, 812 19 Bratislava, Slovakia
+
+der such conditions one or more intermediate phases may be skipped[2, 11], which reduces the predictive power of the method. In other cases, where the volume diﬀerence between the phases is not so pronounced, even overpressurization might not help to force the transition to occur. For the above reasons, there is still a need for developing speciﬁc methods aimed at simulating structural transitions in crystals, given the great theoretical and practical relevance of the closely related problem of crystal structure prediction.
+In this paper we review recent progress in this ﬁeld related to the application of the new approach of Laio and Parrinello, called metadynamics[12]. Rather than giving a ready-to-use recipe we would like to highlight the possibilities oﬀered by the new methodology which allows the design of suitable algorithms for diﬀerent kinds of systems. In section II we review the generic algorithm developed in Ref.[13] in which metadynamics is performed using the simulation box as order parameter. The use of the method will be illustrated with examples of zeolite and benzene crystals. In section III A we discuss a diﬀerent variant of the method (Ref.[14]) suitable for systems where an internal order parameter has to be used instead of the simulation box. This case is illustrated by the example of graphite-to-diamond conversion. Finally, in the last part we draw some conclusions and suggest possible directions for further development.
+II. METADYNAMICS USING A SIMULATION BOX AS ORDER PARAMETER
+Since the Parrinello-Rahman method represents a generic constant-pressure MD simulation method, the problems related to its application to structural transitions originate in the lack of eﬃciency of standard MD in crossing high barriers. During a standard equilibrium simulation the system explores only a small part of its free energy surface, corresponding to thermal ﬂuctuations around a locally stable minimum. Consequently, a spontaneous passage to another minimum separated by a barrier substantially larger than the thermal energy kBT is extremely unlikely on the time scale of a typical
+
+2
+
+MD simulation, which is of the order of ns in the case of classical force ﬁelds and ps in the case of ab-initio methods.
+A new general approach for escaping free-energy minima and systematic exploration of free-energy surfaces has recently been developed by Laio and Parrinello[12]. It has been called metadynamics and is capable of dramatically speeding up the simulation of activated processes involving barrier crossing[15, 16, 17, 18], including ﬁrst-order phase transitions. The general algorithm has been adapted by Martonˇa´k, Laio and Parrinello [13] for simulating structural transitions in crystals. We note that this method represents a conceptual extension of the idea of constant-pressure simulation. Instead of the latter, we perform a search for new minima by exploring the surface of the Gibbs potential. In order to reduce the complexity of the problem, an order parameter or collective variable is needed that allows us to discriminate between diﬀerent crystalline structures. A natural one for a crystal is the structure factor S(k) which provides a unique ﬁngerprint of the spatial arrangement of the atoms in a periodic lattice. The structure factor, however, is not a convenient order parameter to use for our purpose, because it has high dimensionality (in principle inﬁnite). Instead, we follow in this point the approach of Parrinello and Rahman and use as order parameter directly the three supercell edges a, b, c, arranged as a 3×3 matrix h = (a, b, c). For relatively small systems, where the creation of defects is too costly, the box matrix h is likely to be simply related to the unit cell u via relation h = um, where m is an integer matrix. The matrix h can therefore distinguish between diﬀerent unit cells and crystal structures. Out of the 9 independent degrees of freedom of the matrix h only 6 determine the shape of the box, while the remaining 3 are related to the global rotation of the box. The latter is irrelevant and only complicates the analysis of the results. Therefore it is convenient to freeze it, thus reducing the number of degrees of freedom to 6. In Ref.[13] we followed the idea of Nos´e and Klein [19] and used a symmetric matrix h. An equally good choice is to constrain h to an upper triangular form and here we follow this way. Since our aim is to simulate a phase transition at a pressure P and a temperature T we will explore the Gibbs potential G(h) = F (h)+P V as a function of h where F (h) is the Helmholtz free energy of the system at ﬁxed box and V = det(h) is the volume of the box. The six non-zero components of h can be conveniently arranged as h = (h11, h22, h33, h12, h13, h23) and represent a 6-dimensional order parameter. This distinguishes the diﬀerent local minima of G corresponding at pressure P to stable or metastable crystal structures.
+The metadynamics requires calculation of derivatives of the free energy with respect to the order parameter. In our case such a derivative has a simple form
+
+−
+
+∂G ∂hij
+
+=V
+
+h−1(p − P ) ji ,
+
+(1)
+
+where p is the internal pressure tensor, which can be
+
+easily evaluated in MD or Monte Carlo simulations at constant h from the averaged microscopic virial tensor [20].
+The order parameter is now evolved according to a steepest-descent-like discrete evolution with a stepping parameter δh (metadynamics)
+
+ht+1
+
+=
+
+ht
+
++
+
+δh
+
+φt |φt
+
+|
+
+.
+
+(2)
+
+Here, the driving history-dependent
+
+force Gibbs
+
+φptot=ent−ia∂l∂GhGtt
+
+is derived from a where a Gaussian
+
+has been added to G(h) at every point ht′ already visited
+
+in order to discourage it from being visited again. Hence
+
+we have
+
+Gt(h) = G(h) +
+
+W e−
+
+|h−ht′ 2δh2
+
+|2
+
+(3)
+
+t′<t
+
+and the force φt is thus a sum of a thermodynamical
+
+driving
+
+force
+
+F
+
+=
+
+−
+
+∂G ∂h
+
+and
+
+the
+
+term
+
+Fg
+
+coming
+
+from
+
+a
+
+potential constructed as a superposition of Gaussians. As
+
+time proceeds the history-dependent term in Eq.(3) ﬁlls
+
+the initial well of the free-energy surface and the system
+
+is driven out of the local minimum.
+
+The metadynamics algorithm described above can be
+
+implemented as follows (Fig.1). We start from an equi-
+
+librated box h containing the initial structure at a given
+
+pressure P and temperature T and evaluate the pressure
+
+tensor p in a constant h MD run long enough to allow re-
+
+laxation to equilibrium and suﬃcient averaging of p. The
+
+box h is then updated using the forces (1) and metadynamics equations (2,3) to a new value h′. After the box
+
+is modiﬁed the particle positions are rescaled in order to ﬁt into the new box using the relation r′ = h′ h−1r.
+
+In the case of molecular crystals we only scale the cen-
+
+ters of mass of the molecules but not the intramolecu-
+
+lar degrees of freedom. As the initial free energy well is
+
+gradually ﬁlled the box undergoes a sequence of progres-
+
+sively larger deformations until a transition occurs and
+
+the system enters into the basin of attraction of a new
+
+state. This can be detected by monitoring the structure
+
+factor S(k) and is often apparent also on a visual inspec-
+
+tion of the atomic conﬁguration. At this stage one can
+
+switch oﬀ the Gaussian term, so that the metadynamics
+
+becomes purely steepest-descent-like and drives the sys-
+
+tem towards the equilibrium state for the new structure.
+
+In this equilibrium state the pressure will be equal to P .
+
+Once the new structure is characterized one can switch
+
+the Gaussians on again, thus ﬁlling the new minimum,
+
+and move to other minima, if available.
+
+The important point for the success of the method is
+
+the judicious choice of the parameters W and δh. In
+
+principle, these depend on the G(h) landscape. The pa-
+
+rameter δh determines the resolution in h and should be
+
+smaller than the typical size of the well. A simple way
+
+to estimate the order of magnitude of δh is to perform
+
+a short Parrinello-Rahman simulation and compute the
+
+3
+
+FIG. 1: Flowchart diagram of the metadynamics algorithm for seeking new crystal structures.
+
+ﬂuctuations of the box h. However, we note that a very
+
+small value of δh is not likely to be useful. Since the
+
+volume of the 6-dimensional Gaussian is proportional to
+
+the sixth power of its size, a small δh means that many
+
+Gaussians would be needed to ﬁll the well, resulting in a
+
+long run. In order to achieve the necessary energy reso-
+
+lution, W should be chosen as a fraction of the relevant
+
+energy barriers. These are, however, not known at the
+
+beginning, since one does not know the exact mechanism
+
+of the transition to the new phase. A practical guideline
+
+for the choice of W and δh can be based on the require-
+
+ment that the Gaussians should not be too “sharp”, or
+
+in other words, for an optimal ﬁlling the curvature of the
+
+Gaussians should be smaller than that of the well (see
+
+Ref.[12] for a more general discussion of the choice of W
+
+and
+
+δh).
+
+This
+
+leads
+
+to
+
+the
+
+condition
+
+W δh2
+
+≤
+
+K
+
+where K
+
+is
+
+the smallest eigenvalue of the G(h) Hessian at the min-
+
+imum h0. For a cubic system we can estimate K from
+
+the approximate expansion of G(h) around h0
+
+G(∆h)
+
+≈
+
+G(h0)
+
++
+
+1V 2
+
+c(
+
+∆h L
+
+)2
+
+(4)
+
+where L is the cell edge and c is of the order of magnitude
+
+of the elastic constants. This provides an estimate K ≈ Lc and a condition
+
+W δh2
+
+Lc ;
+
+(5)
+
+we stress here that the right-hand side of the inequality contains the box size L and therefore the choice of the parameters W and δh is dependent on the size of the simulation box. In the examples that follow the criterion
+
+(5) was found to provide a good working procedure.
+
+We now discuss several aspects of the algorithm. First
+
+we note an important diﬀerence with respect to the gen-
+
+eral method [12]. In principle, metadynamics may al-
+
+low the free energy proﬁle to be recovered. As shown in
+
+Ref.[12], the sum of the Gaussians in Eq.(3) converges to −G(h) up to an additive constant, provided W and δh are properly chosen, the system is conﬁned to a ﬁnite
+
+region of the order parameter space and several crossings
+
+between the minima occur. Such information would, of
+
+course, be very valuable, since it would allow an accu-
+
+rate determination of the transition pressure. The lat-
+
+ter is, in general, diﬃcult to calculate once the anhar-
+
+monic eﬀects start to play a role and one cannot ap-
+
+ply the quasiharmonic or self-consistent quasiharmonic
+
+approximation. The recovering of the free energy, how-
+
+ever, implicitly assumes (similarly to thermodynamic in-
+
+tegration) that the system always evolves in a reversible
+
+way, and the free energy never decreases discontinuously.
+
+This is generally not guaranteed in the case of solid-solid transitions when box h is used as an order parameter.
+
+In this case the metadynamics should be eﬀectively re-
+
+garded as an “engine” which by inducing a progressively
+
+larger deformation of the initial structure guarantees at
+
+some point the transition to a new one. Whether such a
+
+transition proceeds in a reversible or irreversible way, as
+
+well as the particular mechanism involved, is clearly very
+
+much system dependent. It can proceed via the creation of defects, such as grain boundaries or stacking faults,
+
+or in a collective way, as when a mechanical instability
+
+is reached by increasing the pressure in the Parrinello-
+
+Rahman method. There is, however, a substantial diﬀer-
+
+ence related to the symmetry. In the constant-pressure
+
+Parrinello-Rahman simulation the internal stress tensor
+
+is on average equal to a prescribed value, which is usually chosen as the hydrostatic pressure P . Such compres-
+
+sion preserves the initial symmetry of the system and un-
+
+less the system is close to an instability point, the sym-
+
+metry is only slightly broken by instantaneous thermal
+
+ﬂuctuations. Metadynamics, however, is not a constant-
+
+pressure simulation but rather a method aimed at exploring the free-energy surface. Starting from an initial
+
+minimum, the exploration consists of applying various
+
+symmetry-breaking deformations of the initial structure,
+
+which clearly facilitates reaching a structure with a dif-
+
+ferent symmetry. The internal stress tensor during the
+
+exploration may become substantially anisotropic and its ﬂuctuations around the prescribed (hydrostatic) value P
+
+are much stronger than the thermal ones. For this reason, the role of P does not appear to be critical. As
+
+4
+
+long as a given structure is at least metastable at pressure P , it can in principle be found by our algorithm; as discussed at the beginning of the previous section, the phases are usually metastable in a broad pressure interval around the equilibrium transition pressure Pc. However, the value of P aﬀects the number of steps necessary to reach the transition. If its value is too low compared to Pc, a lot of Gaussians may be needed to ﬁll the initial well before a transition is observed.
+A second remark should be made concerning the possibility that the system might change box h without really changing the structure. This usually proceeds via plane sliding and is a manifestation of the fact that one structure can be described by many equivalent choices of box h, known as modular invariance[21]. This phenomenon cannot be avoided completely as it is related to the very nature of the order parameter h. Its frequent occurrence, however, together with a failure of the algorithm to ﬁnd a new structure, might be a manifestation of either too wrong a pressure or the fact that box h is not a good order parameter for a given system (see section III). According to our experience the choice of a not too small value of δh, inducing substantial volume ﬂuctuations, helps to suppress the transitions to the same structure, as these obviously conserve the volume. Too large a value might, however, cause a transition to an amorphous structure; a suitable compromise has to be found by trial and error.
+Our original application to an atomic system, silicon crystal, is described in the paper [13]; the method worked very well in that case. To assess its applicability to a wider class of systems we also performed a case study of two other crystals of a rather diﬀerent kind. These are presented in the following subsections. Zeolite is an example of a crystal having an extended network while benzene represents an organic molecular crystal.
+A. Application to zeolite
+As our ﬁrst example we provide here a summary of the main results obtained by the application of the above method to reconstructive transitions on a complex framework structure like a zeolite[22].
+Zeolites are tectosilicates, with a structure formed by corner sharing SiO4 or AlO4 tetrahedra and characterized by having cages or channels able to accommodate alkaline or earth-alkaline cations and small molecules (generally water) [23, 24]. We have focused on the Li-ABW zeolite (Li[AlSiO4]·H2O), ﬁrst synthesized by Barrer and White in 1951 [25]. The framework structure has an orthorhombic symmetry [26] and is formed by directly connected hexagonal rings sheets in the bc plane. Water molecules and Li cations are located inside monodimensional 8 membered channels developing along the c axis. If the temperature is raised in dry environment, the Li-ABW zeolite undergoes two phase transitions. A ﬁrst displacive transition occurs to the framework when dehy-
+
+dration starts, leading to a structure known as anhydrous Li-ABW. At a temperature around 650◦C a second reconstructive transition drives the system to a new structure, the γ-eucryptite. This transition is accompanied by a symmetry change, leading to a monoclinic crystal. The framework, formed by 8- and 4-membered rings of tetrahedral units in the anhydrous Li-ABW, transforms in to a 6-membered rings structure. Because of the high stability of the Al-O and Si-O bonds a Parrinello-Rahman approach is not able to reproduce the reconstructive transition; in order to provide enough thermal energy to observe a spontaneous breaking of some bonds, the temperature has to be increased so much that only a collapse of the structure is observed.
+The simulation of the anhydrous Li-ABW → γeucryptite transition has been carried out within the metadynamics approach employing a classical potential, using the form and the parameters proposed in literature by Zirl and Garofalini [27]. Details about the structure of the potential and its adaptation for our purposes can be found in Ref.[22].
+The metadynamics run was performed at external pressure P = 0 for a system consisting of 56 atoms, using the parameters for the Gaussian term equal to W = 9.94 kcal/mol and δh = 0.4 ˚A. The total simulation time for each NVT run was 10 ps with an equilibration of 2.5 ps. During the ﬁrst 67 steps of metadynamics the deformation of the simulation cell does not lead to bond breaking, but only to displacive rearrangement of the framework. After step 67 a reconstructive event is recognized by a sudden drop of the strongest diﬀraction peaks of the original structure (see Fig.2). The transition from anhydrous Li-ABW to γ-eucryptite is completed in three metadynamics steps and it involves only processes of bond switching between some Al-O bonds (Fig.3). In particular, half of the Al atoms of the simulation cell move in a concerted way, leading to four bond switch, such that the Li-ABW tetrahedral units are broken. After few picoseconds, a second bond switch is observed for each of the Al atoms already involved in the ﬁrst step, leading to the formation of new tetrahedral units with the topology of the eucryptite. While the Al atoms involved in the bond breaking move signiﬁcantly, exploring three main positions, the other atoms at the center of the unbroken tetrahedral units move very little from their starting crystallographic positions, in spite of the fact that each tetrahedron undergoes a rigid rotation in order to complete the transition. The Li atoms also participate in the transformation with a displacement from their starting position near to the Al involved in the bond switch. The transition pathway observed with metadynamics is in good agreement with the experimental observations reported in Ref. [26]. A more detailed description of the calculations and the transition path are given in Ref. [22].
+The above results demonstrate the ability of metadynamics to uncover the detailed microscopic mechanism of a phase transition in a complex crystal structure. An-
+
+cell angles (deg) cell lengths (Å)
+
+5
+
+12
+
+10
+
+a
+
+8
+
+b c
+
+100
+
+90
+80 1500 1000 500
+
+α β γ
+(620) (620) (400) (004)
+
+0
+
+50
+
+55
+
+60
+
+65
+
+70
+
+75
+
+80
+
+metasteps
+
+|S(h,k,l)|2
+
+FIG. 2: Zeolite: time evolution of cell lengths, angles and selected strong peaks of the structure factor during the metadynamics simulation.
+
+other attractive feature of the procedure we outlined in the previous section is that it allows a systematic exploration of the diﬀerent polymorphs in which a given system can exist. Starting from an initial structure, several metadynamics runs can be performed at diﬀerent conditions of pressure and temperature until a transition is observed. Any classical potential providing a qualitative description for the system can be employed, and performing the metadynamics with an accurate model (e.g. DFT) might be a waste of computer time. In fact, the Gibbs free energy diﬀerence between the candidate structures found by metadynamics can be computed with the high level method once the structures are known at a relatively small computational price.
+For the system under investigation, we performed several metadynamics runs starting from the Li-ABW structure in the pressure range between 10 and 100 kbar, obtaining seven new structures characterized by a diﬀerent connectivity of the atoms. To illustrate the excellent capability of the technique to ﬁnd new polymorphs we report here a brief description of two of the structures we ﬁnd (these results will be described in detail in a separate publication [28]). The phase pictured in Fig.4 (a) is formed by ordered sheets, balanced by the presence of Li cations in the intra-layers space. Each layer is formed by alternating Si-centered and Al-centered tetrahedra that form four-membered rings. The structure reported in Fig.4 (b) has the same connectivity of γeucryptite, but in this case there is no perfect alternation of Si-centered and Al-centered tetrahedra, whereas there are some Al-O-Al and Si-O-Si bridges. The Al-OAl bridge is normally not found in zeolitic frameworks (L¨owenstein’s rule[29]) because it shows larger stability for angles around 180◦ which are generally not present in zeolites, but in conditions of high external pressure such conﬁguration can be stabilized. For these two phases and the other ﬁve new structures found by the metadynamics procedure we determined the ab-initio equation of state
+
+FIG. 3: Zeolite: three main steps involved in the transition path. The blue tetrahedra are the Al-centered ones, while the grey tetrahedra are those that are Si-centered. The tetrahedra directly involved in the bond breaking are pictured in balland-stick representation, where the red spheres represent the oxygen atoms. The Li cations inside the cavities are omitted for clarity. (a) The anhydrous Li-ABW structure (8- and 4membered rings), (b) an intermediate structure, formed during the ﬁrst bond switching, (c) the ﬁnal γ-eucryptite structure (6-membered rings).
+and the phonon spectrum in order to estimate the entropic contribution to the free energy, thus obtaining a phase diagram for the system at the DFT level and without any a priori knowledge of the possible phases of the system[28].
+
+6
+
+FIG. 4: Zeolite: two phases obtained by performing metadynamics at high external pressure. More details will be provided in a forthcoming publication[28].
+B. Application to benzene
+The possibility of predicting all of the stable crystalline structures and thus the physical and chemical properties for a given compound is extremely important for pharmaceuticals[30, 31] and benzene is a good case study to prove the applicability of our technique to organic molecules. Benzene, though being a simple molecule has a quite complex phase diagram. Since the late 60’s many authors studied solid benzene and in the literature two diﬀerent notations for its crystalline phases can be found. In this paper we follow the notation used by Thi´ery and L´eger in Ref. [32]. At room temperature and ambient pressure benzene crystallizes in an orthorhombic structure, Pbca, which is stable up to 1.4 GPa [32]. Beyond this pressure a sluggish transition to benzene II is observed [32, 33, 34]. Determining the crystalline structure of this phase was a big challenge and only 10 years after its ﬁrst observation theoretical calculations could determine that it is orthorhombic and belongs to the P43212 space group [35]. Benzene II is stable up to 4 GPa and then it transforms into benzene III, which is monoclinic and belongs to the P21/c space group [32, 33, 34]. Upon increasing pressure two more phases are observed: benzene III’, which is stable between 11 and 24 GPa, and benzene IV, which is stable at even higher pressure[32, 34]. These latter two structures are not well characterized and there is still some debate on whether they are real phases or not. In particular, benzene III’ is supposed to be only a modiﬁcation of benzene III[32] and benzene IV to be polymorphic [33]. Beyond these ﬁve, another phase has been hypothesized: benzene I’, which should be stable at low temperatures (∼100 K) [32] and normal pressure.
+In this work we focus our attention only on benzene I, II and III. These are indeed the only three phases for which the structure is well understood both by experiment and by theory. In a diﬀerent publication we tackle the problem of determining all stable structures of benzene [36] and show that the method can indeed identify the structure of all experimentally proposed phases.
+
+All our MD simulations were done using the GROMOS96 force ﬁeld[37]. The molecule is fully ﬂexible and the long range electrostatic interaction is calculated with the Particle Mesh Ewald (PME) summation. We note that the intermolecular potential can reproduce the stability of all the three phases, though not their correct transition pressures. At 0 K, benzene II is less stable than benzene III and, at variance with the experiments, the common tangent construction suggested a transition pressure of about 1.5 GPa for both the I to II and I to III transformation[32, 33].
+We apply metadynamics to study the transitions among those phases. During the metadynamics both the equilibration and the averaging of the internal stress tensor are performed by NVT runs of 1 ps, the external pressure P is always ﬁxed at 2 GPa and the temperature at 300 K. For what concerns the parameters entering the time dependent potential, we tried a wide range of values, however, good results are obtained only when the Gaussian width, δh, is chosen between 2 and 3 ˚A and the Gaussian height, W, between 120 and 600 kcal/mol. Given the elastic constants of benzene of about 6 GPa and the box vectors varying between about 10 and 50 ˚A we notice that the working parameters fulﬁll the empirical guideline given in section II (Eq. 5). We experienced that the correct choice of δh is extremely important. In fact, if δh < 2 ˚A during metadynamics run we only observe a useless plane sliding, which is indeed a much less expensive deformation than a genuine solid–solid phase transition. For molecular solid this is even more easy than in covalent crystals because of the weak nature of the intermolecular interactions. Moreover, if δh > 3 ˚A the deformation of the cell was too large to be accommodated by the molecules and amorphization is always observed. On the other hand, choosing a too small value for W causes a slow escaping from the energy basin resulting in a waste of time.
+The structure factor provides a unique ﬁngerprint of each crystalline structure and can be compared with the experimental x-ray powder diﬀraction pattern. Characteristic reﬂection peaks of a given structure often vanish for other crystalline structures and by monitoring the intensity of the strongest reﬂections during the metadynamics loop we can easily detect when a phase transition occurs. For a typical metadynamics run, where the phase I transforms into phase III, we show in Figure 5 the behavior of the box lengths and angles (top panels) as well as the intensity of a selected peak of the structure factor, relative to the strongest reﬂection.
+We tried tens of starting conﬁgurations with either of the three phases and with diﬀerent dimensions of the simulation cell, containing from 4 to 256 molecules. We observed that by increasing the cell dimension the number of metasteps necessary to escape from the energy basin decreases. At the same time the formation of defects becomes easier and in the cells larger than about hundred molecules we sometimes observe stacking faults. We stress, however, that we never observe “point” de-
+
+7
+
+Lattice Vector (nm)
+
+Angle (deg)
+
+4.0
+
+a
+
+3.5
+
+b c
+
+3.0
+
+2.5
+
+110
+
+100
+
+90
+
+α
+
+80
+
+β
+
+γ
+
+1.0
+
+0.8
+
+0.6
+
+0.4
+
+0.2
+
+0.0 0
+
+I
+
+10
+
+20
+
+Metastep
+
+III 30
+
+I[4 3 4] / I0
+
+FIG. 5: Benzene: behavior of the box lengths and angles in a typical metadynamics run with 192 molecules in the simulation cell (top and middle panels). In the bottom panel we report the intensity of the (434) reﬂection relative to the strongest peak observed in that metastep. The sudden drop of the intensity clearly indicates the occurrence of a phase transition at the metastep 22.
+
+fects, such as vacancies or misoriented molecules. In particular, we could never observe a clean transition between benzene I and II if the simulation cell was larger than 32 molecules. With larger cells benzene I always transforms either to benzene III, which is lower in energy than benzene II, or to a defective structure. In Figure 6 we show the plane stacking along the c axis for benzene II and III and also for a typical defective conﬁguration obtained by metadynamics.
+For comparison, we performed also a limited amount of Parrinello-Rahman simulations, starting from phase I. We observed in this case only a transition to phase III, but not to phase II. Moreover, no phase transition is observed at pressures lower than 10 GPa. The results of metadynamics simulations clearly demonstrate that the new method works very well also for molecular crystals.
+
+III. METADYNAMICS USING AN INTERNAL ORDER PARAMETER
+
+The new method described in section II still suffers from some limitations in common with the original Parrinello-Rahman method. For instance it is less eﬀective for the study of phase transitions for which the primary order parameter is an internal coordinate instead of the cell edges. This is the case for phase transformations under pressure described in terms of solid state chemical reactions such as the 2D [38] and 3D [39] polymerizations of C60 or the topochemical solid-state polymerizations of alkenes, alkynes and aromatic hydrocarbons [8, 40]. For instance, in the 2D polymerization of C60 the activation barrier for the [2+2] cycloaddition reaction is overcome by a suitable deformation of the fullerenic cage which is not induced by simply decreasing the intercage distances down to the density of the 2D polymer [41]. In the perspective to address the study of phase transformations in this class of materials, we have extended the metadynamics scheme recently devised by Iannuzzi, Laio and Parrinello (ILP) [42] to constant-pressure MD simulations [14]. The ILP scheme can be dubbed reactive molecular dynamics since suitably deﬁned reaction coordinates are introduced as dynamical variables.
+By combining the ideas behind the Parrinello-Rahman and ILP methods we have introduced a constant-pressure reactive MD described by a Lagrangian of the form
+
+L
+
+=
+
+1 2
+
+N i=1
+
+mi (s˙ ti ht hs˙ i )
+
+−
+
+E({si},
+
+h)
+
++
+
+1 2
+
+WcT
+
+rh˙ th˙
+
+− pΩ +
+
+1 2
+
+Mαη˙α2
+
+−
+
+1 2
+
+kα
+
+ηα({si}, h) − ηα
+
+2
+
+α
+
+α
+
+− V (t, {ηα}),
+
+(6)
+
+where the ﬁrst line is the Parrinello-Rahman Lagrangian
+[1] and the second line is the ILP Lagrangian [42]. Here, si are scaled ionic coordinates, Ω is the cell volume, p the external pressure and ηα are collective variables as in the ILP scheme [42] with a ﬁctitious kinetic energy and mass (Mα). A harmonic potential restrains the values of the collective coordinates ηα({si}, h) close to the corresponding dynamical collective variables ηα. The values of Mα and kα control the time scale of the evolution of the collective variables and are chosen according to the
+prescription given in Ref. [42]. The collective coordinates ηα({si}, h) are functions of the scaled ionic coordinates and of the cell edges and should be able to discriminate between the initial and ﬁnal phases. E({si}, h) is the total internal energy while V ({ηα}, t) is the historydependent potential acting on the collective variables and
+given by
+
+V (t, {ηα}) =
+
+W
+
+e , −
+
+|ηα −ηαt′ 2σα2
+
+|2
+
+(7)
+
+t′ <t
+
+α
+
+where W and σα are suitably chosen parameters as de-
+
+Benzene II
+
+8
+
+Benzene III
+
+Metadynamics
+
+a b c d a b c d a b a b a b a b a* b a’ d a* d a’ b
+FIG. 6: Benzene: comparison of the molecular arrangement of phases II and III with that observed in a typical defective structure obtained during metadynamics. Note that benzene II has a typical a b c d plane stacking while benzene III has an a b stacking. The defective structure can be viewed either as a crystal of benzene II with two stacking faults (along the planes marked by a star) or as benzene III with two stacking faults (in the planes marked by a prime).
+
+scribed in Ref. [12]. The equations of motion corresponding to the Lagrangian (6) are reported in Ref. [14].
+
+A. Application to graphite
+
+To demonstrate the validity of the new scheme described above we have simulated the conversion of carbon from graphite to diamond under pressure [14]. This transformation can be seen as driven by an internal order parameter such as the corrugation of the graphitic planes which leads to the change of hybridization of carbon from sp2 to sp3. As a measure of the hybridization type of the carbon atoms, we have deﬁned as collective variable the coordination number of the atoms of a single graphitic plane in the simulation cell with respect to the atoms of the two neighboring planes, i.e.
+
+η=
+
+cij ,
+
+(8)
+
+i∈plane j∈/plane
+
+with
+
+cij
+
+=
+
+1
+
+−
+
+(
+
+rij d
+
+)6
+
+1
+
+−
+
+(
+
+rij d
+
+)12
+
+,
+
+(9)
+
+where rij is the distance between atoms i and j and d = 2.2 ˚A. The graphite to diamond conversion has been already reproduced in the ab-initio Parrinello-Rahman molecular dynamics simulations of Ref. [9], although at a pressure of 90 GPa, six times larger than the experimental estimate (15 GPa, [9]), due to the aforementioned limitations of the Parrinello-Rahman method. In the present work graphite is described by the tight-binding (TB) potential of Ref. [43] supplemented by an empirical two-body van der Waals (vdW) interaction, necessary to describe the interplanar distance in graphite [14] [44].
+
+This model Hamiltonian describes with good accuracy the lattice parameters and compressibility of graphite and diamond at equilibrium, but drastically overestimates the compressibility of graphite at high pressure. As a consequence the theoretical transition pressure to diamond is as high as 129 GPa and the volume jump at the transition pressure is very small, the volume being 4.70 ˚A3/atom for graphite and 4.60 ˚A3/atom for diamond (cfr. the ab-initio EOS of graphite and diamond of Ref. [9]). Nevertheless this model graphite represents a good testing case for the new simulation scheme. In fact, the small volume jump at the theoretical transition pressure prevents the reduction of the activation barrier by overpressurization and consequently the transition to diamond does not take place in a Parrinello-Rahman simulation (70 ps long) even by increasing the pressure up to 700 GPa and temperature up to 1000 K. Conversely, within the new simulation scheme the transformation to diamond occurs very close to the theoretical transition density. We have performed a metadynamics simulation of graphite at 15 GPa and 300 K with a supercell containing 128 atoms initially arranged in the graphite structure with four graphitic planes per cell in the ABAB (hexagonal) stacking [9]. During the simulation run, 28 ps long, we have observed several (of the order of 15) forward and backward transitions between graphite and diamond. A clear monitoring of the phase transition is given by the time evolution of the indicator χ which provides a sharp distinction between the hybridization states of carbon atoms as
+
+χ
+
+=
+
+1 N
+
+i
+
+1 ni
+
+j>k
+
+nij nikcos3θjik
+
+(10)
+
+where
+
+ni = nij ,
+j=i
+
+(11)
+
+nij
+
+=
+
+1
+
++
+
+1 e(rij
+
+−d)/∆
+
+,
+
+(12)
+
+with d = 1.8 ˚A and ∆ = 0.05 ˚A. The index i runs over all the N atoms of the simulation cell and ni is the coordination number of atom i-th. The index k and j run over atoms neighboring to atom i-th and θjik is the angle subtended by the tern jik whose contribution to χ is weighted by the product of the partial coordination number nik and nij. The cosine function in (10) is able to discriminate between the hybridization sp2 and sp3. In fact the indicator χ has a value of -0.125 for graphite and -0.06 for diamond at 15 GPa and 300 K. For the sake of clarity the time evolution of χ is reported in Fig. 7 only for the ﬁrst part of the run. Two transitions from graphite to diamond are clearly identiﬁed at 10.5 ps and at 14.0 ps. Similarly, other twelve transformations can be identiﬁed in the other 12 ps of simulation. The Gaussian potential ﬁlls ﬁrst the free-energy basin corresponding to graphite and, once the system is driven to the new phase, the basin corresponding to the ﬁnal structure is then progressively ﬁlled. Once both basins are ﬁlled, the system is able to oscillate from one structure to the other. In agreement with the ab-initio Parrinello-Rahman simulation of Ref.[9], some of the structures observed during the oscillations from graphite to diamond are a mixture of cubic and hexagonal diamond. The transformation at 10.5 ps (14.0 ps) starts at a volume of 4.45 ˚A3/atom (4.70 ˚A3/atom), very close to the theoretical transition volume of 4.70 ˚A3/atom obtained from the theoretical equation of state of graphite and diamond. These results demonstrate the eﬀectiveness of the metadynamics scheme presented above. The phase transition occurs spontaneously at the theoretical transition density whereas it does not take place in a Parrinello-Rahman simulation (within the tight-binding model) even by overpressurizing the system up to ﬁve times the theoretical transition pressure. This metadynamics scheme would be particularly suitable and probably superior to the one based on the h matrix (as presented in section II) for the simulation of phase transitions described in terms of solid state chemical reactions.
+
+IV. CONCLUSIONS AND OUTLOOK
+The methodology based on exploration of the free energy surface results in a substantial improvement of simulation of structural transitions in crystals. Using several inorganic and organic crystals as examples we demonstrated its general applicability as well as heuristic value in various cases where the plain constant-pressure simulations fail. The main advantages that emerge can be
+
+χ
+
+9
+summarized as follows. Starting from an initial structure, the new approach is able to ﬁnd a number of realistic polymorphs, as demonstrated by the examples of zeolite and benzene crystals. For the search for new structures, a classical force-ﬁeld can be used resulting in a simulation cost comparable to that of a standard classical MD simulation. The mechanism of transitions between diﬀerent
+-0.06
+-0.08
+-0.1
+-0.12
+7 8 9 10 11 12 13 14 15 t [ps]
+FIG. 7: Graphite: time evolution of the indicator χ (see Eq. (10) in the text) which discriminates between the structures of graphite and diamond. Only the ﬁrst part of the simulation is reported for sake of clarity. Along the whole run 28 ps long, we have seen 15 jumps of χ similar to those reported in the ﬁgure which equally correspond to oscillations between graphite and diamond.
+phases can be understood at conditions close to those of experiment, as shown by the example of graphite.
+Clearly, there still remains a lot of room for improvement, including the algorithm itself. As we see it, the major diﬃculty in the discrete version of the algorithm described in section II is the choice of parameters W and δh. One of possible alternatives is to use also in this case a continuous version of metadynamics with an adaptive mechanism for the choice of Gaussian parameters (including anisotropic Gaussians), based on monitoring the cell ﬂuctuations and estimating the shape of the well. The work in this direction is in progress. Also, an accurate calculation of a transition pressure at ﬁnite temperature still remains a challenge. The ultimate goal in this ﬁeld should be a crystal structure prediction from “scratch”, based only on the knowledge of the chemical composition of the system. We believe that methods described in this paper represent a substantial step forward towards this goal.
+
+[1] Parrinello, M.; Rahman, A.: Crystal Structure and Pair Potentials: A Molecular-Dynamics Study. Phys. Rev. Lett. 45 (1980) 1196-1199. Parrinello, M.; Rahman, A.:
+
+Polymorphic transitions in single crystals: A new molecular dynamics method. J. Appl. Phys. 52 (1981) 71827190.
+
+10
+
+[2] Focher, P.; Chiarotti, G.L.; Bernasconi, M.; Tosatti, E. and Parrinello, M.: Structural phase transformations via ﬁrst-principles simulation. Europhys. Lett. 26 (1994) 345-351.
+[3] Serra, S.; Chiarotti, G.; Scandolo, S. and Tosatti, E.: Pressure-Induced Magnetic Collapse and Metallization of Molecular Oxygen: The ζ - O2 Phase. Phys. Rev. Lett. 80 (1998) 5160-5163.
+[4] Laio, A.; Bernard, S.; Chiarotti, G.L.; Scandolo, S. and Tosatti, E.: Physics of Iron at Earth’s Core Conditions. Science 287 (2000) 1027-1030.
+[5] Cavazzoni, C.; Chiarotti, G.L.; Scandolo, S.; Tosatti, E.; Bernasconi, M. and Parrinello, M.: Superionic and Metallic States of Water and Ammonia at Giant Planet Conditions. Science 283 (1999) 44-46.
+[6] Ancilotto, F.; Chiarotti, G.L.; Scandolo, S. and Tosatti, E.: Dissociation of Methane into Hydrocarbons at Extreme (Planetary) Pressure and Temperature. Science 275 (1997) 1288-1290.
+[7] Bernard, S.; Chiarotti, G.L.; Scandolo S. and Tosatti, E.: Decomposition and Polymerization of Solid Carbon Monoxide under Pressure. Phys. Rev. Lett. 81 (1998) 2092-2095.
+[8] Bernasconi, M.; Chiarotti, G.L.; Focher, P.; Parrinello, M. and Tosatti, E.: Solid-State Polymerization of Acetylene under Pressure: Ab Initio Simulation. Phys. Rev. Lett. 78 (1997) 2008-2011.
+[9] Scandolo S.; Bernasconi, M.; Chiarotti, G.L.; Focher, P. and Tosatti, E.: Pressure-Induced Transformation Path of Graphite to Diamond. Phys. Rev. Lett. 74 (1995) 4015-4018.
+[10] Mizushima, K.; Yip, S. and Kaxiras, E.: Ideal crystal stability and pressure-induced phase transition in silicon. Phys. Rev. B 50 (1994) 14952-14959.
+[11] Souza, I.; Martins, J. L.: Metric tensor as the dynamical variable for variable-cell-shape molecular dynamics. Phys. Rev. B 55 (1997) 8733-8742.
+[12] Laio, A. and Parrinello, M.: Escaping free-energy minima. Proc. Natl. Acad. Sci. USA 99 (2002) 12562-12566.
+[13] Martonˇ´ak, R.; Laio, A. and Parrinello, M.: Predicting Crystal Structures: The Parrinello-Rahman Method Revisited. Phys. Rev. Lett. 90 (2003) 075503.
+[14] Zipoli, F.; Bernasconi, M. and Martonˇ´ak, R.: Constant pressure reactive molecular dynamics simulations of phase transitions under pressure: The graphite to diamond conversion revisited. Eur. Phys. J. B 39 (2004) 41-47.
+[15] Micheletti, C.; Laio, A. and Parrinello, M.: Reconstructing the Density of States by History-Dependent Metadynamics. Phys. Rev. Lett. 92 (2004) 170601.
+[16] Iannuzzi, M. and Parrinello, M.: Proton Transfer in Heterocycle Crystals. Phys. Rev. Lett. 93 (2004) 025901.
+[17] Ensing, B.; Laio, A.; Gervasio, F.L.; Parrinello, M. and Klein, M.L.: A Minimum Free Energy Reaction Path for the E2 Reaction between Fluoro Ethane and a Fluoride Ion. J. Am. Chem. Soc. 126 (2004) 9492-9493.
+[18] Stirling, A.; Iannuzzi, M.; Laio, A.; Parrinello, M.: Azulene–to–naphthalene rearrangement: the Car– Parrinello metadynamics method explores various reaction mechanisms. ChemPhysChem. 5 (2004) 1558-1568.
+[19] Nos´e, S. and Klein, M.L.: Constant pressure molecular dynamics for molecular systems. Mol. Phys. 50 (1983) 1055-1076.
+[20] Allen, M.P. and Tildesley, D.J.: Computer Simulation of
+
+Liquids. Clarendon Press, Oxford 2001. [21] Wentzcovitch, R.M.: Invariant molecular-dynamics ap-
+proach to structural phase transitions. Phys. Rev. B 44 (1991) 2358-2361. [22] Ceriani, C.; Laio, A.; Fois, E.; Gamba, A.; Martonˇ´ak, R. and Parrinello, M.: Molecular dynamics simulation of reconstructive phase transitions on an anhydrous zeolite. Phys. Rev. B 70 (2004) 113403. [23] Gottardi, G. and Galli, E.: Natural Zeolites. SpringerVerlag, Berlin 1985. [24] Szostak, R.: Molecular Sieves, 2nd edition. Blackie New York, 1998. [25] Barrer, R.M. and White, E.A.D.: The hydrothermal chemistry of silicates .1. Synthetic lithium aluminosilicates. J. Chem. Soc. (1951) 1267-1278. [26] Norby, P.: Thermal transformation of zeolite Li-A(BW) the crystal-structure of gamma-eucryptite, a polymorph of LiAlSiO4. Zeolites 10 (1990) 193-199. [27] Zirl, D.M. and Garofalini, S.H.: Structure of sodium aluminosilicate glass surfaces. J. Am. Ceram. Soc. 75 (1992) 2353-2362. Zirl, D.M. and Garofalini, S.H.: Structure of sodium aluminosilicate glasses. J. Am. Ceram. Soc. 73 (1990) 2848-2856. [28] C. Ceriani et al., in preparation. [29] L¨owenstein, W.: The distribution of aluminum in the tetrahedra of silicates and aluminates. Am. Mineral. 39 (1954) 92-96. [30] Datta, S.; Grant, D. J. W.: Crystal structures of drugs: Advances in determination, prediction and engineering. Nat. Rev. Drug Discov. 3 (2004) 42-57. [31] Price, S. L.: The computational prediction of pharmaceutical crystal structures and polymorphism. Adv. Drug Deliver. Rev. 56 (2004) 301-319. [32] Thi`ery, M. M.; Le`ger, J. M.: High pressure solid phases of benzene. I. Raman and x-ray studies of C6H6 at 294 K up to 25 GPa. J. Chem. Phys. 89 (1988) 4255-4271. [33] Cansell, F.; Fabre, D.; Petitet, J.-P.: Phase transitions and chemical transformations of benzene up to 550◦ and 30 GPa. J. Chem. Phys. 99 (1993) 7300-7304. [34] Ciabini, L.; Santoro, M.; Bini, R.; Schettino, V.: High pressure crystal phases of benzene probed by infrared spectroscopy. J. Chem. Phys. 115 (2001) 3742-3749. [35] van Eijck, B. P.; Spek, L.; Mooij, W. T. M.; Kroon, J.: Hypothetical crystal structures of benzene at 0 and 30 Kbar. Acta Cryst. B54 (1998) 291-299. [36] P. Raiteri, R. Martonˇ´ak and M. Parrinello, unpublished. [37] Scott, W. R. P.; Hu¨nenberger, P. H.; Tironi, I. G.; Mark, A. E.; Billeter, S. R.; Fennen, J.; Torda, A. E.; Huber, T.; Kru¨ger, P.; van Gunsteren, W. F: The GROMOS biomolecular simulation program package. J. Phys. Chem. A 103 (1999) 3596-3607. [38] Iwasa, Y. et al.: New Phases of C60 Synthesized at High Pressure. Science 264 (1994) 1570-1572. [39] Marques, L. et al.: ”Debye-Scherrer Ellipses” from 3D Fullerene Polymers: An Anisotropic Pressure Memory Signature. Science 283 (1999) 1720-1723. [40] Schettino, V. and Bini, R.: Molecules under extreme conditions: Chemical reactions at high pressure. Phys. Chem. Chem. Phys. 5 (2003) 1951 - 1965. [41] Ozaki, T.; Iwasa, Y. and Mitani, T.: Elementary processes in pressure-induced polymerization of C60. Chem. Phys. Lett. 285 (1998) 289-293. [42] Iannuzzi, M.; Laio, A. and Parrinello, M.: Eﬃcient Exploration of Reactive Potential Energy Surfaces Using
+
+11
+
+Car-Parrinello Molecular Dynamics. Phys. Rev. Lett. 90 (2003) 238302. [43] Xu, C.H; Wang, C.Z.; Chan, C.T. and Ho, K.M.: A transferable tight-binding potential for carbon. J. Phys. Condens. Matt. 4 (1992) 6047-6054.
+
+[44] We veriﬁed that this modiﬁcation of the TB potential has a negligible eﬀect on the equation of state of the diamond phase.
+

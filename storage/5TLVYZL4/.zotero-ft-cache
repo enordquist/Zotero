@@ -1,0 +1,425 @@
+A variational conformational dynamics approach to the selection of collective variables in metadynamics
+Cite as: J. Chem. Phys. 147, 204109 (2017); https://doi.org/10.1063/1.4998598 Submitted: 01 August 2017 • Accepted: 23 October 2017 • Published Online: 30 November 2017 James McCarty and Michele Parrinello COLLECTIONS
+This paper was selected as an Editor’s Pick
+ARTICLES YOU MAY BE INTERESTED IN Enhanced sampling in molecular dynamics The Journal of Chemical Physics 151, 070902 (2019); https://doi.org/10.1063/1.5109531 Identification of slow molecular order parameters for Markov model construction The Journal of Chemical Physics 139, 015102 (2013); https://doi.org/10.1063/1.4811489 Time-lagged autoencoders: Deep learning of slow collective variables for molecular kinetics The Journal of Chemical Physics 148, 241703 (2018); https://doi.org/10.1063/1.5011399
+
+J. Chem. Phys. 147, 204109 (2017); https://doi.org/10.1063/1.4998598 © 2017 Author(s).
+
+147, 204109
+
+THE JOURNAL OF CHEMICAL PHYSICS 147, 204109 (2017)
+A variational conformational dynamics approach to the selection of collective variables in metadynamics
+James McCarty1,2 and Michele Parrinello1,2,a) 1Department of Chemistry and Applied Biosciences, ETH Zu¨rich c/o USI Campus, 6900 Lugano, Switzerland 2Facolta´ di Informatica, Instituto di Scienze Computazionali, and National Center for Computational Design and Discovery of Novel Materials MARVEL, Universita´ della Svizzera italiana, 6900 Lugano, Switzerland
+(Received 1 August 2017; accepted 23 October 2017; published online 30 November 2017)
+In this paper, we combine two powerful computational techniques, well-tempered metadynamics and time-lagged independent component analysis. The aim is to develop a new tool for studying rare events and exploring complex free energy landscapes. Metadynamics is a well-established and widely used enhanced sampling method whose efﬁciency depends on an appropriate choice of collective variables. Often the initial choice is not optimal leading to slow convergence. However by analyzing the dynamics generated in one such run with a time-lagged independent component analysis and the techniques recently developed in the area of conformational dynamics, we obtain much more efﬁcient collective variables that are also better capable of illuminating the physics of the system. We demonstrate the power of this approach in two paradigmatic examples. Published by AIP Publishing. https://doi.org/10.1063/1.4998598
+
+Molecular Dynamics (MD) simulations have become pervasive in contemporary science and are extensively used in ﬁelds as diverse as chemistry, biology, and materials science. Yet in spite of many successes, the limited time scale that can be explored in MD simulations severely limits their scope and power. In many cases, the time scale problem results from the presence of metastable states separated by kinetic bottlenecks that render the transitions between such states so rare that they take place on a time scale that far exceeds what can be afforded by ordinary simulation methods.
+For this reason, a plethora of enhanced simulation methods have been suggested. Starting from the pioneering work of Torrie and Valleau,1 a wide class of such methods rely on the identiﬁcation of appropriate collective variables (CVs).2–7 The CVs are a set of functions s(R) of the atomic coordinates R that describe those degrees of freedom whose sampling needs to be accelerated. This latter goal is achieved by adding to the interaction potential U(R) an appropriately constructed bias V (s(R)), designed so as to accelerate sampling. Here we shall focus on one such method, namely, well-tempered metadynamics (WTMetaD)6,7 that is enjoying increasing popularity and that offers the possibility in one of its variants, usually referred to as infrequent metadynamics,8 to calculate transition rates from metastable state to metastable state. However in WTMetaD, the rate of convergence depends on an appropriate choice of CVs especially when it comes to calculating rates. In an important paper, this has been pointed out by Tiwary and Berne9 who have proposed the spectral gap optimization of order parameters’ (SGOOP) method that is based on maximum caliber and that has been shown to improve the quality of an initial CV guess in a spectacular way.
+a)Electronic mail: parrinello@phys.chem.ethz.ch
+
+This work offers an alternative to SGOOP based on the signal processing technique, Time-lagged Independent Component Analysis (TICA).10–12 As in the case of Ref. 9, we start from a CV that is able to push the system from one metastable state to another albeit sluggishly and ameliorate it so as to greatly improve its efﬁciency. It has been shown in the important work of Noe´ and co-workers11 that the TICA provides an optimal solution of the variational approach to conformational dynamics (VAC), hence identifying slow order parameters which may serve as optimal CVs in a metadynamics simulation. We shall refer to this combination as the variational conformational dynamics approach to metadynamics (VAC-MetaD).
+We recall ﬁrst that in WTMetaD, the bias potential V (s(R)) is built on the ﬂy by periodically adding a small repulsive Gaussian whose amplitude decreases as the simulation progresses. A remarkable feature of WTMetaD is that this stochastic, apparently out of equilibrium process can be described by an ordinary differential equation whose asymptotic solution for the bias tends rigorously to the following equilibrium result:13
+
+lim V (s, t) = −
+t→∞
+
+1 1− γ
+
+F(s),
+
+(1)
+
+where F(s) is the free energy associated with the s CV given within an irrelevant constant by
+
+F(s)
+
+=
+
+−
+
+1 β
+
+log
+
+dR δ(s − s(R))e−βU(R),
+
+(2)
+
+where β = 1/kBT is the inverse temperature and γ is the socalled bias factor.
+One of the consequences of the existence behind WTMetaD of an ordinary differential equation is that the reweighting of the trajectories can be done on the ﬂy and the equilibrium expectation value of an operator O(R) can be
+
+0021-9606/2017/147(20)/204109/5/$30.00
+
+147, 204109-1
+
+Published by AIP Publishing.
+
+204109-2 J. McCarty and M. Parrinello
+
+J. Chem. Phys. 147, 204109 (2017)
+
+calculated14 as an average over the metadynamics run as
+
+O(R) = lim ∫0T O(Rt)eβ(V(s(Rt))−c(t))dt ,
+
+(3)
+
+T →∞
+
+∫
+
+T 0
+
+eβ(V (s(Rt ))−c(t))dt
+
+where Rt are the atomic positions at time t and the time dependent energy offset c(t) is
+
+c(t) =
+
+−1 β
+
+log ∫
+
+dse−β(F(s)+V (s,t)) ∫ dse−βF(s) ,
+
+(4)
+
+a quantity that tends asymptotically to the reversible work performed on the system by the bias. If we introduce a new time scale ˜t such that
+
+d˜t = eβ(V(s(Rt))−c(t))dt,
+
+(5)
+
+we can recognise that O(R) can be written as an average over the ˜t time,
+
+O(R) = lim 1 T˜t →∞ T˜t
+
+T˜t
+O(R˜t )d˜t ,
+0
+
+(6)
+
+where T˜t
+
+=
+
+∫
+
+T 0
+
+eβ(V
+
+(s(Rt
+
+))−c(t))dt
+
+is the total elapsed ˜t time.
+
+The times t and ˜t measure the metadynamics and Boltzmann
+
+sampling progress, respectively. It follows from Eq. (6) and
+
+from the convergency properties of WTMetaD that we can
+
+think of WTMetaD as an ergodic dynamics in ˜t time that
+
+samples the Boltzmann distribution. We note, however, that
+
+the ˜t dynamics cannot be directly related to the unbiased
+
+dynamics but depends on the choice of CVs. Poor CVs lead
+
+to long convergence times, while good CVs lead to much
+
+shorter ones. In fact, the very purpose of biasing the sys-
+
+tem is to turn rare events into frequent ones, and the time ˜t
+
+should not be confused with the actual unbiased time, but a
+
+measure of the extent of metadynamics enhancement of the
+
+sampling.
+
+We now want to take advantage of the progress made in
+
+the ﬁeld of conformational dynamics15,16 and the realization
+
+that a propagator associated with an ergodic dynamics can
+
+be spectrally decomposed into eigenvalues λi(t) and eigenfunctions ψi(R). The highest eigenvalue λ0 is one since the
+
+system evolves towards the invariant distribution, while the
+
+others decay with time.15 If the ﬁrst sets of M non-trivial eigen-
+
+values are separated by a gap from all others, the corresponding
+
+eigenfunctions can be identiﬁed as the CVs that describe the
+
+slowest modes of the system. In order to practically bene-
+
+ﬁt from these theoretical results, one needs an approximation
+
+method that can deal with the fact that the propagator is very
+
+high dimensional. Luckily, an approximate evaluation, based
+
+on a variational principle similar to the Raleigh-Ritz princi-
+
+ple of quantum mechanics, has been suggested.17,18 In this
+
+approach, the dynamics is projected into a low-dimensional
+
+space spanned by the basis functions Ok(R) k = 1, . . . , N, and
+
+the eigenfunctions are approximated by a linear expansion,
+
+N
+
+ψi(R) = bikOk(R).
+
+(7)
+
+k=1
+
+The eigenvalues and eigenfunctions that best approximate the exact eigenvalues and eigenvectors are given by the solution of the following generalized eigenvalue equation:
+
+C(τ)bi = C(0)λi(τ)bi,
+
+(8)
+
+where τ is the lag time and C(τ) is the matrix of the dynamical
+
+correlation functions Cj,k(τ) = Oj(t)Ok(t + τ) , while λ(τ)i are the eigenvalues and bi are the expansion coefﬁcients of
+
+eigenfunctions.
+
+As discussed above, it is possible to map WTMetaD into a
+
+dynamics that asymptotically samples the Boltzmann distribu-
+
+tion. Thus we make the ansatz that also for the ˜t dynamics, the
+
+properties at the basis of the spectral decomposition described
+
+above hold at least asymptotically since metadynamics in this
+
+limit explores ergodically the Boltzmann distribution.
+
+If this is so, we can approximate the slow modes of the sys-
+
+tems with the solutions of the generalized eigenvalue, Eq. (8),
+
+in which the time correlation functions are expressed as a
+
+function of the scaled time ˜t. While the variational approach,
+
+Eq. (8), aims at identifying the slowest CVs by varying bi so as to maximize the eigenvalues λ(τ), metadynamics aims at gen-
+
+erating a biased dynamics in which the slowest processes are
+
+fast. Hence, a successful application of VAC-MetaD should
+
+result in a biased dynamics whose slowest processes are fast,
+
+corresponding to small leading eigenvalues, λ1, λ2, . . . . Thus
+
+our strategy will be of choosing ﬁrst a set of CVs expressed
+
+in the space spanned by an appropriate set of functions Ok(R) and then perform a WTMetaD run to calculate the correla-
+
+tion function in ˜t time, plug them into Eq. (8), and use the
+
+eigenvectors of the highest eigenvalues as improved CVs. If
+
+we perform a new WTMetaD simulation driven by such CVs,
+
+then we should see a much more efﬁcient sampling, and due
+
+to the acceleration of the slowest modes, we should observe
+
+a decrease in the relaxation time associated with the leading
+
+eigenvalues. We must add however that since metadynamics
+
+needs some incubation time τc before reaching the asymptotic limit in which Eq. (3) holds, only after time τc will the trajectory yield a stable estimate of the eigenvalues. Only in this
+
+limit, the eigenvectors of the slowest modes in Eq. (8) will be
+
+used as new CVs.
+
+We now explicate how the method works in practice. As
+
+stated above, the VAC-MetaD procedure aims to ﬁnd from an
+
+initial set of candidate order parameters O = {Ok(R)} the opti-
+
+mal linear combination of these order parameters to use as a
+
+CV in metadynamics. Initially, we give equal weight to each
+
+order parameter and perform a short biased simulation with
+
+the initial CV as s(0)(R) = √1
+N
+
+N k
+
+Ok (R).
+
+In
+
+order
+
+to
+
+approxi-
+
+mate the unbiased slow modes from the biased metadynamics
+
+simulation, we need to reweight trajectory samples in our computation of the correlation matrices.19 The two correlation
+
+matrices needed to solve Eq. (8) are
+
+C(0) = w(t)O(t)O(t)T ,
+
+t
+
+(9)
+
+C(τ) = w(t)O(t)O(t + τ)T ,
+
+t
+
+with O(t) being the set of candidate order parameters at time t and (t) being the WTMetaD weight,
+
+w(t) =
+
+eβ(V (s(t))−c(t)) t eβ(V (s(t))−c(t)) .
+
+(10)
+
+In practice, the correlation functions of Eq. (9) are symmetrized to ensure that λs are real valued.19 Diagonalization
+of the correlation matrix C(0) would give the usual reweighted
+
+204109-3 J. McCarty and M. Parrinello
+
+J. Chem. Phys. 147, 204109 (2017)
+
+principle components. In the time-lagged matrix C(τ), the lag time τ is given by the sum of the rescaled time steps,
+
+τ
+τ = eβ(V(s(t))−c(t))∆t.
+t=t0
+
+(11)
+
+Inserting the matrices given by Eq. (9) into Eq. (8) and solving
+
+the generalized eigenvalue equation for the eigenfunctions bi give a new set of N transformed basis functions si = bTi O, which are an approximation for the eigenfunctions of the
+
+dynamical propagator [Eq. (7)]. Each of the N eigenvalues
+
+has an associated relaxation time given at a ﬁxed chosen lag
+
+time τ by
+
+ti∗
+
+=
+
+τ −
+log |λi |
+
+.
+
+(12)
+
+One expects to ﬁnd a gap in time scales between the M < N slow modes corresponding to large t∗ which provides a natural
+
+way to select a subset of the N basis function, those corre-
+
+sponding to the slowest relaxation times (largest eigenvalues),
+
+as new CVs to be biased with WTMetaD. Thus the procedure
+
+yields the desired set of M CVs as
+
+M<N
+
+si(R) = bikOk(R)
+
+(13)
+
+k=1
+
+with bi being the expansion coefﬁcients in Eq. (8). We shall test this procedure by studying in vacuum the
+conformational landscape of two simple peptides that have
+often been used as the testing ground for new methods,
+alanine dipeptide (AceAlaNme) and alanine tetrapeptide (AceAla3Nme) which are shown in Fig. 1. All simulations
+were performed with the GROMACS5.0.5 package20 using
+the Amber99-SB force ﬁeld with an integration time step of
+2 fs. Trajectories were generated in the NVT ensemble with the
+temperature maintained at 300 K using the stochastic velocity rescaling thermostat.21 All metadynamics calculations were performed within the PLUMED2 plugin22 with Gaussian
+hills deposited every 500 integration steps with an initial hill
+height of 1.2 kJ/mol, a width of 0.03 units, and a bias factor γ of 15.
+We start with the much studied case of alanine dipep-
+tide. Here we depart from the usual procedure and besides the Rahmachandran angles φ and ψ, we consider additionally the
+
+FIG. 1. Structure and dihedral angle deﬁnitions for the two model systems studied: (a) alanine dipeptide and (b) alanine tetrapeptide.
+
+angle θ that is known to be part of the reaction coordinate23 [see Fig. 1(a)]. Each angle is transformed according to Θk = 0.5
++ 0.5 cos(Θk  Θ0) with the reference angle Θ0 = 1.2 rad9 and
+Θ = {φ, ψ, θ}. The initial CV is then taken to be a linear combination with equal weights of the transformed angles φ, ψ, and θ, i.e., s0 = c1Θφ + c2Θψ + c3Θθ with {c1, c2, c3} initially all equal and normalized to 1. Upper and lower restraints on the θ angle were introduced at ±0.5 rad. Following the usual TICA procedure, we subtract the reweighted mean given by Eq. (3) from the raw trajectory data and work in a zero-mean vector space. From an initial WTMetaD trajectory of 20 ns biasing s0, we compute the two correlation matrices in Eq. (9) with O = Θ. The trajectory of the initial CV s0 is shown in Fig. 2 (top left). It can be seen that such a CV is able to induce transitions between the different conformers; however, such transitions are not very frequent. This is reﬂected by the fact that the highest λ(τ) decays more slowly than the other eigenvalues reﬂecting a difﬁculty of the chosen CV to promote transitions. The middle row of Fig. 2 shows the relaxation times ti∗ associated with each eigenvalue given by Eq. (12) at a lag time τ = 800 ps chosen within the regime for which the eigenvector coefﬁcients are stable. Figure 2 (middle left) clearly shows a slow process with a dominant large eigenvalue and a clear separation of time scales. The eigenvector associated with this highest eigenvalue, computed in the asymptotic regime where the eigenvectors are constant with respect to the lag time τ, thus obtained is used as a new CV s1 = bT1 Θ. If we use as a CV this eigenvector associated with the highest λ, the exploration of the conformational space is greatly accelerated as depicted in Fig. 2 (top right), and the relaxation rates of decay of the different λs become comparable, reﬂecting the fact that the rare event has been made no longer rare (Fig. 2, middle right). It is interesting to note that in the optimized CV, much of the weight is of the angle φ but both ψ and θ are part of the optimal CV.
+In Fig. 2 (bottom), we also show the free energies associated with the initial (left) and ﬁnal (right) CVs. The conformational landscape of alanine dipeptide is well known and characterized by a deeper basin in which conformers C5 and C7eq can easily interconvert, while conformer C7ax is higher in energy separated by a sizeable barrier from the ﬁrst two. It can be seen that although the free energy surface (FES) is fully converged, these physical pictures are hidden in the free energy representation provided by the initial CV but clearly evident when using the ﬁnal CV.
+We now turn to the second example for which we have applied our approach, that of alanine tetrapeptide (Ala3) shown in Fig. 1(b), a case already considered in Refs. 9 and 24. The simulation is started as in Ref. 9 by taking as a collective coordinate the linear combination with equal weights of the set of six dihedral angles Θ = {φ1, ψ1, φ2, ψ2, φ3, ψ3} transformed
+as before so that Θk = 0.5 + 0.5 cos(Θk  Θ0). As can be seen
+in Fig. 3 (left), the exploration of the conformational space is somewhat inefﬁcient with rare conformational transitions. We project the ˜t dynamics in the space of the chosen angles and observe that the decay times of the two topmost eigenvalues are signiﬁcantly slower than that of the others. This suggests projecting the free energy surface in the space of the two topmost eigenvectors. As shown in Fig. 4, in this representation,
+
+204109-4 J. McCarty and M. Parrinello
+
+J. Chem. Phys. 147, 204109 (2017)
+FIG. 2. Trajectory of alanine dipeptide obtained from a WTMetaD simulation biasing (left column) initial CV and (right column) optimized CV from VAC-MetaD. Top row: Time series of the biased CV for the ﬁrst 20 ns. Middle row: The relaxation times of the VAC-MetaD eigenvalues after trajectory reweighting. The initial CV shows a slow relaxation process, whereas with the optimized CV, all processes are fast. The coefﬁcients corresponding to the initial guess (left) and optimized CV (right) are shown in the inset. Bottom row: The reweighted free energy surface as a function of the biased CV. The optimized CV (right) clearly distinguishes between the metastable states.
+
+the seven different minima identify conformers that have a different arrangement of the three dihedral angles φ1, φ2, and φ3. The conformer in which all the three φs have all positive values is seldom visited and in this representation are projected into the top left tail of the central minimum.
+An improvement in sampling efﬁciency is obtained if one uses the topmost eigenvector as a new CV (see the central panels in Fig. 3), but still it can be seen that a relatively slow process remains. However the behavior in time of λs cries out
+
+for the use of at least two CVs. If this is done (see Fig. 3, far right panels), the improvement is amazing and it offsets the cost of using two CVs instead of one. In fact, within a 20 ns run, we get better converged results than the extensive parallel tempering run in Ref. 24 that used an aggregated time equivalent to 8 × 500 ns. These lead to a well converged and smooth free energy surface (see Fig. 4, right).
+It is difﬁcult at this stage to compare the relative practical merits of the SGOOP method to ours. Extensive tests
+
+FIG. 3. Trajectory of alanine tetrapeptide obtained from a WTMetaD simulation biasing. Left column: initial CV, middle column: ﬁrst VAC-MetaD eigenvector only, and right column: both the ﬁrst and second VAC-MetaD eigenvector used as CV. (The second CV shown in red is shifted for clarity.) Top row: Time series of the biased CV for the ﬁrst 20 ns. Middle row: Relaxation times of the VAC-MetaD eigenvalues after trajectory reweighting (relaxation times and eigenvectors are shown for τ = 1 ns for which the eigenvectors are stable). Bottom row: The coefﬁcients of each angle used to deﬁne the biased CV. The middle and right coefﬁcients are obtained from the solution to Eq. (8) from the initial trajectory. In the far right column, the ﬁrst CV s1 is shown in black and the second CV s2 is shown in red.
+
+204109-5 J. McCarty and M. Parrinello
+
+J. Chem. Phys. 147, 204109 (2017)
+
+FIG. 4. Reweighted free energy surface as a function of the ﬁrst two VAC-MetaD eigenvectors for alanine tetrapeptide from a trajectory biasing the (left) initial guess CV, (middle) ﬁrst eigenvector only, and (right) ﬁrst and second eigenvectors.
+
+on a variety of applications will be needed. As far as we can tell, for the two cases examined here, they seem to have comparable performances in the case of Ala3 when we use only the topmost eigenvector as the collective variable. It is likely that the two methods will be complementary. However a difference in philosophy must be underlined. In SGOOP, one reweighs a one-dimensional projection of the FES to ﬁnd the optimal linear combinations of CVs. Here we are reweighting the simulation time to take advantage of the variational formalism of conformation dynamics whose solution provides an optimal estimate for the true dynamical propagator.
+In summary, there is a growing interest in applying dimensionality reduction techniques on a larger candidate set of possible CVs to ﬁnd a subset of generic good CVs that can be used for enhanced sampling. A widely used example is the principle component analysis (PCA) which projects the data along the direction of largest variance. On the other hand, it is well known in the ﬁeld of conformational dynamics that the time-lagged independent component analysis on high dimensional coordinates from molecular dynamics can be useful for constructing Markov state models. In this letter, we have taken this insight and combined it with well-tempered metadynamics to ﬁnd a set of optimal CVs for further enhanced sampling. We surmise ﬁnally that the method can be adapted to other sampling methods by appropriately changing the weights in Eq. (9).
+While preparing this manuscript, a study has appeared in the literature25 in which it is pointed out that from the TICA formalism useful collective coordinates can be extracted, once a long enough trajectory is available from unbiased simulations. Our work extends considerably the scope of their approach by making it applicable to the most commonly encountered situation in which transitions between metastable states can only be observed by the use of a biased simulation. The authors thank Frank Noe´ and Pratyush Tiwary for careful reading of the manuscript and useful suggestions.
+
+Computational resources were provided by the Swiss National
+Supercomputing Center (CSCS). This research was supported
+by the VARMET European Union Grant No. ERC-2014-ADG-
+670227 and the National Center of Competence in Research
+Materials Revolution: Computational Design and Discovery
+of Novel Materials (MARVEL) No. 51NF40 141828.
+1G. Torrie and J. Valleau, J. Comput. Phys. 23, 187 (1977). 2E. Darve and A. Pohorille, J. Chem. Phys. 115, 9169 (2001). 3T. Huber, A. E. Torda, and W. F. Gunsteren, J. Comput.-Aided Mol. Des. 8,
+695 (1994). 4A. Laio and M. Parrinello, Proc. Natl. Acad. Sci. U. S. A. 99, 12562 (2002). 5F. Wang and D. P. Landau, Phys. Rev. Lett. 86, 2050 (2001). 6A. Barducci, G. Bussi, and M. Parrinello, Phys. Rev. Lett. 100, 020603
+(2008). 7O. Valsson, P. Tiwary, and M. Parrinello, Annu. Rev. Phys. Chem. 67, 159
+(2016). 8P. Tiwary and M. Parrinello, Phys. Rev. Lett. 111, 230602 (2013). 9P. Tiwary and B. Berne, Proc. Natl. Acad. Sci. U. S. A. 113, 2839 (2016). 10L. Molgedey and H. G. Schuster, Phys. Rev. Lett. 72, 3634 (1994). 11G. Pe´rez-Herna´ndez, F. Paul, T. Giorgino, G. De Fabritiis, and F. Noe´,
+J. Chem. Phys. 139, 015102 (2013). 12C. R. Schwantes and V. S. Pande, J. Chem. Theory Comput. 9, 2000
+(2013). 13J. F. Dama, M. Parrinello, and G. A. Voth, Phys. Rev. Lett. 112, 240602
+(2014). 14P. Tiwary and M. Parrinello, J. Phys. Chem. B 119, 736 (2014). 15C. Schu¨tte, A. Fischer, W. Huisinga, and P. Deuﬂhard, J. Comput. Phys.
+151, 146 (1999). 16J.-H. Prinz, H. Wu, M. Sarich, B. Keller, M. Senne, M. Held, J. D. Chodera,
+C. Schu¨tte, and F. Noe´, J. Chem. Phys. 134, 174105 (2011). 17F. Noe´ and F. Nu¨ske, Multiscale Model. Simul. 11, 635 (2013). 18F. Nu¨ske, B. G. Keller, G. Pe´rez-Herna´ndez, A. S. Mey, and F. Noe´, J. Chem.
+Theory Comput. 10, 1739 (2014). 19H. Wu, F. Nu¨ske, F. Paul, S. Klus, P. Koltai, and F. Noe´, J. Chem. Phys. 146,
+154104 (2017). 20B. Hess, C. Kutzner, D. Van Der Spoel, and E. Lindahl, J. Chem. Theory
+Comput. 4, 435 (2008). 21G. Bussi, D. Donadio, and M. Parrinello, J. Chem. Phys. 126, 014101 (2007). 22G. A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni, and G. Bussi,
+Comput. Phys. Commun. 185, 604 (2014). 23P. G. Bolhuis, C. Dellago, and D. Chandler, Proc. Natl. Acad. Sci. U. S. A.
+97, 5877 (2000). 24O. Valsson and M. Parrinello, Phys. Rev. Lett. 113, 090601 (2014). 25M. M. Sultan and V. S. Pande, J. Chem. Theory Comput. 13, 2440
+(2017).
+

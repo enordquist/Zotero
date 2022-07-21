@@ -1,0 +1,664 @@
+J. Chem. Theory and Comput. 2008, 4, 819–834
+
+819
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on July 21, 2022 at 21:12:49 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+The MARTINI Coarse-Grained Force Field: Extension to Proteins
+
+Luca Monticelli,† Senthil K. Kandasamy,‡ Xavier Periole,§ Ronald G. Larson,‡ D. Peter Tieleman,† and Siewert-Jan Marrink*,§
+Dept of Biological Sciences, UniVersity of Calgary, 2500 UniVersity Dr NW, Calgary, AB, T2N 1N4, Canada, Chemical Engineering Department, The UniVersity of Michigan, 2300 Hayward Street, Ann Arbor, Michigan 48109, and Groningen
+Biomolecular Sciences and Biotechnology Institute & Zernike Institute for AdVanced Materials, UniVersity of Groningen, Nijenborgh 4, 9747 AG Groningen, The Netherlands
+Received November 27, 2007
+Abstract: Many biologically interesting phenomena occur on a time scale that is too long to be studied by atomistic simulations. These phenomena include the dynamics of large proteins and self-assembly of biological materials. Coarse-grained (CG) molecular modeling allows computer simulations to be run on length and time scales that are 2–3 orders of magnitude larger compared to atomistic simulations, providing a bridge between the atomistic and the mesoscopic scale. We developed a new CG model for proteins as an extension of the MARTINI force ﬁeld. Here, we validate the model for its use in peptide-bilayer systems. In order to validate the model, we calculated the potential of mean force for each amino acid as a function of its distance from the center of a dioleoylphosphatidylcholine (DOPC) lipid bilayer. We then compared amino acid association constants, the partitioning of a series of model pentapeptides, the partitioning and orientation of WALP23 in DOPC lipid bilayers and a series of KALP peptides in dimyristoylphosphatidylcholine and dipalmitoylphosphatidylcholine (DPPC) bilayers. A comparison with results obtained from atomistic models shows good agreement in all of the tests performed. We also performed a systematic investigation of the partitioning of ﬁve series of polyalanine-leucine peptides (with different lengths and compositions) in DPPC bilayers. As expected, the fraction of peptides partitioned at the interface increased with decreasing peptide length and decreasing leucine content, demonstrating that the CG model is capable of discriminating partitioning behavior arising from subtle differences in the amino acid composition. Finally, we simulated the concentration-dependent formation of transmembrane pores by magainin, an antimicrobial peptide. In line with atomistic simulation studies, disordered toroidal pores are formed. In conclusion, the model is computationally efﬁcient and effectively reproduces peptide-lipid interactions and the partitioning of amino acids and peptides in lipid bilayers.
+
+1. Introduction
+Molecular simulations are a useful tool in the interpretation of experimental data, and they provide structural and dynamic
+* Corresponding author e-mail: s.j.marrink@rug.nl. † University of Calgary. ‡ The University of Michigan. § University of Groningen.
+
+details that cannot be easily probed experimentally. Despite the progress in computer hardware and simulation algorithms, atomistic simulations are still limited to systems containing tens or hundreds of thousands of atoms and a submicrosecond time scale. Cellular processes, however, cover time scales of nanoseconds to seconds and involve hundreds of different molecules interacting on a multitude of length scales. Many
+
+10.1021/ct700324x CCC: $40.75  2008 American Chemical Society Published on Web 04/16/2008
+
+820 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+biologically interesting phenomena, including vesicle fusion, formation of higher-order protein complexes, protein folding, and signal transduction, are beyond the capabilities of atomistic simulations.1 In order to simulate these motions, simpliﬁcation of the model is required. The use of coarsegrained (CG) models represents an attractive alternative to atomistic models, allowing for simulations to be run on larger systems and longer time scales and still providing some realistic structural details.
+A large diversity of coarse-graining approaches for biomolecular systems is available. They range from qualitative, solvent-free models to models including chemical speciﬁcity. With reference to proteins, numerous coarse-grained descriptions have been developed for studying protein-folding thermodynamics and kinetics and protein structure prediction. These approaches include both structure-based, knowledgebased, and physics-based models. The type of approach and the level of sophistication of the different models vary greatly depending on the scope of the model and the properties investigated. Among structure-based models, simple Go models2 proved useful in the characterization of the kinetics and cooperativity effects in protein folding. Miyazawa and Jernigan developed a knowledge-based statistical potential to predict the structure of proteins in solution.3 This statistical potential was derived by estimating effective inter-residue contact energies from the numbers of residue–residue contacts observed in crystal structures of globular proteins. Das et al. recently developed a sophisticated knowledgebased potential incorporating sequence details and energetic frustration for a more realistic study of folding pathways.4 Elastic network models5,6 have been used in conjunction with normal-mode analysis to predict large-scale motions in proteins. They rely on the knowledge of the protein structure and on the assumption that motions relevant for biological functions depend on low-frequency collective ﬂuctuations. Simple, exact physics-based models for proteins were pioneered by Chan and Dill.7,8 Their lattice model was used to show that the basic features determining a protein’s fold lie mainly in the topological arrangement of hydrophobic and polar residues. The use of physics-based coarse-grained models for protein structure prediction was pioneered by Warshel and Levitt9 and later developed by many others. Among them, Scheraga and co-workers have developed a united-residue force ﬁeld parametrized against restricted freeenergy functions from all-atom simulations of polypeptide chains, without any information from structural databases.10 Very different approaches have been used to study problems in which the protein structure does not need to be predicted and the details of it are not crucial. Coarse-grained models have been developed recently in the group of McCammon to study large-scale protein motions in HIV-1 protease.11 Schulten and co-workers developed a mesoscopic protein model aimed at simulating large-scale motions of macromolecular assemblies. In this case, the protein is simply considered as an elastic object with a well-deﬁned threedimensional shape, and changes in the detailed protein structure are not accounted for.12 A number of mesoscopic models have been developed in order to study the effect of membrane proteins on the properties of biological mem-
+
+Monticelli et al.
+branes, reviewed in refs13–16. These models generally disregarded the details of the protein structure and internal dynamics but proved useful in understanding protein–lipid interactions and lipid-mediated protein–protein interactions, progressing beyond the original lattice models. Both Venturoli et al. and Smeijers et al. developed a coarse-grained model that enabled the investigation of the effects of a mismatch in the hydrophobic thickness of proteins and the lipid bilayer (the so-called hydrophobic mismatch) and, in particular, the lipid-induced protein tilt and protein-induced membrane deformations.17,18 Multiscale approaches that couple the atomistic and coarse-grained levels of description have also been applied recently to study peptide-membrane interactions19 and proteins.20,21 When all of the different coarse-grained approaches are considered, the level of resolution and the degree of ﬂexibility of the proteins vary from several particles per amino acid to one particle per protein, depending on the size of the object and motions that need to be described.
+Marrink and co-workers recently developed a coarsegrained force ﬁeld for simulation of lipids and surfactants,22,23 coined the MARTINI force ﬁeld. The force ﬁeld has been shown to reproduce semiquantitatively fundamental structural and thermodynamic properties of lipid bilayers.22,24–26 The model was developed in close connection with atomistic models, but with a very different philosophy compared to iterative Boltzmann inversion,27 inverted Monte-Carlo schemes,28–30 or force matching31 approaches. Instead of focusing on an accurate reproduction of structural details of a particular state for a speciﬁc system, the model aimed for a broader range of applications without the need to reparameterize the model each time. This was achieved by extensive calibration of the chemical building blocks of the coarse-grained force ﬁeld against thermodynamic data, in particular, oil/water partitioning coefﬁcients.22,23 This is similar in spirit to the recent development of the GROMOS force ﬁeld.32
+Here, we present an extension of the MARTINI force ﬁeld,23 to model proteins. The overall aim of our coarsegraining approach is to provide a simple model that is computationally fast and easy to use, yet ﬂexible enough to be applicable to a large range of biomolecular systems. In the MARTINI model, several atoms are grouped together in a “virtual” bead that interacts through an effective potential. The reduction of the number of degrees of freedom and the use of shorter-range potential functions makes the model computationally very efﬁcient, allowing for a reduction of the simulation time by 2∼3 orders of magnitude compared to the most common atomistic models. The present model for proteins was developed using the same philosophy as for the lipids, using the partitioning free energy of amino acid side chains between water and oil phases to select the appropriate nonbonded interaction parameters. Processes such as protein folding, peptide membrane binding, and protein–protein recognition depend critically on the degree to which the constituents partition between polar and nonpolar environments. The choice of particle types and the nonbonded interaction matrix is left unaltered, making the protein force ﬁeld fully compatible with the lipid force ﬁeld.
+
+The MARTINI Coarse-Grained Force Field
+The choice of the bonded parameters was based on the distribution of bond lengths, angles, and dihedrals calculated from the Protein Data Bank (PDB). Similar models have been developed recently by other groups as well. Starting from Marrink’s original model for lipids,22 the groups of Schulten and Sansom built a model for proteins and studied lipoprotein particles33 and membrane proteins.34,35 The major differences with the approach presented in this paper is that (i) we base our CG protein model on the new MARTINI CG force ﬁeld, which has many more particle types and allows for discrimination between all amino acids, and (ii) we base the particle assignment on a systematic investigation of thermodynamic properties of each amino acid. Using a preliminary version of the current model, Periole et al.36 recently managed to study the oligomerization of rhodopsins, a transmembrane protein belonging to the class of G-protein coupled receptors. It was found that the presence of hydrophobic mismatch favors rhodopsin aggregation, in quantitative agreement with results from FRET experiments that were performed in conjunction to the simulations. The simulations furthermore revealed that protein–protein interactions inside a membrane bilayer show a site preference related to localized mismatch, pointing to the importance of modeling proteins as chemically detailed objects rather than as simpliﬁed rods. Yeﬁmov et al.37 succeeded in simulating the spontaneous tensiondriven gating of a membrane-embedded mechanosensitive protein channel, also using a prerelease of the MARTINI protein force ﬁeld. This simulation comprises one of the ﬁrst examples of a membrane protein in action, resolved at nearatomic detail. In another recent application,38 the gating motions of membrane-embedded potassium channels were studied. It was found that channel gating is coupled to subtle displacements of the voltage sensor domain. A preliminary version of the current force ﬁeld has also been applied to study the conformation of apoA-1 in model spheroidal highdensity lipoprotein particles.39 Extensive comparison of the CG system to all-atom simulations revealed a close correspondence, both in structure and in dynamics.
+The present work is organized as follows. First, we describe the force ﬁeld parametrization procedure, for both bonded and nonbonded interactions. Then, we present results for a range of test cases of the model, focusing on simulations of peptide-membrane systems. In particular, we show that (i) the potential of mean force for single amino acid side chains across a lipid membrane is very similar with the CG model compared to results obtained with all-atom models, (ii) the correct partitioning and orientation of a large variety of small peptides at the water-bilayer interface is reproduced, and (iii) antimicrobial peptides (AMPs) form transmembrane pores that look similar to what has been shown with all-atom simulations.
+2. The Model
+2.1. Basic Parametrization. The basic parameters for the CG peptide model are the same as those published previously for the CG lipid model.22,23 The peptide force ﬁeld described here is fully compatible with the latest lipid force ﬁeld, coined the MARTINI force ﬁeld. The version described in
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 821
+
+Figure 1. Coarse-grained representation of all amino acids. Different colors represent different particle types.
+
+the current paper is denoted v2.1. In this section, we provide
+
+a brief overview of the basic parametrization. More details about the CG model can be found in the original papers.22,23
+The Mapping. The MARTINI model23 is based on a four-
+
+to-one mapping; that is, on average, four heavy atoms are
+
+represented by a single interaction center, with an exception
+
+for ringlike molecules. To map the geometric speciﬁcity of
+
+small ringlike fragments or molecules (e.g., benzene, cho-
+
+lesterol, and several of the amino acids), the general four-
+
+to-one mapping rule is insufﬁcient. Ringlike molecules are
+
+therefore mapped with higher resolution (up to two-to-one).
+
+The model considers four main types of interaction sites:
+
+polar (P), nonpolar (N), apolar (C), and charged (Q). Within
+
+a main type, subtypes are distinguished either by a letter denoting the hydrogen-bonding capabilities (d ) donor, a ) acceptor, da ) both, 0 ) none) or by a number indicating the degree of polarity (from 1 ) lower polarity to 5 ) higher
+
+polarity). The mapping of all protein amino acids is shown
+
+in Figure 1.
+
+Nonbonded Interactions. All particle pairs i and j at
+
+distance rij interact via a Lennard-Jones (LJ) potential:
+
+[( ) ( ) ] VLennard-Jones(rij) ) 4εij
+
+σij
+
+12
+-
+
+σij 6
+
+rij
+
+rij
+
+(1)
+
+The strength of the interaction, determined by the value of the well depth εij depends on the interacting particle types. The value of ε ranges from εij ) 5.6 kJ/mol for interactions between strongly polar groups to εij ) 2.0 kJ/mol for interactions between polar and apolar groups mimicking the hydrophobic effect. The effective size of the particles is governed by the LJ parameter: σ ) 0.47 nm for all normal particle types. For the special class of particles used for ringlike molecules, slightly reduced parameters are deﬁned to model ring–ring interactions: σ ) 0.43 nm and εij is scaled to 75% of the standard value. The full interaction matrix can be found in the original publication.23 In addition to the LJ interaction, charged groups (type Q) bearing a charge q interact via a Coulombic energy function with a relative dielectric constant εrel ) 15 for explicit screening:
+
+Vel
+
+)
+
+qiqj 4πε0εrelrij
+
+(2)
+
+To avoid generation of unwanted noise, the nonbonded
+
+822 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+
+potential energy functions are used in their shifted form, in which both the energy and force vanish at the cutoff distance rcut ) 1.2 nm. The LJ potential is shifted from rshift ) 0.9 nm to rcut. The electrostatic potential is shifted from rshift ) 0.0 nm to rcut. Shifting of the electrostatic potential in this manner mimics the effect of a distance-dependent screening. Nonbonded interactions between nearest neighbors are excluded.
+Bonded Interactions. Bonded interactions are described by the following set of potential energy functions acting between bonded sites i, j, k, and l with equilibrium distance db, angle φa, and dihedral angles ψd and ψid:
+
+Vb
+
+)
+
+1 2
+
+Kb(dij
+
+-
+
+db)2
+
+(3)
+
+Va
+
+)
+
+1 2
+
+Ka[cos(φijk)
+
+-
+
+cos(φa)]2
+
+(4)
+
+Vd ) Kd[1 + cos(nψijkl - ψd)]
+
+(5)
+
+Vid ) Kid(ψijkl - ψid)2
+
+(6)
+
+The force constants K are generally weak, inducing ﬂexibility of the molecule at the coarse-grained level mimicking the collective motions at the ﬁne-grained level. The bonded potential Vb is used for chemically bonded sites and the angle potential Va to represent chain stiffness. The improper dihedral angle potential Vid is used to prevent out-of-plane distortions of planar groups. Proper dihedrals Vd are used to impose secondary structure of the peptide backbone. It is important to note, therefore, that in the current parametrization conformational changes of protein secondary structure are not adequately modeled.
+2.2. Mapping of the Amino Acids. The mapping of all 20 amino acids is depicted in Figure 1 and presented in Table 1. Most amino acids are mapped onto single standard particle types in a similar way as was done recently by other groups.33,34 The apolar amino acids (Leu, Pro, Ile, Val, Cys, and Met) are represented as C-type particles, the polar uncharged amino acids (Thr, Ser, Asn, and Gln) by P-type particles, and the amino acids with small negatively charged side chains as Q-type (Glu and Asp). The positively charged amino acids Arg and Lys are modeled by a combination of a Q-type particle and an uncharged particle. The bulkier ringbased side chains are modeled by three (His, Phe, and Tyr) or four (Trp) beads of the special class of ring particles. The Gly and Ala residues are only represented by the backbone particle. The type of the backbone particle depends on the protein secondary structure (see Table 2); free in solution or in a coil or bend, the backbone has a strong polar character (P type); as part of a helix or β strand, the interbackbone hydrogen bonds reduce the polar character signiﬁcantly (N type). Proline is less polar due to the lack of hydrogen-donor capabilities.
+The most appropriate choice of particle types for the amino acids was assessed from a comparison between simulation results and experimental measurements of the water/oil partitioning coefﬁcients of the amino acid side-chain analogues. The partitioning behavior and amino acid mapping are summarized in Table 1. Simulation data are calculated from equilibrium densities of low concentrations of CG beads
+
+Monticelli et al.
+
+Table 1. Mapping of the Amino Acids and Free Energy of
+Partitioning between Water and Butane (Calculated) or Water and Cyclohexane (Experimental Measure40,41)
+
+side chain Leu Ile Val Pro Met Cys Ser Thr Asn Gln Asp Asp
+(uncharged) Glu Glu
+(uncharged) Arg
+Arg (uncharged)
+Lys
+Lys (uncharged)
+His
+Phe
+Tyr
+Trp
+
+CG representation C1b C1b C2b C2b C5 C5 P1 P1 P5 P4 Qa P3
+Qa P1
+N0-Qd
+N0-P4
+C3-Qd
+C3-P1
+SC4-SP1SP1
+SC4-SC4SC4
+SC4-SC4SP1
+SC4-SP1SC4-SC4
+
+mapping schemea
+N0: Cβ-CγCδ-Nε
+Qd/P4: CζNω1-Nω2
+C3: CβCγ-Cδ
+Qd/P1: Cε-Nω
+SC4: CβCγ
+SP1: Cδ-Nε SP1: Nδ-Cε SC4: Cβ-
+Cγ-Cδ1 SC4: Cδ2-
+Cε2 SC4: Cε1-
+Cζ SC4: Cβ-
+Cγ-Cδ1 SC4: Cδ2-
+Cε2 SP1: C 1-
+Cζ-OH SC4: Cβ-
+Cγ-Cδ2 SP1: Cδ1-
+N -Cε1 SC4: Cε2-
+Cζ2 SC4: Cε1-
+Cω
+
+free energy (kJ/mol)
+
+CG exptl.
+
+22
+
+22
+
+22
+
+22
+
+20
+
+17
+
+20
+
+9
+
+10
+
+9
+
+5
+
+-11 -14
+
+-11 -11
+
+< –25 -28
+
+-23 -25
+
+< -25
+
+–18
+
+-19
+
+< –25
+
+–11
+
+–11
+
+< –25
+
+–23
+
+–25
+
+< –25
+
+–1
+
+–2
+
+-19 -20
+
+19
+
+17
+
+-1
+
+-2
+
+12
+
+9
+
+a The mapping scheme is reported only for amino acid side chains consisting of more than one CG particle. b For the C1 and C2 particle types of the amino acids, the interaction with Q particles has been modiﬁed from the standard MARTINI force ﬁeld. In order to avoid clashes between these particle pairs, the Lennard-Jones parameter σ has been restored from 0.62 nm to the standard value of 0.47 nm.
+
+dissolved in a water/butane two-phase system. The free
+
+energy of partitioning between oil and aqueous phases, ∆Goil/aq, was obtained from the equilibrium densities F of CG
+
+particles in both phases:
+
+( )F
+
+∆Goil/aq ) kT ln
+
+oil
+F
+
+(7)
+
+aq
+
+The equilibrium densities can be obtained directly from a
+
+long MD simulation of the two-phase system in which small
+
+The MARTINI Coarse-Grained Force Field
+
+Table 2. Backbone Particle Type in Different Kinds of Secondary Structurea
+
+coil
+
+helix
+
+β-strand
+
+backbone bend free helix (N-terminus/C-terminus) turn
+
+backbone
+
+P5
+
+N0
+
+Nd/Na
+
+Nda
+
+Gly
+
+P5
+
+N0
+
+Nd/Na
+
+Nda
+
+Ala
+
+P4
+
+C5
+
+N0
+
+N0
+
+Pro
+
+Na
+
+C5
+
+N0/Na
+
+N0
+
+a Both glycine and alanine have no side chain.
+
+Figure 2. Schematic representation of the four different geometrical classes of amino acids, consisting of either one, two, three, or four beads for the side chain (plus a backbone bead). Intra- and interamino acid bonded potentials are indicated. Backbone beads are indicated by “B” and side-chain beads by “S.”
+amounts (around 0.01 mol fraction proved sufﬁcient to be in the limit of inﬁnite dilution) of the target substance are dissolved. With the CG model, simulations can easily be extended into the multi-microsecond range, enough to obtain statistically reliable results to within 1 kJ/mol for most particle types. The experimental data40,41 are for partitioning between water and cyclohexane. Both the simulation and the experimental data are obtained at 300 K. The experimental values could be reproduced to within 2 kT, except for the charged amino acids for which no experimental data exist. For some amino acids, especially those consisting of multiple CG beads, more than one assignment scheme would lead to similar partitioning free energies. In those cases, the results obtained for the potential of mean force (PMF) calculations (see section 3.1) were used to select the optimal assignment.
+2.3. Parameterization of Bonded Interactions. In Figure 2, the intra amino acid bonded potentials are indicated for the different geometric classes of amino acids (containing either one, two, three, or four side-chain beads plus one backbone bead). The bond lengths, bond angles, dihedral angles, and their respective force constants, collectively referred to as the bonded parameters, were obtained from distributions derived from the PDB. We chose a representative subset of approximately 2000 proteins from the PDB as the basis set for our parametrization. The secondary structure of every residue of these proteins was determined using the program DSSP.42 Using the center of mass of the atoms representing each coarse-grained bead, we calculated the distributions of the bond lengths, bond angles, and dihedral angles, as shown in Figure 2, for all combinations of amino acids and secondary structures. To ensure that the basis set was truly representative of the entire PDB, we calculated some of the distributions for a different subset of the PDB and found the results to be virtually identical. We
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 823
+also calculated some of the distributions for a membrane protein subset (∼200 proteins) and again found the results to be nearly indistinguishable from the original basis set. Additional approaches to calculate the distributions were also attempted, such as using a representative atom instead of the center of mass of the coarse-grained bead. We found that using the center of mass was the most appropriate and robust approach, in line with the general coarse-graining philosophy to represent groups of atoms by an effective particle positioned at their center of mass. After the distributions were obtained, simulations were performed on short test peptides, with different sequences and secondary structure characteristics, and also on larger proteins. All of the bonded parameters were optimized by matching the PDB distributions of the bonds angles and dihedrals with the distributions obtained from the simulations, using an iterative procedure. Representative PDB distributions are shown in Figure 3.
+The characteristics of the PDB distributions enabled us to make some approximations, so that the number of tunable parameters was kept at a manageable number without compromising the accuracy. The DSSP deﬁnition includes eight secondary structures, namely, helix, extended, bend, turn, beta, 310-helix, π-helix, and unstructured (random coil). All beta structures were approximated as extended, while the 310-helix and π-helix were approximated as R-helices. The backbone-backbone bond lengths were all set to be 0.35 nm irrespective of secondary structure. The backbone parameters, that is, the bonds, angles, and dihedrals involving only backbone beads, were set to be dependent on the secondary structure of the beads but independent of the amino acid. Backbone-side-chain (and side-chain-side-chain, where appropriate) bond lengths and force constants were amino acid dependent, but independent of the secondary structure. Backbone-backbone-side-chain and backbone-side-chainside-chain bond angles and force constants were independent of both the secondary structure and amino acid. Table 3 summarizes the backbone bonded parameters. The force constants in Table 3 correspond to cases where all of the beads involved have the same secondary structure. When a backbone bonded parameter (either a bond or an angle) involves beads with more than one type of secondary structure, the weaker force constant is used. Dihedral angles were imposed only when all four interacting beads had the same secondary structure (either helix or extended). Table 4 summarizes the bond lengths and corresponding force constants for all of the side chains. Table 5 summarizes the bond angles for the side chains.
+2.4. Simulation Parameters. The simulations described in this paper were performed with the GROMACS simulation package, version 3.3.1.43 The topologies, parameters, and example input ﬁles of the applications described in this paper are available at http://md.chem.rug.nl/∼marrink/coarsegrain. html. Scripts to generate topologies for arbitrary proteins are also downloadable. The general simulation parameters used in the applications described below are as follows. The temperature for each group (lipids, water, and proteins) was kept constant using the Berendsen temperature coupling algorithm44 with a time constant of 1 ps. Semi-isotropic
+
+824 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+
+Monticelli et al.
+
+Figure 3. Representative distributions from the PDB. (a) Backbone-backbone bond distributions for helices, random coils, and extended conﬁgurations. (b) Backbone-backbone-backbone angle distributions for helices, random coils, and extended conﬁgurations. (c) Backbone-backbone-backbone-backbone dihedral angle distributions for helices, random coils, and extended conﬁgurations. (d) backbone-side-chain bond distributions for selected aminoacids. (e) Backbone-backbone-side-chain angle distributions for selected amino acids.
+
+Table 3. Backbone Bonded Parameters
+
+KBB
+
+dBB (kJ nm-2 θBBB
+
+KBBB
+
+ψBBBB
+
+KBBBB
+
+backbone (nm) mol-1) (deg) (kJ mol-1) (deg) (kJ mol-1)
+
+helix
+
+0.35 1250
+
+96a
+
+700
+
+60
+
+400
+
+coil
+
+0.35 200 127
+
+25
+
+extended 0.35 1250 134
+
+25
+
+180
+
+10
+
+turn
+
+0.35 500 100
+
+25
+
+bend
+
+0.35 400 130
+
+25
+
+a θBBB ) 98° when Proline is in the helix; KBB ) 100 kJ mol-1.
+pressure coupling was applied using the Berendsen algorithm,44 with a pressure of 1 bar independently in the plane of the membrane and perpendicular to the membrane. A time constant of 5.0 ps and a compressibility of 4.5 × 10-5 bar-1 was used. Bond lengths in aromatic amino acid side chains and the backbone-side-chain bonds for Val, Ile, and Thr were constrained with the LINCS algorithm to avoid numerical instabilities arising from fast ﬂuctuations. Due to the use of shifted potentials, the neighbor list can be updated every 10 steps using a neighbor list cutoff equal to rcut ) 1.2 nm. For reasons of computational efﬁciency, the mass of the CG beads is set to 72 amu (corresponding to four water molecules) for all beads, except for beads in ring structures, for which the mass is set to 45 amu. Using this setup, the systems described in this paper can be simulated with an integration time step of 25 fs, which corresponds to an effective time of 100 fs. In the remainder of the paper, we will use an effective time rather than the actual simulation time unless speciﬁcally stated. The CG dynamics are faster than the all-atom dynamics because the CG interactions are much smoother compared to atomistic interactions. The effective friction caused by the ﬁne-grained degrees of freedom is missing. On the basis of comparison of diffusion constants in the CG model and in atomistic models, the effective time sampled using CG interactions is 3–8-fold
+
+Table 4. Equilibrium Bond Length and Force Constants for Each Amino Acid Side Chain
+
+side chain
+
+d (nm)
+
+K (kJ nm-2 mol-1)
+
+Leu Ile Val Pro Met Cys Ser Thr Asn Gln Asp Glu Arg dBS Arg dSS Lys dBS Lys dSS His dBS His dSS Phe dBS Phe dSS Tyr dBS Tyr dSS Trp dBS Trp dSS Cys-Cys dS-S
+
+0.33 0.31 0.265 0.30 0.40 0.31 0.25 0.26 0.32 0.4 0.32 0.4 0.33 0.34 0.33 0.28 0.32 0.27 0.31 0.27 0.32 0.27 0.3 0.27 0.39
+
+7500 constraint constraint 7500 2500 7500 7500 constraint 5000 5000 7500 5000 5000 5000 5000 5000 7500 constraint 7500 constraint 5000 constraint 5000 constraint 5000
+
+larger. When interpreting the simulation results with the CG
+model, a standard conversion factor of 4 is used, which is
+the effective speedup factor in the diffusion dynamics of CG
+water compared to real water. The same order of acceleration
+of the overall dynamics is also observed for a number of
+other processes, including the permeation rate of water across a membrane,22 the sampling of the local conﬁgurational space of a lipid,45 and the aggregation rate of lipids into bilayers22 or vesicles.43 However, the speedup factor might be different
+in other systems or for other processes. Particularly for
+
+The MARTINI Coarse-Grained Force Field
+
+Table 5. Equilibrium Angles, Improper Dihedral Angles and Force Constants for Side Chains
+
+side chain
+
+θ (deg)
+
+K (kJ mol-1)
+
+θBBS (all) θBSS (Lys, Arg) θBSS (His, Tyr, Phe) θBSS (Trp)
+
+100 180 150 90, 210
+
+25 25 50 50, 50
+
+side chain
+ψBSSS (His, Tyr, Phe) ψBSSS (Trp)
+
+ψ (deg)
+0 0, 0
+
+K (kJ rad-2 mol-1)
+50 50, 200
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 825
+
+protein systems, no extensive testing of the actual speedup due to the CG dynamics has been performed, although protein translational and rotational diffusion was found to be in good agreement with experimental data in simulations of membrane-embedded rhodopsins using a preliminary version of our CG model.36 In general, however, the time scale of the simulations has to be interpreted with care.
+3. Results
+3.1. Partitioning of Amino Acid Side Chains in a DOPC Bilayer. The PMF was calculated for each side chain as a function of the distance from a dioleoylphosphatidylcholine (DOPC) bilayer. The results are compared to PMFs obtained at identical conditions and calculated using an analogous procedure from atomistic simulations performed by MacCallum et al.46,47 The DOPC bilayer contained 72 lipids and 1200 water particles (corresponding to 67 real waters/lipid; excess hydration was chosen to ensure bulk properties of the aqueous phase). While, in principle, the PMF of each side chain analogue can be calculated from unbiased simulations, we used the umbrella sampling method,48 because unbiased simulations give poor statistics for most side-chain analogues (results not shown) even at simulation times of tens of microseconds. The biasing potential was added to force the CG side chains to sample the region of interest. A series of 46 separate simulations was performed in which the side-chain analogue was restrained to a given distance from the center of the bilayer by a harmonic restraint on the z coordinate only. The spacing between the centers of the biasing potentials was 0.1 nm, and a force constant of 1000 kJ mol-1 nm-2 was used in all simulations. In each simulation, we placed two side-chain analogues at a distance of 4.5 nm from each other, in order to improve the sampling at practically no additional computational cost. Each of the simulations was 200-ns-long, for a total of 9.2 µs per PMF. After the simulations were completed, unbiased PMFs were extracted using the weighted histogram analysis method.49
+Figure 4 shows PMF proﬁles for all 20 side-chain analogues, grouped into hydrophobic, polar, charged, and aromatic pairs of amino acids. In the CG model, the following amino acid side chains are each represented by the same particle type: leucine and isoleucine, valine and proline, cysteine and methionine, and serine and threonine; this choice seems reasonable because atomistic PMFs for these amino acid side chains are similar. The agreement between atomistic and CG PMFs is excellent for hydrophobic
+
+Figure 4. PMF for 16 amino acid side-chain analogues. Results for atomistic simulations (from ref 46) are shown in black, CG model in red.
+amino acids, showing a decrease in the free energy of the system when the side chains enter the bilayer interior. The free energy difference between bulk water and the center of the bilayer is 15 and 17 kJ/mol, respectively, for atomistic and CG leucines, and is 14 and 15 kJ/mol, respectively, for atomistic and CG valines. A free-energy barrier in the proximity of the lipid headgroup region is present in the PMF proﬁles of most of the hydrophobic residues. This barrier is also well-reproduced in our model for leucine, isoleucine, and valine, with a difference of less than 1 kJ/mol compared to atomistic simulations. For tryptophan and tyrosine, the barrier is not present in the atomistic proﬁles and is less than 5 kJ/mol in CG proﬁles. All aromatic residues show a freeenergy minimum in the proximity of the interface region of the bilayer. The agreement with atomistic proﬁles is very good, and the minima have a free energy of -21 and -15 kJ/mol for tryptophan and tyrosine, respectively. PMF proﬁles for polar amino acids also show a reasonable agreement between atomistic and CG force ﬁelds, with higher energies at the center of the bilayer. Only the charged residues show a relatively large difference between the atomistic and CG representation; in all cases, the free-energy penalty for having the residue inside the membrane is underestimated by the CG force ﬁeld but is still very high
+
+826 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+
+Table 6. Association Constant of Leu-Leu and Lys-Glu Residue Pairs Obtained Using the CG and Atomistic Model
+
+association constant (M-1)
+
+Leu-Leu Lys-Glu
+
+CG
+3.0 ( 0.3 5.7 ( 0.6
+
+atomistic
+6.6a 10.8b
+
+a Yang and Elcock.54 b Thomas and Elcock.52
+
+(over 40 kJ/mol for glutamate, aspartate, and arginine, and over 35 kJ/mol for lysine); therefore, the probability of the residues entering the bilayer is negligible. The strong interfacial absorption of the positively charged amino acids predicted from the atomistic simulations is not so well reproduced by the CG force ﬁeld, and there is room for improvement. Note that solvation free energies in commonly used atomistic force ﬁelds show errors up to 8 kJ/mol,50 with a similar level of accuracy for the free energies of transfer from water to cyclohexane.51 On the basis of these comparisons, it appears that free energies of partitioning obtained with our coarse-grained model reproduce satisfactorily the results obtained with atomistic models.
+3.2. Amino Acid Association Constants. To evaluate the quality of the side-chain-side-chain interactions in the CG force ﬁeld, association constants between residue pairs were computed and compared to results from atomistic simulations. The pairs Lys/Glu and Leu/Leu, chosen to be representative for salt-bridge and hydrophobic interactions, were placed in a box with 240 CG water particles (960 atomistic water molecules) and run for 4 µs at T ) 300 K and an isotropic pressure of 1 bar. To avoid freezing of the CG water as a consequence of the small system size (which artiﬁcially increases the long-range order), 10% of the water molecules were replaced by antifreeze particles.23 The association constant Kij between two amino acids i and j can be estimated by52
+
+Kij
+
+)
+
+1 C
+
+×
+
+Pbound Pfree
+
+(8)
+
+where 1/C is a factor correcting for the concentration of the species in the system, and P(X) is the probability of ﬁnding the complex in the X state.53 Here, C ) 1/(NAV), where NA is Avogadro’s number and V is the volume of the box. The bound and unbound states were differentiated by calculating the solvent accessible surface area (ASA) of the complex. A value of the solvent ASA below a given cutoff indicates that the two residues are in contact, whereas above the same cutoff, the residues are free in solution. The cutoff was chosen from the histogram distribution of the ASA for each simulation at the minimum between the two states. Association constants obtained with the CG model and with atomistic simulations52,54 are listed in Table 6. The similarity of the values suggests that the contacts observed in the CG model are of reasonable strength. It is especially important that the ratio between hydrophobic and salt-bridge interactions is similar for the all-atom and CG models. Note that the CG model underestimates the strength of these interactions, although only slightly.
+3.3. Partitioning and Orientation of Pentapeptides. The series of pentapeptides with sequence Ace-WLXLL was
+
+Monticelli et al.
+Figure 5. Pentapeptides Ace-WL-X-LL in a water/cyclohexane box in the atomistic representation (left) and WL-X-LL peptide in a water/octane box in the CG representation (right). The peptide is shown in red, with the central residue X in green, water in blue, and the alkane in yellow. Pentapeptides with isoleucine, phenylalanine, and arginine are shown. studied by White and Wimley in order to determine an experimental hydrophobicity scale for proteins at membrane interfaces.55 These peptides are known to partition to the interface region of a zwitterionic membrane, without penetrating into the hydrocarbon core. We simulated a series of 15 pentapeptides with the amino acid sequence Ace-WLXLL, where X is Ala, Arg, Cys, Glu, Gly, His, Ile, Leu, Met, Phe, Pro, Thr, Trp, Tyr, and Val, using both the ffgmx force ﬁeld as implemented in GROMACS56 and our CG model. Simulations were carried out in a water/cyclohexane system in the case of the all-atom model, while water/octane was used in the case of the CG model. The Ace group was not present in the CG simulations. No secondary structure was imposed on the peptides. The appropriate particle type P5 was used for the backbone in all peptides (see Table 2). All atomistic simulations were run for 40 ns, while CG simulations were run for 1.5 µs.
+We compared the conformation and the partitioning of the whole peptide, as well as the position of residues W1, X3, and L5 relative to the water-alkane interface. Figure 5 shows three of the simulated systems, both at full atomic detail and at the CG level, with isoleucine, phenilalanine, and arginine as central residues. On the basis of backbone angles and head-to-tail distances, all peptides are found mainly in
+
+The MARTINI Coarse-Grained Force Field
+extended conformations, both in atomistic and in CG simulations. In all cases, the peptides partition to the water/ alkane interface, consistent with experimental observations. The distributions of the peptides and of single amino acids were evaluated by comparing density proﬁles. Density proﬁles for W1, X3, and L5 in CG simulations are similar to those for atomistic simulations for all residues. The peak of the distribution is in the alkane phase for the hydrophobic amino acids and in water for the polar ones, as expected. The average positions relative to the interface show minor differences between atomistic and CG amino acids, lower than 0.1 nm. For the CG model, the density of octane is about 0.77, consistent with the value previously published22 and close to the experimental value.
+3.4. Tilt and Orientation of Helical Peptides. WALP and KALP peptides have sequences consisting of leucinealanine repeats, ﬂanked by either two tryptophan residues (WALP) or two lysine residues (KALP) at the N terminus and at the C terminus. These model peptides were designed by Killian and co-workers to investigate the effect of hydrophobic mismatch (the difference between the hydrophobic length of the peptide and the hydrophobic width of the lipid) on the properties of zwitterionic membranes.57,58 The peptides partition into lipid bilayers and assume a transmembrane orientation, with a tilt angle dependent on the extent of mismatch.59 We investigated the behavior of WALP and KALP peptides, comparing results obtained with the CG model both to experimental data and to simulations performed with various all-atom force ﬁelds.
+WALP23 in a DOPC Bilayer. In the ﬁrst set of simulations, we analyzed the tilt and orientation of a WALP23 peptide embedded in a DOPC lipid bilayer containing 72 lipids. We used the same starting conformation (fully R-helical) and orientation (transmembrane, ∼0° tilt relative to the bilayer normal) for the atomistic and CG simulations. In atomistic simulations, both the GROMACS (ffgmx)56 and the OPLSAA force ﬁeld60 were used for the peptide; details can be found elsewhere.61 Two simulations were carried out with each atomistic force ﬁeld, and the simulation time was 60 ns for each simulation. One simulation was carried out with the CG force ﬁeld for 800 ns. For both the atomistic and CG simulations, the temperature was coupled to 300 K and the pressure to 1 bar in the normal and lateral dimensions.
+In atomistic simulations, the N-terminal tryptophan side chains are generally found in the proximity of the carbonyl groups of DOPC, while the C-terminal ones are slightly closer to the center of the bilayer. This is consistent with experimental results obtained by ﬂuorescence spectroscopy62 and mass spectrometry.63 The tilt angle of the peptide, deﬁned as the angle between the helical axis and the membrane normal, was monitored throughout the simulations. The helix axis was calculated as the ﬁrst eigenvector of the inertia tensor of the backbone particles. The autocorrelation time of the tilt angle is in the range of tens of nanoseconds, indicating that longer simulations would be required to sample equilibrium distributions. Atomistic simulations of identical systems performed with different initial velocities yielded very different distributions and different averages for the tilt angle, with values of 12 ( 5°
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 827
+Figure 6. Normalized distributions of tilt angles (angle between the helical axis and the normal to the membrane) in simulations of the WALP23 monomer and dimer in DOPC, using atomistic (a) and CG (b) models. Helix-helix distance in WALP23 dimers in DOPC in atomistic (c) and CG (d) simulations. Atomistic (e) and CG (f) peptides are shown in red and green, with the lipids in yellow and water in blue. and 27 ( 6° in the case of the ffgmx force ﬁeld and 13 ( 6° and 17 ( 6° for OPLS-AA. The distributions of tilt angles for individual trajectories show the presence of multiple peaks, suggesting that the peptide orientation “jumps” between different arrangements and intermediate orientations are not sufﬁciently sampled. This indicates that limited sampling impairs predictions of protein orientation in membranes achievable by atomistic simulations. Distributions of the tilt angle for the concatenated trajectories are shown in Figure 6a (atomistic) and b (CG). The average values found in the simulations are signiﬁcantly larger than those reported from experimental measurements using the GALA method.59 While the apparent discrepancy can be solved through a different interpretation of the results obtained with the GALA method,64,65 in the present work, we focus on the comparison between atomistic and CG simulations.
+Similarly to the case of atomistic simulations, also in the CG simulations, the average position of the tryptophans is consistent with experiments. Tryptophan side chains are found in the proximity of the GL1 and GL2 particles of DOPC, corresponding approximately to the glycerol and the carbonyl groups of the lipid. Compared to atomistic models, the C-terminal residues appear to be, on average, slightly
+
+828 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+closer to the hydrophobic portion of the membrane. A broad distribution of tilt angles is observed (see Figure 6b), with an average tilt angle of 11 ( 6°. Contrary to the atomistic simulations, the tilt angles obtained from independent CG simulations were reproduced within one standard error. Given the sampling issues for the atomistic force ﬁeld, the agreement is reasonable. The autocorrelation time for reorientation of the helical axis is signiﬁcantly shorter than in the atomistic case (about 3 ns), however. This might point to different kinetic barriers for reorientation of the tryptophan residues near the interface.
+KALP Peptides in DLPC and DPPC Bilayers. Recently, a systematic investigation of hydrophobic mismatch, using KALP peptides and PC lipids of different lengths, was performed using atomistic MD simulations.66 For negative mismatch, when the hydrophobic length of the peptide is smaller than the hydrophobic width of the lipid, a small tilt angle of ∼10° was observed. For systematically increasing positive mismatch, a monotonic increase in tilt angles was observed. To compare with these results, CG KALP peptides of different lengths (KALP15, KALP19, KALP23, KALP27, and KALP31) were inserted in DLPC and DPPC membranes consisting of 128 lipids each. The temperature of 310 K and zero surface tension of the membrane match the conditions of the atomistic simulations. Simulations were performed for 200 ns, and the tilt behavior was monitored. The average tilt angles were calculated over the last 100 ns of the simulations. The results are shown in Figure 7, where the tilt angle is shown as a function of mismatch. Snapshots from the atomistic and coarse-grained simulations of KALP31 in DLPC membranes are also shown. Here, the hydrophobic length of the peptide is the distance between the backbone atoms of the ﬁrst and the last leucine atoms of the peptide, and the hydrophobic width of the lipid is the average distance between the ﬁrst hydrophobic bead of the lipids in the two leaﬂets, and the hydrophobic mismatch is the difference between the two. The CG simulations match the trend of the atomistic simulations remarkably well, showing a small tilt angle under negative mismatch and a monotonic increase in tilt angles under positive mismatch.
+3.5. Helix-Helix Interactions. Recent experimental evidence suggests that the WALP23 aggregates in DOPC lipid bilayers and forms oligomers of small size if the peptide/ lipid ratio is higher than 0.04.62 We simulated WALP23 dimers in DOPC lipid bilayers in order to compare their stability in atomistic and CG models. All simulation conditions and methodology were identical to the case of the monomers. We used the same two protein force ﬁelds, namely, GROMACS (ffgmx) and OPLS-AA, as in simulations reported above. Two simulations were run for each atomistic force ﬁeld, using the same starting structures and different seed numbers for the initial velocities. We also carried out two simulations using the CG force ﬁeld. The simulation time was 50 ns for each atomistic simulation and 4 µs for each CG simulation. An antiparallel arrangement of the helices was adopted in all of the simulations. This orientation has been proposed to be favored over the parallel one due to favorable electrostatic interactions between
+
+Monticelli et al.
+Figure 7. Coarse-grained and atomistic simulations of KALP peptides. (a) The tilt angles are shown as a function of hydrophobic mismatch for the atomistic and CG simulations. In panels b-e, snapshots at the end of the CG simulations are shown. Water is shown as blue spheres, the phosphate group of the lipids as red spheres, the peptide as a pink backbone trace, and the lipids as grey lines. In each of the panels, the peptide from the corresponding atomistic simulation, shown as a green helix, is overlaid on top of the CG peptide for comparison. The phosphorus atoms of the lipids from the atomistic simulations are also show for reference: (b) KALP19 peptide in DLPC lipids, (c) KALP23 peptide in DLPC lipids, (d) KALP27 peptide in DLPC lipids, and (e) KALP31 peptide in DLPC lipids. R-helix backbone atoms.62 The simulated systems are represented in Figure 6 (panels e and f).
+In order to assess the stability of the dimers, we monitored the distance between the center of mass of the helices as a function of simulation time (see Table 7 and Figure 6). Helix-helix distances of 0.83 and 0.75 nm were found in the atomistic and CG simulations, respectively, indicating that the dimers are stable in both cases. As in the monomer simulations, also in this case, the peptides are displaced relative to the center of the membrane, with the C-terminal
+
+The MARTINI Coarse-Grained Force Field
+
+Table 7. Interhelical Distance and Tilt Angles in the Simulations of the WALP23 Peptide Dimer in DOPC, in Both Atomistic and CG Simulations
+
+simulation
+GMX (1) GMX (2) OPLS-AA (1) OPLS-AA (2) CG (1) CG (2)
+
+helix-helix distancea
+0.84 ( 0.03° 0.83 ( 0.04° 0.86 ( 0.02° 0.78 ( 0.02° 0.71 ( 0.06° 0.70 ( 0.05°
+
+tilt angleb (helix1)
+13.5 ( 4.5° 9.0 ( 3.5° 5.8 ( 3.5°
+18.9 ( 3.1° 13.6 ( 6.3° 13.7 ( 5.8°
+
+tilt angleb (helix2)
+25.2 ( 4.5° 24.0 ( 3.5° 16.1 ( 4.1° 32.3 ( 3.0° 16.0 ( 6.4° 15.4 ( 5.6°
+
+a Distance between the center of mass of backbone atoms, in nanometers, ( standard deviation. b Angle between the helical
+axis and the bilayer normal, in degrees, ( standard deviation.
+
+tryptophan side chains closer to the membrane interior. The distributions of tilt angles are shown in Figure 6 (panels a and b). Similarly to the monomer case, also for the dimers, the distributions show multiple peaks for atomistic simulations, highlighting insufﬁcient sampling. On the contrary, distributions obtained with the CG force ﬁeld are wellconverged, with average values for the helix-helix distance and the tilt angles reproduced (within one standard error) in two independent simulations. We notice that the average values of the tilt angle are lower in CG simulations, both for the monomer and for the dimer simulations.
+3.6. Partitioning of Hydrophobic Peptides in Lipid Bilayers. Most peptides that partition into lipid membranes exhibit an equilibrium between the transmembrane and the interfacial orientation. Hydrophobic peptides, of lengths comparable to the hydrophobic widths of the lipid bilayer, assemble predominantly into a transmembrane orientation. However, either decreasing the length of the peptide or reducing its hydrophobicity will increase the fraction of the peptides with the interfacial orientation. Hydrophobic polyleucine peptides, with their termini capped by lysines, are highly helical and partition into a predominantly transmembrane orientation in phospholipid bilayers. Substituting some of the leucines with alanines reduces the hydrophobicity of the peptide and should increase the fraction of interfacially bound peptides. In principle, very long simulations should capture the transitions between the transmembrane and interfacial orientations of the peptides. However, even with the CG model, extremely long simulations are required to adequately sample the transitions and obtain meaningful estimates of the transmembrane and interfacially bound fractions. Alternatively, a large number of self-assembly simulations,67 where a peptide is placed in a random mixture of lipids and water and quenched, can yield a reliable estimate of the transmembrane and interfacially bound fractions, which can be used to calculate a partitioning free energy.
+We performed systematic self-assembly simulations of hydrophobic lysine-terminated, polyleucine-alanine peptides in DPPC bilayers. First, six polyleucine peptides, KK(LLLL)nKK were constructed, with n ranging from 1 to 6. Then, the following alanine mutants were created for each value of n: KK(LLLA)nKK, KK(LALA)nKK, KK(LAAA)nKK, and KK(AAAA)nKK. This gave us a total of 30 peptides with varying lengths and degrees of hydrophobicity. For each of the 30 peptides, 200 independent self-assembly simulations were performed, giving a total of 6000 simulations. In each
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 829
+Figure 8. Partitioning behavior of KK-Lm An-KK peptides of varying lengths and hydrophobicity. of the simulations, a single peptide was inserted in a random orientation into a cubic box containing a mixture of 128 DPPC lipids and 1500 CG water molecules in a random arrangement. Then, a self-assembly simulation was performed at 323 K using anisotropic pressure coupling. For this system size, and lipid/water ratio, a bilayer typically forms in about 20 ns. We carried out all of the simulations for 200 ns, providing sufﬁcient time for bilayer self-assembly to occur and for the peptide to partition either to the membrane interior or at the interface or in the water phase. Occasionally, the self-assembly simulation leads to a nonbilayer phase, typically due to one dimension of the simulation cell shrinking rapidly because of the anisotropic pressure coupling. However, this was observed for <2% of all the cases, and these simulations were not included in the partitioning statistics. For all of the simulations which lead to a bilayer phase (>98% of the simulations), the coordinate at 200 ns was visualized and the partitioning state of the peptide was noted. A total of 1.2 ms of data were generated from these simulations.
+We show the interfacial/transmembrane partitioning fraction as a function of peptide length in Figure 8. A priori, we should expect the interfacial fraction to increase as the peptide length is reduced and the alanine content is increased. This is conﬁrmed by our simulations, as seen in Figure 8. It is remarkable that the trends one would expect upon increasing the peptide length and hydrophobicity are faithfully generated. We also observed that the shorter and lesshydrophobic peptides partition into the water phase in signiﬁcant numbers, as one would expect. The statistics on partitioning into the water phase are too limited to draw more quantitative conclusions. Our results show that the CG model is sensitive enough to capture even minor mutations in the peptide sequence.
+3.7. Transmembrane Pores Formed by Antimicrobial Peptides. AMPs are short, cationic, amphipathic peptides that interact with the lipid component of the cell membranes. Magainin-H2 is one of the most well-characterized AMPs, using experimental studies.68,69 Several biophysical studies have suggested that, at low concentrations, the peptides adopt a surface orientation at the lipid/water interface and, at higher peptide concentrations, the peptides can form toroidal transmembrane pores.68 However, the exact size and shape
+
+830 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+Figure 9. Snapshots of the surface partitioning of an antimicrobial peptide, magainin, at a low concentration (left) and the formation of a toroidal pore at high concentrations (right). In these ﬁgures, the water molecules are shown as blue spheres, lipid molecules as grey lines, and the lipid phosphate groups as red spheres. The backbone traces of the peptides are shown as sticks (green on the left and several different colors on the right).
+of the toroidal pores is still unclear. We performed selfassembly simulations of single and multiple magainin-H2 peptides using the CG model. The peptides were placed in a random mixture of 128 DPPC lipids and 1500 water molecules. The simulations were performed at 323 K and a pressure of 1 bar. Single peptides almost always partition into a surface-bound orientation. As the number of peptides is increased, with the number of lipids kept constant, some of the peptides partition in a transmembrane orientation. At even higher peptide/lipid (P/L) ratios (5/128 and higher), the self-assembly simulations lead to stable toroidal pores. In Figure 9, we show the ﬁnal snapshots from two simulations. Figure 9a shows a single peptide bound to the lipid/water interface. Figure 9b shows a toroidal pore, stabilized by the peptides. This structure matches the structures obtained from atomistic simulations of Leontiadou et al.,70 from which it was concluded that the toroidal pores are rather disordered. In agreement with these atomistic simulations, the structure of the pores formed in the CG simulations differs signiﬁcantly from current idealized models of a toroidal pore. Instead of multiple peptides lining the pore in a transmembrane orientation, we ﬁnd typically only one or two peptides near the pore center. The remaining peptides lay close to the edge of the pore, maintaining a predominantly parallel orientation with respect to the membrane. The CG model is thus capable of reproducing the structure of such toroidal pores, arising from the complex interplay between lipids and peptides. Note, in the CG model, the helical conformation of the peptides is enforced by the use of dihedral angle potentials, whereas in the atomistic simulations, signiﬁcant unfolding occurs. Apparently, unfolding is not a prerequisite for pore formation.
+4. Discussion
+The potential range of applications of the CG protein model is very broad. Although the test cases shown in this paper involve small peptides only, the model is suited to applications of proteins in general. Processes such as protein aggregation, the action of antimicrobial peptides, proteininduced membrane fusion and ﬁssion, ligand binding, and
+
+Monticelli et al.
+possibly large-scale motions in proteins are amenable to simulation on length and time scales far beyond those feasible with all-atom models. Yet, in contrast to many CG protein models, the resolution at the level of individual amino acids is retained. Using preliminary versions of this force ﬁeld, the self-assembly of membrane-embedded rhodopsins has already been simulated, for instance,36 showing that the aggregation is due to a subtle interplay between lipidmediated long-range attraction and short-range optimization of direct protein–protein contacts. Applications from other groups using similar albeit somewhat simpler models show applications to lipoprotein particles33 and to a variety of membrane proteins.34,35
+There are, however, certain important limitations which should be kept in mind. First of all, one has to be aware that secondary structure transformations are not modeled in the current parametrization. The secondary structure is essentially ﬁxed by using angle and dihedral potential energy functions, allowing discrimination between various secondary structure elements but preventing realistic transitions between them. Processes in which the folding and unfolding of secondary structures are playing a substantial role are therefore not suitable for modeling with our current CG force ﬁeld. Movement of secondary structure elements with respect to each other is possible, however, and is shown to be quite realistic in a recent application of the gating of a membraneembedded mechanosensitive channel37 and of voltage-gated potassium channels.38 Second, the model has been parametrized for the ﬂuid phase. Properties of solids, such as crystal packing, are not expected to be accurate. This might also affect the packing of side chains buried inside proteins, which are somehow in between a ﬂuid and a crystal state. Furthermore, the parametrization is based on free energies. The inherent entropy loss on coarse graining is necessarily compensated for by a reduced enthalpy term. The enthalpy/ entropy balance of many processes is therefore biased when modeled at the CG level. Consequently, the temperature dependence is affected, although not necessarily weaker. As is true for any force ﬁeld, applications outside the temperature range used for parametrization (∼270–330 K) have to be considered with care. Another limitation of our CG model, and perhaps of most coarse-graining approaches, is the correct modeling of the partitioning of polar and charged compounds into a low dielectric medium. Because of the implicit screening, the interaction strength of polar substances is underestimated in nonpolarizable solvents. Applications involving the formation of polar/charged complexes in a nonpolar environment are especially prone to being affected. For example, it has been shown in atomistic simulations that charged residues remain hydrated when they are dragged into a lipid bilayer.46,71,72 In our coarse-grained representation, these residues lose their hydration shell at about 0.7 nm from the center of the bilayer. The difference in hydration leads to a difference between atomistic and CG free-energy proﬁles. In CG simulations, the free energy of the system increases as charged residues penetrate the lipid bilayer, as long as they are hydrated, and remains ﬂat in the central portion of the membrane. In atomistic proﬁles, on the other hand, the free energy increases until the residues reach the
+
+The MARTINI Coarse-Grained Force Field
+center of the bilayer. Because of these differences, we suggest that our CG model would probably show artifacts in simulations of the movement of polylysine or arginine domains into lipid bilayers, as is expected for the functioning of certain ion channel proteins. The same is true, in principle, for the action of antimicrobial peptides. Here also, charged residues cross the membrane in one way or another. Despite this potential limitation, in our simulations of magainin-H2, the presence of aqueous pores, in which the charged residues are solvated, makes the problem disappear and explains why we were able to get realistic results. Apart from the implicit screening in the CG model, the neglect of long-range electrostatic forces poses a further potential limitation. Pairwise interactions beyond 1.2 nm (between two and three CG beads away) are not taken into account. In principle, longrange electrostatic interactions could be added to the CG model, in similar ways as is done in atomistic simulations. One has to realize that a modiﬁcation of the electrostatic interaction scheme will affect other system properties.
+Finally, we would like to stress that the current MARTINI model for peptides and proteins is a very general model, designed to be applicable to any class of protein. For any particular application at hand, one could improve the parametrization as required. The bonded interactions are easily ﬁne-tuned on the basis of comparison to either experimental data or to atomistic models. Another promising approach is to use elastic-network models on top of the CG parametrization to mimic the structure and dynamics of a particular native or non-native state.73 Resolution exchange strategies (i.e., simulations in which CG and all-atom models are combined74–77) are promising approaches to further enhance the accuracy and applicability of CG models such as the MARTINI protein model described here.
+5. Conclusions
+In this paper, we presented an extension of the MARTINI force ﬁeld to peptides and proteins, enabling simulations of protein systems in the presence of lipids and surfactants at a coarsegrained level. The model allows for a speedup of biomolecular simulations by approximately 3 orders of magnitude compared to traditional all-atom approaches. Importantly, resolution at the level of individual amino acids is retained, and solvent is explicitly taken into account. The protein force ﬁeld has been parametrized following the same philosophy as the lipid force ﬁeld. Nonbonded interactions were based on experimental thermodynamic data available for each amino acid. Bonded parameters were derived systematically from distributions of bond lengths, angles, and dihedrals in the Protein Data Bank, allowing for realistic protein conformations to be reproduced. Numerous tests have been performed to validate the choice of parameters. Partitioning of all amino acid side chains in a DOPC lipid bilayer, as well as amino acid association constants, shows good agreement with atomistic simulations. We also studied the partitioning and orientation of numerous model peptides in lipid bilayers: a series of 15 pentapeptides, WALP, KALP, and 30 polyleucine-alanine peptides with different hydrophobicity. Comparison with atomistic simulations and experimental results for all of these model systems demonstrates that our CG force ﬁeld reproduces the structural and dynamic features of protein–
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 831
+lipid interactions and captures the effect of mutations in the peptide sequence. Finally, the formation of hydrophilic (toroidal) pores in membranes by magainin indicates the great potential of the model for the study of the mechanism of action of antimicrobial and pore-forming peptides, as well as protein aggregation and the effect of peptides and proteins on the properties of biological membranes.
+Acknowledgment. This research has been supported by the Natural Science and Engineering Research Council (NSERC). L.M. is an Alberta Heritage Foundation for Medical Research (AHFMR) postdoctoral fellow; D.P.T. is an AHFMR Senior Scholar and CIHR New Investigator. Calculations were performed in part at the WestGrid facilities. S.J.M. acknowledges helpful discussions with Santi Esteban-Martin and Durba Sengupta.
+References
+(1) Ash, W. L.; Zlomislic, M. R.; Oloo, E. O.; Tieleman, D. P. Computer simulations of membrane proteins. Biochim. Biophys. Acta 2004, 1666 (1–2), 158–189.
+(2) Go, N.; Taketomi, H. Respective roles of short-range and longrange interactions in protein folding. Proc. Natl. Acad. Sci. U.S.A. 1978, 75 (2), 559–563.
+(3) Miyazawa, S.; Jernigan, R. L. Estimation of effective interresidue contact energies from protein crystal-structures - quasichemical approximation. Macromolecules 1985, 18 (3), 534– 552.
+(4) Das, P.; Matysiak, S.; Clementi, C. Balancing energy and entropy: A minimalist model for the characterization of protein folding landscapes. Proc. Natl. Acad. Sci. U.S.A. 2005, 102 (29), 10141–10146.
+(5) Bahar, I.; Atilgan, A. R.; Erman, B. Direct evaluation of thermal ﬂuctuations in proteins using a single-parameter harmonic potential. Folding Des. 1997, 2 (3), 173–181.
+(6) Tama, F.; Wriggers, W.; Brooks, C. L. Exploring global distortions of biological macromolecules and assemblies from low-resolution structural information and elastic network theory. J. Mol. Biol. 2002, 321 (2), 297–305.
+(7) Chan, H. S.; Dill, K. A. Compact polymers. Macromolecules 1989, 22 (12), 4559–4573.
+(8) Chan, H. S.; Dill, K. A. Intrachain loops in polymers - effects of excluded volume. J. Chem. Phys. 1989, 90 (1), 492–509.
+(9) Levitt, M.; Warshel, A. Computer simulation of protein folding. Nature 1975, 253 (5494), 694–8.
+(10) Liwo, A.; Khalili, M.; Scheraga, H. A. Ab initio simulations of protein-folding pathways by molecular dynamics with the united-residue model of polypeptide chains. Proc. Natl. Acad. Sci. U.S.A. 2005, 102 (7), 2362–7.
+(11) Tozzini, V.; McCammon, J. A. A coarse grained model for the dynamics of ﬂap opening in HIV-1 protease. Chem. Phys. Lett. 2005, 413 (1–3), 123–128.
+(12) Arkhipov, A.; Freddolino, P. L.; Imada, K.; Namba, K.; Schulten, K. Coarse-grained molecular dynamics simulations of a rotating bacterial ﬂagellum. Biophys. J. 2006, 91 (12), 4589–4597.
+(13) Venturoli, M.; Sperotto, M. M.; Kranenburg, M.; Smit, B. Mesoscopic models of biological membranes. Phys. Rep. 2006, 437 (1–2), 1–54.
+
+832 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+(14) Sperotto, M. M.; May, S.; Baumgaertner, A. Modelling of proteins in membranes. Chem. Phys. Lipids 2006, 141 (1–2), 2–29.
+(15) Shillcock, J. C.; Lipowsky, R. The computational route from bilayer membranes to vesicle fusion. J. Phys.: Condens. Matter 2006, 18, S1191–S1219.
+(16) Müller, M.; Katsov, K.; Schick, M. Biological and synthetic membranes: What can be learned from a coarse-grained description. Phys. Rep. 2006, 434, 113–176.
+(17) Venturoli, M.; Smit, B.; Sperotto, M. M. Simulation studies of protein-induced bilayer deformations, and lipid-induced protein tilting, on a mesoscopic model for lipid bilayers with embedded proteins. Biophys. J. 2005, 88 (3), 1778–98.
+(18) Smeijers, A. F.; Pieterse, K.; Markvoort, A. J.; Hilbers, P. A. J. Coarse-grained transmembrane proteins: Hydrophobic matching, aggregation, and their effect on fusion. J. Phys. Chem. B 2006, 110 (27), 13614–13623.
+(19) Shi, Q.; Izvekov, S.; Voth, G. A. Mixed atomistic and coarsegrained molecular dynamics: Simulation of a membrane-bound ion channel. J. Phys. Chem. B 2006, 110 (31), 15045–15048.
+(20) Neri, M.; Anselmi, C.; Cascella, M.; Maritan, A.; Carloni, P. Coarse-grained model of proteins incorporating atomistic detail of the active site. Phys. ReV. Lett. 2005, 95 (21).
+(21) Heath, A. P.; Kavraki, L. E.; Clementi, C. From coarse-grain to all-atom: Toward multiscale analysis of protein landscapes. Proteins 2007, 68 (3), 646–661.
+(22) Marrink, S. J.; de Vries, A. H.; Mark, A. E. Coarse grained model for semiquantitative lipid simulations. J. Phys. Chem. B 2004, 108 (2), 750–760.
+(23) Marrink, S. J.; Risselada, H. J.; Yeﬁmov, S.; Tieleman, D. P.; de Vries, A. H. The MARTINI forceﬁeld: coarse grained model for biomolecular simulations. J. Phys. Chem. B 2007, 111, 7812–7824.
+(24) Marrink, S. J.; Mark, A. E. Molecular dynamics simulation of the formation, structure, and dynamics of small phospholipid vesicles. J. Am. Chem. Soc. 2003, 125 (49), 15233– 15242.
+(25) Marrink, S. J.; Mark, A. E. Molecular view of hexagonal phase formation in phospholipid membranes. Biophys. J. 2004, 87 (6), 3894–3900.
+(26) Faller, R.; Marrink, S. J. Simulation of domain formation in DLPC-DSPC mixed bilayers. Langmuir 2004, 20 (18), 7686– 7693.
+(27) Ashbaugh, H. S.; Patel, H. A.; Kumar, S. K.; Garde, S. Mesoscale model of polymer melt structure: Self-consistent mapping of molecular correlations to coarse-grained potentials. J. Chem. Phys. 2005, 122 (10), 104908.
+(28) Shelley, J. C.; Shelley, M. Y.; Reeder, R. C.; Bandyopadhyay, S.; Klein, M. L. A coarse grain model for phospholipid simulations. J. Phys. Chem. B 2001, 105 (19), 4464–4470.
+(29) Lyubartsev, A. P. Multiscale modeling of lipids and lipid bilayers. Eur. Biophys. J. Biophys. Lett. 2005, 35 (1), 53– 61.
+(30) Elezgaray, J.; Laguerre, M. A systematic method to derive force ﬁelds for coarse-grained simulations of phospholipids. Comput. Phys. Commun. 2006, 175 (4), 264–268.
+(31) Izvekov, S.; Voth, G. A. A multiscale coarse-graining method for biomolecular systems. J. Phys. Chem. B 2005, 109 (7), 2469–2473.
+
+Monticelli et al.
+(32) Oostenbrink, C.; Villa, A.; Mark, A. E.; Van Gunsteren, W. F. A biomolecular force ﬁeld based on the free enthalpy of hydration and solvation: The GROMOS force-ﬁeld parameter sets 53A5 and 53A6. J. Comput. Chem. 2004, 25 (13), 1656– 1676.
+(33) Shih, A. Y.; Arkhipov, A.; Freddolino, P. L.; Schulten, K. Coarse grained protein-lipid model with application to lipoprotein particles. J. Phys. Chem. B 2006, 110 (8), 3674– 3684.
+(34) Bond, P. J.; Sansom, M. S. P. Insertion and assembly of membrane proteins via simulation. J. Am. Chem. Soc. 2006, 128 (8), 2697–2704.
+(35) Bond, P. J.; Sansom, M. S. Bilayer deformation by the Kv channel voltage sensor domain revealed by self-assembly simulations. Proc. Natl. Acad. Sci. U.S.A. 2007, 104 (8), 2631–6.
+(36) (a) Periole, X.; Huber, T.; Marrink, S. J.; Sakmar, T. P. G protein-coupled receptors self-assemble in dynamics simulations of model bilayers J. Am. Chem. Soc. 2007, 129 (33), 10126–10132. (b) Botelho, A. V.; Huber, T.; Sakmar, T. P.; Brown, M. F. Curvature and hydrophobic forces drive oligomerization and modulate activity of rhodopsin in membranes. Biophys. J. 2006, 91 (12), 4464–4477.
+(37) Yeﬁmov, S.; Giessen, E. v. d.; Onck, P.; Marrink, S. Mechanosensitive membrane channels in action Biophys. J. 2008, 94 (8), 2994–3002.
+(38) Treptow, W.; Marrink, S. J.; Tarek, M. Gating motions in voltage-gated potassium channels revealed by coarse grained molecular dynamics simulations J. Phys. Chem. B 2008, 112 (11), 3277–3282.
+(39) Catte, A.; Patterson, J. C.; Bashtovyy, D.; Jones, M. K.; Gu, F.; Li, L.; Rampioni, A.; Sengupta, D.; Vuorela, T.; Niemelä, T.; Karttunen, M.; Marrink, S. J.; Vattulainen, I.; Segrest, J. P. Structure of spheroidal HDL particles revealed by combined atomistic and coarse grained simulations. Biophys. J. 2008, 94 (6), 2306–2319.
+(40) Radzicka, A.; Wolfenden, R. Comparing the polarities of the amino-acids - side-chain distribution coefﬁcients between the vapor-phase, cyclohexane, 1-octanol, and neutral aqueoussolution. Biochemistry 1988, 27 (5), 1664–1670.
+(41) Wolfenden, R.; Andersson, L.; Cullis, P. M.; Southgate, C. C. B. Afﬁnities of amino-acid side-chains for solvent water. Biochemistry 1981, 20 (4), 849–855.
+(42) Kabsch, W.; Sander, C. Dictionary of protein secondary structure - pattern-recognition of hydrogen-bonded and geometrical features. Biopolymers 1983, 22 (12), 2577–2637.
+(43) Van der Spoel, D.; Lindahl, E.; Hess, B.; Groenhof, G.; Mark, A. E.; Berendsen, H. J. C. Gromacs: fast, ﬂexible, and free. J. Comput. Chem. 2005, 26 (16), 1701–1718.
+(44) Berendsen, H. J. C.; Postma, J. P. M.; van Gunsteren, W. F.; DiNola, A.; Haak, J. R. Molecular dynamics with coupling to an external bath. J. Chem. Phys. 1984, 81, 3684–3690.
+(45) Baron, R.; Trzesniak, D.; de Vries, A. H.; Elsener, A.; Marrink, S. J.; van Gunsteren, W. F. Comparison of thermodynamic properties of coarse-grained and atomic-level simulation models. ChemPhysChem 2007, 8 (3), 452–461.
+(46) MacCallum, J. L.; Bennett, W. F. D.; Tieleman, D. P. Distribution of amino acids in a lipid bilayer from computer simulations. Biophys. J. 2008, . in press.
+
+The MARTINI Coarse-Grained Force Field
+(47) MacCallum, J. L.; Bennett, W. F. D.; Tieleman, D. P. Partitioning of amino acid side chains into lipid bilayers: results from computer simulation and comparison to experiment. J. Genet. Physiol. 2007, 129 (5), 371–377.
+(48) Torrie, G. M.; Valleau, J. P. Nonphysical sampling distribution in Monte Carlo free energy estimation: umbrella sampling. J. Comput. Phys. 1977, 23, 187–199.
+(49) Kumar, S.; Bouzida, D.; Swendsen, R. H.; Kollman, P. A.; Rosenberg, J. M. The weighted histogram analysis method for free-energy calculations on biomolecules. 1. The method. J. Comput. Chem. 1992, 13 (8), 1011–1021.
+(50) Shirts, M. R.; Pitera, J. W.; Swope, W. C.; Pande, V. S. Extremely precise free energy calculations of amino acid side chain analogs: Comparison of common molecular mechanics force ﬁelds for proteins. J. Chem. Phys. 2003, 119 (11), 5740–5761.
+(51) Maccallum, J. L.; Tieleman, D. P. Calculation of the watercyclohexane transfer free energies of neutral amino acid sidechain analogs using the OPLS all-atom force ﬁeld. J. Comput. Chem. 2003, 24 (15), 1930–1935.
+(52) Thomas, A. S.; Elcock, A. H. Molecular simulations suggest protein salt bridges are uniquely suited to life at high temperatures. J. Am. Chem. Soc. 2004, 126 (7), 2208–2214.
+(53) Hunenberger, P. H.; Granwehr, J. K.; Aebischer, J. N.; Ghoneim, N.; Haselbach, E.; vanGunsteren, W. F. Experimental and theoretical approach to hydrogen-bonded diastereomeric interactions in a model complex. J. Am. Chem. Soc. 1997, 119 (32), 7533–7544.
+(54) Yang, H. B.; Elcock, A. H. Association lifetimes of hydrophobic amino acid pairs measured directly from molecular dynamics simulations. J. Am. Chem. Soc. 2003, 125 (46), 13968–13969.
+(55) Wimley, W. C.; White, S. H. Experimentally determined hydrophobicity scale for proteins at membrane interfaces. Nat. Struct. Biol. 1996, 3 (10), 842–8.
+(56) van der Spoel, D.; Lindahl, E.; Hess, B.; van Buuren, A. R.; Apol, E.; Meulenhoff, P. J.; Tieleman, D. P.; Sijbers, A. L. T. M.; Feenstra, K. A.; van Drunen, R.; Berendsen, H. J. C. GROMACS User Manual; 1991–2005.
+(57) de Planque, M. R. R.; Greathouse, D. V.; Koeppe, R. E.; Schafer, H.; Marsh, D.; Killian, J. A. Inﬂuence of lipid/peptide hydrophobic mismatch on the thickness of diacylphosphatidylcholine bilayers. A H-2 NMR and ESR study using designed transmembrane R-helical peptides and gramicidin A. Biochemistry 1998, 37 (26), 9333–9345.
+(58) van der Wel, P. C. A.; de Planque, M. R. R.; Greathouse, D. V.; Koeppe, R. E.; Killian, J. A. Effects of hydrophobic mismatch on the interaction between transmembrane R-helical peptides with TRP anchors, and lipid bilayers of phosphatidylcholine and phosphatidnethanolamine. Biophys. J. 1998, 74 (2), A304–A304.
+(59) Strandberg, E.; Ozdirekcan, S.; Rijkers, D. T. S.; van der Wel, P. C. A.; Koeppe, R. E.; Liskamp, R. M. J.; Killian, J. A. Tilt angles of transmembrane model peptides in oriented and nonoriented lipid bilayers as determined by H-2 solid-state NMR. Biophys. J. 2004, 86 (6), 3709–3721.
+(60) Jorgensen, W. L.; Tirado-Rives, J. The OPLS potential functions for proteins - energy minimizations for crystals of cyclic peptides and crambin. J. Am. Chem. Soc. 1988, 110 (6), 1657–1666.
+(61) Tieleman, D. P.; MacCallum, J. L.; Ash, W. L.; Kandt, C.; Xu, Z.; Monticelli, L. Membrane protein simulations with
+
+J. Chem. Theory and Comput., Vol. 4, No. 5, 2008 833
+a united-atom lipid and all-atom protein model: lipid-protein interactions, side chain transfer free energies and model proteins. J. Phys.: Condens. Matter 2006, 18 (28), S1221.
+(62) Sparr, E.; Ash, W. L.; Nazarov, P. V.; Rijkers, D. T.; Hemminga, M. A.; Tieleman, D. P.; Killian, J. A. Selfassociation of transmembrane alpha-helices in model membranes: importance of helix orientation and role of hydrophobic mismatch. J. Biol. Chem. 2005, 280 (47), 39324–31.
+(63) Demmers, J. A. A.; Haverkamp, J.; Heck, A. J. R.; Koeppe, R. E.; Killian, J. A. Electrospray ionization mass spectrometry as a tool to analyze hydrogen/deuterium exchange kinetics of transmembrane peptides in lipid bilayers. Proc. Natl. Acad. Sci. U. S. A. 2000, 97 (7), 3189–3194.
+(64) Özdirekcan, S.; Etchebest, C.; Killian, J. A.; Fuchs, P. F. J. On the orientation of a designed transmembrane peptide: towards the right tilt angle. J. Am. Chem. Soc. 2007, 129, 15174–15181.
+(65) Esteban-Martin, S.; Salgado, J. The dynamic orientation of membrane-bound peptides: Bridging simulations and experiments. Biophys. J. 2007, [Online] biophysj.107.113043.
+(66) Kandasamy, S. K.; Larson, R. G. Molecular dynamics simulations of model trans-membrane peptides in lipid bilayers: a systematic investigation of hydrophobic mismatch. Biophys. J. 2006, 90 (7), 2326–2343.
+(67) Esteban-Martin, S.; Salgado, J. Self-assembling of peptide/ membrane complexes by atomistic molecular dynamics simulations. Biophys. J. 2007, 92 (3), 903–912.
+(68) Lee, M. T.; Hung, W. C.; Chen, F. Y.; Huang, H. W. Manybody effect of antimicrobial peptides: On the correlation between lipid’s spontaneous curvature and pore formation. Biophys. J. 2005, 89 (6), 4006–4016.
+(69) Ludtke, S. J.; He, K.; Heller, W. T.; Harroun, T. A.; Yang, L.; Huang, H. W. Membrane pores induced by magainin. Biochemistry 1996, 35 (43), 13723–13728.
+(70) Leontiadou, H.; Mark, A. E.; Marrink, S. J. Antimicrobial peptides in action. J. Am. Chem. Soc. 2006, 128 (37), 12156– 12161.
+(71) Monticelli, L.; Robertson, K. M.; MacCallum, J. L.; Tieleman, D. P. Computer simulation of the KvAP voltage-gated potassium channel: steered molecular dynamics of the voltage sensor. FEBS Lett. 2004, 564 (3), 325–332.
+(72) Freites, J. A.; Tobias, D. J.; von Heijne, G.; White, S. H. Interface connections of a transmembrane voltage sensor. Proc. Natl. Acad. Sci. U.S.A. 2005, 102 (42), 15059–15064.
+(73) Bond, P. J.; Holyoake, J.; Ivetac, A.; Khalid, S.; Sansom, M. S. P. Coarse-grained molecular dynamics simulations of membrane proteins and peptides. J. Struct. Biol. 2007, 157 (3), 593–605.
+(74) Ayton, G. S.; Noid, W. G.; Voth, G. A. Multiscale modeling of biomolecular systems: in serial and in parallel. Curr. Opin. Struct. Biol. 2007, 17 (2), 192–8.
+(75) Christen, M.; van Gunsteren, W. F. Multigraining: an algorithm for simultaneous ﬁne-grained and coarse-grained simulation of molecular systems. J. Chem. Phys. 2006, 124, 154106.
+
+834 J. Chem. Theory and Comput., Vol. 4, No. 5, 2008
+(76) Praprotnik, M.; Delle Site, L.; Kremer, K. A macromolecule in a solvent: Adaptive resolution molecular dynamics simulation. J. Chem. Phys. 2007, 126, 134902.
+
+Monticelli et al.
+(77) Lyman, E.; Ytreberg, F. M.; Zuckerman, D. M. Resolution exchange simulation. Phys. ReV. Lett. 2006, 962. CT700324X
+

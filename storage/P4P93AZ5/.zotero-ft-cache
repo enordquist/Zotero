@@ -1,0 +1,344 @@
+Article pubs.acs.org/jcim
+
+Downloaded via UNIV OF MASSACHUSETTS AMHERST on July 21, 2022 at 20:58:37 (UTC). See https://pubs.acs.org/sharingguidelines for options on how to legitimately share published articles.
+
+PBSA_E: A PBSA-Based Free Energy Estimator for Protein−Ligand Binding Aﬃnity
+Xiao Liu,† Jinfeng Liu,† Tong Zhu,†,‡ Lujia Zhang,§ Xiao He,*,†,‡ and John Z. H. Zhang*,†,‡,∥,¶
+†Department of Physics, State Key Laboratory of Precision Spectroscopy, College of Chemistry and Molecular Engineering, East China Normal University, Shanghai 200062, China ‡NYU−ECNU Center for Computational Chemistry at NYU Shanghai, Shanghai 200062, China §State Key Laboratory of Bioreactor Engineering, New World Institute of Biotechnology, East China University of Science and Technology, Shanghai 200237, China ∥Department of Chemistry, New York University, New York, New York 10003, United States ¶Collaborative Innovation Center of Extreme Optics, Shanxi University, Taiyuan, Shanxi 030006, China
+*S Supporting Information
+
+ABSTRACT: Improving the accuracy of scoring functions for estimating protein−ligand binding aﬃnity is of signiﬁcant
+interest as well as practical utility in drug discovery. In this
+work, PBSA_E, a new free energy estimator based on the molecular mechanics/Poisson−Boltzmann surface area (MM/
+PBSA) descriptors, has been developed. This free energy
+estimator was optimized using high-quality experimental data from a training set consisting of 145 protein−ligand
+complexes. The method was validated on two separate test
+sets containing 121 and 130 complexes. Comparison of the binding aﬃnities predicted using the present method with
+those obtained using three popular scoring functions, i.e.,
+GlideXP, GlideSP, and SYBYL_F, demonstrated that the PBSA_E method is more accurate. This new energy estimator requires a MM/PBSA calculation of the protein−ligand binding energy for a single complex conﬁguration, which is typically obtained by optimizing the crystal structure. The present study shows that PBSA_E has the potential to become a robust tool for more reliable estimation of protein−ligand binding aﬃnity in
+structure-based drug design.
+
+■ INTRODUCTION
+Protein−ligand binding is essential to almost all biological
+processes, and the underlying physical and chemical interactions determine the speciﬁc biological recognition at the molecular level. In drug discovery, one tries to ﬁnd a molecular ligand that either inhibits or activates a speciﬁc protein target through ligand binding. However, ﬁnding a ligand that binds a targeted protein with high aﬃnity is a major challenge in early-
+stage drug discovery. The atomic-resolution structures of protein−ligand complexes, mostly obtained from X-ray crystallography or NMR spectroscopy,1,2 provide a chemical basis for understanding protein−ligand interactions3−8 and could be eﬀectively used as the basis for the design of small-
+molecule drugs for the treatment of diseases.
+Computation can help speed up the drug discovery process
+through simulation and modeling. In structure-based drug
+design, one calculates the free energies of binding by a range of
+proposed ligands to a given target protein using three-
+dimensional atomic structures of the complexes. Thus, accurate and yet eﬃcient evaluation of protein−ligand binding aﬃnity is critical for selecting and designing more eﬀective binders of the
+
+target. In terms of the accuracy in evaluating protein−ligand binding, free energy perturbation (FEP) and thermodynamics integration (TI)5,9−17 are considered high-end methods that are theoretically rigorous but prohibitively expensive when evaluation of a large number of protein−ligand bindings is required, such as in drug screening. At the low end, empirical scoring functions are widely used for fast estimation of protein−ligand binding aﬃnities in large numbers because of their high eﬃciency. However, evaluation of the binding free energy using a simple empirical scoring function is generally not very reliable. Alternatively, the molecular mechanics with Poisson−Boltzmann surface area (MM/PBSA) approach,7,18−28 whose accuracy generally lies between those of FEP and empirical scoring functions,29−32 is a popular method for computing protein−ligand binding aﬃnity. The MM/PBSA method calculates the solvation energy using an implicitsolvation model.33 In the MM/PBSA approach, however, one is required to perform MD simulation for the protein−ligand
+Received: January 1, 2016 Published: April 18, 2016
+
+© 2016 American Chemical Society
+
+854
+
+DOI: 10.1021/acs.jcim.6b00001 J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+complex and compute PBSA free energies at multiple
+snapshots. Such calculations of free energy can become impractical when binding aﬃnities for a large number of protein−ligand complexes are needed, such as in drug
+screening. In this study, we aimed to develop a reliable and eﬃcient
+estimator of protein−ligand binding aﬃnity. The method should be physically based but require no conﬁgurational
+sampling or MD simulation, allowing it to be used for fast evaluation of binding aﬃnities for a large number of protein−
+ligand systems. To satisfy these two criteria, we chose to utilize
+the PBSA method to calculate various energy terms in the standard MM/PBSA approach for a ﬁxed structure of a protein−ligand complex. For a given protein−ligand complex, the initial structure is optimized ﬁrst to alleviate strains, and the
+PBSA calculation is then performed using this optimized structure. The binding aﬃnity is given by a linear combination
+of various energy terms from the PBSA calculation. The coeﬃcients of the linear combination were preoptimized using a training set with experimentally known binding aﬃnities. The
+training set contained a total of 145 complexes whose experimental binding aﬃnities were used to optimize our free
+energy estimator. The optimized free energy estimator was then tested on two data sets. The ﬁrst set contained 121 protein−
+ligand complexes, and the second set contained 130 protein
+ligand complexes. These test complexes were all selected from
+the PDBbind database maintained by Wang and co-workers.34−36 A comparison of the performance of the current
+method to those of other methods, including some very popular scoring functions,37−41 is presented and discussed in
+this paper.
+■ METHODS Training Set for Protein−Ligand Binding. We ﬁrst compiled a database containing 145 high-quality protein−
+ligand complexes with experimentally determined binding aﬃnities from three sources.37,42,43 These complexes were
+obtained from the above-referenced data sets by excluding (1)
+systems with metal ions in the binding site and (2) ligands with more than two charges. It is known that current force ﬁelds
+cannot accurately describe metal-containing proteins. Also, the accuracy of protein−ligand binding energies obtained from
+MM/PBSA calculations generally decreases with increasing ligand charge.44 Therefore, these systems were excluded from
+our training set. Test Sets for Protein−Ligand Complexes. The above-
+described training set was used to ﬁt our MM/PBSA-based
+energy estimator. We prepared two additional data sets as test sets to test and validate the energy estimator. The ﬁrst test set
+was obtained by excluding complexes with metal ions in the
+binding site or with ligands having more than two charges from the “reﬁned set” and “general set” (v2013) of PDBbind of Wang and co-workers.45 In addition, complexes in the “reﬁned set” with missing residues were also excluded from our test set.
+These treatments produced a test set denoted as test set 1 (T1)
+containing 121 complexes. Test set 2 (T2) was extracted from the PDBbind “core set” (v2013)36 by excluding complexes with
+metal ions in the binding sites or with ligands having more than
+two charges, resulting in data set containing 130 complexes. The unit of binding aﬃnity is kcal/mol. All of the complexes
+along with their Protein Data Bank (PDB) IDs and experimental binding aﬃnities are given in the Supporting
+Information. There were no redundant complexes in the three
+
+data sets, and the structures were downloaded from both the
+PDB and the PDBbind Web site (http://www.pdbbind-cn. org).46
+Hydrogen atoms were added to the proteins using the LEAP module in AMBER11,47 and the Amber force ﬁeld ﬀ99SB was used in the present work.48 The amine groups (Lys and Arg
+residues and the N-terminus) were fully protonated, and the
+carboxylic groups (Asp and Glu residues and the C-terminus)
+were deprotonated. All of the His residues were left neutral and
+then protonated at the ND1 or NE2 position on the basis of the local electrostatic environment. Force ﬁeld parameters of ligands were obtained using the ANTECHAMBER module49 based on the generalized Amber force ﬁeld (GAFF)50 with the HF/6-31G* RESP charges.50,51 All of the ab initio calculations were carried out using the Gaussian 09 program.52
+The training set contained 50 diﬀerent protein families and a total of 145 systems. Test set 1 contained 49 diﬀerent protein families, and test set 2 contained 64 diﬀerent protein families.
+There were 11 protein families used in the test sets that had
+close analogues in the training set. This information is provided in Tables S9−S11 in the Supporting Information.
+Optimized Structure for the MM/PBSA Calculation. In order to prepare the best structure for the single-conﬁguration MM/PBSA calculation, each protein−ligand complex was
+immersed in a periodic rectangular box of TIP3P water
+molecules. The distance from the surface of the box to the
+closest atom of the solute was set to 10 Å, and counterions
+were added to neutralize the whole system. Two minimization
+steps were carried out to optimize the complex structure. In the ﬁrst step, only the solvent molecules and hydrogen atoms were
+optimized using the steepest descent algorithm followed by the
+conjugate gradient method. In the second step, the entire
+system was energy-minimized until convergence was reached.
+All of the system optimizations were performed using the AMBER11 program.47
+Energy Estimator Based on MM/PBSA Calculations. The binding free energy of protein−ligand complex was calculated using a single conﬁguration obtained from the optimization procedure described above. The protein−ligand binding free energy ΔGbind from the MM/PBSA method is given by eq 1:18,53
+
+ΔGbind = ΔEMM + ΔGpb + ΔGpbsur − TΔS
+
+(1)
+
+where the gas-phase interaction energy between the protein and ligand is given by
+
+ΔEMM = ΔEele + ΔEvdw
+
+(2)
+
+in which ΔEele and ΔEvdw are the electrostatic and van der Waals energies, respectively. The PB energy ΔGpb was calculated using the PBSA program26 in AMBER11 with a
+
+lattice spacing of 2 grids/Å. In our approach, the number of
+
+rotatable bonds of the ligand (Nrot) is used to approximate the entropy term upon ligand binding. A conformational penalty of 1 kcal/mol is used for each rotatable bond.42 The nonpolar
+
+solvation term is calculated from the solvent-accessible surface
+
+area (SASA)54 using the 0.0072 kcal mol−1 Å−2.
+
+formula
+
+ΔGpbsur
+
+=
+
+γ·ΔSASA,
+
+where
+
+γ
+
+=
+
+The proposed energy estimator PBSA_E is given by the
+
+following expression
+
+PBSA_E = a1(ΔEele + ΔGpb) + a2ΔEvdw + a3ΔGpbsur
+
++ a4Nrot
+
+(3)
+
+855
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+Figure 1. Scatter plots of the binding aﬃnities of the 145 protein−ligand complexes in the training set. In each panel, the X axis represents the experimental binding aﬃnities and the Y axis the calculated binding aﬃnities obtained by a particular method.
+
+Figure 2. Similar to Figure 1 but for test set 1 (T1).
+
+We calculated the binding aﬃnities for all of the protein−ligand
+complexes in the given training set (containing 145 complexes
+as described above) using MM/PBSA. Each MM/PBSA calculation was done using a single conﬁguration optimized
+from the crystal structure described above. The calculated individual energy terms were put into eq 3, and the coeﬃcients a1−a4 were obtained by least-squares ﬁtting to the corresponding experimental binding aﬃnities for all of the complexes in the training set.19,30,40,55
+The PBSA energy terms in eq 3 can be obtained from MM/ PBSA calculations using either a single conﬁguration optimized from the crystal structure or multiple conﬁgurations generated
+from MD simulations. We performed both single- and multipleconﬁguration MM/PBSA calculations to obtain various energy terms for 20 protein−ligand complexes selected from the test
+sets. Our results indicated that the energy estimator based on the optimized single-conﬁguration protein−ligand complex structure is superior to that based on multiple conﬁgurations
+
+generated from MD simulations. Details of the results
+calculated from MD simulations are given in Tables S7 and S8.
+■ RESULTS AND DISCUSSION Training Set. The ﬁnal resulting formula for the energy estimator PBSA_E after the numerical ﬁtting procedure using the training set deﬁned previously in the paper is given by
+
+PBSA_E = 0.03037(ΔEele + ΔGpb) + 0.07791ΔEvdw
+
++ 1.2193ΔGpbsur + 0.1854Nrot
+
+(4)
+
+Figure 1 shows the relationship between the experimentally determined binding aﬃnities and the calculated PBSA_E values for the 145 protein−ligand complexes in the training set. For comparison, binding aﬃnities converted from the corresponding scoring functions of GlideXP,37 GlideSP,41 and Sybyl_F39,40 are also shown in Figure 1. It is clear that the binding aﬃnities
+predicted by PBSA_E are in much better agreement with the
+
+856
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+Figure 3. Similar to Figure 1 but for test set 2 (T2).
+
+Figure 4. Pearson correlation coeﬃcients (R) for the binding aﬃnities of protein−ligand complexes using diﬀerent scoring functions corresponding to the training set (train(145)), test set 1 (T1(121)), and test set 2 (T2(130)).
+
+experimental values than their counterparts are. The predicted PBSA_E values are more concentrated around the regression line, while values obtained using GlideXP, GlideSP, and Sybyl_F are more scattered away from the regression line. In another measurement, the slope of the PBSA_E regression line was found to be 0.784, while those for the other three scoring functions are 0.287, 0.404, and 0.675, respectively.
+Test Set 1. The performance of PBSA_E had to be validated on test sets in addition to the training set for comparison with other scoring functions. The ﬁrst test set (T1) contained 121 protein−ligand complexes as described above. Figure 2 plots the relationships of the calculated binding aﬃnities obtained from PBSA_E, GlideXP, GlideSP, and Sybyl_F with the experimentally measured values. Figure 2 shows that the PBSA_E values are more concentrated around the regression line while the values for other three scoring functions are more diﬀuse. The slopes of the regression lines are 0.979, 0.602, 0.543, and 0.845 for PBSA_E, GlideSP, GlideXP, and Sybyl_F, respectively. We do note in Figure 2 that GlideSP performs relatively better than GlideXP and Sybyl_F and that the latter two scores are more scattered away from the regression line.
+
+Test Set 2. The second test set (T2) contained 130 protein−ligand complexes as described above. Figure 3 shows the relationships of the calculated binding aﬃnities obtained
+from PBSA_E, GlideXP, GlideSP, and Sybyl_F with the
+experimentally measured values. Similar to Figure 2 for T1, the
+PBSA_E values are more concentrated around the regression
+line than those for the other three scoring functions, and the
+slopes of the regression lines are 0.524, 0.381, 0.282, and 0.691
+for PBSA_E, GlideSP, GlideXP, and Sybyl_F, respectively.
+Similar to the case of T1, GlideSP also performs relatively
+better than GlideXP. Correlation Coeﬃcients and RMSE. The validation of the
+PBSA_E approach on various data sets can be quantitatively measured by using the correlation coeﬃcient with respect to the corresponding experimental binding aﬃnities. The correlation coeﬃcients for all three data sets (training set, T1,
+and T2) obtained from PBSA_E and the other three methods
+are plotted in Figure 4. It is clear that the correlation coeﬃcients for the PBSA_E values are the best among all
+four scoring function methods. For example, the correlation coeﬃcients of PBSA_E are 0.815, 0.811, and 0.611 for the
+training set, T1 and T2, respectively, compared with the
+
+857
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+Figure 5. Similar to Figure 4 except for RMSE instead of correlation coeﬃcients.
+
+Table 1. Comparison of PBSA_E Energies (in kcal/mol) with Those Based on Sets of 50 Snapshots Selected from 1 ns MD Simulations: MM/PBSA Energies Were Calculated for These 20 Complexes Using 50 Snapshots Obtained from the First 1 ns MD Run (PBSA_E1) and the Second 1 ns MD Run (PBSA_E2)
+
+system
+2vcj 2fwy 2qk5 2hiz 2p83 2hm1 1o41 1o42 2ohm 2a3c 2aac 2vv9 2w05 2w06 2q89 1ke8 1zaf 2hb1 2b1z 3fjg RMSE
+
+exp
+−10.41 −9.09 −10.98 −9.42 −10.79 −11.79 −4.14 −10.91 −4.76 −6.00 −3.10 −10.54 −12.20 −9.60 −8.544 −8.14 −10.44 −5.15 −9.62 −5.06
+
+PBSA_E
+−10.89 −10.36 −12.88 −13.08 −13.61 −13.83 −4.83 −11.09 −5.30 −7.31 −4.32 −9.37 −10.14 −10.46 −5.69 −9.88 −7.51 −6.92 −8.61 −4.16
+1.83
+
+PBSA_E1
+−7.64 −7.42 −9.27 −9.43 −9.84 −9.87 −3.57 −6.90 −4.07 −5.84 −2.73 −7.04 −7.37 −7.73 −4.31 −7.0 −5.84 −5.29 −6.72 −3.60
+2.49
+
+PBSA_E2
+−7.56 −7.41 −8.92 −9.45 −9.74 −9.04 −3.33 −6.88 −4.24 −5.91 −2.47 −6.52 −7.51 −7.21 −4.10 −6.85 −5.80 −5.29 −6.71 −3.70
+2.63
+
+GlideXP
+−7.26 −9.06 −14.20 −10.72 −13.61 −11.84 −4.90 −10.91 −3.18 −8.94 −9.90 −9.27 −12.83 −12.24 −9.35 −11.41 −6.93 −8.69 −7.52 −4.68
+2.62
+
+GlideSP
+−8.40 −9.56 −12.78 −11.26 −13.93 −12.16 −5.76 −9.40 −4.22 −9.14 −7.58 −8.35 −10.97 −11.86 −9.94 −11.52 −9.19 −8.46 −9.50 −7.62
+2.24
+
+Sybyl_F
+−10.64 −9.68 −13.18 −13.80 −16.26 −17.33 −4.11 −9.56 −2.40 −8.26 −8.52 −8.18 −12.95 −13.68 −14.14 −12.14 −0.58 −11.34 −5.09 −4.87
+4.20
+
+corresponding values of 0.537, 0.669, and 0.457 for GlideSP, which is overall better than the other two methods (GlideXP and SYBYL). The correlation coeﬃcients for GlideXP are 0.337, 0.480 and 0.285, respectively (see Figure 4).
+We also compared the root-mean-square errors (RMSEs) of the predicted binding free energies obtained using the PBSA_E, GlideXP, GlideSP, and Sybyl_F methods with reference to the experimental values, as shown in Figure 5. Again, the RMSEs of PBSA_E are better than those for the other three methods. For example, the RMSEs of PBSA_E are 2.05, 1.85, 2.58 (all in kcal/mol) for the training set, T1, and T2. This can be compared to the RMSEs of 2.78, 2.05, and 3.00 kcal/mol, respectively, for GlideSP, which is the best of the three comparison methods (GlideSP, GlideXP, and Sybyl_F). Therefore, the PBSA_E method performs consistently better than the three other methods for all three data sets.
+Single- versus Multiple-Conﬁguration MM/PBSA Values. The PBSA_E method presented in this paper utilizes
+
+MM/PBSA energies calculated for a single protein−ligand conﬁguration that is optimized from the crystal structure
+without the MD procedure. This leads to the question of whether utilizing MM/PBSA energies from multiple conﬁg-
+urations generated by MD simulations would result in more
+accurate PBSA_E binding energies. To answer this question, we randomly selected 20 protein−ligand complexes from the test
+sets. We calculated the MM/PBSA energies for these 20 complexes using 50 snapshots obtained from the ﬁrst 1 ns MD
+run and 50 more snapshots from the second 1 ns MD run (see
+Table 1). We then used the ensemble-averaged MM/PBSA
+energies in eq 4 to obtain PBSA_E scores. These PBSA_E
+scores are compared to the corresponding values obtained using a single optimized conﬁguration. The results show that the correlation coeﬃcients obtained from these two methods
+are very similar. However, the RMSEs of the ensemble-
+averaged PBSA_E energies are 2.49 and 2.63 kcal/mol, respectively, for the ﬁrst and second 1 ns simulations, compared
+
+858
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+with 1.83 kcal/mol obtained from the single optimized conﬁguration. Thus, there is no real advantage to using multiple conﬁgurations to calculate MM/PBSA energies to obtain PBSA_E scores, and the single optimized conﬁguration approach is preferred. We also calculated the RMSE values from GlideXP, GlideSP, and Sybyl_F. As shown in Table 1, the RMSE of GlideSP is 2.24 kcal/mol, which is better than those for the other two scoring functions (GlideXP and Sybyl_F). However, the PBSA_E method based on a single optimized conﬁguration outperforms those empirical scoring functions.
+■ CONCLUSIONS
+We have proposed an MM/PBSA-based free energy estimator (PBSA_E) for eﬃcient prediction of protein−ligand binding aﬃnity. The method involves MM/PBSA calculation of the protein−ligand binding energy using a single protein−ligand complex conﬁguration that is optimized from the crystal structure, and no MD simulation is needed. The calculated PBSA energies were ﬁtted to a training set to obtain optimized coeﬃcients for use in a formula (eq 3) to give the free energy prediction (PBSA_E). The performance of this method was validated on two test sets. Explicit comparison with three popular scoring function methods (GlideSP, GlideXP, and Sybyl_F) demonstrated that the PBSA_E is superior to all three of these methods in reliability and accuracy, but it takes more computational eﬀort. The study also showed that using a single optimized protein−ligand conﬁguration is preferred over using multiple conﬁgurations generated from MD simulations.
+It is useful to give a brief discussion of computational timing. The single-conﬁguration MM/PBSA calculation normally takes 1−2 min for each protein system on one CPU of a standard workstation. If optimization of the complex structure is done in explicit water, it generally takes about 20 min on an eight-CPU workstation (Intel Xeon E5620 2.4 GHz processor). The long optimization time is mostly due to optimization of water molecules. However, our recent study showed that if this optimization is carried out either in the gas phase or using an implicit water model (the GB model), the optimization time could be cut to under 2 min. It should also be mentioned that newer versions of the currently used scoring functions could achieve better correlations than the ones obtained in our study.
+■ ASSOCIATED CONTENT
+*S Supporting Information
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jcim.6b00001.
+Data concerning the training set, test set 1, and test set 2 and details of scoring in Sybyl, MD simulations, and protein and ligand names (PDF)
+■ AUTHOR INFORMATION
+Corresponding Authors *E-mail: xiaohe@phy.ecnu.edu.cn. *E-mail: zhzhang@phy.ecnu.edu.cn.
+Notes The authors declare no competing ﬁnancial interest.
+■ ACKNOWLEDGMENTS
+This work was supported by the National Natural Science Foundation of China (Grants 21433004, 21403068, 21303057, and 31571786) and Shanghai Putuo District (Grant 2014-A02). X.H. was also supported by the Specialized Research Fund
+
+for the Doctoral Program of Higher Education (Grant
+20130076120019) and the Fundamental Research Funds for
+the Central Universities. L.Z. acknowledges the Special
+Program for Applied Research on Super Computation of the
+NSFC-Guangdong Joint Fund (the second phase). We thank
+the Supercomputer Center of East China Normal University for
+providing us with computation time.
+■ REFERENCES
+(1) Bieri, M.; Kwan, A. H.; Mobli, M.; King, G. F.; Mackay, J. P.; Gooley, P. R. Macromolecular NMR spectroscopy for the nonspectroscopist: beyond macromolecular solution structure determination. FEBS J. 2011, 278, 704−715. (2) Kwan, A. H.; Mobli, M.; Gooley, P. R.; King, G. F.; Mackay, J. P. Macromolecular NMR spectroscopy for the non-spectroscopist. FEBS J. 2011, 278, 687−703. (3) Kasai, K.-i.; Ishii, S.-i. Quantitative Analysis of Affinity Chromatography of Trypsin: A New Technique for Investigation of Protein-ligand Interaction. J. Biochem 1975, 77, 261−264. (4) Eldridge, M. D.; Murray, C. W.; Auton, T. R.; Paolini, G. V.; Mee, R. P. Empirical scoring functions: I. The development of a fast empirical scoring function to estimate the binding affinity of ligands in receptor complexes. J. Comput.-Aided Mol. Des. 1997, 11, 425−445. (5) Gohlke, H.; Klebe, G. Approaches to the Description and Prediction of the Binding Affinity of Small-Molecule Ligands to Macromolecular Receptors. Angew. Chem., Int. Ed. 2002, 41, 2644− 2676. (6) Richarme, G.; Kepes, A. Study of binding protein-ligand interaction by ammonium sulfate-assisted adsorption on cellulose esters filters. Biochim. Biophys. Acta, Protein Struct. Mol. Enzymol. 1983, 742, 16−24. (7) Muegge, I.; Martin, Y. C. A General and Fast Scoring Function for Protein−Ligand Interactions: A Simplified Potential Approach. J. Med. Chem. 1999, 42, 791−804. (8) Olsson, T. S. G.; Williams, M. A.; Pitt, W. R.; Ladbury, J. E. The Thermodynamics of Protein−Ligand Interaction and Solvation: Insights for Ligand Design. J. Mol. Biol. 2008, 384, 1002−1017. (9) Bash, P. A.; Field, M. J.; Karplus, M. Free energy perturbation method for chemical reactions in the condensed phase: a dynamic approach based on a combined quantum and molecular mechanics potential. J. Am. Chem. Soc. 1987, 109, 8092−8094. (10) Rao, S. N.; Singh, U. C.; Bash, P. A.; Kollman, P. A. Free energy perturbation calculations on binding and catalysis after mutating Asn 155 in subtilisin. Nature 1987, 328, 551−554. (11) Singh, U. C.; Brown, F. K.; Bash, P. A.; Kollman, P. A. An approach to the application of free energy perturbation methods using molecular dynamics: applications to the transformations of methanol.fwdarw. ethane, oxonium.fwdarw. ammonium, glycine.fwdarw. alanine, and alanine.fwdarw. phenylalanine in aqueous solution and to H3O+(H2O)3.fwdarw. NH4+(H2O)3 in the gas phase. J. Am. Chem. Soc. 1987, 109, 1607−1614. (12) Kita, Y.; Arakawa, T.; Lin, T.-Y.; Timasheff, S. N. Contribution of the Surface Free Energy Perturbation to Protein-Solvent Interactions. Biochemistry 1994, 33, 15178−15189. (13) Rao, B. G.; Singh, U. C. A free energy perturbation study of solvation in methanol and dimethyl sulfoxide. J. Am. Chem. Soc. 1990, 112, 3803−3811. (14) Kollman, P. Free energy calculations: Applications to chemical and biochemical phenomena. Chem. Rev. 1993, 93, 2395−2417. (15) Beveridge, D. L.; DiCapua, F. M. Free Energy Via Molecular Simulation: Applications to Chemical and Biomolecular Systems. Annu. Rev. Biophys. Biophys. Chem. 1989, 18, 431−492. (16) Jorgensen, W. L.; Thomas, L. L. Perspective on Free-Energy Perturbation Calculations for Chemical Equilibria. J. Chem. Theory Comput. 2008, 4, 869−876. (17) Zacharias, M.; Straatsma, T. P.; McCammon, J. A. Separation shifted scaling, a new scaling method for Lennard - Jones interactions in thermodynamic integration. J. Chem. Phys. 1994, 100, 9025−9031.
+
+859
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+
+Article
+
+(18) Kollman, P. A.; Massova, I.; Reyes, C.; Kuhn, B.; Huo, S.;
+Chong, L.; Lee, M.; Lee, T.; Duan, Y.; Wang, W.; Donini, O.; Cieplak, P.; Srinivasan, J.; Case, D. A.; Cheatham, T. E. Calculating Structures and Free Energies of Complex Molecules: Combining Molecular Mechanics and Continuum Models. Acc. Chem. Res. 2000, 33, 889−
+897. (19) Oprea, T. I.; Marshall, G. R. Receptor-based prediction of binding affinities. Perspect. Drug Discovery Des. 1998, 9, 35−61. (20) Weis, A.; Katebzadeh, K.; Söderhjelm, P.; Nilsson, I.; Ryde, U. Ligand Affinities Predicted with the MM/PBSA Method: Dependence on the Simulation Method and the Force Field. J. Med. Chem. 2006, 49, 6596−6606. (21) Wang, J.; Hou, T.; Xu, X. Recent Advances in Free Energy Calculations with a Combination of Molecular Mechanics and Continuum Models. Curr. Comput.-Aided Drug Des. 2006, 2, 287−306. (22) Wang, W.; Donini, O.; Reyes, C. M.; Kollman, P. A. Biomolecular Simulations: Recent Developments in Force Fields, Simulations of Enzyme Catalysis, Protein-Ligand, Protein-Protein, and
+Protein-Nucleic Acid Noncovalent Interactions. Annu. Rev. Biophys. Biomol. Struct. 2001, 30, 211−243. (23) Muegge, I. Effect of ligand volume correction on PMF scoring. J. Comput. Chem. 2001, 22, 418−425. (24) Gohlke, H.; Hendlich, M.; Klebe, G. Knowledge-based scoring function to predict protein-ligand interactions1. J. Mol. Biol. 2000, 295, 337−356. (25) Liu, J.; He, X.; Zhang, J. Z. H. Improving the Scoring of Protein−Ligand Binding Affinity by Including the Effects of Structural Water and Electronic Polarization. J. Chem. Inf. Model. 2013, 53, 1306−1314. (26) Massova, I.; Kollman, P. A. Combined molecular mechanical and continuum solvent approach (MM-PBSA/GBSA) to predict ligand binding. Perspect. Drug Discovery Des. 2000, 18, 113−135. (27) Kuhn, B.; Gerber, P.; Schulz-Gasch, T.; Stahl, M. Validation and Use of the MM-PBSA Approach for Drug Discovery. J. Med. Chem. 2005, 48, 4040−4048. (28) Genheden, S.; Ryde, U. The MM/PBSA and MM/GBSA methods to estimate ligand-binding affinities. Expert Opin. Drug Discovery 2015, 10, 449−461. (29) Li, G.-B.; Yang, L.-L.; Wang, W.-J.; Li, L.-L.; Yang, S.-Y. IDScore: A New Empirical Scoring Function Based on a Comprehensive Set of Descriptors Related to Protein−Ligand Interactions. J. Chem. Inf. Model. 2013, 53, 592−600. (30) Eldridge, M.; Murray, C.; Auton, T.; Paolini, G.; Mee, R. Empirical scoring functions: I. The development of a fast empirical
+scoring function to estimate the binding affinity of ligands in receptor complexes. J. Comput.-Aided Mol. Des. 1997, 11, 425−445. (31) Abagyan, R.; Totrov, M.; Kuznetsov, D. Icm -aNew Method for
+Protein Modeling and Design - Applications to Docking and Structure Prediction from the Distorted Native Conformation. J. Comput. Chem. 1994, 15, 488−506. (32) Rarey, M.; Kramer, B.; Lengauer, T.; Klebe, G. A fast flexible
+docking method using an incremental construction algorithm. J. Mol. Biol. 1996, 261, 470−489. (33) Åqvist, J.; Luzhkov, V. B.; Brandsdal, B. O. Ligand Binding Affinities from MD Simulations. Acc. Chem. Res. 2002, 35, 358−365. (34) Wang, R.; Fang, X.; Lu, Y.; Wang, S. The PDBbind Database: Collection of Binding Affinities for Protein−Ligand Complexes with Known Three-Dimensional Structures. J. Med. Chem. 2004, 47, 2977− 2980. (35) Wang, R.; Fang, X.; Lu, Y.; Yang, C.-Y.; Wang, S. The PDBbind Database: Methodologies and Updates. J. Med. Chem. 2005, 48, 4111−
+4119. (36) Liu, Z.; Li, Y.; Han, L.; Li, J.; Liu, J.; Zhao, Z.; Nie, W.; Liu, Y.; Wang, R. PDB-wide collection of binding data: current status of the PDBbind database. Bioinformatics 2015, 31, 405−4121−8. (37) Friesner, R. A.; Murphy, R. B.; Repasky, M. P.; Frye, L. L.; Greenwood, J. R.; Halgren, T. A.; Sanschagrin, P. C.; Mainz, D. T.
+Extra Precision Glide: Docking and Scoring Incorporating a Model of
+
+Hydrophobic Enclosure for Protein−Ligand Complexes. J. Med. Chem. 2006, 49, 6177−6196. (38) Halgren, T. A.; Murphy, R. B.; Friesner, R. A.; Beard, H. S.; Frye, L. L.; Pollard, W. T.; Banks, J. L. Glide: a new approach for rapid, accurate docking and scoring. 2. Enrichment factors in database screening. J. Med. Chem. 2004, 47, 1750−1759. (39) Holt, P. A.; Chaires, J. B.; Trent, J. O. Molecular Docking of Intercalators and Groove-Binders to Nucleic Acids Using Autodock and Surflex. J. Chem. Inf. Model. 2008, 48, 1602−1615. (40) Jain, A. Scoring noncovalent protein-ligand interactions: A continuous differentiable function tuned to compute binding affinities. J. Comput.-Aided Mol. Des. 1996, 10, 427−440. (41) Friesner, R. A.; Banks, J. L.; Murphy, R. B.; Halgren, T. A.; Klicic, J. J.; Mainz, D. T.; Repasky, M. P.; Knoll, E. H.; Shelley, M.; Perry, J. K.; Shaw, D. E.; Francis, P.; Shenkin, P. S. Glide: a new approach for rapid, accurate docking and scoring. 1. Method and assessment of docking accuracy. J. Med. Chem. 2004, 47, 1739−49. (42) Raha, K.; Merz, K. M. Large-Scale Validation of a Quantum Mechanics Based Scoring Function: Predicting the Binding Affinity and the Binding Mode of a Diverse Set of Protein−Ligand Complexes. J. Med. Chem. 2005, 48, 4558−4575. (43) Huang, S.-Y.; Zou, X. Scoring and Lessons Learned with the CSAR Benchmark Using an Improved Iterative Knowledge-Based Scoring Function. J. Chem. Inf. Model. 2011, 51, 2097−2106. (44) Sun, H.; Li, Y.; Tian, S.; Xu, L.; Hou, T. Assessing the performance of MM/PBSA and MM/GBSA methods. 4. Accuracies of MM/PBSA and MM/GBSA methodologies evaluated by various simulation protocols using PDBbind data set. Phys. Chem. Chem. Phys. 2014, 16, 16719−16729. (45) Li, Y.; Liu, Z.; Li, J.; Han, L.; Liu, J.; Zhao, Z.; Wang, R. Comparative Assessment of Scoring Functions on an Updated Benchmark: 1. Compilation of the Test Set. J. Chem. Inf. Model. 2014, 54, 1700−1716. (46) Li, Y.; Han, L.; Liu, Z.; Wang, R. Comparative Assessment of Scoring Functions on an Updated Benchmark: 2. Evaluation Methods and General Results. J. Chem. Inf. Model. 2014, 54, 1717−1736. (47) Case, D. A.; Cheatham, T. E., III; Darden, T.; Gohlke, H.; Luo, R.; Merz, K. M., Jr.; Onufriev, A.; Simmerling, C.; Wang, B.; Woods, R. J. The Amber biomolecular simulation programs. J. Comput. Chem. 2005, 26, 1668−1688. (48) Hornak, V.; Abel, R.; Okur, A.; Strockbine, B.; Roitberg, A.; Simmerling, C. Comparison of multiple Amber force fields and development of improved protein backbone parameters. Proteins: Struct., Funct., Genet. 2006, 65, 712−725. (49) Wang, J.; Wang, W.; Kollman, P. A.; Case, D. A. Automatic atom type and bond type perception in molecular mechanical calculations. J. Mol. Graphics Modell. 2006, 25, 247−260. (50) Wang, J.; Wolf, R. M.; Caldwell, J. W.; Kollman, P. A.; Case, D. A. Development and testing of a general amber force field. J. Comput. Chem. 2004, 25, 1157−1174. (51) Bren, U.; Hodosč ě k, M.; Koller, J. Development and Validation of Empirical Force Field Parameters for Netropsin. J. Chem. Inf. Model. 2005, 45, 1546−1552. (52) Frisch, M. J.; Trucks, G. W.; Schlegel, H. B.; Scuseria, G. E.; Robb, M. A.; Cheeseman, J. R.; Scalmani, G.; Barone, V.; Mennucci, B.; Petersson, G. A.; Nakatsuji, H.; Caricato, M.; Li, X.; Hratchian, H. P.; Izmaylov, A. F.; Bloino, J.; Zheng, G.; Sonnenberg, J. L.; Hada, M.; Ehara, M.; Toyota, K.; Fukuda, R.; Hasegawa, J.; Ishida, M.; Nakajima, T.; Honda, Y.; Kitao, O.; Nakai, H.; Vreven, T.; Montgomery, J. A., Jr.; Peralta, J. E.; Ogliaro, F.; Bearpark, M.; Heyd, J. J.; Brothers, E.; Kudin, K. N.; Staroverov, V. N.; Kobayashi, R.; Normand, J.; Raghavachari, K.; Rendell, A.; Burant, J. C.; Iyengar, S. S.; Tomasi, J.; Cossi, M.; Rega, N.; Millam, J. M.; Klene, M.; Knox, J. E.; Cross, J. B.; Bakken, V.; Adamo, C.; Jaramillo, J.; Gomperts, R.; Stratmann, R. E.; Yazyev, O.; Austin, A. J.; Cammi, R.; Pomelli, C.; Ochterski, J. W.; Martin, R. L.; Morokuma, K.; Zakrzewski, V. G.; Voth, G. A.; Salvador, P.; Dannenberg, J. J.; Dapprich, S.; Daniels, A. D.; Farkas, Ö .; Foresman, J. B.; Ortiz, J. V.; Cioslowski, J.; Fox, D. J. Gaussian 09; Gaussian, Inc.: Wallingford, CT, 2009.
+
+860
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
+Journal of Chemical Information and Modeling
+(53) Gohlke, H.; Case, D. A. Converging free energy estimates: MMPB(GB)SA studies on the protein−protein complex Ras−Raf. J. Comput. Chem. 2004, 25, 238−250. (54) Weiser, J.; Shenkin, P. S.; Still, W. C. Approximate atomic surfaces from linear combinations of pairwise overlaps (LCPO). J. Comput. Chem. 1999, 20, 217−230. (55) Head, R. D.; Smythe, M. L.; Oprea, T. I.; Waller, C. L.; Green, S. M.; Marshall, G. R. VALIDATE: A New Method for the ReceptorBased Prediction of Binding Affinities of Novel Ligands. J. Am. Chem. Soc. 1996, 118, 3959−3969.
+
+Article
+
+861
+
+DOI: 10.1021/acs.jcim.6b00001
+
+J. Chem. Inf. Model. 2016, 56, 854−861
+
