@@ -1,0 +1,728 @@
+    ACS
+    ACS Publications
+    C&EN
+    CAS
+
+Access provided by University of Massachusetts Amherst Libraries
+Blank image Welcome: Erik | Logout
+ACS Publications. Most Trusted. Most Cited. Most Read
+
+OR SEARCH CITATIONS
+My Activity
+Publications
+ADVERTISEMENT
+RETURN TO ISSUE PREV Article NEXT
+CHARMM-GUI Input Generator for NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM Simulations Using the CHARMM36 Additive Force Field
+
+    Jumin Lee †
+    , 
+    Xi Cheng †
+    , 
+    Jason M. Swails ‡
+    , 
+    Min Sun Yeom §
+    , 
+    Peter K. Eastman ∥
+    , 
+    Justin A. Lemkul ⊥
+    , 
+    Shuai Wei ¶
+    , 
+    Joshua Buckner ¶
+    , 
+    Jong Cheol Jeong $
+    , 
+    Yifei Qi †
+    , 
+    Sunhwan Jo &
+    , 
+    Vijay S. Pande ∥
+    , 
+    David A. Case ‡
+    , 
+    Charles L. Brooks, III ¶
+    , 
+    Alexander D. MacKerell, Jr. ⊥
+    , 
+    Jeffery B. Klauda #
+    , and 
+    Wonpil Im * †
+
+View Author Information
+Cite this: J. Chem. Theory Comput. 2016 , 12 , 1 , 405–413
+Publication Date (Web) : November 12, 2015
+https://doi.org/10.1021/acs.jctc.5b00935
+Copyright © 2015 American Chemical Society
+RIGHTS & PERMISSIONS
+ACS AuthorChoice ACS AuthorChoice
+Article Views
+32906
+Altmetric
+30
+Citations
+1315
+LEARN ABOUT THESE METRICS
+Share
+Add to View In
+Export RIS
+PDF (1 MB) OpenURL UNIV OF MASSACHUSETTS AMHERST
+Supporting Info (1) » Supporting Information Supporting Information
+SUBJECTS:
+
+    Additives ,
+    Lipids ,
+
+Get e-Alerts
+Go to Journal of Chemical Theory and Computation
+Journal of Chemical Theory and Computation
+Abstract
+
+Proper treatment of nonbonded interactions is essential for the accuracy of molecular dynamics (MD) simulations, especially in studies of lipid bilayers. The use of the CHARMM36 force field (C36 FF) in different MD simulation programs can result in disagreements with published simulations performed with CHARMM due to differences in the protocols used to treat the long-range and 1-4 nonbonded interactions. In this study, we systematically test the use of the C36 lipid FF in NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM. A wide range of Lennard-Jones (LJ) cutoff schemes and integrator algorithms were tested to find the optimal simulation protocol to best match bilayer properties of six lipids with varying acyl chain saturation and head groups. MD simulations of a 1,2-dipalmitoyl- sn -phosphatidylcholine (DPPC) bilayer were used to obtain the optimal protocol for each program. MD simulations with all programs were found to reasonably match the DPPC bilayer properties (surface area per lipid, chain order parameters, and area compressibility modulus) obtained using the standard protocol used in CHARMM as well as from experiments. The optimal simulation protocol was then applied to the other five lipid simulations and resulted in excellent agreement between results from most simulation programs as well as with experimental data. AMBER compared least favorably with the expected membrane properties, which appears to be due to its use of the hard-truncation in the LJ potential versus a force-based switching function used to smooth the LJ potential as it approaches the cutoff distance. The optimal simulation protocol for each program has been implemented in CHARMM-GUI. This protocol is expected to be applicable to the remainder of the additive C36 FF including the proteins, nucleic acids, carbohydrates, and small molecules.
+
+Introduction
+ARTICLE SECTIONS
+Jump To
+Research on lipid membranes and associated proteins has broad importance in understanding various biological processes such as lipid trafficking, antibiotic resistance, drug transport, cell signaling, and lipid raft formation. Molecular dynamics (MD) simulation has become an important technique to study such systems, as computational resources and empirical force fields have advanced to allow for meaningful simulations of lipid membranes to better understand their physical properties and functions. For example, MD simulations have been used to probe details of liquid-ordered and liquid-disordered phases and also the formation of liquid-ordered rafts. (1-3) There has also been a recent focus on developing accurate representations of cellular membranes based on the known diverse lipid compositions in cells and organelles. (4, 5) Specifically, MD simulations have been used to model the plasma membrane at a coarse-grained level (3, 6) to fully atomistic representations of inner and outer membranes of Gram-negative bacteria. (7-10) The transport and ligand binding mechanisms for primary and secondary active transporters and binding of peripheral membrane proteins to the bilayer surface have also been studied using MD simulation techniques. (11-15)
+Important to MD simulation is an accurate mathematical description of the relationship of conformation to energy in and between molecules, which is commonly referred to as an empirical force field (FF). For lipids, the all-atom additive CHARMM36 (C36) FF (16) was developed to accurately represent a wide range of experimental bilayer properties using the constant particle number, pressure, and temperature (NPT) ensemble. The C36 FF has been extended to a wide range of lipids, e.g., sphingolipids, (17) phosphoinositides, (18) cardiolipin, (19) bacterial lipids, (7, 8) ester-modified lipids, (20) those with polyunsaturated chains, (21) cholesterol, (22) and lipopolysaccharides. (9, 23) Recently, the AMBER community has developed their own all-atom lipid FF (Lipid14 (24) and Slipids (25-27) ) that is of comparable accuracy to that of the C36 FF. One important caveat in these FFs and their usage is that they are developed using approaches that are consistent within the family of each FF, so that it is generally desirable to remain internally consistent (within the same FF family) when studying heterogeneous systems and avoid mixing the parameters of different FFs without careful testing. Moreover, methods used for truncation of the nonbonded interaction energy should be maintained as those used during optimization of the FF to accurately represent these FFs during application studies.
+The form of the potential energy function used in most biomacromolecule-based FFs are highly similar and thus allows various FFs to be used in different MD simulation programs. The C36 FF was developed by the CHARMM community initially in the context of the CHARMM program (28) with the treatment of the long-range nonbonded interactions as follows. The Lennard-Jones (LJ) 6-12 (i.e., van der Waals) interactions were smoothed over the range of 10 to 12 Å using the force-based switching function, (29) the particle mesh Ewald (PME) method (30) was used for the long-range electrostatic interactions, and 1-4 nonbonded interactions (i.e., Coulombic and LJ interactions for atoms separated by three chemical bonds) are fully turned on (i.e., no scaling). The cutoff and 1-4 interaction scheme varies between the FFs and should be maintained when different simulation programs are used. This is particularly important with lipids, which have been shown to be particularly sensitive to the treatment of the truncation of the LJ interactions.
+After the C36 FF was released, the NAMD program (31) added the forced-based switching function, so that results from C36 FF simulations in NAMD and CHARMM become consistent within the differences in the simulation integrators. The GROMACS program (32) has all the functionality needed to match with the C36 FF, and its single-core code is faster than CHARMM and NAMD, especially with mixed-point precision (which used to be called single-point precision). The AMBER program (33) is another popular MD code, but the latest version at the time of writing (version 14) lacks the shift and switch cutoff methods, and thus one can only use a hard truncation method for the LJ term. The force-based switching function has been implemented in the development version and should improve agreement with the other programs when the next version is released. OpenMM (34) has been recently developed as a toolkit for running MD simulation with graphical processing unit (GPU) accelerations. However, use of the force-based switching function is not straightforward, as the current nonbonded force calculation in OpenMM only supports the potential-based switching function.
+The focus of this work is to prescribe the appropriate simulation protocols to run the C36 lipid FF (and the remainder of the C36 FF including the proteins, (35) nucleic acids, (36) carbohydrates, (37) and small organic molecules (38) ) in a wide range of available molecular simulation software packages. Since CHARMM, NAMD, GROMACS, AMBER, and OpenMM use different algorithms for their thermostat/barostat and nonbonded interaction cutoff options, a careful study on how these differences affect bilayer properties is needed. The importance of this effort is emphasized by a recent study in which it was reported that use of the C36 lipid FF in the context of AMBER GPUs gave incorrect surface area per lipid for DPPC bilayers, which was due to the use of LJ truncation methods that were not consistent with the original parametrization. (39) In the present work, we systematically identify simulation protocols for each program to best agree with C36 lipid FF simulations in CHARMM and NAMD in terms of the following three metrics: the area per lipid (lateral density), the acyl chain order parameters (lipid packing), and the area compressibility (dynamic lipid fluctuation). The CHARMM-GUI Membrane Builder (19, 40-42) now incorporates the option to generate the minimization, equilibration, and production inputs (with the optimal simulation parameters resulting from this study) for each program to allow for more general use of the C36 FF. In the following sections, we describe the setup of the CHARMM-GUI Input Generator and the optimized protocol for each program in detail. To illustrate that the optimized parameters are robust and well suited for each program, we provide the results of pure lipid bilayer simulations with various lipid types ( Figure 1 ).
+Figure 1
+
+Figure 1. Chemical structures of lipids used for the bilayer simulations.
+Methods
+ARTICLE SECTIONS
+Jump To
+To determine a set of optimal simulation protocols for NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM simulations using the CHARMM C36 FF, a pure DPPC bilayer system was built and simulated with the various simulation parameters available in each program. In addition, 1,2-dioleoyl- sn -phosphatidylcholine (DOPC), 1-palmitoyl-2-oleoyl- sn -phosphatidylcholine (POPC), 1-palmitoyl-2-oleoyl- sn -phosphatidylethanolamine (POPE), 1-palmitoyl-2-oleoyl- sn -phosphatidylserine (POPS), and palmitoylsphingomyelin (PSM) bilayer simulations were performed to validate the optimized protocols derived from the DPPC simulations. The procedures of building the lipid bilayer systems and the tested simulation parameters for each program are provided in detail below.
+System Setups
+All pure lipid bilayer systems were built using the CHARMM-GUI Membrane Builder . (19, 40-42) A total of 80 lipid molecules were placed in each lipid bilayer (i.e., 40 lipids in each leaflet) with its center at z = 0. A water layer of 20-Å thickness was added above and below the lipid bilayer for the DPPC, DOPC, POPC, and POPE systems and that of 40-Å thickness for the POPS and PSM systems. The corresponding hydration numbers of each membrane are 34 (DPPC), 34 (DOPC), 32 (POPC), 29 (POPE), 67 (POPS), and 58 (PSM) waters per lipid. KCl ions corresponding to 0.15 M were added in the POPS (including neutralizing ions) and PSM systems, and no ion was added in the DPPC, DOPC, POPC, and POPE systems. While CHARMM and NAMD use the origin for the periodic boundary conditions (PBC), GROMACS, AMBER, and OpenMM use the PBC center at ( L X /2, L Y /2, L Z /2) where L X , L Y , and L Z are the system lengths along the xyz directions. Therefore, the whole system is translated by L X /2, L Y /2, and L Z /2 for the GROMACS, AMBER, and OpenMM input generation in CHARMM-GUI.
+Simulation Details
+All simulations used the C36 FF for lipids (16, 17) and the CHARMM TIP3P water model. (43-45) To get better sampling and check the convergence, five independent MD simulations were performed for each bilayer system using NAMD, GROMACS, AMBER, and OpenMM. The simulation temperature was maintained above the transition temperature of each bilayer: 300.0 (POPS), 303.15 (DOPC/POPC), 310.0 (POPE), and 323.15 K (DPPC/PSM). In addition, the pressure was maintained at 1 bar. PBC were employed for all simulations, and the particle mesh Ewald (PME) method (30) was used for long-range electrostatic interactions. The simulation time step was set to 2 fs in conjunction with the SHAKE algorithm (46) to constrain the covalent bonds involving hydrogen atoms for all programs except GROMACS in which the LINCS algorithm (47) was used. After the standard Membrane Builder minimization and equilibration steps, the production run of each simulation was performed for 250 ns. The optimal parameters were determined using the most recent version of each program (NAMD 2.9, GROMACS 5.0, AMBER14, and OpenMM 6.2), such that the use of previous versions can cause some problems. For example, the semi-isotropic pressure coupling method was not implemented until version 6.2 of OpenMM. The individual simulation protocols that we tested for each MD program are summarized in Table 1 and described in detail below.
+Table 1. Summary of Tested Simulation Parameters for the DPPC Bilayer Simulations
+programs	conditions	cut-offs (Å)	abbreviations
+NAMD	force-based switch	8–10	N-fsw-1
+8–12	N-fsw-2
+10–12	N-fsw-3
+GROMACS Mixed precision	force-based switch	8–10	Gm-fsw-1
+8–12	Gm-fsw-2
+10–12	Gm-fsw-3
+potential-based switch	8–10	Gm-sw-1
+8–12	Gm-sw-2
+10–12	Gm-sw-3
+GROMACS Double precision	force-based switch	8–10	Gd-fsw-1
+8–12	Gd-fsw-2
+10–12	Gd-fsw-3
+potential-based switch	8–10	Gd-sw-1
+8–12	Gd-sw-2
+10–12	Gd-sw-3
+AMBER	truncated        tau-p = 0.5	8	A-0.5-1
+10	A-0.5-2
+12	A-0.5-3
+truncated        tau-p = 1.0	8	A-1.0-1
+10	A-1.0-2
+12	A-1.0-3
+OpenMM	force-based switch p_freq = 5	10–12	O-fsw-5
+force-based switch p_freq = 10	10–12	O-fsw-10
+force-based switch p_freq =15	10–12	O-fsw-15
+force-based switch p_freq = 100	10–12	O-fsw-100
+CHARMM/OpenMM	force-based switch	8–10	CO-fsw-1
+8–12	CO-fsw-2
+10–12	CO-fsw-3
+potential-based switch	8–10	CO-sw-1
+8–12	CO-sw-2
+10–12	CO-sw-3
+NAMD
+The NAMD simulations were performed as a reference to compare the lipid properties with those from other simulation programs. The force-based switching function was used for the LJ interactions, and three different switching ranges (8–10, 8–12, and 10–12 Å) were examined. A semi-isotropic Nosé–Hoover Langevin-piston method (48, 49) with a piston period of 50 fs and a piston decay of 25 fs as well as Langevin temperature coupling with a friction coefficient of 1 ps –1 were used to control the pressure and temperature, respectively. A Python (50) program was developed and used in CHARMM-GUI to convert the CHARMM parameter files to the NAMD-readable format, and it is freely available in the downloadable tarball (“download.tgz”) generated by CHARMM-GUI.
+GROMACS
+The force- and potential-based switching functions for the LJ interactions were tested with three different switching ranges (8–10, 8–12, and 10–12 Å). To maintain the temperature, a Nosé–Hoover temperature coupling method (51, 52) with a tau-t of 1 ps was used, and for pressure coupling, a semi-isotropic Parrinello–Rahman method (53, 54) with a tau-p of 5 ps and a compressibility of 4.5 × 10 –5 bar –1 was used. Because direct reading of the CHARMM topology and parameter files is not available in GROMACS, a format conversion Python program was developed and used in CHARMM-GUI to generate the corresponding GROMACS topology and parameter files (top and itp) using the CHARMM topology and parameter files (prm, rtf, and str) as well as the psf file.
+AMBER
+Because AMBER does not support any switching or shifting method for LJ interactions, we examined the hard-truncation method with three different cutoff values (8, 10, and 12 Å). The temperature was maintained using Langevin dynamics with a friction coefficient of 1 ps –1 . In addition, tau-p values of 0.5 and 1 ps for the semi-isotropic Berendsen pressure control (55) were tested. The AMBER-readable C36 FF was prepared using ParmEd v2.0 Beta1 software.
+OpenMM
+OpenMM provides a library for MD simulation with GPU acceleration, so it does not have an executable program to run MD simulations. We developed a set of Python scripts that enable one to run OpenMM simulations with simple and generalized input files, and all these scripts are provided by CHARMM-GUI. Although the standard nonbonded force calculation in OpenMM only supports the potential-based switching function, we provide an implementation of the force-based switching function using OpenMM’s CustomNonbondedForce class in the scripts generated by CHARMM-GUI. The force-based switching method with the switching range of 10–12 Å for LJ interactions was used for all OpenMM simulations; other LJ interaction parameters for the DPPC bilayers were tested using CHARMM/OpenMM. Langevin dynamics was used for the temperature coupling, and friction coefficient values of 1 and 10 ps –1 were tested. A semi-isotropic Monte Carlo (MC) barostat method (56, 57) was used for the pressure coupling, and pressure coupling frequency values of 5, 10, 15, and 100 steps were examined. OpenMM is able to directly read the CHARMM topology and parameter files, so FF conversion was not necessary.
+CHARMM/OpenMM
+Because CHARMM/OpenMM uses the OpenMM library to calculate energies, the results between both programs should be identical. Therefore, the DPPC bilayer simulations to determine the LJ interaction parameters for both OpenMM and CHARMM/OpenMM were performed using CHARMM/OpenMM. The force- and potential-based switching methods were tested with switching ranges of 8–10, 8–12, and 10–12 Å. Langevin dynamics with the friction coefficient of 10 ps –1 and the semi-isotropic MC barostat with the pressure coupling frequency of 15 were used. CHARMM c39b1 with OpenMM 5.2 was used for the DPPC simulations. CHARMM/OpenMM simulations for other lipids were not performed because it is identical to OpenMM, and CHARMM-GUI provides the CHARMM/OpenMM simulation parameters that are identical to OpenMM simulations.
+Analysis
+The membrane properties, such as an average surface area per lipid, compressibility, and deuterium order parameters, were calculated and compared with available experimental values. The first 50 ns of each trajectory was discarded as an equilibration period, and the properties were calculated over the last 200 ns period. Most systems were equilibrated within 50 ns except for those showing the phase transition (Supporting Information Figure S1 ); for such systems, the data before the phase transition were discarded. The average and the standard errors were calculated from the five independent simulations.
+The average surface area per lipid ( A L ) was calculated by simply dividing the system area ( A XY ) by the number of lipids in each leaflet ( N L = 40). The compressibility, K A , was calculated using the following equation: (58, 59) (1) where k B is the Boltzmann constant, T is the system temperature, and ⟨δ A L 2 ⟩ is the average of the squared fluctuation of A L . The deuterium order parameters and electron density profiles (for POPS) were calculated using ST-analyzer. (10) Hydrogen bonding probability was evaluated using CHARMM (COOR HBOND). The default distance cutoff of 2.4 Å between the donor H atom and the acceptor atom was used except the lipid–ion interactions calculated with the distance cutoff of 3.8 Å instead. An angular cutoff was not used.
+Results and Discussion
+ARTICLE SECTIONS
+Jump To
+Optimal Simulation Protocols Based on DPPC Bilayer Simulations
+The bilayer properties from the DPPC simulations with various simulation parameters ( Table 1 ) available in NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM are first presented to determine the optimal simulation protocol for each program using the C36 FF.
+NAMD
+The A L values from the NAMD simulations are 64.8 ± 0.1, 62.9 ± 0.1, and 61.6 ± 0.1 Å 2 for 8–10, 8–12, and 10–12 Å of the force-based switching ranges, respectively. These results are in good agreement with the experimental A L values of 63.0 ± 1.0 Å 2 at 323 K. (60) The K A values are 222.5 ± 9.5 (8–10 Å), 227.1 ± 7.1 (8–12 Å), and 242.4 ± 20.9 dyn/cm (10–12 Å), which are all in the range of its experimental value of 234 dyn/cm. (61) Although the 8–12 Å switching range appears to yield the best A L , the 10–12 Å switching range is considered to be a standard to compare the lipid properties with other programs, as 10–12 Å is consistent with the force-based switching range used to develop the remainder of the additive CHARMM FF (for proteins, nucleic acids, carbohydrates, and small molecules). We note that use of the 8–12 Å switching range with the full additive C36 FF is likely to be satisfactory, although rigorous testing has not yet been performed using this switching scheme.
+GROMACS
+We first tested the influence of mixed versus double precision on the lipid properties (Supporting Information Table S1 ) and found no reduction in accuracy with the use of the more efficient mixed precision. Second, the influence of switching functions (potential- vs force-based) on lipid properties was investigated. Large differences were seen between these two switching functions. In general, A L values are greatly reduced with the potential-based switching function, and the 10–12 Å switching range results in a phase transition to a gel-like state. As shown in Figure 2 A, the GROMACS simulation with the 10–12 Å potential-based switching function (Gm-sw-3) shows two peaks at around 49 Å 2 and 58 Å 2 , which represent gel- and liquid-like phase states, respectively. On the other hand, the simulations with the force-based switching function show good agreement with NAMD simulation results with the slightly reduced A L values: 63.6 ± 0.1 (8–10 Å), 61.2 ± 0.1 (8–12 Å), and 60.3 ± 0.1 Å 2 (10–12 Å). Most K A results are acceptable with the force-based switching simulations showing good agreement with the NAMD results: 212.6 ± 6.2 (8–10 Å), 213.9 ± 7.6 (8–12 Å), and 212.4 ± 6.8 dyn/cm (10–12 Å). The deuterium order parameter values in Figure 2 C,D strongly suggest that the potential-based switching function should not be used for the GROMACS simulations with the C36 FF due to its disagreement with the NAMD results for both sn -1 and sn -2 chains. In general, these GROMACS simulations show higher order parameters than other simulations. Overall, the 8–12 Å force-based switching function shows best agreement with NAMD DPPC bilayer simulations with 10–12 Å force-based switching, but to be consistent with the remainder of the additive CHARMM FF, the 10–12 Å switching range was used for the GROMACS simulations of the other bilayer systems.
+Figure 2
+
+Figure 2. DPPC bilayer properties from some representative simulations: (A) The distributions of surface area per lipid over the 200 ns of trajectories. (B) The compressibility properties derived from each program. (C and D) The deuterium order parameters of (C) sn -1 and (D) sn -2 chains.
+AMBER
+Determining an optimal protocol for AMBER was challenging due to the absence of any switching methods for LJ interactions in the current version. Therefore, the hard-truncation method with various cutoff ranges was tested. The 8-Å cutoff shows the best A L (62.6 ± 0.1 Å 2 ), while the 12-Å cutoff shows a phase transition to a gel-like state (data is not shown). This is consistent with what was observed previously by Gould et al. (39) and demonstrates the need to carefully consider the cutoff scheme in different programs. Compared to the NAMD results, the K A values are mostly in the acceptable range: 235.9 ± 12.2 (8 Å) and 228.6 ± 18.3 dyn/cm (10 Å). AMBER simulations result in slightly reduced order parameters compared to NAMD, but they are in the acceptable range. There is no considerable difference in between 0.5 and 1.0 ps for the pressure coupling time (tau-p). Thus, the 8-Å cutoff with tau-p of 0.5 ps was used for the other lipid simulations.
+CHARMM/OpenMM
+The cutoff methods for LJ interactions for both OpenMM and CHARMM/OpenMM were tested using CHARMM/OpenMM. Like GROMACS, the potential-based switching function reduces the A L values: 61.4 ± 0.3 (8–10 Å), 60.0 ± 0.2 (8–12 Å), and 58.9 ± 0.3 Å 2 (10–12 Å). The equilibrium properties of the force-based switch function systems show good agreement with the NAMD results; the A L values are 64.6 ± 0.2 (8–10 Å), 62.5 ± 0.1 (8–12 Å), and 61.1 ± 0.2 Å 2 (10–12 Å), and the K A values are 227.8 ± 14.5 (8–10 Å), 238.3 ± 13.3 (8–12 Å), and 240.0 ± 15.9 dyn/cm (10–12 Å). The deuterium order parameters of CHARMM/OpenMM simulations also show good agreement with the NAMD results except that the potential-based switch systems have higher order parameters ( Figure 2 C,D). For further OpenMM simulations, the 10–12 Å force-based switching function was adopted.
+OpenMM
+The lipid properties of the OpenMM simulations are similar to those of the NAMD simulation results ( Figure 2 , Supporting Information Table S1 ). There is no significant difference with different pressure coupling frequencies and Langevin dynamics friction coefficients. To reduce the GPU time, the pressure coupling frequency of 100 steps and the Langevin friction coefficient of 1 ps –1 were used for other lipid simulations.
+Other Lipid Bilayer Properties with the Optimized Protocols
+The optimal protocol for each program determined from the DPPC bilayer simulations is summarized in Table 2 . To validate these protocols, we performed the DOPC, POPC, POPE, POPS, and PSM bilayer simulations and compared the lipid properties of each program.
+Table 2. Optimal Protocol for Each Simulation Program Determined from DPPC Bilayer Simulations
+programs	GROMACS	AMBER	OpenMM	CHARMM/OpenMM
+temp. control	Nosé–Hoover	Langevin	Langevin	Langevin
+temp. constant	tau-t = 1.0	gamma = 1.0	gamma = 1.0	gamma = 1.0
+press. control	Parrinello–Rahman	Berendsen	MC barostat	MC barostat
+press. constant	tau-p = 5.0	tau-p = 0.5	p_freq = 100	p_freq = 100
+vdW cutoff method	force-based switch	hard-truncation	force-based switch	force-based switch
+vdW cutoff range	10–12 Å	8 Å	10–12 Å	10–12 Å
+electrostatic interaction	12 Å; PME	8 Å; PME	12 Å; PME	12 Å; PME
+DOPC
+All programs yield similar DOPC bilayer properties with the optimal protocols. The A L values are 68.7 ± 0.1 (NAMD), 68.0 ± 0.1 (GROMACS), 69.7 ± 0.1 (AMBER), and 68.6 ± 0.2 Å 2 (OpenMM), and they are in good agreement with the experimental estimate from the fully hydrated bilayer, i.e., 67.4 ± 1.0 Å 2 at 303 K. (60) In addition, the calculated K A values are similar among the programs: 278.0 ± 13.4 (NAMD), 255.5 ± 14.8 (GROMACS), 301.2 ± 12.3 (AMBER), and 259.5 ± 26.9 dyn/cm (OpenMM). While AMBER and OpenMM order parameters show good agreement with NAMD, GROMACS results in slightly increased order parameters for both sn -1 and sn -2 chains but they are in the acceptable range (Supporting Information Figure S2 ).
+POPC
+The experimental A L of a POPC bilayer is 68.3 ± 1.5 Å 2 at 303 K, (62) and NAMD shows a somewhat reduced A L of 65.0 ± 0.1 Å 2 . There is no significant difference between NAMD and the other programs. GROMACS results in a slightly reduced A L (64.1 ± 0.1 Å 2 ) compared to NAMD, while AMBER shows marginally increased A L (66.0 ± 0.1 Å 2 ). OpenMM shows the best agreement with NAMD in the A L value (64.7 ± 0.1 Å 2 ). The K A value of each program is also in the range of the NAMD result (249.6 ± 19.7 dyn/cm): 262.5 ± 18.2 (GROMACS), 270.3 ± 18.3 (AMBER), and 274.6 ± 31.5 dyn/cm (OpenMM). Like DOPC simulation results, the GROMACS order parameters are insignificantly increased in both sn -1 and sn -2 chains compared to other programs (Supporting Information Figure S2 ).
+POPE
+The average A L value from the NAMD POPE simulation is 57.8 ± 0.1 Å 2 , and it shows good agreement with the experimental value of 59.75–60.75 Å 2 at 308–313 K. (63) Other programs also show good agreement with NAMD: 56.7 ± 0.1 (GROMACS), 58.1 ± 0.1 (AMBER), and 57.7 ± 0.1 Å 2 (OpenMM). The K A values are 270.0 ± 15.8 (NAMD), 270.1 ± 8.8 (GROMACS), 254.8 ± 4.4 (AMBER), and 266.4 ± 24.5 dyn/cm (OpenMM). However, GROMACS again yields negligibly increased order parameters compared to NAMD, AMBER, and OpenMM (Supporting Information Figure S2 ).
+POPS
+Unlike the other lipid systems described above, the A L values of the POPS bilayer systems are underestimated by ∼10% compared to its experimental A L of 62.7 Å 2 at 298 K. (64) NAMD yields the A L of 56.9 ± 0.2 Å 2 , and other programs show similar A L values as NAMD: 56.0 ± 0.4 (GROMACS) and 56.9 ± 0.5 Å 2 (OpenMM) except AMBER (59.0 ± 0.1 Å 2 ). The POPS NAMD simulation in different conditions resulted in the A L of 59.9 Å 2 . In this simulation, the system contained 100 POPS lipid molecules and around 5300 water molecules, and 100 K + counterions were added. (65) Thus, the slightly lower temperature with the higher ion concentration in the current simulations might account for the lower A L values. The K A values are similar among the programs: 261.1 ± 22.8 (NAMD), 262.1 ± 33.2 (GROMACS), 270.5 ± 28.5 (AMBER), and 274.0 ± 28.9 dyn/cm (OpenMM). While GROMACS shows slightly increased order parameters compared to NAMD, AMBER yields marginally reduced values (Supporting Information Figure S2 ). The order parameters from the OpenMM simulations show good agreement with NAMD. There is no significant difference in the density profiles of POPS bilayer systems ( Figure 3 ) except that AMBER shows a slightly reduced hydrophobic thickness (29.8 ± 0.1 Å) compared to NAMD (31.2 ± 0.1 Å). The POPS headgroup has a peak at ±20 Å along the z -axis, and K + ion shows the highest peak near the POPS headgroup.
+Figure 3
+
+Figure 3. Electron density profiles of POPS bilayer simulations. (A) The NAMD results. (B) The comparison of K + (solid lines) and Cl – (dashed lines) distributions among the programs.
+PSM
+Because there is no reliable experimental A L for the PSM bilayer, the GROMACS, AMBER, and OpenMM A L values are compared only with the NAMD value. While the A L values from GROMACS (54.3 ± 0.2 Å 2 ) and OpenMM (55.7 ± 0.2 Å 2 ) show good agreement with the NAMD A L value (55.2 ± 0.2 Å 2 ), AMBER yields a 1.4 Å 2 higher value (56.6 ± 0.3 Å 2 ). The K A values of GROMACS (445.4 ± 13.3 dyn/cm), AMBER (392.3 ± 49.9 dyn/cm), and OpenMM (403.2 ± 49.9 dyn/cm) are in the range of the NAMD K A value (456.4 ± 64.8 dyn/cm). The GROMACS simulations result in slightly increased order parameters than NAMD in both sphingosine and N-linked acyl chains, while AMBER yields slightly reduced order parameters. ( Figure 4 , Supporting Information Figure S2 ). Generally, most programs result in good agreement in the order parameters, which are shown with the NMR data (66) in Figure 4 . Table 3 lists principal H-bonds in the PSM bilayer system and their probabilities obtained from each program. In general, the H-bond probabilities are similar between programs.
+Figure 4
+
+Figure 4. Value sorted S CD order parameters of PSM N-linked acyl chain from NMR and each program.
+Table 3. Intra- and Intermolecular H-Bond Probabilities
+H-bond	NAMD	GROMACS	AMBER	OpenMM
+Intramolecular
+O—H:::O—P	0.99 ± 0.001	0.95 ± 0.001	0.99 ± 0.001	0.99 ± 0.001
+O—H:::O═P	0.01 ± 0.001	0.01 ± 0.001	0.01 ± 0.001	0.01 ± 0.001
+Lipid:Lipid
+N—H:::O═P	0.02 ± 0.001	0.03 ± 0.002	0.02 ± 0.002	0.02 ± 0.001
+N—H:::O═C	0.24 ± 0.006	0.28 ± 0.009	0.23 ± 0.008	0.23 ± 0.008
+N—H:::O—C	0.15 ± 0.007	0.17 ± 0.006	0.14 ± 0.002	0.15 ± 0.004
+Lipid:Water
+N—H:::OH2	0.32 ± 0.007	0.34 ± 0.007	0.32 ± 0.006	0.33 ± 0.006
+C═O:::HOH	0.64 ± 0.007	0.70 ± 0.007	0.64 ± 0.008	0.67 ± 0.006
+C—O:::HOH	0.49 ± 0.013	0.55 ± 0.004	0.49 ± 0.004	0.51 ± 0.004
+Lipid:Ion
+P═O:::K+	0.02 ± 0.001	0.02 ± 0.001	0.02 ± 0.001	0.02 ± 0.001
+C═O:::K+	0.01 ± 0.001	0.01 ± 0.002	0.01 ± 0.001	0.01 ± 0.001
+C—O:::K+	0.01 ± 0.001	0.01 ± 0.001	0.01 ± 0.001	0.01 ± 0.001
+Conclusions
+ARTICLE SECTIONS
+Jump To
+The use of the C36 lipid FF in various programs (NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM) has been shown to result in comparable lipid properties for DPPC, DOPC, POPC, POPE, POPS, and PSM bilayers when the optimized simulation protocols for treatment of the nonbonded interactions are applied. Since each program commonly uses different methods in dealing with LJ cutoffs, care must be taken to choose cutoff schemes that best match the approach taken during development of the C36 lipid FF using the CHARMM program. Excluding AMBER, all simulation programs have force-based switching functions that are required to properly reproduce the published C36 FF results, and, thus, the recommended cutoff scheme for these programs utilizes this approach. The lack of a switching function in AMBER has misled some researchers attempting to apply the C36 FF in this program, (39) although the inclusion of the force-based switching function in upcoming versions of AMBER should ameliorate these issues in the future. As we demonstrate, using potential truncation at cutoffs >8 Å results in gel-like lipid bilayers even above the gel transition temperature. Slight changes that enhance lipid–lipid interactions will potentially result in a phase change. As described in the Results and Discussion section, the use of 8 Å hard truncation in AMBER best represents the spirit of the C36 FF, although there are slight discrepancies when applying this cutoff scheme to the other lipids tested (Supporting Information Figure S2 and Table S3 ). The discrepancies become larger when the system contains ions (POPS) or strongly interacting lipids (PSM). Therefore, the use of the C36 lipid FF in AMBER (versions 14 and earlier) may not agree with CHARMM/NAMD to the degree obtained with programs that contain the force-based switching function for the LJ potential.
+For programs other than AMBER, the agreement with CHARMM/NAMD results for all lipid bilayers tested in this study is satisfactory. However, there are some minor differences in that the GROMACS A L values are slightly reduced and thus the order parameters are slightly higher. Although the cutoff scheme is the same between these programs, differences in other aspects of the simulation protocols, i.e., integration scheme and temperature-/pressure-coupling, can result in slight changes in lipid membrane properties. The present results indicate that the effect of different integrators and/or coupling schemes on lipid bilayer properties is smaller than that due to different cutoff schemes. The usage of different cutoff schemes can also lead to a bilayer phase change.
+While the current studies are based on membrane simulations, the optimized simulation protocols should be applicable to the remainder of the C36 FF including proteins, nucleic acids, carbohydrates, and small molecules. Membrane simulations are especially sensitive to slight changes in the LJ cutoff methods, whereas other biological molecules do not have the ordered self-assembly as lipids, making them less sensitive to subtle details of the treatment of the LJ potential. The optimal simulation protocol for each program has been implemented in CHARMM-GUI. As CHARMM-GUI will convert any patch used during the system building process into appropriate simulation files, including those for GROMACS, the study of complex heterogeneous systems with the C36 FF will be readily accessible to a range of simulation packages. For example, adding carbohydrates to proteins can be easily done with CHARMM-GUI and allows for building of such systems and their proper conversion for use in GROMACS. Therefore, the simulation systems and inputs being seamlessly generated by CHARMM-GUI can be used for general research use in these simulation programs.
+Supporting Information
+ARTICLE SECTIONS
+Jump To
+
+The Supporting Information is available free of charge on the ACS Publications website at DOI: 10.1021/acs.jctc.5b00935 .
+
+    Table S1, DPPC bilayer properties obtained from each program; Table S2, other lipid properties obtained from each program with the optimal protocols; Table S3, bilayer property comparison between each program and NAMD; Figure S1, The time-series of surface area per lipid properties of each simulation; and Figure S2, S CD order parameters of lipids derived from each program ( PDF )
+
+CHARMM-GUI Input Generator for NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM Simulations Using the CHARMM36 Additive Force Field
+
+126 views
+
+915 shares
+
+0 downloads
+Skip to fig share navigation
+Share Download
+.style0{fill:#566471}.style1{fill:#A2CD3C}.style2{fill:#C54C59}.style3{fill:#5BC4BD}
+fig share
+Terms & Conditions
+
+Most electronic Supporting Information files are available without a subscription to ACS Web Editions. Such files may be downloaded by article for research use (if there is a public use license linked to the relevant article, that license may permit other uses). Permission may be obtained from ACS for other uses through requests via the RightsLink permission system: http://pubs.acs.org/page/copyright/permissions.html .
+Author Information
+ARTICLE SECTIONS
+Jump To
+
+    Corresponding Author
+        Wonpil Im - Department of Molecular Biosciences and Center for Computational Biology, The University of Kansas, Lawrence, Kansas 66047, United States ;  Email: wonpil@ku.edu
+    Authors
+        Jumin Lee - Department of Molecular Biosciences and Center for Computational Biology, The University of Kansas, Lawrence, Kansas 66047, United States
+        Xi Cheng - Department of Molecular Biosciences and Center for Computational Biology, The University of Kansas, Lawrence, Kansas 66047, United States
+        Jason M. Swails - Department of Chemistry and Chemical Biology, Rutgers University, Piscataway, New Jersey 08854, United States
+        Min Sun Yeom - Korean Institute of Science and Technology Information, Yuseong-gu, Daejeon 305-806, Korea
+        Peter K. Eastman - Department of Bioengineering, Stanford University, Stanford, California 94035, United States
+        Justin A. Lemkul - Department of Pharmaceutical Sciences, School of Pharmacy, University of Maryland, Baltimore, Maryland 21201, United States
+        Shuai Wei - Department of Chemistry and the Biophysics Program, University of Michigan, Ann Arbor, Michigan 48109, United States
+        Joshua Buckner - Department of Chemistry and the Biophysics Program, University of Michigan, Ann Arbor, Michigan 48109, United States
+        Jong Cheol Jeong - Cancer Research Institute, Beth Israel Deaconess Cancer Center, Harvard Medical School, Boston, Massachusetts 02215, United States
+        Yifei Qi - Department of Molecular Biosciences and Center for Computational Biology, The University of Kansas, Lawrence, Kansas 66047, United States
+        Sunhwan Jo - Leadership Computing Facility, Argonne National Laboratory, 9700 Cass Avenue, Building 240, Argonne, Illinois 60439, United States
+        Vijay S. Pande - Department of Bioengineering, Stanford University, Stanford, California 94035, United States
+        David A. Case - Department of Chemistry and Chemical Biology, Rutgers University, Piscataway, New Jersey 08854, United States
+        Charles L. Brooks - Department of Chemistry and the Biophysics Program, University of Michigan, Ann Arbor, Michigan 48109, United States
+        Alexander D. MacKerell - Department of Pharmaceutical Sciences, School of Pharmacy, University of Maryland, Baltimore, Maryland 21201, United States
+        Jeffery B. Klauda - Department of Chemical and Biomolecular Engineering and the Biophysics Program, University of Maryland, College Park, Maryland 20742, United States
+    Funding
+
+    This work was supported by NSF DBI-1145987, NSF MCB-1157677, NIH U54GM087519, XSEDE MCB070009 (to W.I.), NIH R01GM072558, GM051501, GM070855 (A.D.M.), NSF MCB-1149187, NSF DBI-1145652 (J.B.K.), NIH F32GM109632 (J.A.L.), NIH GM103695, GM037554 (C.L.B.), and the National Institute of Supercomputing and Networking/Korea Institute of Science and Technology Information with supercomputing resources including technical support [KSC-2015-C3-004] (M.S.Y.).
+    Notes
+    The authors declare no competing financial interest.
+
+References
+ARTICLE SECTIONS
+Jump To
+
+This article references 66 other publications.
+
+    1
+    Rog, T. ; Vattulainen, I. Chem. Phys. Lipids 2014 , 184 , 82 – 104  DOI: 10.1016/j.chemphyslip.2014.10.004
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    2
+    Sodt, A. J. ; Sandar, M. L. ; Gawrisch, K. ; Pastor, R. W. ; Lyman, E. J. Am. Chem. Soc. 2014 , 136 ( 2 ) 725 – 732  DOI: 10.1021/ja4105667
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    3
+    Ingolfsson, H. I. ; Melo, M. N. ; van Eerden, F. J. ; Arnarez, C. ; Lopez, C. A. ; Wassenaar, T. A. ; Periole, X. ; de Vries, A. H. ; Tieleman, D. P. ; Marrink, S. J. J. Am. Chem. Soc. 2014 , 136 ( 41 ) 14554 – 14559  DOI: 10.1021/ja507832e
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    4
+    van Meer, G. ; Voelker, D. R. ; Feigenson, G. W. Nat. Rev. Mol. Cell Biol. 2008 , 9 ( 2 ) 112 – 124  DOI: 10.1038/nrm2330
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    5
+    Khakbaz, P. ; Klauda, J. B. Chem. Phys. Lipids 2015 ,  DOI: 10.1016/j.chemphyslip.2015.08.003
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    6
+    Qi, Y. ; Ingolfsson, H. I. ; Cheng, X. ; Lee, J. ; Marrink, S. J. ; Im, W. J. Chem. Theory Comput. 2015 , 11 ( 9 ) 4486 – 4494  DOI: 10.1021/acs.jctc.5b00513
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    7
+    Lim, J. B. ; Klauda, J. B. Biochim. Biophys. Acta, Biomembr. 2011 , 1808 ( 1 ) 323 – 331  DOI: 10.1016/j.bbamem.2010.07.036
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    8
+    Pandit, K. R. ; Klauda, J. B. Biochim. Biophys. Acta, Biomembr. 2012 , 1818 ( 5 ) 1205 – 1210  DOI: 10.1016/j.bbamem.2012.01.009
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    9
+    Wu, E. L. ; Fleming, P. J. ; Yeom, M. S. ; Widmalm, G. ; Klauda, J. B. ; Fleming, K. G. ; Im, W. Biophys. J. 2014 , 106 ( 11 ) 2493 – 2502  DOI: 10.1016/j.bpj.2014.04.024
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    10
+    Jeong, J. C. ; Jo, S. ; Wu, E. L. ; Qi, Y. ; Monje-Galvan, V. ; Yeom, M. S. ; Gorenstein, L. ; Chen, F. ; Klauda, J. B. ; Im, W. J. Comput. Chem. 2014 , 35 ( 12 ) 957 – 963  DOI: 10.1002/jcc.23584
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    11
+    Stansfeld, P. J. ; Sansom, M. S. Structure 2011 , 19 ( 11 ) 1562 – 1572  DOI: 10.1016/j.str.2011.10.002
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    12
+    Li, J. ; Wen, P. C. ; Moradi, M. ; Tajkhorshid, E. Curr. Opin. Struct. Biol. 2015 , 31 , 96 – 105  DOI: 10.1016/j.sbi.2015.04.001
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    13
+    Rogaski, B. ; Klauda, J. B. J. Mol. Biol. 2012 , 423 ( 5 ) 847 – 861  DOI: 10.1016/j.jmb.2012.08.015
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    14
+    Pendse, P. Y. ; Brooks, B. R. ; Klauda, J. B. J. Mol. Biol. 2010 , 404 ( 3 ) 506 – 521  DOI: 10.1016/j.jmb.2010.09.045
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    15
+    Qi, Y. ; Cheng, X. ; Lee, J. ; Vermaas, J. ; Pogorelov, T. ; Tajkhorshid, E. ; Park, S. ; Klauda, J. B. ; Im, W. Biophys. J. 2015 , 109 , 2012  DOI: 10.1016/j.bpj.2015.10.008
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    16
+    Klauda, J. B. ; Venable, R. M. ; Freites, J. A. ; O’Connor, J. W. ; Tobias, D. J. ; Mondragon-Ramirez, C. ; Vorobyov, I. ; MacKerell, A. D., Jr. ; Pastor, R. W. J. Phys. Chem. B 2010 , 114 ( 23 ) 7830 – 7843  DOI: 10.1021/jp101759q
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    17
+    Venable, R. M. ; Sodt, A. J. ; Rogaski, B. ; Rui, H. ; Hatcher, E. ; MacKerell, A. D., Jr. ; Pastor, R. W. ; Klauda, J. B. Biophys. J. 2014 , 107 ( 1 ) 134 – 145  DOI: 10.1016/j.bpj.2014.05.034
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    18
+    Wu, E. L. ; Qi, Y. ; Song, K. C. ; Klauda, J. B. ; Im, W. J. Phys. Chem. B 2014 , 118 ( 16 ) 4315 – 4325  DOI: 10.1021/jp500610t
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    19
+    Wu, E. L. ; Cheng, X. ; Jo, S. ; Rui, H. ; Song, K. C. ; Davila-Contreras, E. M. ; Qi, Y. ; Lee, J. ; Monje-Galvan, V. ; Venable, R. M. ; Klauda, J. B. ; Im, W. J. Comput. Chem. 2014 , 35 ( 27 ) 1997 – 2004  DOI: 10.1002/jcc.23702
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    20
+    Villanueva, D. Y. ; Lim, J. B. ; Klauda, J. B. Langmuir 2013 , 29 ( 46 ) 14196 – 14203  DOI: 10.1021/la403919h
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    21
+    Klauda, J. B. ; Monje, V. ; Kim, T. ; Im, W. J. Phys. Chem. B 2012 , 116 ( 31 ) 9424 – 9431  DOI: 10.1021/jp304056p
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    22
+    Lim, J. B. ; Rogaski, B. ; Klauda, J. B. J. Phys. Chem. B 2012 , 116 ( 1 ) 203 – 210  DOI: 10.1021/jp207925m
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    23
+    Wu, E. L. ; Engstrom, O. ; Jo, S. ; Stuhlsatz, D. ; Yeom, M. S. ; Klauda, J. B. ; Widmalm, G. ; Im, W. Biophys. J. 2013 , 105 ( 6 ) 1444 – 1455  DOI: 10.1016/j.bpj.2013.08.002
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    24
+    Dickson, C. J. ; Madej, B. D. ; Skjevik, A. A. ; Betz, R. M. ; Teigen, K. ; Gould, I. R. ; Walker, R. C. J. Chem. Theory Comput. 2014 , 10 ( 2 ) 865 – 879  DOI: 10.1021/ct4010307
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    25
+    Jämbeck, J. P. M. ; Lyubartsev, A. P. J. Chem. Theory Comput. 2012 , 8 ( 8 ) 2938 – 2948  DOI: 10.1021/ct300342n
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    26
+    Jämbeck, J. P. M. ; Lyubartsev, A. P. J. Chem. Theory Comput. 2013 , 9 ( 1 ) 774 – 784  DOI: 10.1021/ct300777p
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    27
+    Jämbeck, J. P. ; Lyubartsev, A. P. J. Phys. Chem. B 2012 , 116 ( 10 ) 3164 – 3179  DOI: 10.1021/jp212503e
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    28
+    Brooks, B. R. ; Brooks, C. L., 3rd ; MacKerell, A. D., Jr. ; Nilsson, L. ; Petrella, R. J. ; Roux, B. ; Won, Y. ; Archontis, G. ; Bartels, C. ; Boresch, S. ; Caflisch, A. ; Caves, L. ; Cui, Q. ; Dinner, A. R. ; Feig, M. ; Fischer, S. ; Gao, J. ; Hodoscek, M. ; Im, W. ; Kuczera, K. ; Lazaridis, T. ; Ma, J. ; Ovchinnikov, V. ; Paci, E. ; Pastor, R. W. ; Post, C. B. ; Pu, J. Z. ; Schaefer, M. ; Tidor, B. ; Venable, R. M. ; Woodcock, H. L. ; Wu, X. ; Yang, W. ; York, D. M. ; Karplus, M. J. Comput. Chem. 2009 , 30 ( 10 ) 1545 – 1614  DOI: 10.1002/jcc.21287
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    29
+    Steinbach, P. J. ; Brooks, B. R. J. Comput. Chem. 1994 , 15 ( 7 ) 667 – 683  DOI: 10.1002/jcc.540150702
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    30
+    Essmann, U. ; Perera, L. ; Berkowitz, M. L. ; Darden, T. ; Lee, H. ; Pedersen, L. G. J. Chem. Phys. 1995 , 103 ( 19 ) 8577 – 8593  DOI: 10.1063/1.470117
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    31
+    Phillips, J. C. ; Braun, R. ; Wang, W. ; Gumbart, J. ; Tajkhorshid, E. ; Villa, E. ; Chipot, C. ; Skeel, R. D. ; Kale, L. ; Schulten, K. J. Comput. Chem. 2005 , 26 ( 16 ) 1781 – 1802  DOI: 10.1002/jcc.20289
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    32
+    Abraham, M. J. ; Murtola, T. ; Schulz, R. ; Páll, S. ; Smith, J. C. ; Hess, B. ; Lindahl, E. SoftwareX 2015 , 1–2 , 19 – 25  DOI: 10.1016/j.softx.2015.06.001
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    33
+    Case, D. A. ; Cheatham, T. E., 3rd ; Darden, T. ; Gohlke, H. ; Luo, R. ; Merz, K. M., Jr. ; Onufriev, A. ; Simmerling, C. ; Wang, B. ; Woods, R. J. J. Comput. Chem. 2005 , 26 ( 16 ) 1668 – 1688  DOI: 10.1002/jcc.20290
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    34
+    Eastman, P. ; Friedrichs, M. S. ; Chodera, J. D. ; Radmer, R. J. ; Bruns, C. M. ; Ku, J. P. ; Beauchamp, K. A. ; Lane, T. J. ; Wang, L. P. ; Shukla, D. ; Tye, T. ; Houston, M. ; Stich, T. ; Klein, C. ; Shirts, M. R. ; Pande, V. S. J. Chem. Theory Comput. 2013 , 9 ( 1 ) 461 – 469  DOI: 10.1021/ct300857j
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    35
+    Best, R. B. ; Zhu, X. ; Shim, J. ; Lopes, P. E. ; Mittal, J. ; Feig, M. ; MacKerell, A. D., Jr. J. Chem. Theory Comput. 2012 , 8 ( 9 ) 3257 – 3273  DOI: 10.1021/ct300400x
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    36
+    Denning, E. J. ; Priyakumar, U. D. ; Nilsson, L. ; MacKerell, A. D., Jr. J. Comput. Chem. 2011 , 32 ( 9 ) 1929 – 1943  DOI: 10.1002/jcc.21777
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    37
+    Guvench, O. ; Greene, S. N. ; Kamath, G. ; Brady, J. W. ; Venable, R. M. ; Pastor, R. W. ; MacKerell, A. D., Jr. J. Comput. Chem. 2008 , 29 ( 15 ) 2543 – 2564  DOI: 10.1002/jcc.21004
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    38
+    Vanommeslaeghe, K. ; Hatcher, E. ; Acharya, C. ; Kundu, S. ; Zhong, S. ; Shim, J. ; Darian, E. ; Guvench, O. ; Lopes, P. ; Vorobyov, I. ; MacKerell, A. D., Jr. J. Comput. Chem. 2010 , 31 ( 4 ) 671 – 690  DOI: 10.1002/jcc.21367
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    39
+    Skjevik, A. A. ; Madej, B. D. ; Dickson, C. J. ; Teigen, K. ; Walker, R. C. ; Gould, I. R. Chem. Commun. (Cambridge, U. K.) 2015 , 51 ( 21 ) 4402 – 4405  DOI: 10.1039/C4CC09584G
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    40
+    Jo, S. ; Kim, T. ; Im, W. PLoS One 2007 , 2 ( 9 ) e880  DOI: 10.1371/journal.pone.0000880
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    41
+    Jo, S. ; Kim, T. ; Iyer, V. G. ; Im, W. J. Comput. Chem. 2008 , 29 ( 11 ) 1859 – 1865  DOI: 10.1002/jcc.20945
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    42
+    Jo, S. ; Lim, J. B. ; Klauda, J. B. ; Im, W. Biophys. J. 2009 , 97 ( 1 ) 50 – 58  DOI: 10.1016/j.bpj.2009.04.013
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    43
+    Jorgensen, W. L. ; Chandrasekhar, J. ; Madura, J. D. ; Impey, R. W. ; Klein, M. L. J. Chem. Phys. 1983 , 79 ( 2 ) 926 – 935  DOI: 10.1063/1.445869
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    44
+    Durell, S. R. ; Brooks, B. R. ; Ben-Naim, A. J. Phys. Chem. 1994 , 98 ( 8 ) 2198 – 2202  DOI: 10.1021/j100059a038
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    45
+    Neria, E. ; Fischer, S. ; Karplus, M. J. Chem. Phys. 1996 , 105 ( 5 ) 1902 – 1921  DOI: 10.1063/1.472061
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    46
+    Ryckaert, J.-P. ; Ciccotti, G. ; Berendsen, H. J. C. J. Comput. Phys. 1977 , 23 ( 3 ) 327 – 341  DOI: 10.1016/0021-9991(77)90098-5
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    47
+    Hess, B. ; Bekker, H. ; Berendsen, H. J. C. ; Fraaije, J. G. E. M. J. Comput. Chem. 1997 , 18 ( 12 ) 1463 – 1472  DOI: 10.1002/(SICI)1096-987X(199709)18:12<1463::AID-JCC4>3.3.CO;2-L
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    48
+    Martyna, G. J. ; Tobias, D. J. ; Klein, M. L. J. Chem. Phys. 1994 , 101 ( 5 ) 4177 – 4189  DOI: 10.1063/1.467468
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    49
+    Feller, S. E. ; Zhang, Y. H. ; Pastor, R. W. ; Brooks, B. R. J. Chem. Phys. 1995 , 103 ( 11 ) 4613 – 4621  DOI: 10.1063/1.470648
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    50
+    van Rossum, G. ; de Boer, J. CWI Quarterly 1991 , 4 ( 4 ) 283 – 303
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    51
+    Nose, S. Mol. Phys. 1984 , 52 ( 2 ) 255 – 268  DOI: 10.1080/00268978400101201
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    52
+    Hoover, W. G. Phys. Rev. A: At., Mol., Opt. Phys. 1985 , 31 ( 3 ) 1695 – 1697  DOI: 10.1103/PhysRevA.31.1695
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    53
+    Parrinello, M. ; Rahman, A. J. Appl. Phys. 1981 , 52 ( 12 ) 7182 – 7190  DOI: 10.1063/1.328693
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    54
+    Nose, S. ; Klein, M. L. Mol. Phys. 1983 , 50 ( 5 ) 1055 – 1076  DOI: 10.1080/00268978300102851
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    55
+    Berendsen, H. J. C. ; Postma, J. P. M. ; Vangunsteren, W. F. ; Dinola, A. ; Haak, J. R. J. Chem. Phys. 1984 , 81 ( 8 ) 3684 – 3690  DOI: 10.1063/1.448118
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    56
+    Chow, K. H. ; Ferguson, D. M. Comput. Phys. Commun. 1995 , 91 ( 1–3 ) 283 – 289  DOI: 10.1016/0010-4655(95)00059-O
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    57
+    Åqvist, J. ; Wennerström, P. ; Nervall, M. ; Bjelic, S. ; Brandsdal, B. O. Chem. Phys. Lett. 2004 , 384 ( 4–6 ) 288 – 294  DOI: 10.1016/j.cplett.2003.12.039
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    58
+    Feller, S. E. ; Pastor, R. W. J. Chem. Phys. 1999 , 111 ( 3 ) 1281 – 1287  DOI: 10.1063/1.479313
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    59
+    Kim, T. ; Lee, K. I. ; Morris, P. ; Pastor, R. W. ; Andersen, O. S. ; Im, W. Biophys. J. 2012 , 102 ( 7 ) 1551 – 1560  DOI: 10.1016/j.bpj.2012.03.014
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    60
+    Kucerka, N. ; Nagle, J. F. ; Sachs, J. N. ; Feller, S. E. ; Pencer, J. ; Jackson, A. ; Katsaras, J. Biophys. J. 2008 , 95 ( 5 ) 2356 – 2367  DOI: 10.1529/biophysj.108.132662
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    61
+    Rawicz, W. ; Olbrich, K. C. ; McIntosh, T. ; Needham, D. ; Evans, E. Biophys. J. 2000 , 79 ( 1 ) 328 – 339  DOI: 10.1016/S0006-3495(00)76295-3
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    62
+    Kucerka, N. ; Tristram-Nagle, S. ; Nagle, J. F. J. Membr. Biol. 2006 , 208 ( 3 ) 193 – 202  DOI: 10.1007/s00232-005-7006-8
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    63
+    Rappolt, M. ; Hickel, A. ; Bringezu, F. ; Lohner, K. Biophys. J. 2003 , 84 ( 5 ) 3111 – 3122  DOI: 10.1016/S0006-3495(03)70036-8
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    64
+    Pan, J. ; Cheng, X. ; Monticelli, L. ; Heberle, F. A. ; Kucerka, N. ; Tieleman, D. P. ; Katsaras, J. Soft Matter 2014 , 10 ( 21 ) 3716 – 3725  DOI: 10.1039/c4sm00066h
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    65
+    Konas, R. M. ; Daristotle, J. L. ; Harbor, N. B. ; Klauda, J. B. J. Phys. Chem. B 2015 , 119 , 13134 – 13141  DOI: 10.1021/acs.jpcb.5b06066
+    [ ACS Full Text ACS Full Text ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    66
+    Mehnert, T. ; Jacob, K. ; Bittman, R. ; Beyer, K. Biophys. J. 2006 , 90 ( 3 ) 939 – 946  DOI: 10.1529/biophysj.105.063271
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+
+Cited By
+Citation Statements
+beta
+
+    Supporting
+    Supporting 7
+    Mentioning
+    Mentioning 947
+    Contrasting
+    Contrasting 0
+
+Explore this article's citation statements on  scite.ai
+powered by   Scite
+
+This article is cited by 1315 publications.
+
+    Selemon Bekele, Kristi Singh, Evan Helton, Sanaz Farajollahi, Rajesh R. Naik, Patrick Dennis, Nancy Kelley-Loughnane, Rajiv Berry . Molecular Dynamics Investigation into pH Dependent Metal Binding of the Intrinsically Disordered Worm Jaw Protein, Nvjp-1. The Journal of Physical Chemistry B 2022, 126 (35) , 6614-6623. https://doi.org/10.1021/acs.jpcb.2c02807 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Parisa Jahanbakhsh-Bonab, Jaber Jahanbin Sardroodi, Mohammad Sadegh Avestan . Electric Field Effects on the Structural and Dynamical Properties of a Glyceline Deep Eutectic Solvent. Journal of Chemical & Engineering Data 2022, 67 (9) , 2077-2087. https://doi.org/10.1021/acs.jced.2c00066 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Peter Obi, Senthil Natesan . Membrane Lipids Are an Integral Part of Transmembrane Allosteric Sites in GPCRs: A Case Study of Cannabinoid CB1 Receptor Bound to a Negative Allosteric Modulator, ORG27569, and Analogs. Journal of Medicinal Chemistry 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ricky Nencini, O. H. Samuli Ollila . Charged Small Molecule Binding to Membranes in MD Simulations Evaluated against NMR Experiments. The Journal of Physical Chemistry B 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sonali Gore, Kaustubh Rane . Effect of Tacticity and Degree of Sulfonation of Polystyrene Sulfonate on Calcium-Binding Behavior in the Presence of Dodecyl Sulfate. Industrial & Engineering Chemistry Research 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Quinn A. Besford, Willem Van den Heuvel, Andrew J. Christofferson . Dipolar Dispersion Forces in Water–Methanol Mixtures: Enhancement of Water Interactions upon Dilution Drives Self-Association. The Journal of Physical Chemistry B 2022, 126 (33) , 6231-6239. https://doi.org/10.1021/acs.jpcb.2c04638 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Iris N. Smith, Jennifer E. Dawson, James Krieger, Stetson Thacker, Ivet Bahar, Charis Eng . Structural and Dynamic Effects of PTEN C-Terminal Tail Phosphorylation. Journal of Chemical Information and Modeling 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nicole Balasco, Antonella Paladino, Giuseppe Graziano, Marco D’Abramo, Luigi Vitagliano . Atomic-Level View of the Functional Transition in Vertebrate Hemoglobins: The Case of Antarctic Fish Hbs. Journal of Chemical Information and Modeling 2022, 62 (16) , 3874-3884. https://doi.org/10.1021/acs.jcim.2c00727 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ke Wang, Xueguang Shao, Wensheng Cai . Binding Models of Aβ42 Peptide with Membranes Explored by Molecular Simulations. Journal of Chemical Information and Modeling 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shifan Ma, Zhuyezi Sun, Yankang Jing, Mark McGann, Sandor Vajda, Istvan J. Enyedy . Use of Solvent Mapping for Characterizing the Binding Site and for Predicting the Inhibition of the Human Ether-á-Go-Go-Related K+ Channel. Chemical Research in Toxicology 2022, 35 (8) , 1359-1369. https://doi.org/10.1021/acs.chemrestox.2c00036 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Matthew M. Copeland, Hung N. Do, Lane Votapka, Keya Joshi, Jinan Wang, Rommie E. Amaro, Yinglong Miao . Gaussian Accelerated Molecular Dynamics in OpenMM. The Journal of Physical Chemistry B 2022, 126 (31) , 5810-5820. https://doi.org/10.1021/acs.jpcb.2c03765 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mohammad Soroush Barhaghi, Brad Crawford, Gregory Schwing, David J. Hardy, John E. Stone, Loren Schwiebert, Jeffrey Potoff, Emad Tajkhorshid . py-MCMD: Python Software for Performing Hybrid Monte Carlo/Molecular Dynamics Simulations with GOMC and NAMD. Journal of Chemical Theory and Computation 2022, 18 (8) , 4983-4994. https://doi.org/10.1021/acs.jctc.1c00911 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Faramarz Joodaki, Lenore M. Martin, Michael L. Greenfield . Generation and Computational Characterization of a Complex Staphylococcus aureus Lipid Bilayer. Langmuir 2022, 38 (31) , 9481-9499. https://doi.org/10.1021/acs.langmuir.2c00483 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Valery Lutsyk, Pawel Wolski, Wojciech Plazinski . Extending the Martini 3 Coarse-Grained Force Field to Carbohydrates. Journal of Chemical Theory and Computation 2022, 18 (8) , 5089-5107. https://doi.org/10.1021/acs.jctc.2c00553 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shivam Tiwari, Vasista Adupa, Dhanesh Sing Das, K. Anki Reddy, Tadikonda Venkata Bharat . Structural and Dynamic Insights into SARS-CoV-2 Spike-Protein–Montmorillonite Interactions. Langmuir 2022, 38 (30) , 9186-9194. https://doi.org/10.1021/acs.langmuir.2c00837 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alexandre C. Oliveira, Hugo A. L. Filipe, João P. Prates Ramalho, Armindo Salvador, Carlos F. G. C. Geraldes, Maria João Moreno, Luís M. S. Loura . Modeling Gd3+ Complexes for Molecular Dynamics Simulations: Toward a Rational Optimization of MRI Contrast Agents. Inorganic Chemistry 2022, 61 (30) , 11837-11858. https://doi.org/10.1021/acs.inorgchem.2c01597 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Betül Kaymaz, Waleed Mustafa, Sarah Hall, Eli Vlaisavljevich, Ozge Sensoy, Yasemin Yuksel Durmaz . Experimental and Computational Investigation of Clustering Behavior of Cyclodextrin–Perfluorocarbon Inclusion Complexes as Effective Histotripsy Agents. Molecular Pharmaceutics 2022, 19 (8) , 2907-2921. https://doi.org/10.1021/acs.molpharmaceut.2c00268 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jessi J. Bak, Rodrigo Aguayo-Ortiz, Nishadh Rathod, Joseph O. Primeau, Muhammad Bashir Khan, Seth L. Robia, M. Joanne Lemieux, L. Michel Espinoza-Fonseca, Howard S. Young . Primitive Phospholamban- and Sarcolipin-like Peptides Inhibit the Sarcoplasmic Reticulum Calcium Pump SERCA. Biochemistry 2022, 61 (14) , 1419-1430. https://doi.org/10.1021/acs.biochem.2c00246 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Edward King, Youtian Cui, Derek Aspacio, Frances Nicklen, Linyue Zhang, Sarah Maxel, Ray Luo, Justin B. Siegel, Erick Aitchison, Han Li . Engineering Embden–Meyerhof–Parnas Glycolysis to Generate Noncanonical Reducing Power. ACS Catalysis 2022, 12 (14) , 8582-8592. https://doi.org/10.1021/acscatal.2c01837 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Marharyta Blazhynska, Emma Goulard Coderc de Lacam, Haochuan Chen, Benoît Roux, Christophe Chipot . Hazardous Shortcuts in Standard Binding Free Energy Calculations. The Journal of Physical Chemistry Letters 2022, 13 (27) , 6250-6258. https://doi.org/10.1021/acs.jpclett.2c01490 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tejaswi Tammareddy, Walid Keyrouz, Ram D. Sriram, Harish C. Pant, Antonio Cardone, Jeffery B. Klauda . Computational Study of the Allosteric Effects of p5 on CDK5–p25 Hyperactivity as Alternative Inhibitory Mechanisms in Neurodegeneration. The Journal of Physical Chemistry B 2022, 126 (27) , 5033-5044. https://doi.org/10.1021/acs.jpcb.2c02868 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Michael J. Robertson, Georgios Skiniotis . Development of OPLS-AA/M Parameters for Simulations of G Protein-Coupled Receptors and Other Membrane Proteins. Journal of Chemical Theory and Computation 2022, 18 (7) , 4482-4489. https://doi.org/10.1021/acs.jctc.2c00015 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Niek van Hilten, Kai Steffen Stroh, Herre Jelger Risselada . Efficient Quantification of Lipid Packing Defect Sensing by Amphipathic Peptides: Comparing Martini 2 and 3 with CHARMM36. Journal of Chemical Theory and Computation 2022, 18 (7) , 4503-4514. https://doi.org/10.1021/acs.jctc.2c00222 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Phuong H. Nguyen, Philippe Derreumaux . Molecular Dynamics Simulations of the Tau Amyloid Fibril Core Dimer at the Surface of a Lipid Bilayer Model: I. In Alzheimer’s Disease. The Journal of Physical Chemistry B 2022, 126 (26) , 4849-4856. https://doi.org/10.1021/acs.jpcb.2c02836 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alexsandra N. Corrigan, Justin A. Lemkul . Electronic Polarization at the Interface between the p53 Transactivation Domain and Two Binding Partners. The Journal of Physical Chemistry B 2022, 126 (26) , 4814-4827. https://doi.org/10.1021/acs.jpcb.2c02268 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jinfei Mei, Huijuan Yang, Sajjad Ahmad, Xiaohong Ma, Wen Xu, Wenqi Gao, Ye Li, Chuanbo Wang, Hongqi Ai . Toxicity Mechanism of Aβ42 Oligomer in the Binding between the GABABR1a sushi1 Domain and Amyloid Precursor Protein 9mer: A Mechanism like Substitution Reaction. ACS Chemical Neuroscience 2022, 13 (13) , 2048-2059. https://doi.org/10.1021/acschemneuro.2c00311 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Monika Kumari, Shounak Roy, Amit Jaiswal, Hemant K. Kashyap . Anionic Lipid Clustering-Mediated Bactericidal Activity and Selective Toxicity of Quaternary Ammonium-Substituted Polycationic Pullulan against the Staphylococcus aureus Bacterial Membrane. Langmuir 2022, 38 (26) , 8065-8076. https://doi.org/10.1021/acs.langmuir.2c00871 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Adan Gallardo, Brandon M. Bogart, Bercem Dutagaci . Protein–Nucleic Acid Interactions for RNA Polymerase II Elongation Factors by Molecular Dynamics Simulations. Journal of Chemical Information and Modeling 2022, 62 (12) , 3079-3089. https://doi.org/10.1021/acs.jcim.2c00121 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Philip M. Ferguson, Maria Clarke, Giorgia Manzo, Charlotte K. Hind, Melanie Clifford, J. Mark Sutton, Christian D. Lorenz, David A. Phoenix, A. James Mason . Temporin B Forms Hetero-Oligomers with Temporin L, Modifies Its Membrane Activity, and Increases the Cooperativity of Its Antibacterial Pharmacodynamic Profile. Biochemistry 2022, 61 (11) , 1029-1040. https://doi.org/10.1021/acs.biochem.1c00762 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Stuart R. Castillo, Brett W. Rickeard, Mitchell DiPasquale, Michael H. L. Nguyen, Aislyn Lewis-Laurent, Milka Doktorova, Batuhan Kav, Markus S. Miettinen, Michihiro Nagao, Elizabeth G. Kelley, Drew Marquardt . Probing the Link between Pancratistatin and Mitochondrial Apoptosis through Changes in the Membrane Dynamics on the Nanoscale. Molecular Pharmaceutics 2022, 19 (6) , 1839-1852. https://doi.org/10.1021/acs.molpharmaceut.1c00926 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shasha Feng, Lingyang Kong, Stephen Gee, Wonpil Im . Molecular Condensate in a Membrane: A Tugging Game between Hydrophobicity and Polarity with Its Biological Significance. Langmuir 2022, 38 (19) , 5955-5962. https://doi.org/10.1021/acs.langmuir.2c00876 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Phuong H. Nguyen, Philippe Derreumaux . Molecular Dynamics Simulations of the Tau R3–R4 Domain Monomer in the Bulk Solution and at the Surface of a Lipid Bilayer Model. The Journal of Physical Chemistry B 2022, 126 (18) , 3431-3438. https://doi.org/10.1021/acs.jpcb.2c01692 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shams Mehdi, Dedi Wang, Shashank Pant, Pratyush Tiwary . Accelerating All-Atom Simulations and Gaining Mechanistic Understanding of Biophysical Systems through State Predictive Information Bottleneck. Journal of Chemical Theory and Computation 2022, 18 (5) , 3231-3238. https://doi.org/10.1021/acs.jctc.2c00058 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Paul Dalhaimer, Kate R. Blankenship . All-Atom Molecular Dynamics Simulations of Polyethylene Glycol (PEG) and LIMP-2 Reveal That PEG Penetrates Deep into the Proposed CD36 Cholesterol-Transport Tunnel. ACS Omega 2022, 7 (18) , 15728-15738. https://doi.org/10.1021/acsomega.2c00667 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alfredo E. Cardenas, Chad I. Drexler, Rachel Nechushtai, Ron Mittler, Assaf Friedler, Lauren J. Webb, Ron Elber . Peptide Permeation across a Phosphocholine Membrane: An Atomically Detailed Mechanism Determined through Simulations and Supported by Experimentation. The Journal of Physical Chemistry B 2022, 126 (15) , 2834-2849. https://doi.org/10.1021/acs.jpcb.1c10966 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Laichuang Han, Xinyue Liu, Zhongyi Cheng, Wenjing Cui, Junling Guo, Jian Yin, Zhemin Zhou . Construction and Application of a High-Throughput In Vivo Screening Platform for the Evolution of Nitrile Metabolism-Related Enzymes Based on a Desensitized Repressive Biosensor. ACS Synthetic Biology 2022, 11 (4) , 1577-1587. https://doi.org/10.1021/acssynbio.1c00642 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kevin Jie Han Lim, Yossa Dwi Hartono, Bo Xue, Maybelle Kho Go, Hao Fan, Wen Shan Yew . Structure-Guided Engineering of Prenyltransferase NphB for High-Yield and Regioselective Cannabinoid Production. ACS Catalysis 2022, 12 (8) , 4628-4639. https://doi.org/10.1021/acscatal.2c00786 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tibo Duran, Antonio Costa, Anand Gupta, Xiaoming Xu, Hailing Zhang, Diane Burgess, Bodhisattwa Chaudhuri . Coarse-Grained Molecular Dynamics Simulations of Paclitaxel-Loaded Polymeric Micelles. Molecular Pharmaceutics 2022, 19 (4) , 1117-1134. https://doi.org/10.1021/acs.molpharmaceut.1c00800 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jonah Z. Vilseck, Luis F. Cervantes, Ryan L. Hayes, Charles L. Brooks III . Optimizing Multisite λ-Dynamics Throughput with Charge Renormalization. Journal of Chemical Information and Modeling 2022, 62 (6) , 1479-1488. https://doi.org/10.1021/acs.jcim.2c00047 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jinhui Li, Poornima Kalyanram, Seyedalireza Rozati, Viviana Monje-Galvan, Anju Gupta . Interaction of Cyanine-D112 with Binary Lipid Mixtures: Molecular Dynamics Simulation and Differential Scanning Calorimetry Study. ACS Omega 2022, 7 (11) , 9765-9774. https://doi.org/10.1021/acsomega.1c07378 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Toru Saito, Yu Takano . QM/MM Molecular Dynamics Simulations Revealed Catalytic Mechanism of Urease. The Journal of Physical Chemistry B 2022, 126 (10) , 2087-2097. https://doi.org/10.1021/acs.jpcb.1c10200 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Md Shahadat Hossain, Jingjing Ji, Christopher J. Lynch, Miguel Guzman, Shikha Nangia, Davoud Mozhdehi . Adaptive Recombinant Nanoworms from Genetically Encodable Star Amphiphiles. Biomacromolecules 2022, 23 (3) , 863-876. https://doi.org/10.1021/acs.biomac.1c01314 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Carmelo Tempra, O. H. Samuli Ollila, Matti Javanainen . Accurate Simulations of Lipid Monolayers Require a Water Model with Correct Surface Tension. Journal of Chemical Theory and Computation 2022, 18 (3) , 1862-1869. https://doi.org/10.1021/acs.jctc.1c00951 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Giuseppe Licari, Sepehr Dehghani-Ghahnaviyeh, Emad Tajkhorshid . Membrane Mixer: A Toolkit for Efficient Shuffling of Lipids in Heterogeneous Biological Membranes. Journal of Chemical Information and Modeling 2022, 62 (4) , 986-996. https://doi.org/10.1021/acs.jcim.1c01388 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Irina D. Pogozheva, Grant A. Armstrong, Lingyang Kong, Timothy J. Hartnagel, Carly A. Carpino, Stephen E. Gee, Danielle M. Picarello, Amanda S. Rubin, Jumin Lee, Soohyung Park, Andrei L. Lomize, Wonpil Im . Comparative Molecular Dynamics Simulation Studies of Realistic Eukaryotic, Prokaryotic, and Archaeal Membranes. Journal of Chemical Information and Modeling 2022, 62 (4) , 1036-1051. https://doi.org/10.1021/acs.jcim.1c01514 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Olmo Martín-Cámara, Marina Arribas, Geoffrey Wells, Marcos Morales-Tenorio, Ángeles Martín-Requero, Gracia Porras, Ana Martínez, Giorgio Giorgi, Pilar López-Alvarado, Isabel Lastres-Becker, J. Carlos Menéndez . Multitarget Hybrid Fasudil Derivatives as a New Approach to the Potential Treatment of Amyotrophic Lateral Sclerosis. Journal of Medicinal Chemistry 2022, 65 (3) , 1867-1882. https://doi.org/10.1021/acs.jmedchem.1c01255 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sangjun Yoo, Baofu Qiao, Travis Douglas, Wei Bu, Monica Olvera de la Cruz, Pulak Dutta . Specific Ion Effects in Lanthanide–Amphiphile Structures at the Air–Water Interface and Their Implications for Selective Separation. ACS Applied Materials & Interfaces 2022, 14 (5) , 7504-7512. https://doi.org/10.1021/acsami.1c24008 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Anjana George, Roshika Ravi, Pankaj Bharat Tiwari, Shashank Ranjan Srivastava, Vikas Jain, Radhakrishnan Mahalakshmi . Engineering a Hyperstable Yersinia pestis Outer Membrane Protein Ail Using Thermodynamic Design. Journal of the American Chemical Society 2022, 144 (4) , 1545-1555. https://doi.org/10.1021/jacs.1c05964 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nisha Grandhi Jayaprakash, Avadhesha Surolia . Spike Protein and the Various Cell-Surface Carbohydrates: An Interaction Study. ACS Chemical Biology 2022, 17 (1) , 103-117. https://doi.org/10.1021/acschembio.1c00691 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Chenghan Li, Robert V. Farese, Jr., Tobias C. Walther, Gregory A. Voth . Key Factors Governing Initial Stages of Lipid Droplet Formation. The Journal of Physical Chemistry B 2022, 126 (2) , 453-462. https://doi.org/10.1021/acs.jpcb.1c09683 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Luís Borges-Araújo, Paulo C. T. Souza, Fábio Fernandes, Manuel N. Melo . Improved Parameterization of Phosphatidylinositide Lipid Headgroups for the Martini 3 Coarse-Grain Force Field. Journal of Chemical Theory and Computation 2022, 18 (1) , 357-373. https://doi.org/10.1021/acs.jctc.1c00615 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yeol Kyo Choi, Nathan R. Kern, Seonghan Kim, Krishan Kanhaiya, Yaser Afshar, Sun Hee Jeon, Sunhwan Jo, Bernard R. Brooks, Jumin Lee, Ellad B. Tadmor, Hendrik Heinz, Wonpil Im . CHARMM-GUI Nanomaterial Modeler for Modeling and Simulation of Nanomaterial Systems. Journal of Chemical Theory and Computation 2022, 18 (1) , 479-493. https://doi.org/10.1021/acs.jctc.1c00996 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rosita Kneiszl, Shakhawath Hossain, Per Larsson . In Silico-Based Experiments on Mechanistic Interactions between Several Intestinal Permeation Enhancers with a Lipid Bilayer Model. Molecular Pharmaceutics 2022, 19 (1) , 124-137. https://doi.org/10.1021/acs.molpharmaceut.1c00689 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yue Chen, Oliver Fleetwood, Sergio Pérez-Conesa, Lucie Delemotte . Allosteric Effect of Nanobody Binding on Ligand-Specific Active States of the β2 Adrenergic Receptor. Journal of Chemical Information and Modeling 2021, 61 (12) , 6024-6037. https://doi.org/10.1021/acs.jcim.1c00826 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Galo. E. Balatti, G. Patricio Barletta, Gustavo Parisi, Silvio. C. E. Tosatto, Massimo Bellanda, Sebastian Fernandez-Alberti . Intrinsically Disordered Region Modulates Ligand Binding in Glutaredoxin 1 from Trypanosoma Brucei. The Journal of Physical Chemistry B 2021, 125 (49) , 13366-13375. https://doi.org/10.1021/acs.jpcb.1c07035 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ningning Wei, Yanyan Chu, Huijie Liu, Qingliang Xu, Tao Jiang, Rilei Yu . Antagonistic Mechanism of α-Conotoxin BuIA toward the Human α3β2 Nicotinic Acetylcholine Receptor. ACS Chemical Neuroscience 2021, 12 (24) , 4535-4545. https://doi.org/10.1021/acschemneuro.1c00568 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Seonghan Kim, Yi Liu, Zewei Lei, Jeffrey Dicker, Yiwei Cao, X. Frank Zhang, Wonpil Im . Differential Interactions between Human ACE2 and Spike RBD of SARS-CoV-2 Variants of Concern. Journal of Chemical Theory and Computation 2021, 17 (12) , 7972-7979. https://doi.org/10.1021/acs.jctc.1c00965 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Vivek Govind Kumar, Shilpi Agrawal, Thallapuranam Krishnaswamy Suresh Kumar, Mahmoud Moradi . Mechanistic Picture for Monomeric Human Fibroblast Growth Factor 1 Stabilization by Heparin Binding. The Journal of Physical Chemistry B 2021, 125 (46) , 12690-12697. https://doi.org/10.1021/acs.jpcb.1c07772 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Liang Xu, Clyde F. Phelix, Liao Y. Chen . Structural Insights into the Human Mitochondrial Pyruvate Carrier Complexes. Journal of Chemical Information and Modeling 2021, 61 (11) , 5614-5625. https://doi.org/10.1021/acs.jcim.1c00879 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hugo Guterres, Sang-Jun Park, Yiwei Cao, Wonpil Im . CHARMM-GUI Ligand Designer for Template-Based Virtual Ligand Design in a Binding Site. Journal of Chemical Information and Modeling 2021, 61 (11) , 5336-5342. https://doi.org/10.1021/acs.jcim.1c01156 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mohammed Benabderrahmane, Ronan Bureau, Anne Sophie Voisin-Chiret, Jana Sopkova-de Oliveira Santos . Cryptic Pockets Repository through Pocket Dynamics Tracking and Metadynamics on Essential Dynamics Space: Applications to Mcl-1. Journal of Chemical Information and Modeling 2021, 61 (11) , 5581-5588. https://doi.org/10.1021/acs.jcim.1c00660 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Choon-Peng Chng, Nam-Joon Cho, K. Jimmy Hsia, Changjin Huang . Role of Membrane Stretch in Adsorption of Antiviral Peptides onto Lipid Membranes and Membrane Pore Formation. Langmuir 2021, 37 (45) , 13390-13398. https://doi.org/10.1021/acs.langmuir.1c02067 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Adam Antoszewski, Chatipat Lorpaiboon, John Strahan, Aaron R. Dinner . Kinetics of Phenol Escape from the Insulin R6 Hexamer. The Journal of Physical Chemistry B 2021, 125 (42) , 11637-11649. https://doi.org/10.1021/acs.jpcb.1c06544 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Luis Busto-Moner, Chi-Jui Feng, Adam Antoszewski, Andrei Tokmakoff, Aaron R. Dinner . Structural Ensemble of the Insulin Monomer. Biochemistry 2021, 60 (42) , 3125-3136. https://doi.org/10.1021/acs.biochem.1c00583 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Soohyung Park, Yeol Kyo Choi, Seonghoon Kim, Jumin Lee, Wonpil Im . CHARMM-GUI Membrane Builder for Lipid Nanoparticles with Ionizable Cationic Lipids and PEGylated Lipids. Journal of Chemical Information and Modeling 2021, 61 (10) , 5192-5202. https://doi.org/10.1021/acs.jcim.1c00770 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mina Ebrahimi, Masumeh Foroutan . High-Performance Biomimetic Water Channel: The Constructive Interplay of Interaction Parameters and Hydrophilic Doping Levels. The Journal of Physical Chemistry B 2021, 125 (41) , 11566-11581. https://doi.org/10.1021/acs.jpcb.1c04507 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lauren Ammerman, Sarah B. Mertz, Chanyang Park, John G. Wise . Transport Dynamics of MtrD: An RND Multidrug Efflux Pump from Neisseria gonorrhoeae. Biochemistry 2021, 60 (41) , 3098-3113. https://doi.org/10.1021/acs.biochem.1c00399 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yiwei Cao, Yeol Kyo Choi, Martin Frank, Hyeonuk Woo, Sang-Jun Park, Min Sun Yeom, Chaok Seok, Wonpil Im . Dynamic Interactions of Fully Glycosylated SARS-CoV-2 Spike Protein with Various Antibodies. Journal of Chemical Theory and Computation 2021, 17 (10) , 6559-6569. https://doi.org/10.1021/acs.jctc.1c00552 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Manasi Malik, Michael D. Ward, Yingye Fang, Justin R. Porter, Maxwell I. Zimmerman, Thomas Koelblen, Michelle Roh, Antonina I. Frolova, Thomas P. Burris, Gregory R. Bowman, Princess I. Imoukhuede, Sarah K. England . Naturally Occurring Genetic Variants in the Oxytocin Receptor Alter Receptor Signaling Profiles. ACS Pharmacology & Translational Science 2021, 4 (5) , 1543-1555. https://doi.org/10.1021/acsptsci.1c00095 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Valery Lutsyk, Wojciech Plazinski . Conformational Properties of Glycosaminoglycan Disaccharides: A Molecular Dynamics Study. The Journal of Physical Chemistry B 2021, 125 (39) , 10900-10916. https://doi.org/10.1021/acs.jpcb.1c04860 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Preeti Gahtori, Srinivasa Rao Varanasi, Ravindra Pandey . Spectral Response of Interfacial Water at Different Lipid Monolayer Interfaces upon Interaction with Charged Gold Nanoparticles. The Journal of Physical Chemistry C 2021, 125 (38) , 21234-21245. https://doi.org/10.1021/acs.jpcc.1c06556 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sachini P. Kadaoluwa Pathirannahalage, Nastaran Meftahi, Aaron Elbourne, Alessia C. G. Weiss, Chris F. McConville, Agilio Padua, David A. Winkler, Margarida Costa Gomes, Tamar L. Greaves, Tu C. Le, Quinn A. Besford, Andrew J. Christofferson . Systematic Comparison of the Structural and Dynamic Properties of Commonly Used Water Models for Molecular Dynamics Simulations. Journal of Chemical Information and Modeling 2021, 61 (9) , 4521-4536. https://doi.org/10.1021/acs.jcim.1c00794 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Brandon Havranek, Kui K. Chan, Austin Wu, Erik Procko, Shahidul M. Islam . Computationally Designed ACE2 Decoy Receptor Binds SARS-CoV-2 Spike (S) Protein with Tight Nanomolar Affinity. Journal of Chemical Information and Modeling 2021, 61 (9) , 4656-4669. https://doi.org/10.1021/acs.jcim.1c00783 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kalyan Immadisetty, Mahmoud Moradi . Mechanistic Picture for Chemomechanical Coupling in a Bacterial Proton-Coupled Oligopeptide Transporter from Streptococcus Thermophilus. The Journal of Physical Chemistry B 2021, 125 (34) , 9738-9750. https://doi.org/10.1021/acs.jpcb.1c03982 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rabindranath Paul, Sandip Paul . Translocation of Endo-Functionalized Molecular Tubes across Different Lipid Bilayers: Atomistic Molecular Dynamics Simulation Study. Langmuir 2021, 37 (34) , 10376-10387. https://doi.org/10.1021/acs.langmuir.1c01594 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sebastian Thallmair, Matti Javanainen, Balázs Fábián, Hector Martinez-Seara, Siewert J. Marrink . Nonconverged Constraints Cause Artificial Temperature Gradients in Lipid Bilayer Simulations. The Journal of Physical Chemistry B 2021, 125 (33) , 9537-9546. https://doi.org/10.1021/acs.jpcb.1c03665 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hugo Guterres, Sang-Jun Park, Han Zhang, Wonpil Im . CHARMM-GUI LBS Finder & Refiner for Ligand Binding Site Prediction and Refinement. Journal of Chemical Information and Modeling 2021, 61 (8) , 3744-3751. https://doi.org/10.1021/acs.jcim.1c00561 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Afshan Ardalan, Shahin Sowlati-Hashjin, Habib Oduwoye, Stephanie O. Uwumarenogie, Mikko Karttunen, Matthew D. Smith, Masoud Jelokhani-Niaraki . Biphasic Proton Transport Mechanism for Uncoupling Proteins. The Journal of Physical Chemistry B 2021, 125 (32) , 9130-9144. https://doi.org/10.1021/acs.jpcb.1c04766 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kiyoshi Yagi, Yuji Sugita . Anharmonic Vibrational Calculations Based on Group-Localized Coordinates: Applications to Internal Water Molecules in Bacteriorhodopsin. Journal of Chemical Theory and Computation 2021, 17 (8) , 5007-5020. https://doi.org/10.1021/acs.jctc.1c00060 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Indrajit Deb, Hazel Wong, Colleen Tacubao, Aaron T. Frank . Quantum Mechanics Helps Uncover Atypical Recognition Features in the Flavin Mononucleotide Riboswitch. The Journal of Physical Chemistry B 2021, 125 (30) , 8342-8350. https://doi.org/10.1021/acs.jpcb.1c02702 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ruijie D. Teo, D. Peter Tieleman . Modulation of Phospholipid Bilayer Properties by Simvastatin. The Journal of Physical Chemistry B 2021, 125 (30) , 8406-8418. https://doi.org/10.1021/acs.jpcb.1c03359 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sze May Yee, Christian D. Lorenz . On the Structure and Flip-flop of Free Docosahexaenoic Acid in a Model Human Brain Membrane. The Journal of Physical Chemistry B 2021, 125 (29) , 8038-8047. https://doi.org/10.1021/acs.jpcb.1c03929 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Toru Ekimoto, Takafumi Kudo, Tsutomu Yamane, Mitsunori Ikeguchi . Mechanism of Vitamin D Receptor Ligand-Binding Domain Regulation Studied by gREST Simulations. Journal of Chemical Information and Modeling 2021, 61 (7) , 3625-3637. https://doi.org/10.1021/acs.jcim.1c00534 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sonali Gore, Kaustubh Rane . Using Molecular Simulations to Understand the Effect of Dodecyl Sulfate on the Calcium-Binding Ability of Polystyrene Sulfonate. The Journal of Physical Chemistry B 2021, 125 (28) , 7919-7931. https://doi.org/10.1021/acs.jpcb.1c04607 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Riccardo Capelli, Andrea Gardin, Charly Empereur-mot, Giovanni Doni, Giovanni M. Pavan . A Data-Driven Dimensionality Reduction Approach to Compare and Classify Lipid Force Fields. The Journal of Physical Chemistry B 2021, 125 (28) , 7785-7796. https://doi.org/10.1021/acs.jpcb.1c02503 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Joel D. Allen, Himanshi Chawla, Firdaus Samsudin, Lorena Zuzic, Aishwary Tukaram Shivgan, Yasunori Watanabe, Wan-ting He, Sean Callaghan, Ge Song, Peter Yong, Philip J. M. Brouwer, Yutong Song, Yongfei Cai, Helen M. E. Duyvesteyn, Tomas Malinauskas, Joeri Kint, Paco Pino, Maria J. Wurm, Martin Frank, Bing Chen, David I. Stuart, Rogier W. Sanders, Raiees Andrabi, Dennis R. Burton, Sai Li, Peter J. Bond, Max Crispin . Site-Specific Steric Control of SARS-CoV-2 Spike Glycosylation. Biochemistry 2021, 60 (27) , 2153-2169. https://doi.org/10.1021/acs.biochem.1c00279 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kanipakam Hema, Shahzaib Ahamad, Hemant Kumar Joon, Rajan Pandey, Dinesh Gupta . Atomic Resolution Homology Models and Molecular Dynamics Simulations of Plasmodium falciparum Tubulins. ACS Omega 2021, 6 (27) , 17510-17522. https://doi.org/10.1021/acsomega.1c01988 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Gregory A. Voth . Physical Characterization of Triolein and Implications for Its Role in Lipid Droplet Biogenesis. The Journal of Physical Chemistry B 2021, 125 (25) , 6874-6888. https://doi.org/10.1021/acs.jpcb.1c03559 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Malte Siemers, Ana-Nicoleta Bondar . Interactive Interface for Graph-Based Analyses of Dynamic H-Bond Networks: Application to Spike Protein S. Journal of Chemical Information and Modeling 2021, 61 (6) , 2998-3014. https://doi.org/10.1021/acs.jcim.1c00306 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lisbeth R. Kjølbye, Leonardo De Maria, Tsjerk A. Wassenaar, Haleh Abdizadeh, Siewert J. Marrink, Jesper Ferkinghoff-Borg, Birgit Schiøtt . General Protocol for Constructing Molecular Models of Nanodiscs. Journal of Chemical Information and Modeling 2021, 61 (6) , 2869-2883. https://doi.org/10.1021/acs.jcim.1c00157 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pradyumn Sharma, Rajat Desikan, K. Ganapathy Ayappa . Evaluating Coarse-Grained MARTINI Force-Fields for Capturing the Ripple Phase of Lipid Membranes. The Journal of Physical Chemistry B 2021, 125 (24) , 6587-6599. https://doi.org/10.1021/acs.jpcb.1c03277 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sumanta Garai, Luciana M. Leo, Anna-Maria Szczesniak, Dow P. Hurst, Peter C. Schaffer, Ayat Zagzoog, Tallan Black, Jeffrey R. Deschamps, Elke Miess, Stefan Schulz, David R. Janero, Alex Straiker, Roger G. Pertwee, Mary E. Abood, Melanie E. M. Kelly, Patricia H. Reggio, Robert B. Laprairie, Ganesh A. Thakur . Discovery of a Biased Allosteric Modulator for Cannabinoid 1 Receptor: Preclinical Anti-Glaucoma Efficacy. Journal of Medicinal Chemistry 2021, 64 (12) , 8104-8126. https://doi.org/10.1021/acs.jmedchem.1c00040 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Anastasia Croitoru, Sang-Jun Park, Anmol Kumar, Jumin Lee, Wonpil Im, Alexander D. MacKerell, Jr., Alexey Aleksandrov . Additive CHARMM36 Force Field for Nonstandard Amino Acids. Journal of Chemical Theory and Computation 2021, 17 (6) , 3554-3570. https://doi.org/10.1021/acs.jctc.1c00254 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Myong In Oh, Jessica M. J. Swanson . Stressed Lipid Droplets: How Neutral Lipids Relieve Surface Tension and Membrane Expansion Drives Protein Association. The Journal of Physical Chemistry B 2021, 125 (21) , 5572-5586. https://doi.org/10.1021/acs.jpcb.1c01795 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yanxing Yang, Sharareh Jalali, Bradley L. Nilsson, Cristiano L. Dias . Binding Mechanisms of Amyloid-like Peptides to Lipid Bilayers and Effects of Divalent Cations. ACS Chemical Neuroscience 2021, 12 (11) , 2027-2035. https://doi.org/10.1021/acschemneuro.1c00140 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rabeta Yeasmin, Ann Brewer, Lela R Fine, Liqun Zhang . Molecular Dynamics Simulations of Human Beta-Defensin Type 3 Crossing Different Lipid Bilayers. ACS Omega 2021, 6 (21) , 13926-13939. https://doi.org/10.1021/acsomega.1c01803 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Robert J. Allsopp, Jeffery B. Klauda . Impact of PIP2 Lipids, Force Field Parameters, and Mutational Analysis on the Binding of the Osh4’s α6–α7 Domain. The Journal of Physical Chemistry B 2021, 125 (20) , 5296-5308. https://doi.org/10.1021/acs.jpcb.0c10393 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Daniel J. Kozuch, Frank H. Stillinger, Pablo G. Debenedetti . Effects of Trehalose on Lipid Membranes under Rapid Cooling using All-Atom and Coarse-Grained Molecular Simulations. The Journal of Physical Chemistry B 2021, 125 (20) , 5346-5357. https://doi.org/10.1021/acs.jpcb.1c02575 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Junyeol Lee, Seungmin Yoon, Rakwoo Chang . Chlorosulfolipid (Danicalipin A) Membrane Structure: Hybrid Molecular Dynamics Simulation Studies. The Journal of Physical Chemistry Letters 2021, 12 (19) , 4537-4542. https://doi.org/10.1021/acs.jpclett.1c01026 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shasha Feng, Ruixing Wang, Richard W. Pastor, Jeffery B. Klauda, Wonpil Im . Location and Conformational Ensemble of Menaquinone and Menaquinol, and Protein–Lipid Modulations in Archaeal Membranes. The Journal of Physical Chemistry B 2021, 125 (18) , 4714-4725. https://doi.org/10.1021/acs.jpcb.1c01930 OpenURL UNIV OF MASSACHUSETTS AMHERST 
+
+Load more citations
+
+    Figures
+    References
+    Support Info 
+
+    Abstract
+    Figure 1
+
+    Figure 1. Chemical structures of lipids used for the bilayer simulations.
+    Figure 2
+
+    Figure 2. DPPC bilayer properties from some representative simulations: (A) The distributions of surface area per lipid over the 200 ns of trajectories. (B) The compressibility properties derived from each program. (C and D) The deuterium order parameters of (C) sn -1 and (D) sn -2 chains.
+    Figure 3
+
+    Figure 3. Electron density profiles of POPS bilayer simulations. (A) The NAMD results. (B) The comparison of K + (solid lines) and Cl – (dashed lines) distributions among the programs.
+    Figure 4
+
+    Figure 4. Value sorted S CD order parameters of PSM N-linked acyl chain from NMR and each program.
+
+Recommended Articles
+
+    CHARMM-GUI Membrane Builder for Complex Biological Membrane Simulations with Glycolipids and Lipoglycans Journal of Chemical Theory and Computation
+    GROMACS 4:  Algorithms for Highly Efficient, Load-Balanced, and Scalable Molecular Simulation Journal of Chemical Theory and Computation
+    Implementation of the CHARMM Force Field in GROMACS: Analysis of Protein Stability Effects from Correction Maps, Virtual Interaction Sites, and Water Models Journal of Chemical Theory and Computation
+    g_mmpbsa —A GROMACS Tool for High-Throughput MM-PBSA Calculations Journal of Chemical Information and Modeling
+    gmx_MMPBSA: A New Tool to Perform End-State Free Energy Calculations with GROMACS Journal of Chemical Theory and Computation
+    Sponsored Content
+    Brought to you by Schrodinger
+    Next Level Hit Identification
+    Join us for accelerating hit identification with machine learning enabled DNA encoded libraries and virtual screening.
+
+back
+Partners
+Atypon
+Chorus
+Cope publication ethics
+Project Counter
+Crossref
+Crossref similarity check
+Orcid Connecting Research and Researchers
+Portico digital preservation service
+ACS Publications
+
+    1155 Sixteenth Street N.W.
+    Washington, DC 20036
+    Copyright © 2022
+    American Chemical Society
+
+About
+
+    About ACS Publications
+    ACS & Open Access
+    ACS Membership
+
+Resources and Information
+
+    Journals A-Z
+    Books and Reference
+    Advertising Media Kit
+    Institutional Sales
+    ACS Publishing Center
+    Privacy Policy
+    Terms of Use
+
+Support & Contact
+
+    Help
+    Live Chat
+    FAQ
+
+Connect with ACS Publications
+
+This website uses cookies to improve your user experience. By continuing to use the site, you are accepting our use of cookies. Read the ACS privacy policy .
+CONTINUE

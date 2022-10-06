@@ -1,0 +1,624 @@
+    ACS
+    ACS Publications
+    C&EN
+    CAS
+
+Access provided by University of Massachusetts Amherst Libraries
+Blank image Welcome: Erik | Logout
+ACS Publications. Most Trusted. Most Cited. Most Read
+
+OR SEARCH CITATIONS
+My Activity
+Publications
+ADVERTISEMENT
+RETURN TO ISSUE PREV B: Biophysical and B... B: Biophysical and Biochemical Systems and Processes NEXT
+Using Metadynamics To Explore the Free Energy of Dewetting in Biologically Relevant Nanopores
+
+    Erik B. Nordquist
+    , 
+    Samantha A. Schultz
+    , and 
+    Jianhan Chen *
+
+Cite this: J. Phys. Chem. B 2022 , 126 , 34 , 6428–6437
+Publication Date (Web) : August 23, 2022
+https://doi.org/10.1021/acs.jpcb.2c04157
+Copyright © 2022 American Chemical Society
+RIGHTS & PERMISSIONS
+Subscribed Access
+Article Views
+149
+Altmetric
+1
+Citations
+-
+LEARN ABOUT THESE METRICS
+Share
+Add to View In
+Export RIS
+PDF (6 MB) OpenURL UNIV OF MASSACHUSETTS AMHERST
+Supporting Info (1) » Supporting Information Supporting Information
+SUBJECTS:
+
+    Alcohols ,
+    Dewetting ,
+
+Get e-Alerts
+Go to The Journal of Physical Chemistry B
+The Journal of Physical Chemistry B
+Abstract
+
+Water confined within hydrophobic spaces can undergo cooperative dewetting transitions due to slight changes in water density and pressure that push water toward the vapor phase. Many transmembrane protein ion channels contain nanoscale hydrophobic pores that could undergo dewetting transitions, sometimes blocking the flow of ions without physical blockages. Standard molecular dynamics simulations have been extensively applied to study the behavior of water in nanoscale pores, but the large free energy barriers of dewetting often prevent direct sampling of both wet and dry states and quantitative studies of the hydration thermodynamics of biologically relevant pores. Here, we describe a metadynamics protocol that uses the number of waters within the pore as the collective variable to drive many reversible transitions between relevant hydration states and calculate well-converged free energy profiles of pore hydration. By creating model nanopore systems and changing their radius and morphology and including various cosolvents, we quantify how these pore properties and cosolvents affect the dewetting transition. The results reveal that the dewetting free energy of nanoscale pores is determined by two key thermodynamic parameters, namely, the effective surface tension coefficients of water–air and water–pore interfaces. Importantly, while the effect of salt can be fully captured in the water activity dependence, amphipathic cosolvents such as alcohols modify both dry and wet states of the pore and dramatically shift the wet–dry equilibrium. The metadynamics approach could be applied to studies of dewetting transitions within nanoscale pores of proteins and provide new insights into why different pore properties evolved in biological systems.
+
+Introduction
+ARTICLE SECTIONS
+Jump To
+Water is a complex liquid with distinct thermodynamic properties that make it a vital component of the cells and not merely a passive solvent. (1) Under physiological conditions, the free energy difference between the liquid and vapor phases of water is quite modest, such that water can readily move between these phases due to slight changes in density and pressure. (2) The cell is extremely crowded, with an average distance of about 1 nm between macromolecules, resulting in many regions of confined or constrained water that exhibit unique behavior compared to bulk liquid water. (1) This is especially true when water is confined between hydrophobic surfaces, which exert a repulsive force on water molecules. (3,4) Between two extended hydrophobic surfaces or inside of a cylindrical hydrophobic surface, there is a critical radius, ∼1 nanometer (nm), under which a pressure imbalance is created within the confined water, (5) leading to a cooperative dewetting transition where liquid water completely exits the confined region. Importantly, the stability of confined liquid water is sensitive to the confined region’s size and hydrophobicity. (6,7)
+Significant evidence has been accumulated to suggest that transmembrane protein ion channels can use dewetting transitions as a gating mechanism, which is referred to as hydrophobic gating. (8) The ion permeation pathway of ion channels often contains hydrophobic inner cavities with radii on the nm scale, where confined water properties discussed above become relevant. In particular, a small change in the size or hydrophobicity of the wall can drastically shift the water liquid–vapor equilibrium within the pore. Hydrophobic gating is being recognized for a growing list of channels that are activated by voltage, mechanical force, and/or ligand binding. (9−22) Some ion channels appear to have even evolved to utilize small conformational changes to generate a vapor barrier preventing ion permeation without the need for a physical barrier. (7,8) As such, studying the properties that control the dewetting transition in nanoscale pores will give an insight into the important emerging hydrophobic gating mechanism in ion channels.
+Molecular dynamics (MD) simulations of hydrophobic surfaces and model nanopores have previously been used to study the behavior of water in confinement. (5,23−35) However, existing studies rely on direct MD simulations of dewetting transitions, which generally cannot be used to sample reversible dewetting transitions in biologically relevant nanoscale pores that favor either the hydrated or dry state. For example, the dewetting transitions take several hundred nanoseconds (ns) and are largely irreversible for the deactivated state of big potassium (BK) channels, whereas in the activated state, the pore remains fully hydrated throughout μs MD simulations. (16) There is thus a need for a method that can sample these reversible dewetting transitions within a relatively short simulation, which would allow for quantitative analysis of how the thermodynamics of dewetting depends on various pore properties.
+Metadynamics (MetaD) is an enhanced sampling technique designed for overcoming the challenges of sampling rare transitions with direct MD. (36−41) In MetaD simulations, one or more collective variables (CVs) are first defined, which should capture the rate-limiting degrees of freedom of a given system. During the simulation, Gaussian bias potentials are periodically deposited along the CV. As the bias builds up, the system can be driven to cross energy barriers and sample new conformational space. MetaD has been widely and successfully used across physical chemistry, (42−44) solid state physics, (45−48) and biophysics. (49−53) In this work, we developed a MetaD protocol that biases the number of waters within the pore and can readily sample multiple dewetting transitions and generate well-converged free energy profiles of dewetting within short simulations (e.g., 50–100 ns). We then applied this protocol to quantify how key pore properties as well as the presence of salt and cosolvents affect water dewetting transitions in biologically relevant model nanopores. We show that dewetting free energies can be described using a simple thermodynamic model with two effective water–air and water–wall surface tension coefficients. Our results also show that the effects of amphipathic cosolvents such as alcohols can preferentially interact with the hydrophobic wall and affect hydrophobic dewetting in a complex fashion. The MetaD protocol can be applied to quantify dewetting free energy profiles in protein ion channel systems and will allow future studies to shed light on the specific properties that are crucial for hydrophobic gating in these channels.
+Methods
+ARTICLE SECTIONS
+Jump To
+Model Nanopores and Simulation Systems
+Model nanopores in this work comprise rings of carbon-like atoms with a van der Waals radius, R min , of 4.0 Å and interaction strength ε of −0.140 kcal/mol, unless otherwise stated. The value of ε was selected to reflect that of a methyl group in the CHARMM36m force field, (54) slightly adjusted to achieve near liquid–vapor equilibrium for a nanopore of radius ∼7 Å and height of 16 Å. The pore atoms are arranged with 3 Å spacing, which roughly mimic the density of methyl groups in a hydrophobic protein pore. Three model nanopores are investigated in this work. The straight-wall pores are characterized by the height ( h ) and inner radius ( r ), as illustrated in Figure 1 A,B. Slanted-wall pores are defined with two inner radii ( R and r ) and a wall length ( s ) (see Figure S1 ). The pores may have a lid on one end of the pore to mimic the presence of a selectivity filter above the inner pore of many ion channels. Water, salt, and cosolvent molecules are described using the CHARMM36m force field (54) with the TIP3P model. (55) We used a box size of (70 Å), (3) which each contain about 35,000 atoms. The salt and cosolvent molecules were added using the gromacs tools genion (56) and insert molecules, (57) respectively. Figure S2 contains example snapshots of the solvent boxes.
+Figure 1
+
+Figure 1. Model nanopores and reversible dewetting transitions. (A) Side view of a hydrated cylindrical nanopore with the pore height labeled. (B) Top view with the (inner) pore diameter labeled. (C) Side view of a nanopore with a 20° wall slanting angle. (D) Pore water count as a function of time during a 2-μs unbiased simulation of a pore of radius 7.5 Å and height 16 Å. Representative structures of the wet and dry states of the pore are also shown. (E) Pore water count as a function of time from a 50-ns MetaD simulation of the same pore as in panel D.
+MetaD Simulation of Reversible Dewetting of Nanopores
+For a dewetting transition, the most relevant degree of freedom is the number of water molecules, N water , which is the chosen CV for MetaD in this work. The counting region is defined using the function INCYLINDER in Plumed 2.7. (58−60) The occupancy of a water molecule is 1 within the user-defined cylindrical region and smoothly approaches 0 using a Gaussian switching function beyond the region
+(1)
+where r is the radial distance to the cylinder central axis ( z -axis in this work), d 0 is the corresponding boundary, and r 0 controls the width of the switching region. (61) N water is then calculated as the sum of the occupancies of all water molecules. Because the switching function only applies in the x – y plane, a water crossing into the cylinder experiences no biasing force along z . (60) To address this using the existing code, we defined the counting region to be slightly larger than the actual pore along the z -axis, with a 1.0 Å buffer region added on either end of the cylindrical pore region in the z-direction. This buffer region effectively shifts the dry state to N water ∼ 5–10 (see Results). The buffer region has an additional benefit because N water is strictly non-negative, which may lead to excessive accumulation of bias potentials (see below) at exactly N water = 0 whenever the pore becomes fully dehydrated. In addition, we added a one-sided harmonic wall potential with a force constant of 50 kcal/mol for N water < 2 to further prevent N water from reaching 0.
+During MetaD simulations, Gaussian bias potentials (or “hills”) are periodically added to the original energy function along selected CVs. (36) Key parameters of MetaD include the height and width of the Gaussians (given by two parameters, “hill height” and “sigma” in Plumed) and the rate at which they are deposited (i.e., “pace”). A key consideration in developing effective MetaD protocols is to have the appropriate combination of Gaussian height and deposition rate. Small Gaussians and slow deposition rates increase the simulation time required for convergence. Conversely, depositing large Gaussians at a rate exceeding how quickly the system could fluctuate along the CV can drive the system too far out of equilibrium, causing the calculated free energy surface to oscillate and not converge. (40) In the well-tempered MetaD protocol, the hill height is attenuated as the bias potential accumulates along the CV. Specifically in Plumed 2.7, (59) the bias factor ( bf ) controls how quickly the hill height is attenuated
+(2)
+where w 0 is the original height, T is the simulation temperature, and V ( s , t ′) is the total bias potential previously deposited at the current CV value s . To optimize the protocol for efficient simulation of dewetting transitions of the nanopore, we will determine the optimal combination of the abovementioned key parameters, by considering the inherent timescale of water dynamics in these nanopores and examining the convergence of the calculated free energy profiles.
+MD Simulation and Analysis
+All simulations were run with GROMACS 2019.4 (62−68) with Plumed 2.7. (59) All nanopore beads were harmonically restrained with a force constant of 50 kcal/mol/Å 2 . The solvated nanopore systems were first equilibrated for 5 ns under constant temperature and pressure conditions at 300 K and 1.0 atmospheric pressure. A Berendsen barostat with tau_p of 20 ps and compressibility of 10 –6 bar –1 was used in the equilibrium simulations. We note that the use of the Parrinello–Rahman barostat could result in large pressure and volume box oscillations in the current systems when paired with our desired harmonic restraints. (69) All production MetaD simulations presented in this work were run with a timestep of 2 fs and the Berendsen barostat with tau_p of 10 ps and compressibility of 10 –5 bar –1 . The lengths of all MetaD simulations were 50 ns except for the system with 5% glycerol volume fraction, which lasted 100 ns to better sample the glycerol distribution.
+The accumulated bias from each MetaD run was converted into a potential of mean force (PMF) using Plumed. In the cases involving nanopores with lids, the free energy minima of the hydrated state were not well-defined. The hydration free energies were estimated by first determining the number of waters expected to constitute the state from a pore of the same volume and then taking the free energy with the number of waters as the corresponding minimum. The presence of a lid on the nanopores exacerbated the need for a buffer region in the Plumed counting cylinder (as the water can enter or leave the pore only from one end). Therefore, we used a larger buffer of 3 Å as opposed to the standard 1 Å. This results in a slightly greater degeneracy in the N water CV, which in turn affects how pores with different lids could be compared. For this, we shifted all PMFs such that the vapor-state minima were aligned at the origin. To derive 2D PMFs as a function of both water and cosolvent occupancies, we first reweighed each MetaD frame according to the cumulated bias potential and then calculated the 2D histograms. PMFs from unbiased simulations were calculated directly from the corresponding histograms of water occupancy. All plots were made with matplotlib, (70) and molecular representations were rendered in VMD. (71)
+Results and Discussion
+ARTICLE SECTIONS
+Jump To
+Optimizing the MetaD Protocol for Sampling Reversible Dewetting Transitions
+Given the nature of the CV N water , we set the hill height and sigma to 1.2 kcal/mol (two units of RT ) and 1.0 (one water), respectively. The remaining key MetaD parameters are the pace and bias factor. In principle, the pace is limited by the inherent timescale of fluctuation of the CV, beyond which the system may be driven too far out of equilibrium for generating a stably converged free energy profiles. We performed a 100 ns unbiased MD simulation of a radius 7.5 Å, height 16 Å pore to calculate the mean-squared-displacement function and the effective diffusion constant. The result, shown in Figure S3 , shows that water within the pore fluctuates rapidly with a rate greater than a few waters per ps, suggesting that very fast pace could be used. Indeed, we tested the convergence of the free energy profile with the pace ranging from 100 to 10,000, and the results ( Figure S4 ) show that stable free energies can be generated using pace as aggressive as 100. In our final protocol, we set pace to 500 (i.e., 1 ps –1 ) to provide a compromise which allows fast deposition while reducing the risk of overdriving the system. A pace of 500 also appears to drive the largest number of reversible transitions ( Figure S4 ).
+Given the choice of hill height, sigma, and pace, the bias factor determines how quickly the hill height is attenuated during MetaD simulations as the bias potential accumulates at a given CV value ( eq 2 ). The optimal choice in principle depends on the nature of the free energy profile to be explored. Larger bias factors should be used for cases with larger free energy barriers and vice versa. For the nanopore systems studied in this work, the free energy barriers are expected to be ∼10 kcal/mol or less. As such, one may directly estimate the optimal bias factor to be about 10/0.6 = 20 or less. We compared the ability of MetaD to drive reversible dewetting transitions and generate converged free energy profiles with the bias factor ranging from 2 to 20. The tests suggest that a bias factor of 10 or 20 may be too aggressive for nanopores with small free energy barriers, leading to larger errors in the final PMFs ( Figure S5 , green and red traces). Therefore, we set the bias factor to 5 in the final protocol as a good compromise for simulating of various nanopores with large differences in free energy barriers. An additional parameter that could affect the rate of convergence is the switching width r 0 in eq 1 . A large switching with would blur the CV, and a small switching region would result in large forces at the boundary. Given the water radius (∼1.4 Å), we tested r 0 = 0.5, 1.0, and 2.0 Å. The results suggest that r 0 does significantly affect the convergence of the PMF within this range ( Figure S6 ), even though the number of reversible transition sampled appears to be slightly higher with r 0 = 1.0 Å.
+The final MetaD protocol for all the nanopore simulations shown in this work has a pace of 500 MD steps, r 0 = 1.0 Å, a sigma of 1.0, a hill height of 1.2 kcal/mol, and a bias factor of 5. Figure 1 illustrates the ability of the protocol to significantly accelerate the sampling of reversible dewetting transitions in nanopores. For example, only four reversible dewetting transitions were observed in the 2-μs of unbiased MD simulation ( Figure 1 D), while nine were generated in only 50 ns of MetaD simulation ( Figure 1 E). This reflects a ∼100-fold increase in sampling efficiency, greatly facilitating quantitative free energy studies of dewetting of biologically relevant nanopores. Note that, even with 2-μs simulation time, the free energy profile derived from the unbiased MD remains poorly converged because of a lack of sampling of high energy transition states, in contrast to the smooth and continuous profile derived from the 50-ns MetaD run ( Figure S7 ).
+We further evaluate the convergence of MetaD simulations using a smaller pore with a radius of 6 Å and a height of 12 Å, where a converged free energy profile could also be generated using unbiased MD due to the smaller free energy barrier. As shown in Figure 2 A, the free energy profiles for the system stabilize rapidly during MetaD simulations, within 30 ns of simulation. Comparing the results from two independent 50 ns MetaD runs suggests that the convergence is 0.5 kcal/mol or less for the final free energy profile. ( Figure 2 B). Importantly, the free energy profile from MetaD is highly consistent with the result from a direct 500-ns unbiased MD simulation of the same system ( Figure 2 B), further validating the MetaD protocol for quantitative studies of dewetting free energy of biologically relevant nanopores.
+Figure 2
+
+Figure 2. Convergence of MetaD free energy profiles of pore hydration. (A) Free energy profiles of pore hydration as a function of MetaD simulation time, for a pore with radius 6 Å and height of 12 Å. (B) Comparison of free energy profiles calculated from 50-ns MetaD simulations and a 500-ns unbiased MD simulation of the same pore. The error bars for the MetaD result reflect the difference between two independent 50 ns runs, and the final trace was plotted using the average of the two runs.
+Effects of Pore Radius and Geometry on Dewetting Free Energy
+The hydrophobic inner pore region below the selectivity filter in protein ion channels is typically ∼15 Å in length, but can vary substantially in the pore radius and tilt angle of the wall. (6) Here, we examine the dependence of dewetting free energy on these two key pore properties. Figure 3 compares the free energy profiles of dewetting in a set of model nanopores with a height of 16 Å and radius ranging from 5 to 10 Å. The MetaD protocol as discussed above was able to calculate well-converged free energy profiles for all these pores, including the largest 10 Å pore with a dewetting free energy greater than 10 kcal/mol (see Figure 2 B for representative uncertainties of the final free energy profile). The result shows that, lined with methyl-like hydrophobic beads and at a height of 16 Å, the critical radius of hydrophobic dewetting is as large as 7.5 Å, at which the free energy of the dry and wet states is nearly equal. Below the critical radius, the nanopore can readily dewet, with relatively low free energy barriers. The dewetting and rehydration transitions are highly cooperative, manifested as two well-defined free energy minima separated by a single barrier. Note that the apparent shift of the location of the dry state with respect to radius is due to the inclusion of 1 Å in calculation of N water (see Methods ).
+Figure 3
+
+Figure 3. Free energy profile of pore hydration as a function of the pore radius. All profiles were calculated from 50 ns MetaD simulations, and the height of all nanopores is 16 Å.
+The free energy cost of pore dewetting can be attributed to the competition between the costs of creating two different types of water interfaces. The dry state contains two water–air interfaces between bulk water and vapor at both ends of the cylindrical region, whereas the wet state contains an interface between liquid water and the confining pore surface. Therefore, the free energy of dewetting can be described using two effective surface tension coefficients as
+(3)
+where Δσ is the change in the water–air or water–pore interface surface area, γ is the corresponding surface tension coefficient, and P Δ V is the work for creating a cavity of volume Δ V against external pressure P . Note that the P Δ V term is negligible for nanoscale cavities (∼ 0.06 kcal/mol for a spherical cavity of 1 nm radius under the atmospheric pressure). Assuming that the water–air interface is flat, Δσ air = 2π r 2 and Δσ pore = – 2π rh . Indeed, the calculated dewetting free energies can be fit very well to eq 3 , yielding γ air = 0.076 kcal/mol Å –2 and γ pore = 0.035 kcal/mol/Å 2 with a Pearson correlation coefficient R > 0.99 ( Figure 4 A). We note that γ air from the fitting is highly consistent with the reported value of the TIP3P water model of 0.073 kcal/mol/Å 2 at 298 K. (72) The result that γ pore is about half of γ air is also in general agreement with reported values for water–oil interfaces. (73,74) It is notable that both γ air and γ pore show minimal dependence on the pore radius, even though hydrophobic solvation is known to have a length-scale dependence for sub-nanometer spherical cavities. (2) Clearly, the dependence is much weaker for cylindrical cavities within the range of radius 5 to 10 Å.
+Figure 4
+
+Figure 4. Parametric fitting of free energy cost of dewetting. (A) Free energy of dewetting for pores with a height of 16 Å and radii between 5 and 10 Å fit to eq 3 . (B) Free energy of dewetting at different NaCl concentrations fitted to eq 5 . The nanopore used has a height of 16 Å and a radius of 6 Å. The values of the coefficients are as follows: A = −0.570, B = −0.175. The R values for both fits are greater than 0.99.
+We further study how the tilt of the wall and/or the presence of a lid affect the dewetting free energy. The latter is to mimic the fact that the inner pore of a biological ion channel is usually capped by the selectivity filter. In Figure 5 , we examine the effects of these pore modifications on the free energy of dewetting. Clearly, adding the lid significantly destabilizes the hydrated states (e.g., Figure 5 A, blue vs orange traces), apparently due to an increase in the hydrophobic surface that needs to be solvated in the hydrated state. The effects of tilting of the wall also seem to be well captured by consideration of water–air vs water–pore interface surface areas. As such, the free energy costs of dewetting in pores with tilted walls and lids obtained from MetaD simulations is in excellent agreement with theoretical values calculated from eq 3 using the same two surface tension coefficients, γ air = 0.076 kcal/mol/Å 2 and γ pore = 0.035 kcal/mol/Å 2 ( Figure 5 B). Note that the 50 ns MetaD simulation did not sample a fully hydrated state for the tilted pore with the lid on the wide end ( Figure 5 A purple trace). Nonetheless, the theoretical value based on eq 5 clearly over-estimates the dewetting free energy from the MetaD simulation ( Figure 5 A,B, open purple circle). The reason is that water never fully filled the volume nearest to the lid due to the sharp corner ( Figure S1D ), reducing the accessible hydrophobic pore surface area. Taken together, the pore shape does not contribute to the dewetting free energy cost, but rather the cost is largely determined by the hydrophobic pore surface area and the area of the water–air interface at the mouth of the pore. Therefore, the dewetting cost of biological pores, such as those of ion channels, will likely be well approximated using solvent-accessible surface area-based models, regardless of the pore’s shape.
+Figure 5
+
+Figure 5. Free energy profiles of hydration of nanopores with different geometries and lid configurations. (A) PMFs of hydration for a set of nanopores with and without a lid and/or tilt (see Figure S1 ). The circles mark the theoretical Δ G dewet as calculated using eq 3 . The pores with 0° tilt, lid (orange), 20° tilt, narrow lid (red), and 20° tilt, wide lid (purple), did not have well-defined hydrated minima, so their locations were estimated by using the N water of the corresponding pore without the lid, denoted with a vertical dashed line (see Methods for details). (B) Correlation of dewetting Δ G s calculated using eq 3 (theoretical) with those derived from the PMFs (simulation). The dashed line marks the ideal diagonal line. Note that the PMF for 20° tilt, wide lid (purple), never reached a fully hydrated state with the same N water as in the no lid pore. The simulation Δ G dewet was estimated to be greater than 25 kcal/mol.
+Effects of Salts on Nanopore Dewetting Thermodynamics
+Ionic strength is a key environmental factor that can affect ion channel function. In addition to directly modulating the stability of various states of the protein, (75−78) salt could also directly modulate the water activity and thus the liquid–vapor equilibrium of confined water. (79,80) We applied MetaD simulations to calculate additional free energy profiles of dewetting of a pore with a height of 16 Å and a radius of 6 Å in the presence of 0.1, 1.0, and 5.0 M NaCl ( Figure S8 ). A duplicated simulation was performed for the representative 1.0 M solution, and the results show that 50 ns MetaD is sufficient to achieve convergence well within 0.5 kcal/mol ( Figure S9 ). As shown in Figure S8 , the dewetting free energy cost decreases with increasing salt concentration, as expected. Based on the Debye–Hückel limiting law, (81) the salt-induced change of the effective surface tension coefficients can be approximated as
+(4)
+where a and b are coefficients related to properties of the solvated ions, and c is ionic strength of cosolvents (zero for pure water). Combining eqs 3 and 4 , the salt-induced change of the dewetting free energy can be expressed as
+(5)
+where A = a (Δσ air + Δσ pore ) and B = b (Δσ air + Δσ pore ). The dewetting free energy derived from MetaD calculations can be fit to eq 6 with a Pearson’s correlation coefficient R > 0.99 ( Figure 4 B). Importantly, coefficients a and b in eq 4 depend on the ion type alone. Therefore, eq 5 is an important result, and parameters derived from free energy studies of model nanopores can be directly applied to predict the salt dependence of hydrophobic dewetting of protein ion channels.
+Complex Effects of Amphipathic Cosolvents on Hydrophobic Nanopores
+Amphipathic molecules, like alcohols and sugars, are also often used as cosolvents in functional studies of protein ion channels. (82−89) For example, addition of glycerol or sucrose to the intracellular solution can enhance Ca 2+ -dependent activation of the BK channel. (90) The molecular basis of how these cosolvents modulate channel function is not yet fully understood, even though it has been proposed to impact the protein rigidity. (90) To examine how these cosolvents affect hydrophobic dewetting, we analyzed the free energy landscapes of pore hydration with increasing ethanol and glycerol concentrations. We applied the same MetaD protocol with N water as the CV in all simulations and then derived 2D PMFs as a function of both pore ethanol/glycerol and water numbers.
+As summarized in Figure 6 , the effects of even simple ethanol are much more complex compared to those of salt. The presence of ethanol not only changes the ability of the pore to dewet, but also shifts the location of the hydrated state significantly. This may be directly attributed to the amphipathic nature of ethanol molecules. As illustrated in Figure S10 , ethanol tends to coat both the inner and outer surfaces of the pore wall with the hydrophobic methyl group facing the wall and the hydroxyl group facing the bulk and (hydrated) center. Similar observations have been made in previous studies of hydration properties of carbon nanotubes (28) and hydrophobic plates. (27) Hydrophobicity of the wall is clearly central to the observed preferential surface adsorption of ethanol. For example, ethanol was found to absorb preferentially to the water–air interface but not the calcite solid–water interface. (35) Even with 5% ethanol, this mixed-solvent “wet” state is only about 1 kcal/mol less stable than the dry state. In comparison, the hydrated state is about 4 kcal/mol less stable than the dry state in pure water ( Figure 3 ). In the presence of ethanol, there is no longer a local minimum for a wet state of the pore hydrated largely by water ( N water ∼ 60, see Figure 3 ). Even in the dry state, the pore remains partially solvated by a few ethanol molecules. As the ethanol concentration increases, the mixed-solvent wet state becomes the most dominant state ( Figure 6 B–D). Furthermore, the wet state shifts from consisting of a mixture to consisting of mostly ethanol as the ethanol concentration increases ( Figure 6 ). At 40% ethanol, the free energy cost of desolvating the nanopore is ∼3 kcal/mol from the ethanol solvated state, while the cost of solvating the pore with water is >10 kcal/mol ( Figure 6 D).
+Figure 6
+
+Figure 6. Ethanol effects on hydration property of nanopores. All 2D PMFs were calculated as a function of pore ethanol and water numbers for a nanopore with a radius 6 Å and height of 16 Å. The ethanol volume fraction is (A) 5%, (B) 13%, (C) 23%, and (D) 40%. Black contour lines and color bar ticks are drawn at the same energy levels and are distributed quadratically. In each panel, the marginal projections are the 1D PMFs along N water (top) and N ethanol (left). The convergence of these free energy surfaces is illustrated in Figure S11 .
+The impact of glycerol on hydrophobic dewetting of the model nanopores is summarized in Figure 7 and is similarly complex to that of ethanol. Previous studies have shown that carbon nanotubes dewet in the presence of organic cosolvents like guanidinium and urea. (30,91) As previously discussed, glycerol is of particular interest for effecting the gating mechanism of some ion channels. (90) To quantify the effect glycerol has on hydrophobic dewetting, we solvated the pore of radius 6 Å and height 16 Å with various glycerol concentrations. We found that increasing the glycerol concentration also destabilizes the pure water-hydrated state ( Figure 7 ). Below 5%, we saw no interesting effect beyond simply drying the nanopore as expected (data not shown). At a glycerol concentration of 5%, the hydrated state is still essentially pure water and has a Δ G dewet of ∼−4 kcal/mol ( Figure 7 A), comparable to that of dehydrating the same pore in pure water ( Figure 3 ). At a higher glycerol concentration of 23%, the mixed glycerol and water state Δ G dewet is reduced to about −2.5 kcal/mol ( Figure 7 B). Glycerol is likely more sterically hindered than ethanol in a 6 Å radius pore, which would explain why the mixed-solvent state is only achieved at a relatively high concentration. Clearly, a sufficiently high concentration of amphipathic cosolvent can induce a mixed-solvent state that solvates a hydrophobic pore that would otherwise remain dehydrated in pure water. The prediction that glycerol (and ethanol) can stabilize the hydrated state of the pore is important because such direct effects of glycerol on hydrophobic dewetting may contribute to the experimental observation that glycerol promotes the activation of BK channels. (90)
+Figure 7
+
+Figure 7. Glycerol effects on hydration property of nanopores. All free energy profiles were calculated for a pore with a radius 6 Å and height of 16 Å and in a solution with (A) 5% and (B) 23% glycerol by volume. The black contour lines and color bar ticks are drawn at the same energy levels and are distributed quadratically. In each panel, the marginal projections are the 1D PMFs along N water (top) and N glycerol (left). The convergence of these free energy surfaces is illustrated in Figure S12 .
+Conclusions
+ARTICLE SECTIONS
+Jump To
+The delicate balance of water’s liquid–vapor equilibrium in nanoscale confinement is vital to cellular functions, including as a gating mechanism in ion channels. We developed a MetaD enhanced sampling protocol to sample reversible liquid–vapor transitions in nanopores and quantify the energetic effects of changing biologically relevant properties of the pore. We carefully selected key MetaD parameters, particularly the pace and bias factor, to balance the computational cost and achievable convergence and identified a single protocol that was able to achieve converged free energy profiles within 50 ns for a wide variety of nanopores and solution conditions. Importantly, the MetaD protocol provides sufficient sampling even for capturing the complex effects of amphipathic cosolvents without needing to bias both the water and cosolvent, demonstrating its robustness to accelerate the sampling of dewetting transitions in a wide array of biologically relevant settings. We expect that the protocol can be used in simulations of protein ion channels to quantify the effects of ions, surfactants, or even channel-activating drugs on hydrophobic dewetting, as well as the effects of mutations and protein conformational changes. The general protocol will also be useful to study confined water properties in any system where the liquid–vapor transition lies beyond what is accessible to conventional all-atom MD simulations.
+Using a set of nanopores of various sizes and geometries, we found that the dewetting free energy was insensitive to curvature and shape. Instead, it can be fully determined by two key thermodynamic parameters, namely, the effective surface tension coefficients of the water–air and water–pore surfaces ( eq 3 ). Furthermore, the effects of salts can be fully captured in the ion-specific salt dependence of surface tension coefficients, such as using a Debye–Hückel limiting law ( eqs 4 and 5 ). Therefore, results from studies of model nanopores can be used to quantitatively predict the salt dependence of hydrophobic gating of complex protein. Our simulations further showed that amphipathic molecules such as ethanol and glycerol had complex effects on the hydration properties of nanopores, shifting both the location of the hydrated state and the free energy equilibrium. In particular, amphipathic molecules such as glycerol can directly perturb the liquid–vapor equilibrium of water in nanopores to enhance the activation of ion channels. This may provide a general probe for detecting and studying hydrophobic gating in protein ion channels.
+Supporting Information
+ARTICLE SECTIONS
+Jump To
+
+The Supporting Information is available free of charge at https://pubs.acs.org/doi/10.1021/acs.jpcb.2c04157 .
+
+    Illustrations of nanopores and simulation systems; analysis of the effects of various MetaD parameters on the convergence; distributions of water and ethanol in the nanopore; and convergence analysis of MetaD simulations with salt, ethanol, and glycerol ( PDF )
+
+Using Metadynamics To Explore the Free Energy of Dewetting in Biologically Relevant Nanopores
+
+0 views
+
+0 shares
+
+0 downloads
+Skip to fig share navigation
+Share Download
+.style0{fill:#566471}.style1{fill:#A2CD3C}.style2{fill:#C54C59}.style3{fill:#5BC4BD}
+fig share
+Terms & Conditions
+
+Most electronic Supporting Information files are available without a subscription to ACS Web Editions. Such files may be downloaded by article for research use (if there is a public use license linked to the relevant article, that license may permit other uses). Permission may be obtained from ACS for other uses through requests via the RightsLink permission system: http://pubs.acs.org/page/copyright/permissions.html .
+Author Information
+ARTICLE SECTIONS
+Jump To
+
+    Corresponding Author
+        Jianhan Chen - Department of Chemistry, University of Massachusetts, Amherst, Massachusetts 01003, United States ;  Department of Biochemistry and Molecular Biology, University of Massachusetts, Amherst, Massachusetts 01003, United States ;  Orcid https://orcid.org/0000-0002-5281-1150 ;  Email: jianhanc@umass.edu
+    Authors
+        Erik B. Nordquist - Department of Chemistry, University of Massachusetts, Amherst, Massachusetts 01003, United States ;  Orcid https://orcid.org/0000-0001-9139-0152
+        Samantha A. Schultz - Department of Biochemistry and Molecular Biology, University of Massachusetts, Amherst, Massachusetts 01003, United States ;  Orcid https://orcid.org/0000-0001-6935-2010
+    Author Contributions
+
+    Co-first authors.
+    Author Contributions
+
+    E.N., S.S., and J.C.: conception and design of the study; E.N. and S.S.: performing the simulations and analysis; E.N., S.S., and J.C.: analysis and interpretation of data and drafting and revising the manuscript.
+    Notes
+    The authors declare no competing financial interest.
+
+Acknowledgments
+ARTICLE SECTIONS
+Jump To
+
+We thank Dr. Zhiguang Jia for helpful discussions. All simulations were performed on the pikes GPU cluster housed in the Massachusetts Green High-Performance Computing Cluster (MGHPCC). This work was supported by National Institutes of Health Grant R35 GM144045 (J.C.). E.B.N. was also supported by National Research Service Awards T32 GM008515 and T32 GM139789 from the National Institutes of Health.
+References
+ARTICLE SECTIONS
+Jump To
+
+This article references 91 other publications.
+
+    1
+    Ball, P. Water Is an Active Matrix of Life for Cell and Molecular Biology . Proc. Natl. Acad. Sci. U. S. A. 2017 , 114 , 13327 – 13335 ,  DOI: 10.1073/pnas.1703781114
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    2
+    Chandler, D. Interfaces and the Driving Force of Hydrophobic Assembly . Nature 2005 , 437 , 640 – 647 ,  DOI: 10.1038/nature04162
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    3
+    Berne, B. J. ; Weeks, J. D. ; Zhou, R. Dewetting and Hydrophobic Interaction in Physical and Biological Systems . Annu. Rev. Phys. Chem. 2009 , 60 , 85 – 103 ,  DOI: 10.1146/annurev.physchem.58.032806.104445
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    4
+    Patel, A. J. ; Varilly, P. ; Chandler, D. Fluctuations of Water near Extended Hydrophobic and Hydrophilic Surfaces . J. Phys. Chem. B 2010 , 114 , 1632 – 1637 ,  DOI: 10.1021/jp909048f
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    5
+    Beckstein, O. ; Sansom, M. S. P. The Influence of Geometry, Surface Character, and Flexibility on the Permeation of Ion and Water through Biological Pores . Phys. Biol. 2004 , 1 , 42 ,  DOI: 10.1088/1478-3967/1/1/005
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    6
+    Rao, S. ; Klesse, G. ; Stansfeld, P. J. ; Tucker, S. J. ; Sansom, M. S. P. A Heuristic Derived from Analysis of the Ion Channel Structural Proteome Permits the Rapid Identification of Hydrophobic Gates . Proc. Natl. Acad. Sci. U. S. A. 2019 , 116 , 13989 – 13995 ,  DOI: 10.1073/pnas.1902702116
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    7
+    Yazdani, M. ; Jia, Z. ; Chen, J. Hydrophobic Dewetting in Gating and Regulation of Transmembrane Ion Channels . J. Chem. Phys. 2020 , 153 , 110901 ,  DOI: 10.1063/5.0017537
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    8
+    Aryal, P. ; Sansom, M. S. P. ; Tucker, S. J. Hydrophobic Gating in Ion Channels . J. Mol. Biol. 2015 , 427 , 121 – 130 ,  DOI: 10.1016/j.jmb.2014.07.030
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    9
+    Yuan, S. ; Filipek, S. ; Vogel, H. A Gating Mechanism of the Serotonin 5-HT 3 Receptor . Structure 2016 , 24 , 816 – 825 ,  DOI: 10.1016/j.str.2016.03.019
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    10
+    Rao, S. ; Klesse, G. ; Stansfeld, P. J. ; Tucker, S. J. ; Sansom, M. S. P. A BEST Example of Channel Structure Annotation by Molecular Simulation . Channels 2017 , 11 , 347 – 353 ,  DOI: 10.1080/19336950.2017.1306163
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    11
+    Yamashita, M. ; Yeung, P. S.-W. ; Ing, C. E. ; McNally, B. A. ; Pomès, R. ; Prakriya, M. STIM1 Activates CRAC Channels through Rotation of the Pore Helix to Open a Hydrophobic Gate . Nat. Commun. 2017 , 8 , 14512 ,  DOI: 10.1038/ncomms14512
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    12
+    Zhu, F. ; Hummer, G. Pore Opening and Closing of a Pentameric Ligand-Gated Ion Channel . Proc. Natl. Acad. Sci. U. S. A. 2010 , 107 , 19814 – 19819 ,  DOI: 10.1073/pnas.1009313107
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    13
+    Zheng, W. ; Hu, R. ; Cai, R. ; Hofmann, L. ; Hu, Q. ; Fatehi, M. ; Long, W. ; Kong, T. ; Tang, J. ; Light, P. ; Flockerzi, V. ; Cao, Y. ; Chen, X. Identification and Characterization of Hydrophobic Gate Residues in TRP Channels . FASEB J. 2018 , 32 , 639 – 653 ,  DOI: 10.1096/fj.201700599RR
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    14
+    Polovinkin, L. ; Hassaine, G. ; Perot, J. ; Neumann, E. ; Jensen, A. A. ; Lefebvre, S. N. ; Corringer, P.-J. ; Neyton, J. ; Chipot, C. ; Dehez, F. ; Schoehn, G. ; Nury, H. Conformational Transitions of the Serotonin 5-HT3 Receptor . Nature 2018 , 563 , 275 – 279 ,  DOI: 10.1038/s41586-018-0672-3
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    15
+    Neale, C. ; Chakrabarti, N. ; Pomorski, P. ; Pai, E. F. ; Pomès, R. Hydrophobic Gating of Ion Permeation in Magnesium Channel CorA . PLoS Comput. Biol. 2015 , 11 , e1004303  DOI: 10.1371/journal.pcbi.1004303
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    16
+    Jia, Z. ; Yazdani, M. ; Zhang, G. ; Cui, J. ; Chen, J. Hydrophobic Gating in BK Channels . Nat. Commun. 2018 , 9 , 3408 ,  DOI: 10.1038/s41467-018-05970-3
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    17
+    Jensen, M. O. ; Borhani, D. W. ; Lindorff-Larsen, K. ; Maragakis, P. ; Jogini, V. ; Eastwood, M. P. ; Dror, R. O. ; Shaw, D. E. Principles of Conduction and Hydrophobic Gating in K+ Channels . Proc. Natl. Acad. Sci. U. S. A. 2010 , 107 , 5833 – 5838 ,  DOI: 10.1073/pnas.0911691107
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    18
+    Aryal, P. ; Abd-Wahab, F. ; Bucci, G. ; Sansom, M. S. P. ; Tucker, S. J. A Hydrophobic Barrier Deep within the Inner Pore of the TWIK-1 K2P Potassium Channel . Nat. Commun. 2014 , 5 , 4377 ,  DOI: 10.1038/ncomms5377
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    19
+    Anishkin, A. ; Akitake, B. ; Kamaraju, K. ; Chiang, C.-S. ; Sukharev, S. Hydration Properties of Mechanosensitive Channel Pores Define the Energetics of Gating . J. Phys.: Condens. Matter 2010 , 22 , 454120  DOI: 10.1088/0953-8984/22/45/454120
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    20
+    Beckstein, O. ; Sansom, M. S. P. A Hydrophobic Gate in an Ion Channel: The Closed State of the Nicotinic Acetylcholine Receptor . Phys. Biol. 2006 , 3 , 147 – 159 ,  DOI: 10.1088/1478-3975/3/2/007
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    21
+    Chugunov, A. O. ; Volynsky, P. E. ; Krylov, N. A. ; Nolde, D. E. ; Efremov, R. G. Temperature-Sensitive Gating of TRPV1 Channel as Probed by Atomistic Simulations of Its Trans- and Juxtamembrane Domains . Sci. Rep. 2016 , 6 , 33112 ,  DOI: 10.1038/srep33112
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    22
+    Zhu, F. ; Hummer, G. Drying Transition in the Hydrophobic Gate of the GLIC Channel Blocks Ion Conduction . Biophys. J. 2012 , 103 , 219 – 227 ,  DOI: 10.1016/j.bpj.2012.06.003
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    23
+    Das, P. Effects of Cosolvents on Nano-Confined Water: A Molecular Dynamics Study . Nanoscale 2012 , 4 , 2931 – 2936 ,  DOI: 10.1039/c2nr30070b
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    24
+    Giovambattista, N. ; Rossky, P. J. ; Debenedetti, P. G. Effect of Temperature on the Structure and Phase Behavior of Water Confined by Hydrophobic, Hydrophilic, and Heterogeneous Surfaces . J. Phys. Chem. B 2009 , 113 , 13723 – 13734 ,  DOI: 10.1021/jp9018266
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    25
+    Zangi, R. ; Hagen, M. ; Berne, B. J. Effect of Ions on the Hydrophobic Interaction Between Two Plates . Am. Chem. Soc. 2007 , 129 , 4678 – 4686 ,  DOI: 10.1021/ja068305m
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    26
+    Beckstein, O. ; Sansom, M. S. P. Liquid-Vapor Oscillations of Water in Hydrophobic Nanopores . Proc. Natl. Acad. Sci. U. S. A. 2003 , 100 , 7063 ,  DOI: 10.1073/pnas.1136844100
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    27
+    Ren, X. ; Wang, C. ; Zhou, B. ; Fang, H. ; Hu, J. ; Zhou, R. Ethanol Promotes Dewetting Transition at Low Concentrations . Soft Matter 2013 , 9 , 4655 ,  DOI: 10.1039/c3sm00049d
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    28
+    Winarto, W. ; Takaiwa, D. ; Yamamoto, E. ; Yasuoka, K. Water–Methanol Separation with Carbon Nanotubes and Electric Fields . Nanoscale 2015 , 7 , 12659 – 12665 ,  DOI: 10.1039/C5NR02182K
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    29
+    Xiu, P. ; Yang, Z. ; Zhou, B. ; Das, P. ; Fang, H. ; Zhou, R. Urea-Induced Drying of Hydrophobic Nanotubes: Comparison of Different Urea Models . J. Phys. Chem. B 2011 , 115 , 2988 – 2994 ,  DOI: 10.1021/jp108303q
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    30
+    Das, P. ; Zhou, R. Urea-Induced Drying of Carbon Nanotubes Suggests Existence of a Dry Globule-like Transient State During Chemical Denaturation of Proteins . J. Phys. Chem. B 2010 , 114 , 5427 – 5430 ,  DOI: 10.1021/jp911444q
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    31
+    Tian, X. ; Yang, Z. ; Zhou, B. ; Xiu, P. ; Tu, Y. Alcohol-Induced Drying of Carbon Nanotubes and Its Implications for Alcohol/Water Separation: A Molecular Dynamics Study . J. Chem. Phys. 2013 , 138 , 204711 ,  DOI: 10.1063/1.4807484
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    32
+    Samanta, T. ; Bagchi, B. Temperature Effects on the Hydrophobic Force between Two Graphene-like Surfaces in Liquid Water . J. Chem. Sci. 2018 , 130 , 29 ,  DOI: 10.1007/s12039-018-1433-4
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    33
+    Roy, P. ; Ghosh, B. ; Chatterjee, P. ; Sengupta, N. Cosolvent Impurities in SWCNT Nanochannel Confinement: Length Dependence of Water Dynamics Investigated with Atomistic Simulations . J. Chem. Inf. Model. 2019 , 59 , 2026 – 2034 ,  DOI: 10.1021/acs.jcim.8b00889
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    34
+    Li, C. ; Voth, G. A. A Quantitative Paradigm for Water-Assisted Proton Transport through Proteins and Other Confined Spaces . Proc. Natl. Acad. Sci. U. S. A. 2021 , 118 , e2113141118  DOI: 10.1073/pnas.2113141118
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    35
+    Le, T. T. B. ; Divine-Ayela, C. ; Striolo, A. ; Cole, D. R. Effects of Surface Contamination on the Interfacial Properties of CO 2 /Water/Calcite Systems . Phys. Chem. Chem. Phys. 2021 , 23 , 18885 – 18892 ,  DOI: 10.1039/D1CP01106E
+    [ Crossref ], [ PubMed ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    36
+    Laio, A. ; Parrinello, M. Escaping Free-Energy Minima . Proc. Natl. Acad. Sci. U. S. A. 2002 , 99 , 12562 – 12566 ,  DOI: 10.1073/pnas.202427399
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    37
+    Laio, A. ; Rodriguez-Fortea, A. ; Gervasio, F. L. ; Ceccarelli, M. ; Parrinello, M. Assessing the Accuracy of Metadynamics . J. Phys. Chem. B 2005 , 109 , 6714 – 6721 ,  DOI: 10.1021/jp045424k
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    38
+    Laio, A. ; Gervasio, F. L. Metadynamics: A Method to Simulate Rare Events and Reconstruct the Free Energy in Biophysics, Chemistry, and Material Science . Rep. Prog. Phys. 2008 , 71 , 126601  DOI: 10.1088/0034-4885/71/12/126601
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    39
+    Barducci, A. ; Bonomi, M. ; Parrinello, M. Metadynamics . WIREs Comput. Mol. Sci. 2011 , 1 , 826 – 843 ,  DOI: 10.1002/wcms.31
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    40
+    Dama, J. F. ; Parrinello, M. ; Voth, G. A. Well-Tempered Metadynamics Converges Asymptotically . Phys. Rev. Lett. 2014 , 112 , 240602  DOI: 10.1103/PhysRevLett.112.240602
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    41
+    Bussi, G. ; Laio, A. Using Metadynamics to Explore Complex Free-Energy Landscapes . Nat. Rev. Phys. 2020 , 2 , 200 – 212 ,  DOI: 10.1038/s42254-020-0153-0
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    42
+    Kirchner, B. ; di Dio, P. J. ; Hutter, J. Real-World Predictions from Ab Initio Molecular Dynamics Simulations . In Multiscale Molecular Methods in Applied Chemistry ; Kirchner, B. , Vrabec, J. , Eds.; Topics in Current Chemistry ; Springer Berlin Heidelberg : Berlin, Heidelberg , 2011 ; Vol. 307 , pp 109 – 153 .
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    43
+    Valsson, O. ; Tiwary, P. ; Parrinello, M. Enhancing Important Fluctuations: Rare Events and Metadynamics from a Conceptual Viewpoint . Annu. Rev. Phys. Chem. 2016 , 67 , 159 – 184 ,  DOI: 10.1146/annurev-physchem-040215-112229
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    44
+    Biswas, S. ; Wong, B. M. Ab Initio Metadynamics Calculations Reveal Complex Interfacial Effects in Acetic Acid Deprotonation Dynamics . J. Mol. Liq. 2021 , 330 , 115624  DOI: 10.1016/j.molliq.2021.115624
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    45
+    Martonak, R. ; Laio, A. ; Bernasconi, M. ; Ceriani, C. ; Raiteri, P. ; Zipoli, F. ; Parrinello, M. Simulation of Structural Phase Transitions by Metadynamics . Z. Kristallogr. 2005 , 220 , 489 – 498 ,  DOI: 10.1524/zkri.220.5.489.65078
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    46
+    Oganov, A. R. ; Lyakhov, A. O. ; Valle, M. How Evolutionary Crystal Structure Prediction Works-and Why . Acc. Chem. Res. 2011 , 44 , 227 – 237 ,  DOI: 10.1021/ar1001318
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    47
+    Pramanik, K. ; Borah, S. ; Kumar, P. P. Accessing Slow Diffusion in Solids by Employing Metadynamics Simulation . Phys. Chem. Chem. Phys. 2020 , 22 , 22796 – 22804 ,  DOI: 10.1039/d0cp03239e
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    48
+    Heelweg, H. J. ; De Souza, R. A. Metadynamics Simulations of Strontium-Vacancy Diffusion in SrTiO3 . Phys. Rev. Mater. 2021 , 5 , 013804  DOI: 10.1103/PhysRevMaterials.5.013804
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    49
+    Ceccarelli, M. ; Anedda, R. ; Casu, M. ; Ruggerone, P. CO Escape from Myoglobin with Metadynamics Simulations . Proteins: Struct., Funct., Bioinf. 2008 , 71 , 1231 – 1236 ,  DOI: 10.1002/prot.21817
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    50
+    Leone, V. ; Marinelli, F. ; Carloni, P. ; Parrinello, M. Targeting Biomolecular Flexibility with Metadynamics . Curr. Opin. Struct. Biol. 2010 , 20 , 148 – 154 ,  DOI: 10.1016/j.sbi.2010.01.011
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    51
+    Bernardi, R. C. ; Melo, M. C. R. ; Schulten, K. Enhanced Sampling Techniques in Molecular Dynamics Simulations of Biological Systems . Biochim. Biophys. Acta, Gen. Subj. 2015 , 1850 , 872 – 877 ,  DOI: 10.1016/j.bbagen.2014.10.019
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    52
+    Shang, Y. ; Yeatman, H. R. ; Provasi, D. ; Alt, A. ; Christopoulos, A. ; Canals, M. ; Filizola, M. Proposed Mode of Binding and Action of Positive Allosteric Modulators at Opioid Receptors . ACS Chem. Biol. 2016 , 11 , 1220 – 1229 ,  DOI: 10.1021/acschembio.5b00712
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    53
+    Vásquez, A. F. ; González Barrios, A. F. Classical MD and Metadynamics Simulations on Back-Pocket Binders of CDK2 and VEGFR2: A Guidepost to Design Novel Small-Molecule Dual Inhibitors . J. Biomol. Struct. Dyn. 2021 , 1 – 12 ,  DOI: 10.1080/07391102.2021.1922311
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    54
+    Huang, J. ; Rauscher, S. ; Nawrocki, G. ; Ran, T. ; Feig, M. ; de Groot, B. L. ; Grubmüller, H. ; MacKerell, A. D. CHARMM36m: An Improved Force Field for Folded and Intrinsically Disordered Proteins . Nat. Methods 2017 , 14 , 71 – 73 ,  DOI: 10.1038/nmeth.4067
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    55
+    Jorgensen, W. L. ; Chandrasekhar, J. ; Madura, J. D. Comparison of Simple Potential Functions for Simulating Liquid Water . J. Chem. Phys. 1983 , 79 , 926 – 935 ,  DOI: 10.1063/1.445869
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    56
+    gmx genion ─ GROMACS 2019 documentation . https://manual.gromacs.org/documentation/2019/onlinehelp/gmx-genion.html (accessed May 31, 2022).
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    57
+    gmx insert-molecules ─ GROMACS 2019 documentation . https://manual.gromacs.org/documentation/2019/onlinehelp/gmx-insert-molecules.html (accessed May 31, 2022).
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    58
+    Bonomi, M. ; Branduardi, D. ; Bussi, G. ; Camilloni, C. ; Provasi, D. ; Raiteri, P. ; Donadio, D. ; Marinelli, F. ; Pietrucci, F. ; Broglia, R. A. ; Parrinello, M. PLUMED: A Portable Plugin for Free Energy Calculations with Molecular Dynamics . Comput. Phys. Commun. 2009 , 180 , 1961 ,  DOI: 10.1016/j.cpc.2009.05.011
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    59
+    Tribello, G. A. ; Bonomi, M. ; Branduardi, D. ; Camilloni, C. ; Bussi, G. PLUMED2: New Feathers for an Old Bird . Comput. Phys. Commun. 2014 , 185 , 604 ,  DOI: 10.1016/j.cpc.2013.09.018
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    60
+    PLUMED: INCYLINDER . https://www.plumed.org/doc-v2.7/user-doc/html/_i_n_c_y_l_i_n_d_e_r.html (accessed June 06, 2022).
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    61
+    PLUMED: switchingfunction . https://www.plumed.org/doc-v2.7/user-doc/html/switchingfunction.html (accessed June 05, 2022).
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    62
+    Abraham, M. GROMACS: High Performance Molecular Simulations through Multi-Level Parallelism from Laptops to Supercomputers . SoftwareX 2015 , 1–2 , 19 – 25 ,  DOI: 10.1016/j.softx.2015.06.001
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    63
+    Berendsen, H. J. C. ; van der Spoel, D. ; van Drunen, R. GROMACS: A Message-Passing Parallel Molecular Dynamics Implemenation . Comput. Phys. Commun. 1995 , 91 , 43 – 56 ,  DOI: 10.1016/0010-4655(95)00042-E
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    64
+    Hess, B. ; Kutzner, C. ; van der Spoel, D. ; Lindahl, E. GROMACS 4: Algorithms for Highly Efficient, Load-Balanced, and Scalable Molecular Simulation . J. Chem. Theory Comput. 2008 , 4 , 435 – 447 ,  DOI: 10.1021/ct700301q
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    65
+    Lindahl, E. ; Hess, B. ; van der Spoel, D. GROMACS 3.0: A Package for Molecular Simulation and Trajectory Analysis . J. Mol. Model. 2001 , 7 , 306 – 317 ,  DOI: 10.1007/s008940100045
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    66
+    Páll, S. Tackling Exascale Software Challenges in Molecular Dynamics Simulations with GROMACS . Proc. EASC 2015 , 8759 , 3 – 27 ,  DOI: 10.1007/978-3-319-15976-8_1
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    67
+    Pronk, S. GROMACS 4. 5: A High-Throughput and Highly Parallel Open Source Molecular Simulation Toolkit . Bioinformatics 2013 , 29 , 845 – 854 ,  DOI: 10.1093/bioinformatics/btt055
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    68
+    van der Spoel, D. ; Lindahl, E. ; Hess, B. ; Groenhof, G. ; Mark, A. E. ; Berendsen, H. J. C. GROMACS: Fast, Flexible, and Free . J. Comput. Chem. 2005 , 26 , 1701 – 1718 ,  DOI: 10.1002/jcc.20291
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    69
+    Molecular dynamics parameters (.mdp options) ─ GROMACS 2019.6 documentation . https://manual.gromacs.org/2019-current/user-guide/mdp-options.html (accessed May 16, 2022).
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    70
+    Hunter, J. ; Matplotlib, D. A 2D Graphics Environment . Comput. Sci. Eng. 2007 , 9 , 90 – 95 ,  DOI: 10.1109/MCSE.2007.55
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    71
+    Humphrey, W. ; Dalke, A. ; Schulten, K. VMD – Visual Molecular Dynamics . J. Mol. Graphics 1996 , 14 , 33 – 38 ,  DOI: 10.1016/0263-7855(96)00018-5
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    72
+    Vega, C. ; de Miguel, E. Surface Tension of the Most Popular Models of Water by Using the Test-Area Simulation Method . J. Chem. Phys. 2007 , 126 , 154707 ,  DOI: 10.1063/1.2715577
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    73
+    Firoozabadi, A. ; Ramey, H. J., Jr. Surface Tension Of Water-Hydrocarbon Systems At Reservoir Conditions . J. Can. Pet. Technol. 1988 , 27 , PETSOC-88-03-03 ,  DOI: 10.2118/88-03-03
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    74
+    Peters, F. ; Arabali, D. Interfacial Tension between Oil and Water Measured with a Modified Contour Method . Colloids Surf., A 2013 , 426 , 1 – 5 ,  DOI: 10.1016/j.colsurfa.2013.03.010
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    75
+    Orlov, S. N. ; Hamet, P. Intracellular Monovalent Ions as Second Messengers . J. Membr. Biol. 2006 , 210 , 161 – 172 ,  DOI: 10.1007/s00232-006-0857-9
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    76
+    Cox, D. H. Ca 2+ -Regulated Ion Channels . BMB Rep. 2011 , 44 , 635 – 646 ,  DOI: 10.5483/BMBRep.2011.44.10.635
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    77
+    Okur, H. I. ; Hladílková, J. ; Rembert, K. B. ; Cho, Y. ; Heyda, J. ; Dzubiella, J. ; Cremer, P. S. ; Jungwirth, P. Beyond the Hofmeister Series: Ion-Specific Effects on Proteins and Their Biological Functions . J. Phys. Chem. B 2017 , 121 , 1997 – 2014 ,  DOI: 10.1021/acs.jpcb.6b10797
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    78
+    Hasan, R. ; Zhang, X. Ca 2+ Regulation of TRP Ion Channels . Int. J. Mol. Sci. 2018 , 19 , 1256 ,  DOI: 10.3390/ijms19041256
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    79
+    Innes, L. ; Gutierrez, D. ; Mann, W. ; Buchsbaum, S. F. ; Siwy, Z. S. Presence of Electrolyte Promotes Wetting and Hydrophobic Gating in Nanopores with Residual Surface Charges . Analyst 2015 , 140 , 4804 – 4812 ,  DOI: 10.1039/C4AN02244K
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    80
+    Dzubiella, J. ; Hansen, J.-P. Effects of Salt on the ‘Drying’ Transition and Hydrophobic Interaction between Nano-Sized Spherical Solutes . Mol. Phys. 2013 , 111 , 3404 – 3409 ,  DOI: 10.1080/00268976.2013.816445
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    81
+    Stairs, R. A. Calculation of Surface Tension of Salt Solutions: Effective Polarizability of Solvated Ions . Can. J. Chem. 1995 , 73 , 781 – 787 ,  DOI: 10.1139/v95-098
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    82
+    Harris, R. A. Ethanol Actions on Multiple Ion Channels: Which Are Important? . Alcoholism 1999 , 23 , 1563 – 1570 ,  DOI: 10.1111/j.1530-0277.1999.tb04045.x
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    83
+    Murakami, M. ; Kijima, H. Transduction Ion Channels Directly Gated by Sugars on the Insect Taste Cell . J. Gen. Physiol. 2000 , 115 , 455 – 466 ,  DOI: 10.1085/jgp.115.4.455
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    84
+    Brelidze, T. I. ; Magleby, K. L. Probing the Geometry of the Inner Vestibule of BK Channels with Sugars . J. Gen. Physiol. 2005 , 126 , 105 – 121 ,  DOI: 10.1085/jgp.200509286
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    85
+    Ball, P. Water as an Active Constituent in Cell Biology . Chem. Rev. 2008 , 108 , 74 – 108 ,  DOI: 10.1021/cr068037a
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    86
+    Zhang, Z.-Y. ; Qian, L.-L. ; Wang, N. ; Miao, L.-F. ; Ma, X. ; Dang, S.-P. ; Wu, Y. ; Liu, X.-Y. ; Li, X.-Y. ; Chai, Q. ; Pan, M. ; Yi, F. ; Ling, T.-Y. ; Wang, R.-X. Glucose Fluctuations Promote Vascular BK Channels Dysfunction via PKCα/NF-ΚB/MuRF1 Signaling . J. Mol. Cell. Cardiol. 2020 , 145 , 14 – 24 ,  DOI: 10.1016/j.yjmcc.2020.05.021
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    87
+    Tirado-Rives, J. ; Orozco, M. ; Jorgensen, W. L. Molecular Dynamics Simulations of the Unfolding of Barnase in Water and 8 M Aqueous Urea . Biochemistry 1997 , 36 , 7313 – 7329 ,  DOI: 10.1021/bi970096i
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    88
+    Caflisch, A. ; Karplus, M. Structural Details of Urea Binding to Barnase: A Molecular Dynamics Analysis . Structure 1999 , 7 , 477 – 4S2 ,  DOI: 10.1016/s0969-2126(99)80064-1
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    89
+    Hua, L. ; Zhou, R. ; Thirumalai, D. ; Berne, B. J. Urea Denaturation by Stronger Dispersion Interactions with Proteins than Water Implies a 2-Stage Unfolding . Proc. Natl. Acad. Sci. U. S. A. 2008 , 105 , 16928 – 16933 ,  DOI: 10.1073/pnas.0808427105
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    90
+    Yang, J. ; Krishnamoorthy, G. ; Saxena, A. ; Zhang, G. ; Shi, J. ; Yang, H. ; Delaloye, K. ; Sept, D. ; Cui, J. An Epilepsy/Dyskinesia-Associated Mutation Enhances BK Channel Activation by Potentiating Ca2+ Sensing . Neuron 2010 , 66 , 871 – 883 ,  DOI: 10.1016/j.neuron.2010.05.009
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    91
+    Das, P. Effect of Cosolvents on Nano-Confined Water: A Molecular Dynamics Study . Nanoscale 2012 , 4 , 2931 – 2936 ,  DOI: 10.1039/C2NR30070B
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+
+Cited By
+
+This article has not yet been cited by other publications.
+
+    Figures
+    References
+    Support Info 
+
+    Abstract
+    Figure 1
+
+    Figure 1. Model nanopores and reversible dewetting transitions. (A) Side view of a hydrated cylindrical nanopore with the pore height labeled. (B) Top view with the (inner) pore diameter labeled. (C) Side view of a nanopore with a 20° wall slanting angle. (D) Pore water count as a function of time during a 2-μs unbiased simulation of a pore of radius 7.5 Å and height 16 Å. Representative structures of the wet and dry states of the pore are also shown. (E) Pore water count as a function of time from a 50-ns MetaD simulation of the same pore as in panel D.
+    Figure 2
+
+    Figure 2. Convergence of MetaD free energy profiles of pore hydration. (A) Free energy profiles of pore hydration as a function of MetaD simulation time, for a pore with radius 6 Å and height of 12 Å. (B) Comparison of free energy profiles calculated from 50-ns MetaD simulations and a 500-ns unbiased MD simulation of the same pore. The error bars for the MetaD result reflect the difference between two independent 50 ns runs, and the final trace was plotted using the average of the two runs.
+    Figure 3
+
+    Figure 3. Free energy profile of pore hydration as a function of the pore radius. All profiles were calculated from 50 ns MetaD simulations, and the height of all nanopores is 16 Å.
+    Figure 4
+
+    Figure 4. Parametric fitting of free energy cost of dewetting. (A) Free energy of dewetting for pores with a height of 16 Å and radii between 5 and 10 Å fit to eq 3 . (B) Free energy of dewetting at different NaCl concentrations fitted to eq 5 . The nanopore used has a height of 16 Å and a radius of 6 Å. The values of the coefficients are as follows: A = −0.570, B = −0.175. The R values for both fits are greater than 0.99.
+    Figure 5
+
+    Figure 5. Free energy profiles of hydration of nanopores with different geometries and lid configurations. (A) PMFs of hydration for a set of nanopores with and without a lid and/or tilt (see Figure S1 ). The circles mark the theoretical Δ G dewet as calculated using eq 3 . The pores with 0° tilt, lid (orange), 20° tilt, narrow lid (red), and 20° tilt, wide lid (purple), did not have well-defined hydrated minima, so their locations were estimated by using the N water of the corresponding pore without the lid, denoted with a vertical dashed line (see Methods for details). (B) Correlation of dewetting Δ G s calculated using eq 3 (theoretical) with those derived from the PMFs (simulation). The dashed line marks the ideal diagonal line. Note that the PMF for 20° tilt, wide lid (purple), never reached a fully hydrated state with the same N water as in the no lid pore. The simulation Δ G dewet was estimated to be greater than 25 kcal/mol.
+    Figure 6
+
+    Figure 6. Ethanol effects on hydration property of nanopores. All 2D PMFs were calculated as a function of pore ethanol and water numbers for a nanopore with a radius 6 Å and height of 16 Å. The ethanol volume fraction is (A) 5%, (B) 13%, (C) 23%, and (D) 40%. Black contour lines and color bar ticks are drawn at the same energy levels and are distributed quadratically. In each panel, the marginal projections are the 1D PMFs along N water (top) and N ethanol (left). The convergence of these free energy surfaces is illustrated in Figure S11 .
+    Figure 7
+
+    Figure 7. Glycerol effects on hydration property of nanopores. All free energy profiles were calculated for a pore with a radius 6 Å and height of 16 Å and in a solution with (A) 5% and (B) 23% glycerol by volume. The black contour lines and color bar ticks are drawn at the same energy levels and are distributed quadratically. In each panel, the marginal projections are the 1D PMFs along N water (top) and N glycerol (left). The convergence of these free energy surfaces is illustrated in Figure S12 .
+
+Recommended Articles
+
+    Design of Peptides for Membrane Insertion: The Critical Role of Charge Separation The Journal of Physical Chemistry B
+    AlphaFold, Artificial Intelligence (AI), and Allostery The Journal of Physical Chemistry B
+    Illuminating the Structural Basis of Tau Aggregation by Intramolecular Distance Tracking: A Perspective on Methods The Journal of Physical Chemistry B
+    Expanding the Biological Importance of Protein Structures: Insight into Dynamic Biological Function from Protein Folding Theory Analyses The Journal of Physical Chemistry B
+    Origin of the Acoustic Bandgaps in Hypersonic Colloidal Phononics: The Role of the Elastic Impedance The Journal of Physical Chemistry B
+    Sponsored Content
+    Brought to you by Dassault Systemes Americas Corp
+    Building a Better Battery
+    Modeling and simulation identify candidate materials with the greatest chance of success
+
+back
+Partners
+Atypon
+Chorus
+Cope publication ethics
+Project Counter
+Crossref
+Crossref similarity check
+Orcid Connecting Research and Researchers
+Portico digital preservation service
+ACS Publications
+
+    1155 Sixteenth Street N.W.
+    Washington, DC 20036
+    Copyright © 2022
+    American Chemical Society
+
+About
+
+    About ACS Publications
+    ACS & Open Access
+    ACS Membership
+
+Resources and Information
+
+    Journals A-Z
+    Books and Reference
+    Advertising Media Kit
+    Institutional Sales
+    ACS Publishing Center
+    Privacy Policy
+    Terms of Use
+
+Support & Contact
+
+    Help
+    Live Chat
+    FAQ
+
+Connect with ACS Publications
+

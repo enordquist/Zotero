@@ -1,0 +1,211 @@
+
+  		
+
+    Home (v2.7)
+    Getting Started
+    Tutorials
+    Index of Actions
+
+[click to disable panel synchronisation]
+
+    ▼ PLUMED
+        ► Introduction
+        ► Change Log
+        ► Installation
+        ► Getting Started
+        ▼ Collective Variables
+            ► Groups and Virtual Atoms
+            ▼ CV Documentation
+                  ADAPTIVE_PATH
+                  ALPHABETA
+                  ALPHARMSD
+                  ANGLE
+                  ANTIBETARMSD
+                  CELL
+                  CONSTANT
+                  CONTACTMAP
+                  COORDINATION
+                  DHENERGY
+                  DIHCOR
+                  DIMER
+                  DIPOLE
+                  DISTANCE
+                  DISTANCE_FROM_CONTOUR
+                  EEFSOLV
+                  ENERGY
+                  ERMSD
+                  EXTRACV
+                  FAKE
+                  GPROPERTYMAP
+                  GYRATION
+                  PARABETARMSD
+                  PATH
+                  PATHMSD
+                  PCAVARS
+                  POSITION
+                  PROJECTION_ON_AXIS
+                  PROPERTYMAP
+                  PUCKERING
+                  TEMPLATE
+                  TORSION
+                  VOLUME
+            ► Distances from reference configurations
+            ► Functions
+            ► MultiColvar
+            ► Exploiting contact matrices
+        ► Analysis
+        ► Bias
+        ► Additional Modules
+        ► Command Line Tools
+        ► Miscellaneous
+        ► Tutorials
+        ► Performances
+        ► Index of Actions
+          Todo List
+          Bug List
+          Bibliography
+
+COORDINATION
+	This is part of the colvar module
+
+Calculate coordination numbers.
+
+This keyword can be used to calculate the number of contacts between two groups of atoms and is defined as
+
+∑ i ∈ A ∑ i ∈ B s i j
+
+where s i j is 1 if the contact between atoms i and j is formed, zero otherwise. In actuality, s i j is replaced with a switching function so as to ensure that the calculated CV has continuous derivatives. The default switching function is:
+
+s i j = 1 − ( r i j − d 0 r 0 ) n 1 − ( r i j − d 0 r 0 ) m
+
+but it can be changed using the optional SWITCH option.
+
+To make your calculation faster you can use a neighbor list, which makes it that only a relevant subset of the pairwise distance are calculated at every step.
+
+If GROUPB is empty, it will sum the N ( N − 1 ) 2 pairs in GROUPA. This avoids computing twice permuted indexes (e.g. pair (i,j) and (j,i)) thus running at twice the speed.
+
+Notice that if there are common atoms between GROUPA and GROUPB the switching function should be equal to one. These "self contacts" are discarded by plumed (since version 2.1), so that they actually count as "zero".
+
+Examples
+
+The following example instructs plumed to calculate the total coordination number of the atoms in group 1-10 with the atoms in group 20-100. For atoms 1-10 coordination numbers are calculated that count the number of atoms from the second group that are within 0.3 nm of the central atom. A neighbor list is used to make this calculation faster, this neighbor list is updated every 100 steps.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ COORDINATION  
+GROUPA
+First list of atoms.
+ =1-10 
+GROUPB
+Second list of atoms (if empty, N*(N-1)/2 pairs in GROUPA are counted).
+ =20-100 
+R_0
+ =0.3 
+NLIST
+( default=off ) Use a neighbor list to speed up the calculation
+  
+NL_CUTOFF
+The cutoff for the neighbor list
+ =0.5 
+NL_STRIDE
+The frequency with which we are updating the atoms in the neighbor list
+ =100 The COORDINATION action with label  
+
+The following is a dummy example which should compute the value 0 because the self interaction of atom 1 is skipped. Notice that in plumed 2.0 "self interactions" were not skipped, and the same calculation should return 1.
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ c:  COORDINATION  
+GROUPA
+First list of atoms.
+ =1 
+GROUPB
+Second list of atoms (if empty, N*(N-1)/2 pairs in GROUPA are counted).
+ =1 
+R_0
+ =0.3 The COORDINATION action with label calculates a single scalar value 
+PRINT  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = c  
+STRIDE
+the frequency with which the quantities of interest should be output
+ =10 The PRINT action with label  
+
+Here's an example that shows what happens when providing COORDINATION with a single group:
+Click on the labels of the actions for more information on what each action computes
+tested on v2.7
+
+ # define some huge group: 
+group:  GROUP  
+ATOMS
+the numerical indexes for the set of atoms in the group.
+ =1-1000 The GROUP action with label defines a group of atoms so that they can be referred to later in the input 
+# Here's coordination of a group against itself: 
+c1:  COORDINATION  
+GROUPA
+First list of atoms.
+ = group  
+GROUPB
+Second list of atoms (if empty, N*(N-1)/2 pairs in GROUPA are counted).
+ = group  
+R_0
+ =0.3 The COORDINATION action with label calculates a single scalar value 
+# Here's coordination within a single group: 
+x:  COORDINATION  
+GROUPA
+First list of atoms.
+ = group  
+R_0
+ =0.3 The COORDINATION action with label calculates a single scalar value 
+# This is just multiplying times 2 the variable x: 
+c2:  COMBINE  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = x  
+COEFFICIENTS
+the coefficients of the arguments in your function
+ =2 
+PERIODIC
+if the output of your function is periodic then you should specify the periodicity of the function.
+ =NO The COMBINE action with label calculates a single scalar value 
+# the two variables c1 and c2 should be identical, but the calculation of c2 is twice faster 
+# since it runs on half of the pairs. 
+PRINT  
+ARG
+the input for this action is the scalar output from one or more other actions.
+ = c1 , c2  
+STRIDE
+the frequency with which the quantities of interest should be output
+ =10 The PRINT action with label  
+
+Glossary of keywords and components
+
+The atoms involved can be specified using
+
+GROUPA 	First list of atoms. For more information on how to specify lists of atoms see Groups and Virtual Atoms
+GROUPB 	Second list of atoms (if empty, N*(N-1)/2 pairs in GROUPA are counted). For more information on how to specify lists of atoms see Groups and Virtual Atoms
+
+Compulsory keywords
+
+NN 	( default=6 ) The n parameter of the switching function
+MM 	( default=0 ) The m parameter of the switching function; 0 implies 2*NN
+D_0 	( default=0.0 ) The d_0 parameter of the switching function
+R_0 	The r_0 parameter of the switching function
+
+Options
+
+NUMERICAL_DERIVATIVES 	( default=off ) calculate the derivatives for these quantities numerically
+NOPBC 	( default=off ) ignore the periodic boundary conditions when calculating distances
+SERIAL 	( default=off ) Perform the calculation in serial - for debug purpose
+PAIR 	( default=off ) Pair only 1st element of the 1st group with 1st element in the second, etc
+NLIST 	
+
+( default=off ) Use a neighbor list to speed up the calculation
+
+NL_CUTOFF 	The cutoff for the neighbor list
+NL_STRIDE 	The frequency with which we are updating the atoms in the neighbor list
+SWITCH 	This keyword is used if you want to employ an alternative to the continuous switching function defined above. The following provides information on the switchingfunction that are available. When this keyword is present you no longer need the NN, MM, D_0 and R_0 keywords.
+
+    doxygen 1.8.17
+

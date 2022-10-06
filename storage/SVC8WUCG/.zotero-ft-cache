@@ -1,0 +1,735 @@
+Author Manuscript
+
+Author Manuscript
+
+HHS Public Access
+Author manuscript
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+Published in final edited form as: J Chem Theory Comput. 2020 December 08; 16(12): 7883–7894. doi:10.1021/acs.jctc.0c00785.
+Accounting for the Central Role of Interfacial Water in Protein– Ligand Binding Free Energy Calculations
+Ido Y. Ben-Shalom Skaggs School of Pharmacy and Pharmaceutical Sciences, University of California, San Diego, 92093 La Jolla, California, United States
+Zhixiong Lin, Brian K. Radak, Charles Lin, Woody Sherman Silicon Therapeutics LLC, Boston, Massachusetts 02110, United States
+Michael K. Gilson Skaggs School of Pharmacy and Pharmaceutical Sciences, University of California, San Diego, 92093 La Jolla, California, United States
+Abstract
+Rigorous binding free energy methods in drug discovery are growing in popularity because of a combination of methodological advances, improvements in computer hardware, and workflow automation. These calculations typically use molecular dynamics (MD) to sample from the Boltzmann distribution of conformational states. However, when part or all of the binding sites is inaccessible to the bulk solvent, the time needed for water molecules to equilibrate between bulk solvent and the binding site can be well beyond what is practical with standard MD. This sampling limitation is problematic in relative binding free energy calculations, which compute the reversible work of converting ligand 1 to ligand 2 within the binding site. Thus, if ligand 1 is smaller and/or more polar than ligand 2, the perturbation may allow additional water molecules to occupy a region of the binding site. However, this change in hydration may not be captured by standard MD simulations and may therefore lead to errors in the computed free energy. We recently developed a hybrid Monte Carlo/MD (MC/MD) method, which speeds up the equilibration of water between bulk solvent and buried cavities, while sampling from the intended distribution of states. Here, we report on the use of this approach in the context of alchemical binding free energy calculations. We find that using MC/MD markedly improves the accuracy of the calculations and also reduces hysteresis between the forward and reverse perturbations, relative to matched calculations using only MD with or without the crystallographic water molecules. The present method is available for use in AMBER simulation software.
+Graphical Abstract
+Corresponding Author: Michael K. Gilson – Skaggs School of Pharmacy and Pharmaceutical Sciences, University of California, San Diego, 92093 La Jolla, California, United States; mgilson@health.ucsd.edu. Complete contact information is available at: https://pubs.acs.org/10.1021/acs.jctc.0c00785 The authors declare the following competing financial interest(s): MKG has an equity interest in and is a cofounder and scientic advisor of VeraChem LLC. ZL, BKR, CL and WS are employees of Silicon Therapeutics.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 2
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+1. INTRODUCTION
+The identification of a small organic molecule that binds a targeted protein with high affinity is a key early challenge in many drug discovery projects. A range of computational methods to estimate the affinity of candidate drug molecules for proteins have been developed to assist at this stage.1–7 In recent years, advancements in both computer hardware and software8–14 have enabled increasing application of relatively detailed molecular simulations to this problem. In particular, building on fundamental work on both theory and methods, 15–22 it is now feasible to integrate rigorous free energy methods into the drug design process.23–27
+Free energy methods require sampling the configurations of the aqueous protein–ligand complex from the Boltzmann distribution defined by a potential function, or force field.28–31 These configurations are usually generated using molecular dynamics (MD) simulations, 32–35 but Monte Carlo (MC) methods may also be employed.36–38 Given a method that provides correct sampling of a molecular system at equilibrium, one may choose among several methods of computing the difference in the free energy between two states of the system. These methods include thermodynamic integration (TI),39 free energy perturbation (FEP),40 Bennett acceptance ratio,41 and multistate Bennett acceptance ratio (MBAR).42 Perturbing all the way from the initial to the final state, although feasible in principle, usually leads to convergence problems, so it is common instead to compute the free energy difference by running equilibrium simulations at each of a series of small steps that interpolate between the initial and final states. Additional methods allow the calculation of free energy differences from nonequilibrium simulations, in which the progression from initial to final is forced to occur too fast for the simulations to generate equilibrium distributions.43–47
+In the context of computer-aided drug design, free energy methods may be used to compute the standard free energy of binding20 by interpolating between the bound and unbound states with steps along a physical pathway, in which the ligand is stepwise removed from the binding site,18,48,49 or a nonphysical, or alchemical, pathway, in which the ligand is artificially decoupled from the binding site and then recoupled with bulk solvent.20,50,51 Standard binding free energy methods are often termed “absolute binding free energy” (ABFE) calculations to distinguish them from “relative binding free energy” (RBFE) calculations,15,24,25 which provide the difference in binding free energy of two chemically similar ligands by perturbing one into the other within the binding site and then in bulk
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 3
+
+solution, and then using thermodynamic closure to connect these differences with the difference between their binding free energies (Figure 1). Because converting one ligand to another is a nonphysical process, RBFE calculations are also termed alchemical.
+
+In some drug design projects, the crystal structure of the targeted binding pocket reveals a buried cavity that has no channel through which water can enter or exit.52 Thus, water in the pocket can exchange with bulk water only through conformational fluctuations that open the binding pocket. Such fluctuations are generally infrequent relative to the time scales necessary to impact drug discovery projects using current simulation methods and accessible hardware. This situation poses a challenge for binding free energy calculations in which the hydration of the pocket requires change when going from the initial to the final state. Thus, in alchemical ABFE calculations, decoupling of the ligand from the binding site leaves an empty binding pocket which usually should become hydrated. Similarly, when one uses alchemical RBFE methods to compare the binding free energy of two ligands of different sizes and/or polarities, the number of waters bound along with the ligand often ought to change. Commonly used MD simulations cannot replicate these changes in the hydration of buried cavities, so the number of waters in the pocket remains constant, rather than adapting properly to changes in the ligand, and this structural error can lead to errors in computed free energies. In addition, if one runs the same perturbation in both directions—for example, going from ligand 2 to ligand 1 instead of ligand 1 to ligand 2—where the two starting states have different numbers of buried waters, the two free energies may be quite different. Such differences, termed hysteresis, are a sign of inadequate sampling in free energy calculations, as the free energy is a state function and the free energy change on going from state 1 to state 2 is the additive inverse of the free energy change on going from state 2 to state 1. Here the problem is inadequate sampling of water moves into and out of the binding site.
+
+This problem can be addressed by including MC steps that can exchange water molecules into and out of the binding pocket without following a physically realizable path. When done with the correct Metropolis acceptance criterion,53 the added MC steps should, like MD, sample from the desired thermodynamic distribution and thus rigorously yield the free energy. This approach is particularly valuable in the real-world situation in which one does not have advance knowledge of the numbers of buried waters, which is common in prospective drug discovery applications. Early work along these lines mixed regular MD sampling with grand canonical (GC) MC steps, which add or remove water molecules to or from the protein-solvent system in a manner that preserves the thermodynamic distribution for the appropriate chemical potential of water, and used this method to improve sampling in protein–ligand binding free energy calculations.54 A recent preprint also shows that using a conceptually similar hybrid GC/MD approach during ligand perturbations in free energy calculations reduces hysteresis and somewhat lowers errors, relative to experiment, relative to pure MD, across a large number of test cases.55 The use of GC to set up water occupancies along the perturbation steps of RBFE calculations, without sampling water occupancies during ligand perturbations, also has been shown to reduce hysteresis.56 The GC method has been successfully applied to ligand binding free energies in the context of a pure MC algorithm,57 which did not include full sampling of protein coordinates. However, the GC method adds complications related to setting the chemical potential of water and to fluctuations in the number of waters in the simulated system.
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 4
+
+We recently reported a combined MC/MD approach that equilibrates water between buried cavities and the bulk without requiring the GC machinery and the resulting changes in particle number.58 This method, which is available in the AMBER simulation package,59,60 alternates blocks of standard MD steps with blocks of translational MC water move attempts executed within a rectangular region that overlaps with both the protein interior and the bulk solvent. The translational moves allow water molecules to exchange between bulk and buried cavities, while maintaining a Boltzmann distribution of states. In particular, water molecules can exit or enter the buried binding site as a ligand grows or contracts during the alchemical process of an RBFE calculation. The present MC/MD methodology thus should match the capability of GC/MD to enhance RBFE calculations, but in a less complex manner.
+
+Here, we report the first application of the MC/MD method to the calculation of RBFEs for pairs of ligands that bind to buried protein cavities and that, when bound, are associated with different numbers of water molecules. We also compare this approach with other protocols for handling binding site hydration, including methods based on standard MD simulations. The MC/MD approach yields notably lower hysteresis and better agreement with experiment.
+
+2. METHODS
+2.1. Overview.
+We compared four methods of treating binding site hydration in calculations of RBFEs between paired ligands that occupy buried protein cavities. For each pair, one ligand is smaller than the other, and crystallographic data drawn from the Protein Data Bank (PDB)61–63 indicates that the extra space associated with the smaller ligand is occupied by at least one additional buried water molecule (Section 2.2). Two of the methods (methods 1 and 2) use our previously developed MC/MD code, which allows water molecules to equilibrate between bulk solvent and buried sites,58 and two (methods 3 and 4) use only standard MD with different initial water configurations. All four methods (Figure 2) follow the same overall protocol, starting from a crystal structure of the protein with one of the two ligands. They all carry out an initial water placement by the usual method of superimposing a pre-equilibrated box of water on the protein–ligand system and discarding waters that clash with the solutes. This hydrated system is then replicated to generate a separate simulation for each of a series of windows along the alchemical change of the initial ligand to the final ligand, and the water structure in each of these simulations is allowed to relax with an equilibration simulation in which all nonhydrogen protein and ligand atoms are restrained to their initial coordinates. The progress from the initial to final window is scaled by the quantity λ, which goes from 0 to 1. Finally, production simulations with all atoms mobile are done for each λ window to compute the free energy change upon converting the initial ligand to the final ligand. Within this framework, the methods are distinguished as follows.
+Method 1 strips out the crystallographic waters before the initial hydration step and then uses MC/MD during both the equilibration step and the free energy production step. Thus,
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 5
+
+water occupancy is customized to each λ window during equilibration and can continue to vary within each window during the production simulations.
+
+Method 2 is the same as method 1, except that standard MD is used during the free energy production step. Thus, water occupancy is again customized to each λ window by the MC steps during equilibration but then may be effectively fixed during the production
+simulations, if the protein cavity is not open to allow direct exchange with the bulk.
+
+Method 3 also strips out the crystallographic waters before the initial hydration step but uses
+only standard MD during both the equilibration and production phases. Thus, water occupancy is determined by the initial hydration step and is the same for all λ windows, rather than being allowed to equilibrate between the binding cavity and the bulk as in
+methods 1 and 2.
+
+Method 4 is the same as method 3, except that crystallographic waters are retained.
+
+2.2. Test Systems.
+Our test systems are pharmaceutically relevant protein–ligand systems that meet the following criteria: (A) the binding pocket in crystal structures with bound ligand is a buried cavity; that is, it has no channel to the bulk large enough to allow a water molecule to enter or exit. (B) There are at least two inhibitors that share a chemical scaffold and differ from each other only by a small modification, and for which bound poses are available from crystal structures or could reasonably be constructed from existing cocrystal structures. (C) Of these, we could find two ligands with different numbers of buried water molecules trapped between the ligand and protein. (D) Experimentally measured binding free energies are available for both ligands. As detailed in Figure 3 and Table 1, the test systems are: Heat shock protein 90 (HSP90) with four ligands in two perturbations; Scytalone dehydratase and Bruton’s tyrosine kinase (BTK), each with two ligands in one perturbation; thrombin with four ligands in three perturbations; and OppA with four peptides in two perturbations. Prior free energy calculations have been reported for OppA with a different set of peptides;64 the present cases were chosen for their large changes in water content. Here, we created ligand IDs comprising the first letter of the first author’s surname followed by the identifier used for the molecule in the publication. The peptides are named according to the one letter code of the amino acids (Figure 3; Table 1). Cocrystal structures are not available for inhibitors D13b and C3d, but cocrystal structures are available for the other compounds in their perturbations (D15b in 4FCP and C5d in 5STD, respectively). We constructed the required poses by docking D13b and C3d with the atoms they have in common with D15b and C5d, respectively, superimposed onto the available crystallographic coordinates.65 Imposing requirements A–D led to a relatively small dataset designed to give a detailed picture of how the mechanics of the method play out in well-characterized systems. Larger scale benchmarking will be useful in the future to provide a statistical account of its performance.
+
+2.3. Simulations and Free Energy Calculations.
+All systems were constructed using the TIP3P water model,73 the ff14SB74,75 force field for the protein, and GAFF276 for the ligands. Ligands and protein–ligand complexes were solvated in rectangular boxes using tleap, with initial buffer sizes of 12 and 8 Å, respectively.
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 6
+
+The net charge of each system was neutralized by the addition of K+ or Cl− ions as appropriate. The simulations were performed on graphics processor units (GPUs) with AMBER18’s GPU-accelerated PMEMD simulation code.9,10,77,78 During equilibration, Cartesian restraints to the starting structure were applied to all ligand and protein heavy atoms, with a force constant of 5 kcal mol−1 Å−2. After a brief minimization (50 steps of steepest descent plus 450 steps of conjugate gradient), the system was sequentially heated at a fixed volume with linear ramps joining the temperatures 5, 100, 200, and 298.15 K, at 20 ps per ramp, with each ramp followed by an additional 20 ps with pressure coupling. The resulting setups then were converted to alchemical topologies by mapping the initial ligand’s atoms to the atoms of a new ligand, with a maximum common substructure algorithm as implemented in RDKit.79 At this stage, the hydrogen masses were also increased to a target mass of 3.024 amu by repartitioning mass from the nearest bound heavy atom.80,81 The heating steps were then repeated at each alchemical coupling value (λ window), and water structure was then equilibrated. Restraints were then removed, and the production simulations were conducted.
+
+All simulations used a Langevin integrator with a 2 fs timestep for heating and equilibration and 4 fs for production with a friction coefficient of 2 ps−1. Heating steps were run in NVT, while equilibration and production steps were run in NPT with pressure regulated at 1 atm with a MC barostat.82 The SHAKE algorithm83,84 was used to constrain hydrogen bond
+lengths, except when the bond involves a softcore atom; that is, one that changes between the two end states.85 The standard AMBER protocol for nonbonded interactions was followed. Thus, the particle mesh Ewald (PME) method86 was used for periodic boundary
+conditions with an 8 Å cutoff for the short-ranged PME contribution as well as Lennard-
+Jones (LJ) interactions. A long-range continuum correction was used for the dispersive term.
+87
+
+The TI free energy calculations were done in three stages88,89 following a previously described protocol:90 decharge, LJ, and recharge. At the outset, a common set of atoms
+between the two ligands is established. The atoms in each ligand outside this set are then
+labeled as the two “softcore regions”. In the decharge stage, charge interactions only are removed from the first softcore region at λ windows of 0.0, 0.25, 0.5, 0.75, and 1.0. All interactions with the other ligand are neglected. During the LJ phase the repulsive/dispersive
+interactions on the first softcore region are turned off while those of the second region are
+turned on. The bonded and charge interactions in the common set of atoms are also switched at this time using λ windows of 0.0, 0.0479, 0.1151, 0.2063, 0.3161, 0.4374, 0.5626, 0.6839, 0.7937, 0.8849, 0.9521, and 1.0. The recharge stage uses the same protocol as the
+decharge stage except in reverse and using the second ligand. Note that, although we used TI,39,91,92 other methods, such as MBAR,42 could also be used in this protocol.
+
+The reported RBFEs are calculated by subtracting the free energy of alchemically mutating the free ligand from the free energy of alchemically mutating the bound ligand (Figure 1). For perturbations KWK–KKK and KEK–KWK, because they involve a change in the total charge of the molecule, we applied the finite box-size correction proposed by Rocklin et al. using a simple Poisson–Boltzmann approximation at the alchemical endpoints.93,94 The final results are then compared to experimental values (Section 2.2). Each ligand pair was run in
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 7
+
+both directions, that is, with each ligand playing the role of the starting ligand and the final ligand, to enable evaluation of the hysteresis. In addition, each of these calculations was run five times with different random number seeds, to enable evaluation of the variance. The reported RBFEs (Table 2) are averages over all 10 runs both for the free and the bound states
+
+ΔΔG
+
+=
+
+1 10
+
+5
+∑
+i=1
+
+ΔG1
+
+2, b, i − ΔG1
+
+5
+2, f, i − ∑ ΔG2
+i=1
+
+1, b, i − ΔG2
+
+1, f, i
+
+where ΔG1→2, x,i is computed in the ith of the five forward perturbations for the bound and free state x = b and x = f, respectively, and ΔG2→1, x,i is the corresponding backward perturbations, computed in the ith of the five. (Note that the two directions give free energy
+differences of opposite sign). The hystereses and variances for the perturbations of the ligands in solution were small (average of ~0.1 kcal mol−1) relative to those of the bound
+ligands, so the hystereses and variances of the reported RBFEs trace almost entirely to the
+bound state calculations, and we focus on the hysteresis for the bound states
+
+hysteresis
+
+=
+
+1 5
+
+5
+∑ ΔG1
+i=1
+
+5
+2, b, i + ∑ ΔG2
+i=1
+
+1, b, i
+
+The reported standard deviations are computed separately for each group of five replicates (forward and backward) of the bound protein–ligand complex.
+2.4. Equilibrating Buried Water Molecules.
+The equilibration of buried water molecules was performed using our previously described MC/MD method which is implemented in AMBER.58 In this method, the simulation alternates blocks of NMC translational water move attempts with blocks of NMD standard MDs time steps. As previously described, the MC moves occur only within a rectangular region that overlaps with the buried binding pocket and extends into bulk solvent (Figure 4). Here, the dimensions of this region were defined with a shift parameter of 8 Å as diagrammed in the figure. This is a conservative approach, which allows MC moves to translate water molecules into or out of any cavity that may exist or form throughout the protein. If one wishes to focus on equilibration of water between bulk and only the binding site, then a smaller box could be used. The rectangular region is filled with a steric grid that prevents move attempts into locations that are obviously blocked by existing protein or solvent atoms. The grid is recalculated prior to every MC cycle as described in ref 58. The MC blocks were performed at the same temperature as the MD and at constant volume.
+Methods 1 and 2 (Section 2.1) used MC/MD during the equilibration stage. All heavy atoms of the protein and ligand were restrained, and alternating blocks of NMD = 100 and NMC = 1 × 105 steps were carried out for a total of 25,000 MD time steps. Method 1 furthermore used MC/MD during the TI production calculations, with NMD = 1000 and NMC = 10,000 for a total of 500,000 MD time steps. Methods 3 and 4 were the same except that no MC steps were carried out (NMC = 0). Thus, methods 2, 3, and 4 did not use MC/MD during the TI stage. This protocol was modified in two respects for the peptide ligands because of the
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 8
+
+large size of these compounds and the greater magnitude of the perturbations. First, for only the equilibration step, we increased the total number of MD steps from 25,000 to 250,000, maintaining NMD = 100, NMC = 1 × 105. Second, to speed water sampling in the region of interest, we excluded only the softcore atoms from the steric grid, rather than the entire ligand as in the other perturbations. In this way, water moves into the binding pocket are attempted only at the specific site of the perturbation. The compute time effectively required for an MC step here is about the same as that for an MD step, so the extensive MC sampling, for the equilibration stage in particular, is time-consuming. However, the present protocol and grid specifications were not optimized for speed, and similar results may be obtainable with much fewer MC steps.
+
+3. RESULTS AND DISCUSSION
+3.1. Calculation Versus Experiment.
+As indicated by the root-mean-square errors (RMSEs) in Table 2, methods 1 and 2, which both use the MC/MD technology to equilibrate water occupancy in the binding sites, yield notably better agreement with experiment than do methods 3 and 4, which do not allow waters to equilibrate between bulk and the binding sites. Note that the RMSE values exclude the results for KEK–KWK, for which all four methods yield errors of over 13 kcal mol−1; this perturbation is examined separately in Section 3.3.3. As shown in the following subsection, the difference between methods [1, 2] and methods [3, 4] are large on the scale of the numerical uncertainties of the calculations. Thus, these results support the utility of the MC/MD procedure as a tool to improve the accuracy of free energy calculations involving buried binding sites.
+Interestingly, the benefit from using MC/MD is obtained from the initial equilibration of water occupancy in each λ window (i.e. method 2). That is, on-going equilibration of water occupancy in the course of the production calculations, as done in method 1 but not method 2, does not afford more accuracy, at least for the present cases. The two methods that use only MD, and thus that do not equilibrate water between the binding site and the bulk, give quite different results when crystallographic waters are kept in place (method 4) versus when they are removed prior to initial solvation (method 3). Indeed, these two methods yield free energies that differ by up to 18 kcal mol−1 (KWK–KKK, Table 2). Nonetheless, neither appears to be significantly more accurate than the other, based on their RMSE values of 4.1 and 3.6 kcal mol−1 (Table 2). Across all methods, the finite-size correction contributed about −1.5 kcal mol−1 to ΔΔGKWK→KEK and about +1.5 kcal mol−1 to ΔΔGKWK→KKK, with standard deviations of 0.5–1.0 kcal mol−1 across replicates.
+3.2. Numerical Uncertainty and Hysteresis.
+The mean standard deviations and hystereses of the FEPs, computed as given in Section 2.3, are almost all smaller than the scale of the differences in accuracy between the methods which use MC/MD (methods 1, 2) and those which use only MD (methods 3, 4). Thus, the mean standard deviations are all in the range 0.84–0.94 kcal mol−1, and the mean hysteresis average 0.51–0.65 kcal mol−1. (Note that KEK–KWK is again omitted from these statistics; see above). The only exception is method 4, whose mean hysteresis is larger, at 3.7 kcal mol
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 9
+
+−1. This probably results from the fact that method 4 places different crystallographic waters for the two ligands, so the forward perturbation provides rather different results from the backward one. In contrast, the small hysteresis for method 3 probably results from the fact that the AMBER water placement procedure did not place any buried water molecules for either the ligand 1 or ligand 2 starting state. As a consequence, the forward and backward perturbations were both done without water in the binding site, producing low hysteresis but not a correct calculation. These results support the significance of the observations in Section 3.1. It is encouraging that most of the computed free energy differences are the same in both directions, as the free energy difference of a state change should be. However, it is worth emphasizing that low hysteresis does not imply good agreement with experiment. For example, the W1–W2 perturbation with method 3 has zero hysteresis (Table 3) but deviates from the experimental value by 6.7 kcal mol−1 (Table 2).
+
+3.3. Case Studies.
+3.3.1. Changes in Water Occupancy along the W1–W2 Perturbation.— According to their respective cocrystal structures, going from ligand W1 (2XAB) to W2 (2XJG) is accompanied by displacement of two of three buried waters. We thus anticipated similar changes in the present perturbations. To check this, we examined how the water occupancy of the binding site varied with λ. As seen in Figure 5 (left), the final step of equilibration of W1 does start with an average of three water molecules, but as λ goes from 0 to 1, the mean number of waters fluctuates between about 1.5 and 3.0 in the early windows, falls to about 2.0 for most of the LJ windows, and then fluctuates between 1.5 and 2.0 as the charges become those of W2. Note that these equilibration runs are used by both method 1 and method 2, as diagrammed in Figure 2. The time- and replica-averaged number of waters shows a similar variation with λ during the TI production runs of method 1 (Figure 5, right), which are executed starting from the equilibrations. Thus, the water occupancies are similar to those at the end of the equilibration step Figure 5 (left), consistent with the observation (Section 3.1) that methods 1 and 2 give very similar free energies. The agreement between the water occupancy statistics between the two perturbation directions (red and blue in Figure 5, left and right panels) also helps explain the low hysteresis of these calculations.
+We examined the electron density of the W2 cocrystal structure and confirmed evidence for a single buried water associated with the ligand. Thus, the W2 simulations appear to overhydrate this structure. This could result from sampling issues, inaccuracies in the force field, and/or the fact that the crystallographic conditions (e.g., T = 100 K) differ from those at which the binding affinities were measured and under which these simulations were, accordingly, carried out. It is also conceivable that an alternative crystallographic refinement of this 2.25 Å resolution structure would accommodate another water molecule, in line with the simulations.
+
+3.3.2. Water Sites in HSP90.—In contrast, the MC/MD calculations appeared to under-hydrate the structure of HSP90 with inhibitor D15b. Thus, the cocrystal structure (4FCQ66) has three buried water molecules, while the simulations placed only waters 1 and 2 (Figure 6). In this case, however, examination of the electron density reveals that, although
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 10
+
+water sites 1 and 2 have distinct electron density, the electron density at water site 3 is less convincing, as shown in Figure 6. The electron density that was interpreted as a water appears to be continuous with the ligand density, rather than appearing as a discrete site. This might reflect partial occupancy by a different ligand, such as an impurity that may have been present in the mother liquor, or an alternate conformation of either a ligand or protein component. In this case, then, the MC/MD calculation may offer a more realistic picture of hydration in the buried cavity.
+
+3.3.3. KEK–KWK Perturbation.—As noted in Section 3.1, the KEK–KWK perturbation is an extreme outlier, in the sense that none of the four water placement methods explored here leads to errors of less than 13 kcal mol−1 relative to experiment. We, therefore, paid particular attention to how the MC/MD methods modeled the hydration. Going from KEK to KWK, the perturbation leads to displacement of four buried water molecules, according to the crystal structures (1JEU and 1JEV, respectively), and the electron density at the water sites appears to be well-resolved and distinct. We first examined the hydration states of the first decharge window (λ = 0.0) of KEK → KWK (Figure 7A) and the last recharge window (λ = 1.0) of KWK → KEK (Figure 7B). Both structures correspond to the fully present glutamic acid side chain and thus correspond to the cocrystal structure of KEK (1JEU).72 As shown in the figure, the four crystallographic water sites are reasonably well replicated by the simulations, although one water molecule is notably displaced in B. The hydration states of the first decharge window of KWK → KEK (Figure 7C) and the last recharge window of KEK → KWK (Figure 7D), which both correspond to the fully present tryptophan side chain, are compared with the cocrystal structure (1JEV, 2OLB) in panels C and D, respectively, of Figure 7. Here, two of three waters are properly placed.
+Thus, although water placement by the MC/MD method does not agree perfectly with experiment, the deviations are on a similar scale to those of other perturbations for which the RBFE calculations were far more accurate. We therefore considered whether inadequate sampling might be to blame. However, extending the λ window production simulations tenfold led to the same method 1 result to within 0.1 kcal mol−1. This does not rule out sampling as the problem, but it makes this less probable. We also compared the simulated conformational preferences of the peptide and protein with the conformations in the respective crystal structures and did not observe any notable rearrangements. Given the change in the ligand’s net charge for this perturbation, and the potential for electrostatic interactions to make large energy contributions, it is natural to consider whether the treatment of electrostatics needs to be improved to reach a more accurate result. It is thus worth noting that the error for this perturbation is large both with and without the correction of electrostatic energies for the finite box size (Section 3.1). We conjecture that more accurate results might be obtained by use of an improved force field (e.g., with an explicit treatment of electronic polarizability), more extensive conformational sampling of the protein, or a more faithful representation of the biologically relevant system (e.g., inclusion of counterions around the perturbation). The fact that all four methods yield errors for this system that are similar in size and in the same direction suggests a shared source of error rather than random noise.
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 11
+
+4. CONCLUSIONS
+We find that allowing water molecules to equilibrate between the bulk solvent and protein interior, using the present hybrid MC/MD method leads to more accurate RBFE calculations for ligands that occupy buried binding sites. For the systems studied here, the improvement in RMS error, relative to pure MD, is ~2 kcal mol−1, and the MC/MD results give an RMS error of ~1 kcal mol−1, except for one case where all the methods fail. The MC/MD method also improves the internal consistency of the calculations, in the sense that it reduces the hysteresis of free energies obtained from forward and reverse perturbations, which should give identical results. These improvements presumably derive from the ability of this method to allow the number of buried waters associated with the ligand to change in concert with the alchemical perturbation of the ligand. Examination of the numbers and positions of the simulated waters shows the anticipated changes, although the agreement between simulation and crystallographic water sites remains imperfect. This likely reflects some combination of issues with sampling, force field, and the fact that the simulated conditions (e.g., temperature) were chosen to model the conditions of the binding assays rather than of the crystallography experiments. Interestingly, the accuracy of the calculations run with pure MD was not affected by whether crystallographic waters were retained or deleted during setup of the simulations.
+With the present settings, the advantages of methods 1 and 2 relative to methods 3 and 4 come at a nontrivial cost in compute time. One reason is that we chose to err on the side of full convergence by using considerably more MC steps than we expected would be needed to equilibrate water occupancies, based on a prior study.58 For practical applications, we would recommend a few initial trial calculations to get a sense for the number of MC steps needed for the system of interest, followed by production calculations using either method 1 or method 2 with this setting. Reductions in wall-clock time for a given number of MC steps should also be achievable by at least three algorithmic changes. First, running the MC steps on the GPU would save time by reducing communication between the GPU and the CPU. Second, one may compute the energy of a trial step as the change in the interaction energy of the moved water with all other atoms, instead of recomputing the full system energy. Third, the wall clock time needed for the MC steps can be reduced by taking advantage of algorithms that provide a valid Boltzmann distribution for MC trials run in parallel.95,96
+Although we focused on RBFE calculations, the present method is also expected to improve the accuracy of ABFE calculations involving ligands in buried binding sites, as recently highlighted.27 In particular, double decoupling calculations20 can leave the entire site empty without creating a channel to the bulk solvent. Allowing water to penetrate the site during the decoupling process may be essential to obtain accurate results. This is likely of less concern for ABFE calculations that follow physical pathways,18,97 where forced removal of the ligand opens a channel to the bulk through which water can flow to reoccupy the site. However, there are cases where even these methods may benefit from the enhanced sampling of water, such as when a ligand is pulled from a deep, tunnel-like binding site that prevents water from back-filling until the ligand is entirely detached from the protein. Thus, there are a range of settings in which MC/MD and related methods should be of
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 12
+
+considerable value. The MC/MD implementation used here is available in current releases of the AMBER simulation package.
+
+ACKNOWLEDGMENTS
+M.K.G. acknowledges funding from the National Institute of General Medical Sciences (GM061300 and GM100946). These findings are solely of the authors and do not necessarily represent the views of the NIH. M.K.G. has an equity interest in and is a cofounder and scientific advisor of VeraChem LLC. Z.L., B.K.R., C.L., and W.S. are employees of Silicon Therapeutics.
+REFERENCES
+(1). Yu W; MacKerell AD Computer-Aided Drug Design Methods In Antibiotics; Sass P, Ed.; Methods in Molecular Biology; Springer New York: New York, NY, 2017; Vol. 1520, pp 85–106.
+(2). Muegge I; Bergner A; Kriegl JM Computer-Aided Drug Design at Boehringer Ingelheim. J. Comput.-Aided Mol. Des 2017, 31, 275–285. [PubMed: 27650777]
+(3). Jain A Computer Aided Drug Design. J. Phys.: Conf. Ser 2017, 884, 012072. (4). Lamb ML; Jorgensen WL Computational Approaches to Molecular Recognition. Curr. Opin.
+Chem. Biol 1997, 1, 449–457. [PubMed: 9667895] (5). Gilson MK; Zhou H-X Calculation of Protein-Ligand Binding Affinities. Annu. Rev. Biophys.
+Biomol. Struct 2007, 36, 21–42. [PubMed: 17201676] (6). Gallicchio E; Levy RM Recent Theoretical and Computational Advances for Modeling Protein–
+Ligand Binding Affinities In Advances in Protein Chemistry and Structural Biology; Elsevier, 2011; Vol. 85, pp 27–80. [PubMed: 21920321] (7). Wang DD; Zhu M; Yan H Computationally Predicting Binding Affinity in Protein–Ligand Complexes: Free Energy-Based Simulations and Machine Learning-Based Scoring Functions. Briefings Bioinf. 2020, bbaa107. (8). Susukita R; Ebisuzaki T; Elmegreen BG; Furusawa H; Kato K; Kawai A; Kobayashi Y; Koishi T; McNiven GD; Narumi T; Yasuoka K Hardware Accelerator for Molecular Dynamics: MDGRAPE-2. Comput. Phys. Commun 2003, 155, 115–131. (9). Le Grand S; Götz AW; Walker RC SPFP: Speed without Compromise—A Mixed Precision Model for GPU Accelerated Molecular Dynamics Simulations. Comput. Phys. Commun 2013, 184, 374–380. (10). Götz AW; Williamson MJ; Xu D; Poole D; Le Grand S; Walker RC Routine Microsecond Molecular Dynamics Simulations with AMBER on GPUs. 1. Generalized Born. J. Chem. Theory Comput 2012, 8, 1542–1555. [PubMed: 22582031] (11). Eastman P; Friedrichs MS; Chodera JD; Radmer RJ; Bruns CM; Ku JP; Beauchamp KA; Lane TJ; Wang L-P; Shukla D; Tye T; Houston M; Stich T; Klein C; Shirts MR; Pande VS OpenMM 4: A Reusable, Extensible, Hardware Independent Library for High Performance Molecular Simulation. J. Chem. Theory Comput 2013, 9, 461–469. [PubMed: 23316124] (12). Stone JE; Hardy DJ; Ufimtsev IS; Schulten K GPU-Accelerated Molecular Modeling Coming of Age. J. Mol. Graphics Modell 2010, 29, 116–125. (13). Shaw DE; Chao JC; Eastwood MP; Gagliardo J; Grossman JP; Ho CR; Ierardi DJ; Kolossváry I; Klepeis JL; Layman T; McLeavey C; Deneroff MM; Moraes MA; Mueller R; Priest EC; Shan Y; Spengler J; Theobald M; Towles B; Wang SC; Dror RO; Kuskin JS; Larson RH; Salmon JK; Young C; Batson B; Bowers KJ Anton, a Special-Purpose Machine for Molecular Dynamics Simulation Proceedings of the 34th Annual International Symposium on Computer ArchitectureISCA ‘07; ACM Press: San Diego, California, USA, 2007; p 1. (14). Shaw DE; Grossman JP; Bank JA; Batson B; Butts JA; Chao JC; Deneroff MM; Dror RO; Even A; Fenton CH; Forte A; Gagliardo J; Gill G; Greskamp B; Ho CR; Ierardi DJ; Iserovich L; Kuskin JS; Larson RH; Layman T; Lee L-S; Lerer AK; Li C; Killebrew D; Mackenzie KM; Mok SY-H; Moraes MA; Mueller R; Nociolo LJ; Peticolas JL; Quan T; Ramot D; Salmon JK; Scarpazza DP; Schafer UB; Siddique N; Snyder CW; Spengler J; Tang PTP; Theobald M; Toma H; Towles B; Vitale B; Wang SC; Young C Anton 2: Raising the Bar for Performance and
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 13
+
+Programmability in a Special-Purpose Molecular Dynamics Supercomputer SC14: International Conference for High Performance Computing, Networking, Storage and Analysis; IEEE: New Orleans, LA, USA, 2014; pp 41–53.
+(15). Tembe BL; Mc Cammon JA Ligand-Receptor Interactions. Comput. Chem 1984, 8, 281–283.
+(16). Simonson T; Archontis G; Karplus M Free Energy Simulations Come of Age: Protein–Ligand Recognition. Acc. Chem. Res 2002, 35, 430–437. [PubMed: 12069628]
+(17). Jorgensen WL; Thomas LL Perspective on Free-Energy Perturbation Calculations for Chemical Equilibria. J. Chem. Theory Comput 2008, 4, 869–876. [PubMed: 19936324]
+(18). Woo H-J; Roux B Calculation of Absolute Protein-Ligand Binding Free Energy from Computer Simulations. Proc. Natl. Acad. Sci. U.S.A 2005, 102, 6825–6830. [PubMed: 15867154]
+(19). Knight JL; Brooks CL λ-Dynamics Free Energy Simulation Methods. J. Comput. Chem 2009, 30, 1692–1700. [PubMed: 19421993]
+(20). Gilson MK; Given JA; Bush BL; McCammon JA The Statistical-Thermodynamic Basis for Computation of Binding Affinities: A Critical Review. Biophys. J 1997, 72, 1047–1069. [PubMed: 9138555]
+(21). Kollman P Free Energy Calculations: Applications to Chemical and Biochemical Phenomena. Chem. Rev 1993, 93, 2395–2417.
+(22). van Gunsteren WF; Daura X; Mark AE Computation of Free Energy. Helv. Chim. Acta 2002, 85, 3113–3129.
+(23). Huggins DJ; Biggin PC; Dämgen MA; Essex JW; Harris SA; Henchman RH; Khalid S; Kuzmanic A; Laughton CA; Michel J; Mulholland AJ; Rosta E; Sansom MSP; van der Kamp MW Biomolecular Simulations: From Dynamics and Mechanisms to Computational Assays of Biological Activity. Wiley Interdiscip. Rev.: Comput. Mol. Sci 2019, 9, No. e1393.
+(24). Wang L; Wu Y; Deng Y; Kim B; Pierce L; Krilov G; Lupyan D; Robinson S; Dahlgren MK; Greenwood J; Romero DL; Masse C; Knight JL; Steinbrecher T; Beuming T; Damm W; Harder E; Sherman W; Brewer M; Wester R; Murcko M; Frye L; Farid R; Lin T; Mobley DL; Jorgensen WL; Berne BJ; Friesner RA; Abel R Accurate and Reliable Prediction of Relative Ligand Binding Potency in Prospective Drug Discovery by Way of a Modern Free-Energy Calculation Protocol and Force Field. J. Am. Chem. Soc 2015, 137, 2695–2703. [PubMed: 25625324]
+(25). Cournia Z; Allen B; Sherman W Relative Binding Free Energy Calculations in Drug Discovery: Recent Advances and Practical Considerations. J. Chem. Inf. Model 2017, 57, 2911–2937. [PubMed: 29243483]
+(26). Schindler C; Baumann H; Blum A; Böse D; Buchstaller H-P; Burgdorf L; Cappel D; Chekler E; Czodrowski P; Dorsch D; Eguida M; Follows B; Fuchß T; Grädler U; Gunera J; Johnson T; Jorand Lebrun C; Karra S; Klein M; Kötzner L; Knehans T; Krier M; Leiendecker M; Leuthner B; Li L; Mochalkin I; Musil D; Neagu C; Rippmann F; Schiemann K; Schulz R; Steinbrecher T; Tanzer E-M; Unzue Lopez A; Viacava Follis A; Wegener A; Kuhn D Large-Scale Assessment of Binding Free Energy Calculations in Active Drug Discovery Projects. 2020, preprint chemrxiv.11364884.v2.
+(27). Cournia Z; Allen BK; Beuming T; Pearlman DA; Radak BK; Sherman W Rigorous Free Energy Simulations in Virtual Screening. J. Chem. Inf. Model 2020, 60, 4153. [PubMed: 32539386]
+(28). Mackerell AD Empirical Force Fields for Biological Macromolecules: Overview and Issues. J. Comput. Chem 2004, 25, 1584–1604. [PubMed: 15264253]
+(29). Harder E; Damm W; Maple J; Wu C; Reboul M; Xiang JY; Wang L; Lupyan D; Dahlgren MK; Knight JL; Kaus JW; Cerutti DS; Krilov G; Jorgensen WL; Abel R; Friesner RA OPLS3: A Force Field Providing Broad Coverage of Drug-like Small Molecules and Proteins. J. Chem. Theory Comput 2016, 12, 281–296. [PubMed: 26584231]
+(30). Nerenberg PS; Head-Gordon T New Developments in Force Fields for Biomolecular Simulations. Curr. Opin. Struct. Biol 2018, 49, 129–138. [PubMed: 29477047]
+(31). Riniker S Fixed-Charge Atomistic Force Fields for Molecular Dynamics Simulations in the Condensed Phase: An Overview. J. Chem. Inf. Model 2018, 58, 565–578. [PubMed: 29510041]
+(32). Mobley DL; Gilson MK Predicting Binding Free Energies: Frontiers and Benchmarks. Annu. Rev. Biophys 2017, 46, 531–558. [PubMed: 28399632]
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 14
+
+(33). Karplus M; McCammon JA Molecular Dynamics Simulations of Biomolecules. Nat. Struct. Biol 2002, 9, 646–652. [PubMed: 12198485]
+(34). Cole DJ; Tirado-Rives J; Jorgensen WL Molecular Dynamics and Monte Carlo Simulations for Protein–Ligand Binding and Inhibitor Design. Biochim. Biophys. Acta, Gen. Subj 2015, 1850, 966–971.
+(35). Michel J; Essex JW Hit Identification and Binding Mode Predictions by Rigorous Free Energy Simulations. J. Med. Chem 2008, 51, 6654–6664. [PubMed: 18834104]
+(36). Essex JW; Severance DL; Tirado-Rives J; Jorgensen WL Monte Carlo Simulations for Proteins: Binding Affinities for Trypsin–Benzamidine Complexes via Free-Energy Perturbations. J. Phys. Chem. B 1997, 101, 9663–9669.
+(37). Michel J; Verdonk ML; Essex JW Protein–Ligand Complexes: Computation of the Relative Free Energy of Different Scaffolds and Binding Modes. J. Chem. Theory Comput 2007, 3, 1645– 1655. [PubMed: 26627610]
+(38). Jorgensen WL; Tirado-Rives J Molecular Modeling of Organic and Biomolecular Systems UsingBOSS AndMCPRO. J. Comput. Chem 2005, 26, 1689–1700. [PubMed: 16200637]
+(39). Kirkwood JG Theory of Liquids; Gordon and Breach, 1968; Vol. 2.
+(40). Zwanzig RW High-Temperature Equation of State by a Perturbation Method. I. Nonpolar Gases. J. Chem. Phys 1954, 22, 1420–1426.
+(41). Bennett CH Efficient Estimation of Free Energy Differences from Monte Carlo Data. J. Comput. Phys 1976, 22, 245–268.
+(42). Shirts MR; Chodera JD Statistically Optimal Analysis of Samples from Multiple Equilibrium States. J. Chem. Phys 2008, 129, 124105. [PubMed: 19045004]
+(43). Jarzynski C Equilibrium Free-Energy Differences from Nonequilibrium Measurements: A Master-Equation Approach. Phys. Rev. E: Stat. Phys., Plasmas, Fluids, Relat. Interdiscip. Top 1997, 56, 5018–5035.
+(44). Cossins BP; Foucher S; Edge CM; Essex JW Protein–Ligand Binding Affinity by Nonequilibrium Free Energy Methods. J. Phys. Chem. B 2008, 112, 14985–14992. [PubMed: 18973369]
+(45). Sandberg RB; Banchelli M; Guardiani C; Menichetti S; Caminati G; Procacci P Efficient Nonequilibrium Method for Binding Free Energy Calculations in Molecular Dynamics Simulations. J. Chem. Theory Comput 2015, 11, 423–435. [PubMed: 26580905]
+(46). Gapsys V; Pérez-Benito L; Aldeghi M; Seeliger D; van Vlijmen H; Tresadern G; de Groot BL Large Scale Relative Protein Ligand Binding Affinities Using Non-Equilibrium Alchemy. Chem. Sci 2020, 11, 1140–1152.
+(47). Crooks GE Nonequilibrium Measurements of Free Energy Differences for Microscopically Reversible Markovian Systems. J. Stat. Phys 1998, 90, 1481.
+(48). Velez-Vega C; Gilson MK Overcoming Dissipation in the Calculation of Standard Binding Free Energies by Ligand Extraction. J. Comput. Chem 2013, 34, 2360. [PubMed: 24038118]
+(49). Gumbart JC; Roux B; Chipot C Standard Binding Free Energies from Computer Simulations: What Is the Best Strategy? J. Chem. Theory Comput 2013, 9, 794–802. [PubMed: 23794960]
+(50). Jorgensen WL; Buckner JK; Boudon S; Tirado-Rives J Efficient Computation of Absolute Free Energies of Binding by Computer Simulations. Application to the Methane Dimer in Water. J. Chem. Phys 1988, 89, 3742–3746.
+(51). Boresch S; Karplus M The Jacobian Factor in Free Energy Simulations. J. Chem. Phys 1996, 105, 5145–5154.
+(52). Maurer M; Oostenbrink C Water in Protein Hydration and Ligand Recognition. J. Mol. Recognit 2019, 32, No. e2810. [PubMed: 31456282]
+(53). Metropolis N; Rosenbluth AW; Rosenbluth MN; Teller AH; Teller E Equation of State Calculations by Fast Computing Machines. J. Chem. Phys 1953, 21, 1087–1092.
+(54). Woo H-J; Dinner AR; Roux B Grand Canonical Monte Carlo Simulations of Water in Protein Environments. J. Chem. Phys 2004, 121, 6392–6400. [PubMed: 15446937]
+(55). Ross G; Russell E; Deng Y; Lu C; Harder E; Abel R; Wang L Enhancing Water Sampling in Free Energy Calculations with Grand Canonical Monte Carlo. 2020, preprint chemrxiv.12595073.v1.
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 15
+
+(56). Wahl J; Smieško M Assessing the Predictive Power of Relative Binding Free Energy Calculations for Test Cases Involving Displacement of Binding Site Water Molecules. J. Chem. Inf. Model 2019, 59, 754–765. [PubMed: 30640456]
+(57). Bruce Macdonald HE; Cave-Ayland C; Ross GA; Essex JW Ligand Binding Free Energies with Adaptive Water Networks: Two-Dimensional Grand Canonical Alchemical Perturbations. J. Chem. Theory Comput 2018, 14, 6586–6597. [PubMed: 30451501]
+(58). Ben-Shalom IY; Lin C; Kurtzman T; Walker RC; Gilson MK Simulating Water Exchange to Buried Binding Sites. J. Chem. Theory Comput 2019, 15, 2684–2691. [PubMed: 30835999]
+(59). Case DA; Ben-Shalom IY; Brozell SR; Cerutti DS; Cheatham TE III; Cruzeiro VWD; Darden TA; Duke RE; Ghoreishi D; Gilson MK; Gohlke H; Goetz AW; Greene D; Harris R; Homeyer N; Izadi S; Kovalenko A; Kurtzman T; Lee TS; LeGrand S; Li P; Lin C; Liu J; Luchko T; Luo R; Mermelstein DJ; Merz KM; Miao Y; Monard G; Nguyen C; Nguyen H; Omelyan I; Onufriev A; Pan F; Qi R; Roe DR; Roitberg A; Sagui C; Schott-Verdugo S; Shen J; Simmerling CL; Smith J; Salomon-Ferrer R; Swails J; Walker RC; Wang J; Wei H; Wolf RM; Wu X; Xiao L; York DM; Kollman PA Amber 18; University of California: San Francisco, 2018.
+(60). Case DA; Belfon K; Ben-Shalom IY; Brozell SR; Cerutti DS, Cheatham TE III; Cruzeiro VWD; Darden TA; Duke RE; Giambasu G; Gilson MK; Gohlke H; Goetz AW; Harris R; Izadi S; Izmailov SA; Kasavajhala K; Kovalenko A; Krasny R; Kurtzman T; Lee TS; LeGrand S; Li P; Lin C; Liu J; Luchko T; Luo R; Man V; Merz KM; Miao Y; Mikhailovskii O; Monard G; Nguyen H; Onufriev A; Pan F; Pantano S; Qi R; Roe DR; Roitberg A; Sagui C; Schott-Verdugo S; Shen J; Simmerling CL; Skrynnikov NR; Smith J; Swails J; Walker RC; Wang J; Wilson L; Wolf RM; Wu X; Xiong Y; Xue Y; York DM; Kollman PA Amber 20; University of California: San Francisco, 2020.
+(61). Bernstein FC; Koetzle TF; Williams GJB; Meyer EF; Brice MD; Rodgers JR; Kennard O; Shimanouchi T; Tasumi M The Protein Data Bank. A Computer-Based Archival File for Macromolecular Structures. Eur. J. Biochem 1977, 80, 319–324. [PubMed: 923582]
+(62). Berman HM The Protein Data Bank. Nucleic Acids Res. 2000, 28, 235–242. [PubMed: 10592235]
+(63). RCSB PDB. www.rcsb.org.
+(64). Maurer M; de Beer S; Oostenbrink C Calculation of Relative Binding Free Energy in the WaterFilled Active Site of Oligopeptide-Binding Protein A. Molecules 2016, 21, 499. [PubMed: 27092480]
+(65). McGann M FRED and HYBRID Docking Performance on Standardized Datasets. J. Comput.Aided Mol. Des 2012, 26, 897–906. [PubMed: 22669221]
+(66). Davies NGM; Browne H; Davis B; Drysdale MJ; Foloppe N; Geoffrey S; Gibbons B; Hart T; Hubbard R; Jensen MR; Mansell H; Massey A; Matassova N; Moore JD; Murray J; Pratt R; Ray S; Robertson A; Roughley SD; Schoepfer J; Scriven K; Simmonite H; Stokes S; Surgenor A; Webb P; Wood M; Wright L; Brough P Targeting Conserved Water Molecules: Design of 4Aryl-5-Cyanopyrrolo[2,3-d]Pyrimidine Hsp90 Inhibitors Using Fragment-Based Screening and Structure-Based Optimization. Bioorg. Med. Chem 2012, 20, 6770–6789. [PubMed: 23018093]
+(67). Woodhead AJ; Angove H; Carr MG; Chessari G; Congreve M; Coyle JE; Cosme J; Graham B; Day PJ; Downham R; Fazal L; Feltell R; Figueroa E; Frederickson M; Lewis J; McMenamin R; Murray CW; O’Brien MA; Parra L; Patel S; Phillips T; Rees DC; Rich S; Smith D-M; Trewartha G; Vinkovic M; Williams B; Woolford AJ-A Discovery of (2,4-Dihydroxy-5Isopropylphenyl)-[5-(4-Methylpiperazin-1-Ylmethyl)-1,3-Dihydroisoindol-2-Yl]Methanone (AT13387), a Novel Inhibitor of the Molecular Chaperone Hsp90 by Fragment Based Drug Design. J. Med. Chem 2010, 53, 5956–5969. [PubMed: 20662534]
+(68). Chen JM; Xu SL; Wawrzak Z; Basarab GS; Jordan DB Structure-Based Design of Potent Inhibitors of Scytalone Dehydratase: Displacement of a Water Molecule from the Active Site‡. Biochemistry 1998, 37, 17735–17744. [PubMed: 9922139]
+(69). Smith CR; Dougan DR; Komandla M; Kanouni T; Knight B; Lawson JD; Sabat M; Taylor ER; Vu P; Wyrick C Fragment-Based Discovery of a Small Molecule Inhibitor of Bruton’s Tyrosine Kinase. J. Med. Chem 2015, 58, 5437–5444. [PubMed: 26087137]
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 16
+
+(70). Baum B; Mohamed M; Zayed M; Gerlach C; Heine A; Hangauer D; Klebe G More than a Simple Lipophilic Contact: A Detailed Thermodynamic Analysis of Nonbasic Residues in the S1 Pocket of Thrombin. J. Mol. Biol 2009, 390, 56–69. [PubMed: 19409395]
+(71). Tame JR; Dodson EJ; Murshudov G; Higgins CF; Wilkinson AJ The Crystal Structures of the Oligopeptide-Binding Protein OppA Complexed with Tripeptide and Tetrapeptide Ligands. Structure 1995, 3, 1395–1406. [PubMed: 8747465]
+(72). Tame JRH; Sleigh SH; Wilkinson AJ; Ladbury JE The Role of Water in Sequence-Independent Ligand Binding by an Oligopeptide Transporter Protein. Nat. Struct. Mol. Biol 1996, 3, 998– 1001.
+(73). Jorgensen WL; Chandrasekhar J; Madura JD; Impey RW; Klein ML Comparison of Simple Potential Functions for Simulating Liquid Water. J. Chem. Phys 1983, 79, 926–935.
+(74). Hornak V; Abel R; Okur A; Strockbine B; Roitberg A; Simmerling C Comparison of Multiple Amber Force Fields and Development of Improved Protein Backbone Parameters. Proteins 2006, 65, 712–725. [PubMed: 16981200]
+(75). Maier JA; Martinez C; Kasavajhala K; Wickstrom L; Hauser KE; Simmerling C Ff14SB: Improving the Accuracy of Protein Side Chain and Backbone Parameters from Ff99SB. J. Chem. Theory Comput 2015, 11, 3696–3713. [PubMed: 26574453]
+(76). Wang J; Wolf RM; Caldwell JW; Kollman PA; Case DA Development and Testing of a General Amber Force Field. J. Comput. Chem 2004, 25, 1157–1174. [PubMed: 15116359]
+(77). Salomon-Ferrer R; Götz AW; Poole D; Le Grand S; Walker RC Routine Microsecond Molecular Dynamics Simulations with AMBER on GPUs. 2. Explicit Solvent Particle Mesh Ewald. J. Chem. Theory Comput 2013, 9, 3878–3888. [PubMed: 26592383]
+(78). Mermelstein DJ; Lin C; Nelson G; Kretsch R; McCammon JA; Walker RC Fast and Flexible Gpu Accelerated Binding Free Energy Calculations within the Amber Molecular Dynamics Package. J. Comput. Chem 2018, 39, 1354–1358. [PubMed: 29532496]
+(79). Landrum G RDKit: Open-Source Cheminformatics.
+(80). Hopkins CW; Le Grand S; Walker RC; Roitberg AE Long-Time-Step Molecular Dynamics through Hydrogen Mass Repartitioning. J. Chem. Theory Comput 2015, 11, 1864–1874. [PubMed: 26574392]
+(81). Feenstra KA; Hess B; Berendsen HJC Improving Efficiency of Large Time-Scale Molecular Dynamics Simulations of Hydrogen-Rich Systems. J. Comput. Chem 1999, 20, 786–798.
+(82). Åqvist J; Wennerström P; Nervall M; Bjelic S; Brandsdal BO Molecular Dynamics Simulations of Water and Biomolecules with a Monte Carlo Constant Pressure Algorithm. Chem. Phys. Lett 2004, 384, 288–294.
+(83). Ryckaert J-P; Ciccotti G; Berendsen HJC Numerical Integration of the Cartesian Equations of Motion of a System with Constraints: Molecular Dynamics of n-Alkanes. J. Comput. Phys 1977, 23, 327–341.
+(84). Miyamoto S; Kollman PA Settle: An Analytical Version of the SHAKE and RATTLE Algorithm for Rigid Water Models. J. Comput. Chem 1992, 13, 952–962.
+(85). Steinbrecher T; Mobley DL; Case DA Nonlinear Scaling Schemes for Lennard-Jones Interactions in Free Energy Calculations. J. Chem. Phys 2007, 127, 214108. [PubMed: 18067350]
+(86). Darden T; York D; Pedersen L Particle Mesh Ewald: An N· log(N) Method for Ewald Sums in Large Systems. J. Chem. Phys 1993, 98, 10089–10092.
+(87). Allen MP; Tildesley D Computer Simulation of Liquids; Clarendon Press: Oxford, 1987.
+(88). Song LF; Lee T-S; Zhu C; York DM; Merz KM Using AMBER18 for Relative Free Energy Calculations. J. Chem. Inf. Model 2019, 59, 3128–3135. [PubMed: 31244091]
+(89). Lee T-S; Allen BK; Giese TJ; Guo Z; Li P; Lin C; McGee TD; Pearlman DA; Radak BK; Tao Y; Tsai H-C; Xu H; Sherman W; York DM Alchemical Binding Free Energy Calculations in AMBER20: Advances and Best Practices for Drug Discovery. J. Chem. Inf. Model 2020, DOI: 10.1021/acs.jcim.0c00613.
+(90). Lee T-S; Lin Z; Allen BK; Lin C; Radak BK; Tao Y; Tsai H-C; Sherman W; York DM Improved Alchemical Free Energy Calculations with Optimized Smoothstep Softcore Potentials. J. Chem. Theory Comput 2020, 16, 5512. [PubMed: 32672455]
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 17
+
+(91). Lee T-S; Cerutti DS; Mermelstein D; Lin C; LeGrand S; Giese TJ; Roitberg A; Case DA; Walker RC; York DM GPU-Accelerated Molecular Dynamics and Free Energy Methods in Amber18: Performance Enhancements and New Features. J. Chem. Inf. Model 2018, 58, 2043–2050. [PubMed: 30199633]
+(92). Lee T-S; Hu Y; Sherborne B; Guo Z; York DM Toward Fast and Accurate Binding Affinity Prediction with PmemdGTI: An Efficient Implementation of GPU-Accelerated Thermodynamic Integration. J. Chem. Theory Comput 2017, 13, 3077–3084. [PubMed: 28618232]
+(93). Rocklin GJ; Mobley DL; Dill KA; Hünenberger PH Calculating the Binding Free Energies of Charged Species Based on Explicit-Solvent Simulations Employing Lattice-Sum Methods: An Accurate Correction Scheme for Electrostatic Finite-Size Effects. J. Chem. Phys 2013, 139, 184103. [PubMed: 24320250]
+(94). Olsson MA; García-Sosa AT; Ryde U Binding Affinities of the Farnesoid X Receptor in the D3R Grand Challenge 2 Estimated by Free-Energy Perturbation and Docking. J. Comput.-Aided Mol. Des 2018, 32, 211–224. [PubMed: 28879536]
+(95). Anderson JA; Jankowski E; Grubb TL; Engel M; Glotzer SC Massively Parallel Monte Carlo for Many-Particle Simulations on GPUs. J. Comput. Phys 2013, 254, 27–38.
+(96). VanDerwerken DN; Schmidler SC Parallel Markov Chain Monte Carlo. 2013, arXiv:1312.7479 [stat].
+(97). Henriksen NM; Fenley AT; Gilson MK Computational Calorimetry: High-Precision Calculation of Host–Guest Binding Thermodynamics. J. Chem. Theory Comput 2015, 11, 4377–4394. [PubMed: 26523125]
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 18
+
+Figure 1.
+Thermodynamic cycle used in relative binding free energy (RBFE = ΔΔG°) calculations where the hydration of the binding site differs between the two ligands. The RBFE is calculated as the difference between the free energies of converting ligand 1 into ligand 2 in the binding site versus in solution.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 19
+
+Figure 2. Four methods explored in this work for dealing with water molecules in the binding site. See text for details.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Ben-Shalom et al.
+
+Page 20
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 3. Perturbations considered in this study, with schematic representations of water displacements and selected neighboring side chains. Numbers above arrows are the experimental free energy changes (kcal mol−1). (A,B) Ligands D13b and D15b and W1 and W2, all HSP90 inhibitors. (C) C3d and C5d, Scytalone dehydratase inhibitors. (D) S8 and S11, BTK inhibitors. (E) B1a, B1b, B3a, and B5, thrombin inhibitors. (F) peptides KEK, KKK, KWK, OppA inhibitors. Dashed lines indicate linkage to the rest of the peptide, which is not changed in these perturbations. Structures are shown with the charge states used in the simulations. Binding free energies are draw from the citations in Table 2.
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 21
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 4. Schematic of the MC setup employed in this work. Light blue: simulation box. Black rectangle: perimeter of the rectangular MC exchange region, with its steric grid. Pink and green are the protein and ligand, respectively. The three longer arrows indicate the 8 Å shift of the grid from the edges of the simulation box. The short arrow on the right represents a smaller, 3 Å offset, which ensures that the box extends into bulk solvent and thus allows exchange between bulk and the interior of the protein.
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Ben-Shalom et al.
+
+Page 22
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 5.
+Computed mean water occupancies for each λ window in the W1–W2 perturbation. Blue: Perturbation W1 → W2 with the λ windows labeled at the lower X-axis. Red: Reverse perturbation, W2 → W1, with λ windows in reverse order as labeled at the upper X-axis. Dashed lines: show ranges defined by the standard deviations over the five repetitions. Left: Number of buried water molecules after the water equilibration step shared by methods 1 and 2 (see Figure 2), averaged over the five replicates. Right: Time- and replica-averaged number of buried water molecules for each λ window in the five TI production runs of method 1.
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 23
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 6. Examining the electron density map of the 4FCQ reveals that the right most water molecule displays a strange shape (as if it is a part of the ligand), suggesting it to not be a water molecule.
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Ben-Shalom et al.
+
+Page 24
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Figure 7. Crystal structures compared to the structures generated with MC/MD. For clarity, only the peptide KEK and the buried waters are shown. In A and B, the crystal structure of the 1JEU is compared to (A) first window of the perturbation KEK → KWK (decharge 0.0) and (B) last window of the perturbation KWK → KEK (recharge 1.0). In (C,D), the crystal structure of the 1JEV is compared to (C) first window of perturbation KWK → KEK (decharge 0.0), and (D) last window of the perturbation KEK → KWK (Recharge 1.0).
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Page 25
+
+Table 1. Ligands and Proteins Used to Construct the Dataset in This Worka
+
+protein HSP90
+Scytalone dehydratase BTK thrombin
+OppA
+
+ligand 1
+
+name PDB ID
+
+D13b 4FCP66*
+
+W1 2XAB67
+
+C3d 5STD68*
+
+S8
+
+4ZLZ69
+
+B1b 2ZC970
+
+B3a 2ZF070
+
+B1a 2ZDV70
+
+KKK 2OLB71
+
+KEK 1JEU72
+
+ligand 2
+
+name PDB ID
+
+D15b 4FCQ66
+
+W2 2XJG67 C5d 3STD68
+
+S11 4Z3V69
+
+B5
+
+2ZFF70
+
+KWK 1JEV72
+
+Ndisp; Figure 3 panel 1; A 2; B 1; C 1; D 1; E 1; E 1; E 2; F 4; F
+
+aNdisp: the number of buried waters displaced in each perturbation, based on the crystal structures. Figure 3 panel: panel in Figure 3 showing each perturbation.
+* indicates structures built from closely related ligands cocrystallized with the same protein. Citations provide both structural and binding affinity data.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Ben-Shalom et al.
+
+Table 2.
+Relative Binding Free Energies (kcal mol−1) of all Perturbations Considered Here, and the RMSE for Each Method, Omitting the Perturbation of KEK– KWK, as Detailed in the Main Texta
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+D13b-D15b W1-W2 C3d-C5d S8-S11 B1b-B5 B3a-B5 B1a-B5 KWK-KKK KEK-KWK RMSE*
+
+experiment 1.41 2.01 1.98 1.91 1.32 2.45 0.61 1.82 0.10
+
+method 1 3.13 0.93 3.24 3.35 1.99 1.08 0.99 1.81 15.61 1.13
+
+method 2 3.19 0.51 2.59 3.99 1.82 1.04 0.86 2.45 16.46 1.27
+
+method 3 3.34 −4.64 3.69 4.92 1.86 0.93 0.65 11.66 18.16 4.46
+
+method 4 3.11 2.80 1.32 −0.11 1.29 0.85 2.95 −5.73 13.63 3.02
+
+a The values for the perturbations of KWK–KKK and KEK–KWK include the finite size corrections. Uncertainties over the five repetitions of each perturbation are presented in Table 3.
+
+Page 26
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Author Manuscript
+
+Table 3. Standard Deviations and Hystereses (kcal mol−1) Associated with the RBFE Calculations Considered Herea
+
+Ben-Shalom et al.
+
+J Chem Theory Comput. Author manuscript; available in PMC 2021 December 08.
+
+method 1 method 2 method 3 method 4
+
+SD Hyst SD Hyst SD Hyst SD Hyst
+
+D13b-D15b 0.49 0.39 0.60 0.26 0.36 0.16 0.72 0.3
+
+W1-W2
+
+0.99 0.59 0.97 0.78 0.56 0.00 0.73 6.61
+
+C3d-C5d 1.31 1.41 1.4 0.47 1.51 0.11 1.4 1.48
+
+S8-S11
+
+1.13 0.18 1.02 0.36 1.07 0.98 0.91 0.25
+
+B1b-B5
+
+0.45 0.41 0.38 0.08 0.46 0.05 0.41 1.91
+
+B3a-B5
+
+0.44 0.01 0.44 0.03 0.4 0.33 0.3 1.14
+
+B1a-B5
+
+0.32 0.5 0.32 0.49 0.3 0.19 0.29 1.12
+
+KWK-KKK 1.58 1.91 1.57 1.41 1.43 2.05 1.16 14.37
+
+KEK-KWK 1.51 0.45 1.79 0.93 1.42 0.74 1.65 6.22
+
+mean
+
+0.91 0.65 0.94 0.53 0.83 0.51 0.84 3.71
+
+aSee Section 2.3 for definitions. The KEK–KWK perturbations are omitted from the means, as detailed in the main text.
+
+Page 27
+

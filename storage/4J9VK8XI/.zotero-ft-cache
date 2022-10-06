@@ -1,0 +1,428 @@
+
+
+JavaScript is disabled on your browser. Please enable JavaScript to use all the features on this page. Skip to main content Skip to article
+Elsevier logo ScienceDirect
+
+    Journals & Books 
+
+Corporate sign in Sign in / register
+You have institutional access
+
+    View  PDF
+    Download Full Issue 
+
+Outline
+
+    Abstract
+    Keywords
+    1. Motivation and significance
+    2. Simulation capabilities
+    3. Software description
+    4. Software functionalities
+    5. Performance & scaling
+    6. Conclusions
+    Acknowledgments
+    References 
+
+Show full outline
+Cited By (9099)
+Figures (6)
+
+    Fig.1. Multi-level parallelism in GROMACS
+    Fig.2. Left: The protein lysozyme (24,119 atoms) in a compact unit cell representation…
+    Fig.3. Left: A classical Verlet implementation treats all j-particles within an…
+    Fig.4. Illustration of the classical 1×1 neighborlist and the 4×4 non-bonded cluster…
+    Fig.5. The anatomy of GROMACS performance
+    Fig.6. Absolute scaling performance on a GluCl ion channel of 142,000 atoms, 2
+
+Tables (1)
+
+    Table 
+
+Elsevier
+SoftwareX
+Volumes 1–2 , September 2015, Pages 19-25
+SoftwareX
+Original software publication
+GROMACS: High performance molecular simulations through multi-level parallelism from laptops to supercomputers
+Author links open overlay panel Mark James Abraham a Teemu Murtola d Roland Schulz b c Szilárd Páll a Jeremy C. Smith b c Berk Hess a Erik Lindahl a d
+Show more
+Add to Mendeley
+Share
+Cite
+https://doi.org/10.1016/j.softx.2015.06.001 Get rights and content
+Under a Creative Commons license
+Open access
+Abstract
+
+GROMACS is one of the most widely used open-source and free software codes in chemistry, used primarily for dynamical simulations of biomolecules. It provides a rich set of calculation types, preparation and analysis tools. Several advanced techniques for free-energy calculations are supported. In version 5, it reaches new performance heights, through several new and enhanced parallelization algorithms. These work on every level; SIMD registers inside cores, multithreading, heterogeneous CPU–GPU acceleration, state-of-the-art 3D domain decomposition , and ensemble-level parallelization through built-in replica exchange and the separate Copernicus framework. The latest best-in-class compressed trajectory storage format is supported.
+
+    Previous article in issue
+    Next article in issue 
+
+Keywords
+Molecular dynamics
+GPU
+SIMD
+Free energy
+
+Code metadata
+
+Current code version	5.0.5
+Permanent link to code/repository used for this code version	https://github.com/ElsevierSoftwareX/SOFTX-D-15-00003
+Legal Code License	LGPL v2.1
+Code versioning system used	git
+Software code languages, tools, and services used	C, C++, CUDA, MPI, OpenMP, CMake
+Compilation requirements & dependencies	ANSI C89 and C++98; Unix, Linux, MacOS, Windows
+Developer documentation	http://www.gromacs.org/Developer_Zone
+User and developer support	http://www.gromacs.org/Support
+Bug tracker	http://redmine.gromacs.org
+
+1. Motivation and significance
+
+Molecular dynamics (MD) has greatly expanded the scope of chemistry and several other fields by providing spatial and temporal resolution not  available in experiments.  Simulations have become more accurate with better force fields, they easily sample molecular motions on the μs scale, and ensemble techniques make it possible to study millisecond scale processes such as protein folding . A typical MD user chooses an initial molecular configuration, describes the atomic interactions and model physics, runs a simulation, and makes observations from the trajectory. Such simulations evaluate the millions of interactions of particles for billions of time steps, which can require extraordinary amounts of computational hardware and time—the scientific quality of the result is often proportional to the amount of sampling. The huge application potential has led to implementations of MD in many software packages, including GROMACS   [1] , AMBER  [2] , NAMD   [3] , CHARMM  [4] , LAMMPS  [5] , and Desmond  [6] . The commoditization of advanced computational techniques by these packages is an important reason for the wide adoption of MD today.
+
+In addition to the thousands of publications using GROMACS every year, one of the most exciting parts of free software is how other people use in ways not anticipated. GROMACS has long been deployed in the Folding@Home distributed computing project  [7] , and it is frequently used for metadynamics together with PLUMED  [8] . Coarse-grained force fields such as MARTINI   [9] use the GROMACS infrastructure to implement mesoscale physics models that access otherwise impossible scales of time and distance. Databases of topology file inputs and associated thermochemical results have begun to appear  [10] , [11] , and several online services can produce coordinates, parameters and topologies for GROMACS simulations  [12] , [13] . Extending and reusing parts or all of GROMACS code is explicitly encouraged. The free license permits commercial use.
+
+Many implementations (including ours) provide high performance when using large numbers of processors on supercomputers , but a key focus for the development of GROMACS is the fundamental assumption from economic science that resources are scarce : No matter how many cores are available, minimizing resource usage makes it possible to run more simulations, e.g. through ensemble methods . GROMACS aims to provide the highest possible absolute performance and efficiency on any hardware, so that both the maximum achievable and real world throughput is high, to make best use of scarce resources. The package runs fast on every single architecture present in the Top500 supercomputer list, as well as on embedded systems and everyday laptop computers.
+
+In contrast to many other computational challenges, applications in MD typically have an intrinsically fixed problem size. When studying a protein system with 30,000 atoms, it is not relevant that a virus comprising 10 million atoms would scale better. Therefore, weak scaling performance is typically not of primary concern. However, it is critically important to reduce the amount of computer time per unit simulation through optimization, or by improving strong scaling. This improves “time to solution”, and also the efficiency, measured as the science performed per amount of hardware or power consumed. While some applications need long individual trajectories, there are also many scientific questions that can be answered by using several trajectories, and for these the overall efficiency will be higher by executing independent simulations in parallel.
+
+Strong scaling of MD is a very difficult software engineering challenge that requires synchronization of computation, coordination, and communication phases down to 100 μs for hundreds of thousands of cores. Hardware advances have been breathtaking, but re-engineering the software to use the new capabilities has been very challenging, and even forces us to reconsider some of the most fundamental MD concepts including the neighbor lists used to track spatial interactions .
+
+This paper will briefly describe historical properties of GROMACS, and then report on recent improvements in GROMACS 4.6 and 5. The source code, as well as a large amount of introductory, tutorial, installation, usage, reference and developer documentation is available from http://www.gromacs.org .
+2. Simulation capabilities
+
+Simulations with leap-frog Verlet, velocity Verlet, Brownian and stochastic dynamics are supported, as well as calculations that do energy minimization , normal-mode analysis and simulated annealing. Several techniques are available for regulating temperature and/or pressure. Both SHAKE  [14] and P-LINCS  [15] , [16] are available for enforcing holonomic constraints , and the latter can be combined with virtual interaction sites  [17] to eliminate enough fast degrees of freedom to allow 5 fs time steps. All widely used molecular mechanics force fields can be used, and 15 flavors of AMBER, CHARMM, GROMOS and OPLS are validated and included. Several community-supported force fields are also available. Non-standard functional forms are supported through user tables.
+
+Simulations may employ several kinds of geometric restraints, use explicit or implicit solvent, and can be atomistic or coarse-grained. mdrun can run multiple simulations as part of the same executable, which permits generalized ensemble methods   [18] such as replica-exchange  [19] , [20] . Non-equilibrium methods, such as pulling and umbrella sampling , are available, as well as highly powerful alchemical free-energy transformations, and essential dynamics  [21] . Many popular simulation file formats can be read natively, or via a VMD plug-in  [22] .
+3. Software description
+
+GROMACS has grown into a very large software project with almost two million lines of code. For a detailed description of the historical development and many algorithms included in the engine, we refer the interested reader to the previous papers published  [1] , [23] , [24] , [25] , [26] , [27] , [28] . For developers, one of the most important changes is that GROMACS 5 is the first release that has moved to C++. While many parts of the code remain in C and it will take a few years to complete the transition, this has led to improvements in code modularity , handling of memory and errors, and enabled much better Doxygen developer documentation and unit testing.
+
+GROMACS 5 works within an elaborate multi-level parallelism ( Fig. 1 ) that distributes computational work across ensembles of simulations, multiple program paths and domains within simulations, multiple cores working on each domain, exploiting instruction-level parallelism across those cores. This design is able to make effective use of all of the available resources when running typical PME simulations on typical hardware. However, the design works less well if the hardware is too unbalanced; GROMACS 5 performance will typically be good with comparable expenditure on CPU and accelerator, and as many CPU sockets as accelerators.
+
+    Download : Download high-res image (465KB)
+    Download : Download full-size image 
+
+Fig. 1 . Multi-level parallelism in GROMACS. SIMD registers are used to parallelize cluster interaction kernels or bonded interactions in each core, and OpenMP multithreading is used for parallelism inside spatial domains while nonbonded interactions are handled by GPUs or other accelerators. MPI with load balancing is used to decompose a single simulation into domains over many nodes in a cluster, and ensemble approaches are used to parallelize with loosely coupled simulations. High performance requires that software targets each level explicitly.
+
+We expect ensemble-level parallelism to play an increasingly important role in MD algorithm development. While the code scales down to a few tens of atoms per core (when only using CPUs), there will always be practical limits on the degree of parallelism achievable. A typical 150,000-atom system has about thirty million particle–particle interactions per MD step, which will not scale to a million-core system because communication and book-keeping costs will dominate. The Copernicus ensemble framework has been developed alongside GROMACS 5, to serve this need and scale to tens of thousands of simulations  [29] . It currently supports free-energy calculations, Markov state modeling, and the string method using swarms  [30] ( http://copernicus.gromacs.org ).
+
+Within a simulation, using parallel computers requires splitting the problem into independent units of work. In GROMACS, an “eighth shell” spatial domain decomposition   [31] , [32] efficiently partitions the simulation in a way that preserves locality of reference within each domain. This data parallelization maps each domain to an MPI rank, each of which can in practice have access to various kinds of hardware. Internally, all systems are described with triclinic unit cells, which makes complex geometries such as rhombic dodecahedron, truncated octahedron or hexagonal boxes supported in all parts of the code. This can improve performance up to 40% compared to the same water thickness around a solute in a rectangular box ( Fig. 2 ). Dynamic load balancing between domains is performed in all three dimensions in triclinic geometry; this is critical for high performance. Fig. 2 shows how the larger computational load due to torsions and angles in the protein compared to water leads to significant differences in domain size in the upper left part.
+
+    Download : Download high-res image (714KB)
+    Download : Download full-size image 
+
+Fig. 2 . Left: The protein lysozyme (24,119 atoms) in a compact unit cell representation corresponding to a rhombic dodecahedron with close-to-spherical shape. Right: Internally, this is represented as a triclinic cell and a load-balanced staggered 6×4×3 domain decomposition grid on 72 MPI ranks. The PME lattice sum is calculated on a uniform grid of 6×4 MPI ranks (not shown).
+
+Long-range electrostatics is handled by the particle-mesh Ewald (PME) method  [33] by using dedicated MPI ranks for the lattice summation and a two-dimensional pencil decomposition  [1] for the required 3D-FFT.
+
+Historically, GROMACS has made use of MPI for domain-level parallel decomposition across nodes, and later CPU cores too, and supplied hand-tuned assembly kernels to access SIMD (single instruction, multiple data) units where available. However, the run-time overheads of the former and the development-time cost of the latter were not sustainable, and there was also the need to incorporate accelerators (such as GPUs) into the parallelization strategy. GROMACS 4.6 introduced a native heterogeneous parallelization setup using both CPUs and GPUs. There are two important reasons for still including the CPU: First, the advanced domain decomposition and load balancing would be very difficult to implement efficiently on GPUs (which would hurt scaling). Second, we see it as a huge advantage that all algorithms are available in all simulations, even the esoteric or new ones not yet ported to GPUs, and the heterogeneous acceleration makes it possible to completely hide the hardware from the user. There is only a single binary, and by default it will use all available hardware fairly efficiently, with many run-time options available to tune performance.
+
+To make this possible, a new algorithm for evaluating short-ranged non-bonded interaction was implemented, based on Verlet lists with automatic buffering  [34] . This recasts the traditional Verlet algorithm to suit modern computer hardware, which permits highly efficient offload of short-ranged work on SIMT-based (simultaneous multithreading) GPUs, as well as efficient SIMD-based CPU implementations. This works well, since the essential requirements for data locality and reuse are similar on both kinds of hardware. This is an important architectural advance, since the same code base and algorithms can be used for all hardware. The key innovation was to transform the standard formulation of the Verlet algorithm that uses lists of particle–particle pairs into lists of interacting small clusters of nearby particles, and to choose the sizes of those clusters at compile time to match the characteristics of the SIMT or SIMD target hardware. This means there is no requirement for the compiler to recognize the opportunity for vectorization ; it is intrinsic to the algorithm and its implementation. Additionally, the cluster sizes are easily adjustable parameters allowing to target new hardware with relatively low effort. Fig. 3 shows how the Verlet scheme re-casts the idea of a particle-based pair list into a list of interacting clusters. Fig. 4 illustrates the flow of data in kernels executing on processors of different SIMD widths or GPUs.
+
+    Download : Download high-res image (380KB)
+    Download : Download full-size image 
+
+Fig. 3 . Left: A classical Verlet implementation treats all j-particles within an interaction radius (red) of the central red i-particle, and adds a buffer, also called “skin” (dashed red). Particles outside the buffer (unfilled) are omitted. Right: The M × N scheme builds lists of clusters of N particles (blue), where at least one particle in each cluster is within the buffered interaction radius of any particle in the central red cluster. This envelope has an irregular shape (dashed red), and has an implicit additional buffer (unfilled blue circles) from those particles in clusters where only some particles are within the nominal buffer range. Actual interactions are based on particle distances (red circle, only one shown). (For interpretation of the references to color in this figure legend, the reader is referred to the web version of this article.)
+
+    Download : Download high-res image (835KB)
+    Download : Download full-size image 
+
+Fig. 4 . Illustration of the classical 1×1 neighborlist and the 4×4 non-bonded cluster algorithm setups on processors with different SIMD widths. All numbers are particle indices in a pair list, black dots are interaction calculations, and gray arrows indicate loads. The content of SIMD registers for i- and j-particles (cf.  Fig. 3 ) are shown in red and blue, respectively. Dashed black lines show the computation units, with dotted black arrows indicating their order of execution. The 4×4 setup calculates 4 times as many interactions per memory operation. Unlike the 1×1 setup, the 4×4 setup does not require data shuffling in registers.
+
+Unlike the old “group” scheme, there is no need for special kernels optimized for common molecules such as water. The searching can schedule kernels that will evaluate van der Waals interactions only on the first half of atoms in a given cluster; this runs faster on domains where only some atoms have such interactions, which includes most water models in current use. Naturally, if whole clusters do not have van der Waals or Coulomb interactions , their interactions are evaluated by kernels that skip the corresponding computation entirely. Branches are unavoidable in short-ranged MD kernels, as the model physics permits only interactions within a certain distance to contribute. Implementing such code is most efficient when using selection or branch instructions that produce null results when the interaction should not contribute. This is also useful for other kinds of interaction exclusions used in MD.
+
+The maturation of SIMD intrinsics in compilers made this possible to implement in a new higher-level fashion that retains the performance of the previous raw hand-tuned assembly. To achieve this, we have implemented a SIMD abstraction module that permits us to develop CPU non-bonded kernels in a way that is nearly agnostic about the SIMD width and feature set of the hardware upon which they will run. In particular, we have designed an extensive new internal SIMD math library in both single and double precision that completely avoids both table lookups and integer instructions (which are not available for all SIMD instruction sets). This means that porting to new CPU architectures is a straightforward job of implementing the interface of the SIMD module using the intrinsics suitable for the new CPU, and the old non-bonded kernels can use them correctly. Further, several other modules in GROMACS now use the same SIMD layer and derive the same benefits for performance portability . Crucially, this has reduced the total size of the nonbonded kernels to only a few hundred lines of C, while simultaneously supporting many more SIMD instruction sets. GROMACS performance is now more sensitive to the quality of the compiler, which reflects wide-ranging improvements in both. The proliferation of new kinds of SIMD support in CPUs means that GROMACS users have more need to take care to use binaries that match the hardware capabilities.
+
+In particular for SIMD and GPU acceleration, GROMACS makes extensive use of strength-reduction algorithms to permit use of single precision, including a single-sum implementation of the virial calculation  [35] . Some molecular simulation packages always compute in double precision; this is available in GROMACS for the few kinds of simulations that require it, but, by default, a mixed precision mode is used, in which a few, critical, reductions are performed in double precision. Other high-performance implementations  [2] use mixed precision to a larger extent.
+
+The offload model for acceleration creates the need for large groups of atoms in the same spatial region to be treated in the same neighbor search. This conflicts with the former GROMACS model of mapping each CPU core to an MPI rank, and thus a separate domain of atoms close in space. Typically, a CPU has many more cores than it has accelerators, the inefficiency of scheduling separate work for each domain on the accelerator was high, and the existing limitations on the minimum sizes of domains was also problematic. To alleviate this, OpenMP-based multi-threading support was added to GROMACS to permit multiple CPU cores to work on a single domain of atoms. This allows for domains to be larger and thus the overall efficiency to be greatly improved. The resulting OpenMP parallelism is also useful when running on CPU-only hardware, which extends the strong-scaling limit with hybrid MPI/OpenMP, but adds complexity for the user.
+
+The PME algorithm commonly used for molecular simulations is able to shift workload between the short- and long-ranged components with moderate efficiency, while preserving the quality of the model physics. This permits GROMACS 5 to automatically balance the workload for optimal performance. This is particularly useful for the offload model implemented in GROMACS 5 because best throughput is typically obtained when few resources lie idle. Further, when using multiple nodes for a single simulation, the long-ranged component of the PME calculation needs to do global communication for the 3D FFT. This partly drives our choice of which work to offload; doing PME work on a current generation accelerator in a simulation across multiple nodes would accrue latency from data transfers both across the network and from host to device and this would eliminate any performance gain.
+
+One major weakness of the current accelerator-offload implementation in GROMACS is that accelerators are idle once the forces are computed and transferred back to the CPU. Typical schemes for integrating the forces to update the positions often need to enforce holonomic constraints on degrees of freedom such as bond lengths, and such implementations normally feature either iteration or inter-rank communication, which does not suit an offload model of accelerator usage. Overcoming such limitations is a key target for future improvements.
+4. Software functionalities
+
+GROMACS is free software distributed under LGPLv2.1, which even allows linking into commercial applications. It requires only standards-conforming C99 and C++98 compilers, and CMake version 2.8.8. Various external libraries are either bundled for convenience, or can be detected (e.g. MKL) or even downloaded automatically (e.g. FFTW) by CMake. Portability is assured via extensive automated continuous integration testing using Jenkins , deployed on Windows, MacOS and Linux, using multiple versions of compilers including those from Intel, GNU, Microsoft, LLVM and IBM. GROMACS supports NVIDIA GPU architectures with compute capabilities 2.0 and later, and the new SIMD module provides native support for a total of 13 different architectures including all x86 flavors (from SSE2 through Xeon Phi, AVX2 and the still unreleased AVX-512F/ER), PowerPC A2 (BlueGene/Q), Sparc VIIIfx (K computer), ARM Neon, IBM VMX (Power7) and VSX (Power8). The latest version can even run inside a browser supporting Google Native Client.
+
+Every single commit during GROMACS development is subject to mandatory code review and automatic regression tests , unit tests and static code analysis before it is added to the public git repository (available via
+
+git clone git://git.gromacs.org/gromacs.git ). While the released code is tested on an even larger set of architectures, this makes even the rapidly moving development branch uniquely stable.
+4.1. A parallel analysis framework
+
+A new C++ framework for developing GROMACS analysis tools has been introduced, which makes it easy to write new tools that require only a simple loop over all trajectory frames. The framework also provides reusable components for grid-based neighbor searching and common data processing tasks like histograms. Some tools for computing basic geometric properties (distances and angles), as well as surface area calculation, have been converted to the new framework, though much work remains to achieve the full benefits of the new scheme. Future development also aims to support analyzing single trajectory frames in parallel, and Python bindings.
+4.2. New simulation features
+
+Just as PME has eliminated cutoff artifacts for electrostatics, there has been increasing attention to cutoff problems and van der Waals interactions. While dispersion corrections alleviate some issues, the fundamental problem is that complex systems such as membranes are neither homogeneous nor isotropic. GROMACS 5 includes a new, very accurate, Lennard-Jones PME implementation  [36] whose implementation is only 10%–20% more expensive than short cutoffs in GROMACS, and to the best of our knowledge about an order of magnitude faster than any other alternative. It works for both geometric and Lorentz–Berthelot combination rules, and should enable much more accurate membrane simulations, free energies, and improved force-field parameterization.
+
+Other new features include Andersen-style thermostats, the Adaptive Resolution Sampling scheme  [37] for multi-scale models , Hamiltonian replica exchange, simulated tempering and expanded-ensemble methods  [38] , rotation of groups with the non-equilibrium pulling module  [39] , a new computational electrophysiology module  [40] that can swap molecules from one side of a membrane to the other, and support for the Interactive Molecular Dynamics  [41] protocol to view and manipulate ongoing simulations. The high-quality “counter-based” parallel random number generator Random123  [42] is now used. New bonded interactions were introduced for coarse-grained simulations  [43] . Flat-bottomed position restraints were added to avoid perturbing models unnecessarily.
+
+GROMACS 5 also comes with a new highly flexible and efficient compressed file format—TNG  [44] . This improves on the previous best-in-class XTC trajectory compression by further exploiting domain knowledge and multi-frame compression, it adds features such as containers for general simulation data, digital signatures, and provides a library to which tool developers may link.
+5. Performance & scaling
+
+GROMACS can scale to the largest machines in the world when using gigantic systems, and detailed benchmarks are available on the website. For this work, we want to illustrate the efficiency with more challenging heterogeneous benchmarks used in recent studies: first a very small voltage sensor (VSD) embedded in a united-atom lipid bilayer in a hexagonal box (45,700 atoms)  [45] , and second a complete ion channel (GluCl) embedded in a larger united-atom bilayer (142,000 atoms)  [46] . All simulations use PME and initial cut-offs of 1.0 nm. All bonds were constrained with the LINCS  [16] algorithm, and the VSD uses virtual interaction sites constructed every step to extend the time step to 5 fs. A stochastic velocity-rescaling thermostat was used  [47] . Fig. 5 shows how the fraction of CPU cycles spent on force evaluation in the VSD system drops dramatically when adding SIMD and GPUs. Case “E” reflects the problem with multiple MPI ranks on the CPU and effectively time-sharing the GPU, which introduces decomposition overhead. With GPUs, there is only a small component left for bonded forces; the CPU primarily evaluates the PME mesh part. Absolute performance is much higher with acceleration (explaining the larger fractions for constraints and PME), as illustrated in the right panel, which shows parallelization benefits in different GROMACS versions on a single-socket 8-core Core-i7 5960X desktop with one NVIDIA GTX980 GPU. With SIMD, GPU and OpenMP acceleration, the desktop achieves close to 200 ns/day for the VSD. Fig. 6 shows absolute performance for the larger GluCl system on CPU-only and GPU-equipped Cray clusters. Despite the much faster CPUs with AVX2 support on the XC40, the older XC30 nodes paired with K20x GPUs beat it handily. With similar CPUs and K40 GPUs, we expect accelerated clusters to deliver about 3× the performance of CPU-only ones.
+
+    Download : Download high-res image (356KB)
+    Download : Download full-size image 
+
+Fig. 5 . The anatomy of GROMACS performance. Left: The reference setup (A) spends the majority of wall-time in short-range force evaluations, but as SIMD (B), OpenMP (C, D), and GPU (E, F) acceleration are enabled this drops tremendously even on a workstation. With GPUs (E, F), the CPU computes a relatively small amount of bonded interactions. Relying on multi-threading (F) when using GPUs is more efficient than SPMD parallelization with domain-decomposition (E) even though multi-threading in cache intensive code like PME is challenging. Right: The absolute performance in GROMACS 5.0 is greatly improved over earlier versions, and more than an order of magnitude higher with accelerators.
+
+    Download : Download high-res image (116KB)
+    Download : Download full-size image 
+
+Fig. 6 . Absolute scaling performance on a GluCl ion channel of 142,000 atoms, 2.5 fs time steps without virtual sites, with PME and initial cutoffs 1.0 nm, running on Beskow (32 Haswell CPU cores per node, Cray XC40) and Piz Daint (8 Sandy Bridge CPU cores + Tesla K20X per node, Cray XC30).
+6. Conclusions
+
+The recent efforts to maximize single-core and single-node performance show benefits at all levels, which makes it even more impressive that the relative scaling has also improved substantially. The enhancements described above boost user throughput on all kinds and quantities of hardware, but they were focused on mature technologies. There are many other approaches open for future performance improvements to GROMACS. In particular, an implementation that expresses the algorithm in fine-grained tasks that can be preempted when high-priority work is available, and automatically balanced between otherwise idle executors seems very attractive.
+Acknowledgments
+
+This work was supported by the European Research Council ( 258980 , BH), the Swedish Research Council ( 2013-5901 , EL) the Swedish e-Science Research Center, the ScalaLife EU infrastructure ( 261523 ), the EU FP7 CRESTA project (287703), Intel Corporation and the ORNL Adaptive Biosystems Imaging project funded by the Biological and Environmental Research of the Office of Science of the U.S. Department of Energy (RS, JCS). Computational resources were provided by the Swedish National Infrastructure for computing (2014/1-30 & 2014/11-33), and the Swiss National Supercomputing Centre CSCS (g43). GROMACS would not be possible without a large and loyal team working on code review, triage, and contributing code and fixes. Thank you!
+References
+
+[1]
+    S. Pronk, S. Páll, R. Schulz, P. Larsson, P. Bjelkmar, R. Apostolov, et al.
+    Bioinf, 29 (2013), pp. 845-854
+    CrossRef
+[2]
+    D.A. Case, T.E. Cheatham, T. Darden, H. Gohlke, R. Luo, K.M. Merz, et al.
+    J Comput Chem, 26 (2005), pp. 1668-1688
+    CrossRef View Record in Scopus
+[3]
+    J.C. Phillips, R. Braun, W. Wang, J. Gumbart, E. Tajkhorshid, E. Villa, et al.
+    J Comput Chem, 26 (2005), pp. 1781-1802
+    CrossRef
+[4]
+    B.R. Brooks, R.E. Bruccoleri, B.D. Olafson, D.J. States, S. Swaminathan, M. Karplus
+    J Comput Chem, 4 (1983), pp. 187-217
+    CrossRef
+[5]
+    S. Plimpton
+    J Comp Phys, 117 (1995), pp. 1-19
+    Article Download PDF
+[6]
+    Bowers KJ, Chow E, Xu H, Dror RO, Eastwood MP, Gregersen BA, et al., Proceedings of the ACM/IEEE conference on supercomputing; 2006. p. 0–7695–2700–0/06.
+    Google Scholar
+[7]
+    M. Shirts, V.S. Pande
+    Science, 290 (2000), pp. 1903-1904
+    View Record in Scopus
+[8]
+    G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni, G. Bussi
+    Comput Phys Commun, 185 (2014), pp. 604-613
+    Article Download PDF View Record in Scopus
+[9]
+    S.J. Marrink, H.J. Risselada, S. Yefimov, D.P. Tieleman, A.H. de Vries
+    J Phys Chem B, 111 (2007), pp. 7812-7824
+    CrossRef View Record in Scopus
+[10]
+    C. Caleman, P.J. van Maaren, M. Hong, J.S. Hub, L.T. Costa, D. van der Spoel
+    J Chem Theory Comput, 8 (2012), pp. 61-74
+    CrossRef View Record in Scopus
+[11]
+    D. van der Spoel, P.J. van Maaren, C. Caleman
+    Bioinf, 28 (2012), pp. 752-753
+    CrossRef View Record in Scopus
+[12]
+    V. Zoete, M.A. Cuendet, A. Grosdidier, O. Michielin
+    J Comp Chem, 32 (2011), pp. 2359-2368
+    CrossRef View Record in Scopus
+[13]
+    A.K. Malde, L. Zuo, M. Breeze, M. Stroet, D. Poger, P.C. Nair, et al.
+    J Chem Theory Comput, 7 (2011), pp. 4026-4037
+    CrossRef View Record in Scopus
+[14]
+    J.P. Ryckaert, G. Ciccotti, H.J. Berendsen
+    J Comput Phys, 23 (1977), pp. 327-341
+    Article Download PDF
+[15]
+    B. Hess, H. Bekker, H.J. Berendsen, J.G. Fraaije
+    J Comput Chem, 18 (1997), pp. 1463-1472
+    View Record in Scopus
+[16]
+    B. Hess
+    J Chem Theory Comput, 4 (2008), pp. 116-122
+    CrossRef View Record in Scopus
+[17]
+    H.J.C. Berendsen, W.F. van Gunsteren
+    AJB, et al. (Eds.), Molecular liquids-dynamics and interactions, NATO ASI C 135, Reidel, Dordrecht (The Netherlands) (1984), pp. 475-500
+    CrossRef View Record in Scopus Google Scholar
+[18]
+    A. Mitsutake, Y. Sugita, Y. Okamoto
+    Biopolymers, 60 (2001), pp. 96-123
+    View Record in Scopus
+[19]
+    U.H. Hansmann, Y. Okamoto
+    J Comput Chem, 18 (1997), pp. 920-933
+    View Record in Scopus
+[20]
+    Y. Sugita, Y. Okamoto
+    Chem Phys Lett, 314 (1999), pp. 141-151
+    Article Download PDF View Record in Scopus
+[21]
+    A. Amadei, A. Lisnsen, H. Berendsen
+    Proteins: Struct, Func, Genet, 17 (1993), pp. 412-425
+    CrossRef View Record in Scopus
+[22]
+    W. Humphrey, A. Dalke, K. Schulten
+    J Mol Graph, 14 (1996), pp. 33-38
+    Article Download PDF
+[23]
+    S. Páll, M.J. Abraham, C. Kutzner, B. Hess, E. Lindahl
+    S. Markidis, E. Laure (Eds.), Solving software challenges for exascale, Lecture notes in computer science, Springer International Publishing (2015), pp. 3-27
+    CrossRef Google Scholar
+[24]
+    H. Bekker, H.J.C. Berendsen, E.J. Dijkstra, S. Achterop, R. van Drunen, D. van der Spoel, et al.
+    R.A. de Groot, J. Nadrchal (Eds.), Physics computing, vol. 92, World Scientific, Singapore (1993), pp. 252-256
+[25]
+    H.J. Berendsen, D. van der Spoel, R. van Drunen
+    Comput Phys Commun, 91 (1995), pp. 43-56
+    Article Download PDF
+[26]
+    E. Lindahl, B. Hess, D. van der Spoel
+    J Mol Mod, 7 (2001), pp. 306-317
+    CrossRef View Record in Scopus
+[27]
+    D. van der Spoel, E. Lindahl, B. Hess, G. Groenhof, A.E. Mark, H.J. Berendsen
+    J Comput Chem, 26 (2005), pp. 1701-1718
+    CrossRef
+[28]
+    B. Hess, C. Kutzner, D. van der Spoel, E. Lindahl
+    J Chem Theory Comput, 4 (2008), pp. 435-447
+    CrossRef
+[29]
+    S. Pronk, I. Pouya, M. Lundborg, G. Rotskoff, B. Wesén, P.M. Kasson, et al.
+    J Chem Theory Comput, 11 (2015), pp. 2600-2608
+    CrossRef View Record in Scopus
+[30]
+    A.C. Pan, B. Roux
+    J Chem Phys, 129 (2008), p. 064107
+    CrossRef View Record in Scopus
+[31]
+    K.J. Bowers, R.O. Dror, D.E. Shaw
+    J Phys: Conf Ser, 16 (2005), p. 300
+    CrossRef View Record in Scopus
+[32]
+    K.J. Bowers, R.O. Dror, D.E. Shaw
+    J Comput Phys, 221 (2007), pp. 303-329
+    Article Download PDF View Record in Scopus
+[33]
+    T. Darden, D. York, L. Pedersen
+    J Chem Phys, 98 (1993), pp. 10089-10092
+    View Record in Scopus
+[34]
+    S. Páll, B. Hess
+    Comp Phys Comm, 184 (2013), pp. 2641-2650
+    Article Download PDF View Record in Scopus
+[35]
+    H. Bekker, H.J.C. Berendsen, E.J. Dijkstra, S. Achterop, R.V. Drunen, D.V.D. Spoel, et al.
+    R.A. de Groot, J. Nadrchal (Eds.), Physics computing, vol. 92, World Scientific, Singapore (1993), pp. 257-261
+[36]
+    C.L. Wennberg, T. Murtola, B. Hess, E. Lindahl
+    J Chem Theory Comput, 9 (2013), pp. 3527-3537
+    CrossRef View Record in Scopus
+[37]
+    S. Fritsch, C. Junghans, K. Kremer
+    J Chem Theory Comput, 8 (2012), pp. 398-403
+    CrossRef View Record in Scopus
+[38]
+    A.P. Lyubartsev, A.A. Martsinovski, S.V. Shevkunov, P.N. Vorontsov-Velyaminov
+    J Chem Phys, 96 (1992), pp. 1776-1783
+    View Record in Scopus
+[39]
+    C. Kutzner, J. Czub, H. Grubmüller
+    J Chem Theory Comput, 7 (2011), pp. 1381-1393
+    CrossRef View Record in Scopus
+[40]
+    C. Kutzner, H. Grubmüller, B.L. de Groot, U. Zachariae
+    Biophys J, 101 (2011), pp. 809-817
+    Article Download PDF View Record in Scopus
+[41]
+    J.E. Stone, J. Gullingsrud, K. Schulten
+    Proceedings of the 2001 symposium on interactive 3D graphics
+    ACM, New York (NY, USA) (2001), pp. 191-194
+    View Record in Scopus Google Scholar
+[42]
+    J.K. Salmon, M.A. Moraes, R.O. Dror, D.E. Shaw
+    Proceedings of 2011 international conference for high performance computing, networking, storage and analysis
+    ACM, New York (NY, USA) (2011)
+    p. 16:1–:12
+    Google Scholar
+[43]
+    M. Bulacu, N. Goga, W. Zhao, G. Rossi, L. Monticelli, X. Periole, et al.
+    J Chem Phys, 123 (2005), pp. 3282-3892
+    View Record in Scopus
+[44]
+    M. Lundborg, R. Apostolov, D. Spångberg, A. Gärdenäs, D. van der Spoel, E. Lindahl
+    J Comp Chem, 35 (2014), pp. 260-269
+    CrossRef View Record in Scopus
+[45]
+    U. Henrion, J. Renhorn, S.I. Börjesson, E.M. Nelson, C.S. Schwaiger, P. Bjelkmar, et al.
+    Proc Natl Acad Sci, 109 (2012), pp. 8552-8557
+    CrossRef View Record in Scopus
+[46]
+    O. Yoluk, T. Brömstrup, E.J. Bertaccini, J.R. Trudell, E. Lindahl
+    Biophys J, 105 (2013), pp. 640-647
+    Article Download PDF View Record in Scopus
+[47]
+    G. Bussi, D. Donadio, M. Parrinello
+    J Chem Phys, 126 (2007), p. 014101
+    CrossRef View Record in Scopus
+
+Cited by (9099)
+
+    Identification of new anti-cancer agents against CENTERIN: Structure-based virtual screening, AutoDock and binding free energy studies
+    2022, Journal of Molecular Structure
+    Show abstract
+    Modified pyrido[2,3-d]pyrimidin-4(3H)-one derivatives as EGFR<sup>WT</sup> and EGFR<sup>T790M</sup> inhibitors: Design, synthesis, and anti-cancer evaluation
+    2022, Journal of Molecular Structure
+    Show abstract
+    A quantitative study of the structure-activity relationship and molecular docking of 5.6.7-trimethoxy-N-aryl-2-styrylquinolin-4-amines as potential anticancer agents using quantum chemical descriptors and statistical methods
+    2022, Journal of Molecular Structure
+    Show abstract
+    At the root of L-lysine emission in aqueous solutions
+    2022, Spectrochimica Acta - Part A: Molecular and Biomolecular Spectroscopy
+    Show abstract
+    Superhydrophilicity of α-alumina surfaces results from tight binding of interfacial waters to specific aluminols
+    2022, Journal of Colloid and Interface Science
+    Show abstract
+
+    Contact angles at the alumina (0001) and ( ) surfaces are studied using both classical molecular dynamics simulations and experiments. To test the superhydrophilicity, the free energy cost of removing waters near the interfaces are calculated using the density fluctuations method. The strength of hydrogen bonds is determined by their lifetime and geometry.
+    Biophysical studies of the interaction of hRSV Non-Structural 1 protein with natural flavonoids and their acetylated derivatives by spectroscopic techniques and computational simulations
+    2022, Spectrochimica Acta - Part A: Molecular and Biomolecular Spectroscopy
+    Show abstract
+
+View all citing articles on Scopus
+Copyright © 2015 The Authors. Published by Elsevier B.V.
+Recommended articles
+
+    CAinterprTools: An R package to help interpreting Correspondence Analysis’ results
+    SoftwareX, Volumes 1–2, 2015, pp. 26-31
+    Download PDF View details
+    Topologies, structures and parameter files for lipid simulations in GROMACS with the OPLS-aa force field: DPPC, POPC, DOPC, PEPC, and cholesterol
+    Data in Brief, Volume 5, 2015, pp. 333-336
+    Download PDF View details
+    g_contacts: Fast contact search in bio-molecular ensemble data
+    Computer Physics Communications, Volume 184, Issue 12, 2013, pp. 2856-2859
+    Download PDF View details
+
+1 2 Next
+Article Metrics
+View article metrics
+Elsevier logo with wordmark
+
+    About ScienceDirect
+    Remote access
+    Shopping cart
+    Advertise
+    Contact and support
+    Terms and conditions
+    Privacy policy 
+
+We use cookies to help provide and enhance our service and tailor content and ads. By continuing you agree to the use of cookies .
+
+Copyright © 2022 Elsevier B.V. or its licensors or contributors. ScienceDirect® is a registered trademark of Elsevier B.V.
+
+ScienceDirect® is a registered trademark of Elsevier B.V.
+RELX group home page

@@ -1,0 +1,424 @@
+    ACS
+    ACS Publications
+    C&EN
+    CAS
+
+Access provided by University of Massachusetts Amherst Libraries
+Blank image Welcome: Erik | Logout
+ACS Publications. Most Trusted. Most Cited. Most Read
+
+OR SEARCH CITATIONS
+My Activity
+Publications
+ADVERTISEMENT
+RETURN TO ISSUE PREV Article NEXT
+P-LINCS:  A Parallel Linear Constraint Solver for Molecular Simulation
+
+    Berk Hess
+
+View Author Information
+Cite this: J. Chem. Theory Comput. 2008 , 4 , 1 , 116–122
+Publication Date (Web) : December 1, 2007
+https://doi.org/10.1021/ct700200b
+Copyright © 2008 American Chemical Society
+RIGHTS & PERMISSIONS
+Subscribed Access
+Article Views
+4016
+Altmetric
+12
+Citations
+2145
+LEARN ABOUT THESE METRICS
+Share
+Add to View In
+Export RIS
+PDF (61 KB) OpenURL UNIV OF MASSACHUSETTS AMHERST
+SUBJECTS:
+
+    Algorithms ,
+    Energy ,
+    Order ,
+    Organic reactions ,
+    Oscillation 
+
+Get e-Alerts
+Go to Journal of Chemical Theory and Computation
+Journal of Chemical Theory and Computation
+Abstract
+
+By removing the fastest degrees of freedom, constraints allow for an increase of the time step in molecular simulations. In the last decade parallel simulations have become commonplace. However, up till now efficient parallel constraint algorithms have not been used with domain decomposition. In this paper the parallel linear constraint solver (P-LINCS) is presented, which allows the constraining of all bonds in macromolecules. Additionally the energy conservation properties of (P-)LINCS are assessed in view of improvements in the accuracy of uncoupled angle constraints and integration in single precision.
+
+*
+
+ Corresponding author e-mail:  hessb@mpip-mainz.mpg.de.
+I. Introduction
+ARTICLE SECTIONS
+Jump To
+In classical molecular simulation methods, such as molecular dynamics (MD), the time step is limited by the fastest motions, which are bond oscillations. These oscillations have a relatively high frequency and low amplitude. By replacing at least the bond vibrations involving hydrogen atoms by holonomic constraints the time step in molecular simulations can be increased by roughly a factor of 4. Constraints are often considered a more faithful representation of the physical behavior of bond vibrations which are almost exclusively in their vibrational ground state.
+Constraints can be added to the Hamiltonian using Lagrange multipliers. When time is discretized the linear equations for the Lagrange multipliers become nonlinear. In the past decades several algorithms have appeared to solve these equations. The first algorithm was SHAKE, 1 an iterative method for use with a leapfrog integrator. The equivalent for the velocity-Verlet integrator is called RATTLE. 2 Because of their iterative nature these algorithms do not lend them selves well for parallelization. In the simplest approach 3 communication is required at each iteration. For a molecule with all bonds constrained and a time step of 2 fs this leads to around 10 iterations and communication steps per MD time step, which is a much higher communication load than that of the other parts of the MD algorithm. In principle one could use the strategy for parallelization that will be described in this paper for the LINCS (linear constraint solver) algorithm 4 also for iterative methods. But the problem with that is that the number of iterations is not known a priori, and, therefore, the data that need to be communicated are not known when the domain decomposition is (re)made.
+To avoid the issue of nonlinearity, the problem can be reduced to a linear matrix equation if the second derivatives of the constraint equations are set to zero. However, in a finite discretization scheme corrections are necessary to achieve accuracy and stability. Several methods have been proposed based on this linearization that have been termed promising for parallel simulations. 5 - 8 But none of these methods has been widely used, because the inherently unstable algorithms require some (periodically applied) corrections.
+Since there are currently no practical parallel constraints algorithms, molecular simulation packages do not allow for constraints to cross node boundaries. For codes using domain decomposition this means that in practice only bonds involving hydrogens can be constrained, as such bonds only couple locally to one heavy atom. For particle or force decomposition codes, such as GROMACS 3.3, 9 it means that molecules with all bonds constrained cannot be split over processor boundaries. For a protein in water one can then not parallelize efficiently over more than a few processors.
+Without constraints the fastest motions in molecular simulations are bond vibrations involving hydrogens, with a period of about 10 fs. When these bonds are constrained, the time step can be doubled, since the next fastest motion, bond vibrations involving only heavy atoms, have the fastest mode with a period of about 20 fs. How big the time step can actually be is difficult to determine. A nice, but deceptive property of Verlet type integrators, which are used by all major simulation packages, is that vibrations in harmonic potentials are integrated with exact energy conservation. Thus energy conservation is independent of the time step. However, the effective temperature at which the ensemble for harmonic modes is generated increases with the time step. For 20 and 10 time steps per oscillation the effective temperature is 3% and 14% too high, respectively. When such harmonic modes are not considered important, their temperature increase can be ignored, but in that case constraining them is better, since this avoids instabilities.
+Additionally replacing bonds involving heavy atoms by constraints does not allow for an increase in time step, since also angle vibrations involving hydrogens have the shortest period of 20 fs. In the GROMACS package these vibrations can also be removed by replacing most hydrogen atoms by virtual interaction sites and constraining C−O−H angles. 10 Since then the fastest remaining modes have a period of about 45 fs, and this allows for an increase in a time step of slightly more than a factor of 2. Recently it was decided to implement domain decomposition into the GROMACS package, and, therefore, a parallel constraint algorithm is required, otherwise a factor of 2 in performance would be lost.
+A decade ago the LINCS (linear constraint solver) algorithm was introduced. 4 This algorithm builds on the same linear approximation stated above but improves upon earlier algorithms in three ways. First a term is added to the equations which is analytically zero but for the discretized version leads to a completely stable algorithm. Second, iterations are applied to capture the nonlinear effects (i.e., bond rotations); under most circumstances a single iteration suffices. Third, the matrix is inverted efficiently using a series expansion, which leads to a bounded range of couplings between constraints, equal to the expansion order. The algorithm can be used for any type of integrator. In the original paper it is presented for the leapfrog integrator. But it is ideally suited for projecting out components of velocities or forces, a linear problem for which no iterations are required. The LINCS algorithm is the standard constraint algorithm in the GROMACS package, next to the SETTLE algorithm 11 which is only used for water molecules. Recently a “matrix-version” of the SHAKE algorithm has been developed, 12 which is parallelized with particle decomposition. This algorithm solves the same matrix equations as those of LINCS but uses a conjugate gradient solver. Therefore it does not have the exactly bounded coupling range that makes LINCS suitable for use in domain decomposition.
+The original paper hinted that LINCS is easy to parallelize. That is what will be shown in the following, although in a slightly different way than originally stated. Additionally the energy conservation properties of LINCS are shown and compared with SHAKE in the light of an improvement for uncoupled angle constraints and recent improvements in integration accuracy.
+II. The LINCS Algorithm
+ARTICLE SECTIONS
+Jump To
+A concise description of the LINCS algorithm will now be presented, and the full derivation can be found in the LINCS paper. 4
+Consider a system of N particles, with positions given by a 3 N vector r ( t ). The equations of motion are given by Newton's law
+where f is the 3 N force vector and M is a 3 N × 3 N diagonal matrix, containing the masses of the particles. In general a system is constrained by K time-independent constraint equations
+The constrained system can still be described by 3 N second-order differential equations in Cartesian coordinates. 13,14 The constraints will be applied according to the principal of least action. 15 In this approach the constraints are added as a zero term to the potential V ( r ), multiplied by Lagrange multipliers λ i ( t )
+A new notation is introduced for the gradient matrix of the constraint equations which appears on the right-hand side of the equation
+Note that B is a K × 3 N matrix, and it contains the directions of the constraints. Equation 3 can now be simplified to give
+The equations can be solved for λ to give the constrained equations of motion
+where T = M - 1 B T ( BM - 1 B T ) -1 . The projection matrix I − TB projects out the components of a vector in the directions of the constraints, M -1 f is the vector of unconstrained second derivatives, and T is a 3 N × K matrix that transforms motions in the constrained coordinates into motions in Cartesian coordinates, without changing the equations of motion of the unconstrained coordinates. The last term in (6) represents centripetal forces caused by rotating bonds. If the constraints are satisfied in the starting configuration, the linear differential eq 6 will conserve the constraints. The nonlinearity arises when eq 6 is discretized.
+For holonomic constraints the constraint equations can be chosen as
+where d i is the reference distance between atoms i 1 and i 2 . The first step in the LINCS algorithm for a leapfrog integrator gives the linear, “zeroth iteration” correction
+whereis the unconstrained updated configuration:
+This algorithm is already stable but does not capture the nonlinear effect of the lengthening of constraints due to rotation. To correct for this, iterations are applied:
+The projected lengths p z are chosen by assuming that the observed displacements in iteration z perpendicular to the constraint direction in step n are (nearly) correct
+whereis the slightly too long a distance in configuration. For most systems a single iteration provides sufficient accuracy. Quantitative results will be shown later. For projecting out constraint components of other quantities, such as velocities or forces, only the linear projection is required:
+The main computational issue is the matrix inversion required to obtain T . This is simplified by left and right multiplying the constraint coupling matrix B n M - 1 with a diagonal K × K matrix S containing the inverse square root of the diagonal of the coupling matrix:
+The conversion goes as follows:
+The matrix A n is symmetric and sparse and has zeros on the diagonal. Thus a series expansion can be used to calculate the inverse:
+The inversion only converges when the absolute values of all the eigenvalues of A n are smaller than one. For calculating the expansion only matrix-vector multiplications are required. Since A is very sparse, only the nonzero elements should be stored, and the multiplications are computationally cheap.
+Nearly all bonds in molecular simulations are sp 3 or sp 2 hybridized, which leads to a cosine of the angle between bonds of −1/3 and −1/2, respectively. The off-diagonal elements of A are given by this cosine times a mass factor which is between 0.5 and 1. This results in a maximum eigenvalue of A of 0.6−0.7, which means that the inversion always converges. The effective eigenvalue for typical bond distortions in MD simulations is around 0.4. Thus for each term in the expansion, the projection becomes more accurate by a factor of 0.4. The accuracy of each iteration can be less though, since it is limited by the guess for the projection of that iteration. The practical range for the expansion order is between 4 and 8. For large angle-constrained molecules eigenvalues larger than one occur, and therefore a different inversion method is required.
+Nonconnected angle constraints appear in methyl, NH 3 + , and COH groups when angle vibrations involving hydrogens are removed. 10 Such individual angle constraints produce large eigenvalues with a localized eigenvector in matrix A . Especially the rigid COH group is problematic with a largest eigenvalue of 0.7, which is significantly larger than the effective eigenvalues of 0.4 for bond constraints. This imbalance means that the convergence of the expansion (15) can be limited by a few angle constraints. To avoid computational overhead due to angle constraints, the expansion can be extended for some couplings only
+where N i is the normal order of the expansion, A * only contains the elements of A that couple constraints within rigid triangles, and all other elements are zero. In this manner the accuracy of angle constraints comes close to that of the other constraints, while the series of matrix vector multiplications required for determining the expansion only needs to be extended for a few constraint couplings.
+The last point is how the constraints need to be applied to derivatives of the coordinates, namely the velocity and the forces. In GROMACS, as in most other simulations packages, the velocities were determined from the difference between the new and the old constrained positions. This can lead to inaccurate integration in single precision, since the increment of the coordinates can be very small. For the leapfrog integrator, eq 12 applied to the half step velocity would provide a more accurate solution. But recently it has been shown that one can also directly use the Lagrange multipliers. 16 For the LINCS algorithm these are already calculated, and the velocity correction then reads
+Similarly the contribution of the constraints to the virial can be determined from the constraint forces which in the derivation above are given by the Lagrange multipliers. For the virial the inner product of the distance with the constraint forces f c is required; this is simply d ·λ. The full tensor can be obtained by using the outer products of the constraint directions with themselves.
+III. The P-LINCS Algorithm
+ARTICLE SECTIONS
+Jump To
+The inversion through a series expansion provides a nice physical picture. The coupling matrix A gives the direct coupling between bonds. The matrix A 2 gives the coupling between bonds separated by one bond and also the back-coupling of bonds to themselves. The matrix A 3 gives the coupling between bonds separated by two bonds, etc. This means that with this inversion method bonds do not influence each other when they are separated by more bonds than the maximum order in the expansion. This fact can be used to parallelize the algorithm.
+When domain decomposition is used, each domain can apply the LINCS algorithm not only to the local constraints but also to some constraints involving only atoms of the neighboring domains. In the original paper it was suggested to communicate the atoms for the extra constraints for all iterations at once. But it turns out to be more practical, and often also more efficient, to communicate before each iteration. Then in addition to the atoms of constraints that cross the borders between domains, atoms that are separated by maximally the number of bonds equal to the order of the expansion need to be communicated (see Figure 1 ). When these coordinates are present, a LINCS iteration can be applied to local plus extra constraints. After such an iteration, the local constraints and the ones crossing the border will be in an identical state to a nonparallel version of the algorithm. The extra, nonlocal constraints will differ, since they have not felt the influence of some coupled constraints, but this does not matter, since in the end state they do not influence the local atoms. Note that for determining the constraint contribution to the virial, one should take care that constraints that cross cell boundaries are not double counted. The additional terms in the expansion (16) for angle constraints can interfere with the exact correspondence of P-LINCS and LINCS results but only when two or more triangles of constraints have a constraint in common. However, this is not an issue, since for such cases the matrix expansion converges too slowly or not at all. The procedure for removing angle vibrations of hydrogens 10 does not introduce coupled triangles of constraints.
+
+Figure 1 Example of the parallel setup of P-LINCS with one molecule split over three domain decomposition cells, using a matrix expansion order of 3. The top part shows which atom coordinates need to be communicated to which cells. The bottom parts show the local constraints (solid) and the nonlocal constraints (dashed) for each of the three cells.
+Before each iteration the updated nonlocal coordinates need to be communicated. This leads to a total number of communication steps of one plus the number of iterations. No communication is required after the last iteration. Since the number of iterations is usually one, the number of communication steps is two. By doing a communication step for each iteration an expansion order of up to 6 can be used, since the number of bonds in an all-trans chain that fits in a domain decomposition cell size of 1 nm (a typical minimum value) is 7. When required, extra communication steps can be added for atoms in more distant cells. The same procedure can be used for constraining velocities or forces; there only one communication step is required.
+The final result of the P-LINCS algorithm is identical to that of the LINCS algorithm, save for numerical rounding differences. In the implementation of P-LINCS in the upcoming 4.0 version of the GROMACS package, the coupling matrix is always stored in the same order, which leads to binary identical results to those of LINCS.
+When the required extra pieces of molecule(s) are not longer than the smallest dimension of a domain decomposition cell, one cell needs to communicate with at most 26 other cells with full 3D domain decomposition. The communication can be performed in 3 steps of pairs of communication calls. In the P-LINCS implementation in GROMACS the constraint communication setup is redetermined every time the decomposition changes, which is usually every 5−10 integration steps. Every cell has a list of all the constraints in the whole system. Each cell can then determine of which nonlocal atoms it needs the coordinates for connected constraints that cross the cell boundaries. The list of required atoms is first sent one cell forward and backward in the x direction. Atoms in the received list that are locally present are marked, and the rest, in addition to the locally required atoms, are sent forward and backward one cell in the y direction. The same procedure is repeated for the z direction. In the opposite order and direction the cells send and accumulate the found atom indices. Each cell can then determine if all required atoms have been found. Before each LINCS iteration the last part of the procedure is repeated but then with the coordinates instead of the atom indices. This results in a maximum of 6 communication steps per iteration. For a machine with two-way network connections the forward and backward calls can be overlapped. The required bandwidth will be quite low compared to the latency. The passing of coordinates through other cells leads to little overhead, since these are usually small in number, and often these coordinates are also required by the cells they pass through.
+IV. Benchmarks
+ARTICLE SECTIONS
+Jump To
+It is difficult to assess the accuracy of MD simulations of biomolecular systems. Ideally one would want to check how accurate the generated ensemble is, but for proteins and even for peptides of more than a few amino acids it is computationally infeasible to sample the full phase space. A constraint algorithm should, of course, accurately set the constraint lengths. But how accurate is accurate enough, a relative error of 10 -4 , or maybe 10 -6 ? An easy quantitative check is the accuracy of energy conservation. But also for this quantity is it difficult to judge what value is required. For microcanonical simulations one can easily determine how much drift in the total energy one can allow over the total simulation time. But most simulations are performed in the canonical or constant-NPT ensembles. Here the thermostat will effectively compensate for energy changes due to (small) integration errors. How much energy drift can be allowed is therefore unclear. Also one should keep in mind that Verlet type integrators perfectly conserve energy for harmonic potentials for any and therefore also unrealistically large, integration step size. This means that for the accuracy of especially simulations without bond constraints one cannot rely on energy conservation as a measure of integration accuracy.
+It is clear that a good algorithm should be able to reach any energy conservation value required by the user. To demonstrate this for LINCS, we simulated the actin-binding domain of villin headpiece (36 residues) with the OPLS all-atom force field. 17 To avoid cutoff artifacts all simulations were performed in vacuo without cutoffs. To ensure the same conditions for all LINCS accuracies, canonical simulations at 300 K were performed using a Nose-Hoover thermostat, implemented in GROMACS with a reversible leapfrog integrator. 18 The period of the temperature oscillations was set to 2 ps. The energy conservation accuracy is obtained from the drift of the conserved energy quantity in Nose-Hoover dynamics. The results for LINCS and SHAKE for simulations of 1 ns are shown in Table 1 . One can see that with a logarithmic increase in computational effort the accuracy of LINCS can be increased to a finally unmeasurable drift over 1 ns in double precision. The amount of drift can be compared to another common source of drift, namely cutoff artifacts. Often plain cutoffs are use for nonbonded interactions, mainly for reasons of computational efficiency. A plain cutoff for the Lennard-Jones interactions of 0.9−1.1 nm with a neighbor-list update interval between 10 and 20 fs introduces energy into the system at a rate of of 1−10 k B T /ns per degree of freedom. Reaction-field electrostatics produces 1 order of magnitude more drift.
+
+Table 1.  Accuracy of the LINCS Algorithm Applied to Villin with a Time Step of 2 fs in Single and Double Precision as a Function of the Number of Iterations N i and the Order of the Expansion, in Terms of the Relative Root-Mean-Square Deviation (RMSD) of the Constraint Lengths and the Drift of the Conserved Energy in k B T per Degree of Freedom a
+ 	prec.	N i 	order	tol., 10 - 4 	RMSD, 10 - 4 	energy drift, ns - 1 	time, ms	time, %
+LINCS 	single 	1 	4 	 	0.27 	−1.59 	0.14 	3.9
+ 	single 	1 	6 	 	0.11 	−0.34 	0.17 	4.8
+ 	single 	2 	6 	 	0.02 	0.00 	0.24 	6.5
+ 	double 	2 	6 	 	0.012 	−0.03 	0.30 	4.8
+ 	double 	2 	8 	 	0.003 	0.00 	0.35 	5.6
+LINCS 	single 	1 	4 	 	0.27 	−1.60 	0.15 	3.9
+old 	single 	1 	6 	 	0.11 	−0.35 	0.17 	4.8
+v  corr. 	single 	2 	6 	 	0.02 	−0.08 	0.24 	6.5
+SHAKE 	single 	 	 	1.00 	 	−2.06 	0.15 	4.3
+ 	single 	 	 	0.10 	 	−0.06 	0.22 	6.1
+ 	double 	 	 	0.10 	 	−0.14 	0.28 	4.6
+ 	double 	 	 	0.01 	 	−0.01 	0.39 	6.2
+
+a  The last column shows the CPU time spent in the constraint algorithm per step and as a percentage of the total run time. For comparison LINCS with the old, inaccurate velocity correction and SHAKE with difference relative constraint tolerances are also shown. Benchmarks were performed on one core of an Intel 2.4 GHz Core 2 CPU.
+The amount of time spent in the constraint algorithm is relatively high in this system. For a protein in solvent the relative time for LINCS will be a factor of 2−4 lower. In single precision it does not make sense to increase the order of matrix expansion above 6, since all further terms in the matrix are beyond the numerical precision compared to the first terms. Already for the case with two iterations and expansion order 6 the energy drift is unmeasurable in single precision, whereas in double precision there is a clear, although very small, negative drift. This is because in single precision numerical rounding errors cancel the small analytical error of the LINCS algorithm. The effect of the old way of constraining the velocities, using the changes in coordinates, can only be observed for these same settings. LINCS is computationally slightly more efficient than SHAKE, but this difference can probably be overcome by using over-relaxation. 19 When the original LINCS paper was written, a decade ago, LINCS was a factor of 4 faster than SHAKE. This difference has become much smaller, because modern processors can more efficiently execute code with conditional statements such as SHAKE.
+A clear advantage of LINCS over SHAKE is its stability at large time steps. To show the performance of LINCS with large time steps villin was simulated with all hydrogens replaced by virtual sites or angle constraints 10 with time steps of 2, 4, and 5 fs. The results are shown in Table 2. For maintaining the constraint and integration accuracy with increasing time step, the order of the expansion and/or the number of LINCS iterations need to be increased. This also increases the computational effort slightly, but LINCS still takes a negligible amount of the total run time.
+
+Table 2.  As Table 1, but Only for LINCS in Single Precision for Villin with Virtual Interaction Sites
+Δ t 	N i 	order	RMSD, 10 -4 	energy drift, ns -1 	time, ms	time, %
+2 	1 	4 	0.22 	−1.26 	0.10 	2.5
+2 	1 	6 	0.08 	−0.23 	0.13 	3.7
+4 	1 	6 	0.31 	−1.67 	0.13 	3.7
+4 	2 	6 	0.03 	−0.15 	0.18 	5.1
+5 	1 	6 	0.50 	−3.07 	0.13 	3.7
+5 	2 	6 	0.05 	−0.26 	0.18 	5.1
+To illustrate the performance of P-LINCS, T4-lysozyme in a rectangular box of 5.2 × 6.7 × 5.2 nm 3 with 5000 SPC water molecules 20 and 8 Cl - ions was simulated with the GROMOS 53a6 force-field 21 with united aliphatic carbons. To create a computationally demanding test case for P-LINCS, a plain cutoff of 1.1 nm was used for the Lennard-Jones interaction and the reaction-field electrostatics, with a neighbor-list update every 20 fs. These settings do not lead to very good energy conservation. Tapered cutoffs and/or particle-mesh Ewald electrostatics provide much better energy conservation, but are, in the GROMACS package, computationally roughly twice as expensive, since tabulated instead of analytical potentials need to be used. This will lower the relative computational cost of P-LINCS and is therefore a less demanding benchmark for P-LINCS.
+Timings for P-LINCS only and the complete simulation, without and with virtual sites, are shown in Table 3 using a preliminary version of the GROMACS 4.0 package with load-balanced domain decomposition. The order of the expansion for P-LINCS needs to be adjusted with increasing time step, which leads to a marginally higher computational cost. The time for the constraint algorithm includes the time used by SETTLE for the water molecules. This combination of algorithms does not cause load imbalance, since SETTLE does not communicate and is done after P-LINCS. Processors that have a lot of water molecules to constrain have less protein constraints, and the two algorithms roughly balance out during the last LINCS iteration. One can see that the time for P-LINCS increases with an increasing number of processors/cells. This is not due to the extra constraints across the cell boundaries but nearly only due to communication. When going from 4 to 32 processors the domain decomposition goes from 1D to 3D, requiring from 1 to 3 communication steps per iteration. Since the time for a communication step in P-LINCS, which is latency bound, stays nearly constant, the P-LINCS time increases with the dimensionality of the domain decomposition. However, even on 32 processors P-LINCS still only takes 10% of the computation time. This number will halve when more accurate cutoff schemes are employed, even when an extra P-LINCS iteration is used for more accuracy. For comparison LINCS results are shown with particle decomposition on 4 processors, which is slightly slower than domain decomposition. Particle decomposition without parallel constraints is limited to 4 processors, since already on 5 processors there is a load imbalance when one processor needs to take care of the whole protein. It should also be noted that with a time step of 5 fs the neighbor list is updated every 4 steps, which is costly. In practice one would increase the neighbor-list cutoff and decrease the neighbor-list update frequency to improve perform ace. This was not done here to keep the simulations comparable.
+
+Table 3.  Performance of P-LINCs on Lysozyme in Water (See Text for Details) without and with Virtual Sites as a Function of the Time Step (Δ t ) and the Number of Domain Decomposition Cells, except for pd4 Which Is Particle Decomposition over 4 Processors a
+ 	 	 	 	 	constraint time (ms)	speed (ns/day)
+virtual sites	Δ t , fs	N i 	order	RMSD, 10 -4 	1	pd4	4	16	32	1	pd4	4	16	32
+no 	2 	1 	4 	0.21 	2.4 	2.4 	3.8 	5.7 	8.8 	3.0 	10.2 	11.8 	41 	70
+yes 	2 	1 	4 	0.26 	2.3 	2.3 	3.3 	4.9 	7.6 	3.0 	10.2 	11.8 	40 	69
+yes 	2 	1 	6 	0.07 	2.5 	2.5 	3.6 	5.9 	9.0 	3.0 	10.2 	11.6 	40 	67
+yes 	4 	1 	6 	0.29 	2.5 	2.5 	3.6 	5.9 	9.0 	5.3 	18.1 	21.2 	70 	117
+yes 	5 	1 	6 	0.47 	2.5 	2.5 	3.6 	5.9 	9.0 	6.3 	21.5 	25.1 	83 	137
+
+a  RMSD is the relative deviation of the constraint lengths, constraint time gives the time used by the constraint algorithms (LINCS/P-LINCS plus settle for water) in one integration step summed over all the processors, and speed is the simulation time per day. Benchmarks were performed on a 2.2 GHz AMD64 cluster with Infiniband interconnects.
+As mentioned before, the P-LINCS communication is latency limited. For the lysozyme system with a matrix expansion order of 6, the number of atoms to be communicated between the different cell boundaries varies between 0 and 330 for 4 cells and between 0 and 130 for 16 or 32 cells. This means that in single precision the largest message is 4000 bytes for 4 cells and 1600 bytes for 16 or 32 cells. With an all-atom force field there are twice as many constraints, and, therefore, the numbers double. With hydrogen angle vibrations removed the numbers are twice as small, also for an all-atom force-field, since most constraints involving hydrogens dissappear. For such message sizes the communication is latency limited on any system. The message size depends mainly on the cell size. As the cell size increases, the message size also increases. Thus for large cells the communication may no longer be latency limited. But since the computational cost for the forces and constraints is proportional to the volume of the cell and the number of atoms for constraint communication proportional to its surface, the P-LINCS communication will never be a limiting factor.
+V. Conclusions
+ARTICLE SECTIONS
+Jump To
+P-LINCS is a parallel constraint algorithm which gives (binary) identical results to the nonparallel algorithm LINCS. It therefore has the same high stability. Its implementation on top of LINCS is straightforward, requiring only the coding of some bookkeeping and communication. The treatment of uncoupled angle constraints has been improved compared to the original version of the LINCS algorithm. The computational cost of P-LINCS increases with the dimensionality of the domain decomposition grid, since the communication is latency limited. But the time spent in P-LINCS is negligible on the total run time. The computational cost increases logarithmically with the required accuracy. For a typical protein simulation with the GROMACS package the total cost of P-LINCS with full 3D domain decomposition is between 4% and 10%, depending on the treatment of the electrostatics. In other packages this could be significantly less, since in GROMACS the force calculation is very efficient due to assembly SSE/SSE2 force loops.
+Author Information
+ARTICLE SECTIONS
+Jump To
+
+    Author
+        Berk Hess - Max-Planck Institute for Polymer Research, Ackermannweg 10, D-55128 Mainz, Germany
+
+Acknowledgment
+ARTICLE SECTIONS
+Jump To
+
+The author thanks David van der Spoel and Erik Lindahl for stimulating discussions.
+
+This article references 21 other publications.
+
+    1
+    Ryckaert, J. P.; Ciccotti, G.; Berendsen, H. J. C. J. Comput. Phys. 1977 , 23 , 327.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    2
+    Andersen, H. J. Comput. Phys. 1983 , 52 , 24.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    3
+    Brown, D.; Clarke, J. H. R.; Okuda, M.; Yamazaki, T. Comput. Phys. Comm. 1994 , 83 (1), 1.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    4
+    Hess, B.; Bekker, H.; Berendsen, H. J. C.; Fraaije, J. G. E. M. J. Comput. Chem. 1997 , 18 , 1463.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    5
+    Edberg, R.; Evans, D. J.; Morriss, G. P. J. Chem. Phys. 1986 , 84 , 6933.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    6
+    Baranyai, A.; Evans, D. J. Mol. Phys. 1990 , 70 , 53.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    7
+    Yoneya, M.; Berendsen, H. J. C.; Hirasawa, K. Mol. Simul. 1994 , 13 , 395.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    8
+    Slusher, J. T.; Cummings, P. T. Mol. Sim. 1996 , 18 , 213.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    9
+    van der Spoel, D.; Lindahl, E.; Hess, B.; Groenhof, G.; Mark, A. E.; Berendsen, H. J. C. J. Comput. Chem. 2005 , 26 , 1701.
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Feenstra, K. A.; Hess, B.; Berendsen, H. J. C. J. Comput. Chem. 1999 , 20 , 786.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    11
+    Miyamoto, S.; Kollman, P. A. J. Comput. Chem. 1992 , 13 , 952.
+    [ Crossref ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    12
+    Weinbach, Y.; Elber, R. J. Comput. Phys. 2005 , 209 , 193.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    13
+    de Leeuw, S. W.; Perram, J. W.; Petersen, H. G. J. Stat. Phys. 1990 , 61 , 1203.
+    [ Crossref ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    14
+    Bekker, H. Molecular Dynamics Simulation Methods Revised, Ph.D. Thesis, University of Groningen, The Netherlands, 1996.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    15
+    Landau, L.; Lifshitz, E. Mechanics; Pergamon Press:  Oxford, 1961.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    16
+    Lippert, R. A.; Bowers, K. J.; Dror, R. O.; Eastwood, M. P.; Gregersen, B. A.; Klepeis, J. L.; Kolossvary, I.; Shaw, D. E. J. Chem. Phys. 2007 , 126 , 046101.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    17
+    Jorgensen, W. L.; Maxwell, D. S.; Tirado-Rives, J. J. Am. Chem. Soc. 1996 , 118 , 11225.
+    [ ACS Full Text ACS Full Text ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    18
+    Holian, B. L.; Voter, A. F.; Ravelo, R. Phys. Rev. E 1995 , 52 (3), 2338.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    19
+    Barth, E.; Kuczera, K.; Leimkuhler, B.; Skeel, R. D. J. Comput. Chem. 1996 , 16 , 1192.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Berendsen, H. J. C.; Postma, J. P. M.; van Gunsteren, W. F.; Hermans, J. In Intermolecular Forces ; Pullman, B., Ed.; D. Reidel Publishing Company:  Dordrecht, 1981; pp 331−342.
+    Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+    21
+    Oostenbrink, C.; Villa, A.; Mark, A. E.; van Gunsteren, W. F. J. Comput. Chem. 2004 , 25 , 1656.
+    [ Crossref ], [ PubMed ], [ CAS ],  Google Scholar
+    OpenURL UNIV OF MASSACHUSETTS AMHERST
+
+Cited By
+Citation Statements
+beta
+
+    Supporting
+    Supporting 6
+    Mentioning
+    Mentioning 2022
+    Contrasting
+    Contrasting 0
+
+Explore this article's citation statements on  scite.ai
+powered by   Scite
+
+This article is cited by 2145 publications.
+
+    Man Thi Hong Nguyen, Denys Biriukov, Carmelo Tempra, Katarina Baxova, Hector Martinez-Seara, Hüseyin Evci, Vandana Singh, Radek Šachl, Martin Hof, Pavel Jungwirth, Matti Javanainen, Mario Vazdar . Ionic Strength and Solution Composition Dictate the Adsorption of Cell-Penetrating Peptides onto Phosphatidylcholine Membranes. Langmuir 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hiroki Otaki, Yuzuru Taguchi, Noriyuki Nishida . Conformation-Dependent Influences of Hydrophobic Amino Acids in Two In-Register Parallel β-Sheet Amyloids, an α-Synuclein Amyloid and a Local Structural Model of PrPSc. ACS Omega 2022, 7 (35) , 31271-31288. https://doi.org/10.1021/acsomega.2c03523 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Javier García-Cárceles, Henar Vázquez-Villa, José Brea, David Ladron de Guevara-Miranda, Giovanni Cincilla, Melchor Sánchez-Martínez, Anabel Sánchez-Merino, Sergio Algar, María Teresa de los Frailes, Richard S. Roberts, Juan A. Ballesteros, Fernando Rodríguez de Fonseca, Bellinda Benhamú, María I. Loza, María L. López-Rodríguez . 2-(Fluoromethoxy)-4′-(S-methanesulfonimidoyl)-1,1′-biphenyl (UCM-1306), an Orally Bioavailable Positive Allosteric Modulator of the Human Dopamine D1 Receptor for Parkinson’s Disease. Journal of Medicinal Chemistry 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Francesca Mocci, Leon de Villiers Engelbrecht, Chiara Olla, Antonio Cappai, Maria Francesca Casula, Claudio Melis, Luigi Stagi, Aatto Laaksonen, Carlo Maria Carbonaro . Carbon Nanodots from an In Silico Perspective. Chemical Reviews 2022, 122 (16) , 13709-13799. https://doi.org/10.1021/acs.chemrev.1c00864 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Roberto Paciotti, Richard H. Fish, Alessandro Marrone . MD-DFT Computational Studies on the Mechanistic and Conformational Parameters for the Chemoselective Tyrosine Residue Reactions of G-Protein-Coupled Receptor Peptides with [Cp*Rh(H2O)3](OTf)2 in Water To Form Their [(η6-Cp*Rh-Tyr#)-GPCR peptide]2+ Complexes: Noncovalent H-Bonding Interactions, Molecular Orbital Analysis, Thermodynamics, and Lowest Energy Conformations. Organometallics 2022, 41 (16) , 2252-2267. https://doi.org/10.1021/acs.organomet.2c00259 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ke Wang, Xueguang Shao, Wensheng Cai . Binding Models of Aβ42 Peptide with Membranes Explored by Molecular Simulations. Journal of Chemical Information and Modeling 2022 , Article ASAP. OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lara A. Patel, Phuong Chau, Serena Debesai, Leah Darwin, Chris Neale . Drug Discovery by Automated Adaptation of Chemical Structure and Identity. Journal of Chemical Theory and Computation 2022, 18 (8) , 5006-5024. https://doi.org/10.1021/acs.jctc.1c01271 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zoran Bjelobrk, Ashwin Kumar Rajagopalan, Dan Mendels, Tarak Karmakar, Michele Parrinello, Marco Mazzotti . Solubility of Organic Salts in Solvent–Antisolvent Mixtures: A Combined Experimental and Molecular Dynamics Simulations Approach. Journal of Chemical Theory and Computation 2022, 18 (8) , 4952-4959. https://doi.org/10.1021/acs.jctc.2c00304 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Rui P. P. Neves, Pedro A. Fernandes, Maria J. Ramos . Role of Enzyme and Active Site Conformational Dynamics in the Catalysis by α-Amylase Explored with QM/MM Molecular Dynamics. Journal of Chemical Information and Modeling 2022, 62 (15) , 3638-3650. https://doi.org/10.1021/acs.jcim.2c00691 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tao Jiang, Zhenhao Liu, Wenlang Liu, Jiawen Chen, Zheng Zheng, Mojie Duan . The Conformational Transition Pathways and Hidden Intermediates in DFG-Flip Process of c-Met Kinase Revealed by Metadynamics Simulations. Journal of Chemical Information and Modeling 2022, 62 (15) , 3651-3663. https://doi.org/10.1021/acs.jcim.2c00770 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hasathi Bhagavatula, Archishman Sarkar, Binit Santra, Atanu Das . Scan-Find-Scan-Model: Discrete Site-Targeted Suppressor Design Strategy for Amyloid-β. ACS Chemical Neuroscience 2022, 13 (14) , 2191-2208. https://doi.org/10.1021/acschemneuro.2c00272 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Xin Yao, Qitong Liu, Bu Wang, Junguang Yu, Michael M. Aristov, Chenyang Shi, Geoff G. Z. Zhang, Lian Yu . Anisotropic Molecular Organization at a Liquid/Vapor Interface Promotes Crystal Nucleation with Polymorph Selection. Journal of the American Chemical Society 2022, 144 (26) , 11638-11645. https://doi.org/10.1021/jacs.2c02623 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zhengyuan Shen, Ke Luo, So Jung Park, Daoyuan Li, Mahesh K. Mahanthappa, Frank S. Bates, Kevin D. Dorfman, Timothy P. Lodge, J. Ilja Siepmann . Stabilizing a Double Gyroid Network Phase with 2 nm Feature Size by Blending of Lamellar and Cylindrical Forming Block Oligomers. JACS Au 2022, 2 (6) , 1405-1416. https://doi.org/10.1021/jacsau.2c00101 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pedro R. Magalhães, Pedro B. P. S. Reis, Diogo Vila-Viçosa, Miguel Machuqueiro, Bruno L. Victor . Optimization of an in Silico Protocol Using Probe Permeabilities to Identify Membrane Pan-Assay Interference Compounds. Journal of Chemical Information and Modeling 2022, 62 (12) , 3034-3042. https://doi.org/10.1021/acs.jcim.2c00372 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pan Chen, Jakob Wohlert, Lars Berglund, István Furó . Water as an Intrinsic Structural Element in Cellulose Fibril Aggregates. The Journal of Physical Chemistry Letters 2022, 13 (24) , 5424-5430. https://doi.org/10.1021/acs.jpclett.2c00781 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Brian H. Morrow, Judith A. Harrison . Interfacial Properties of Linear Alkane/Nitrogen Binary Mixtures: Molecular Dynamics Vapor–Liquid Equilibrium Simulations. The Journal of Physical Chemistry B 2022, 126 (23) , 4379-4388. https://doi.org/10.1021/acs.jpcb.2c00688 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hujun Shen, Zhenhua Wu, Ling Chen . Different Binding Modes of SARS-CoV-1 and SARS-CoV-2 Fusion Peptides to Cell Membranes: The Influence of Peptide Helix Length. The Journal of Physical Chemistry B 2022, 126 (23) , 4261-4271. https://doi.org/10.1021/acs.jpcb.2c01295 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Thomas Löhr, Kai Kohlhoff, Gabriella T. Heller, Carlo Camilloni, Michele Vendruscolo . A Small Molecule Stabilizes the Disordered Native State of the Alzheimer’s Aβ Peptide. ACS Chemical Neuroscience 2022, 13 (12) , 1738-1745. https://doi.org/10.1021/acschemneuro.2c00116 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Si Zheng, Tanyi Hao, Lin Zhang . Development of the Antithrombotic Peptide LEKNSTY Targeting the Collagen Surface: I. Design and Validation. Langmuir 2022, 38 (23) , 7107-7113. https://doi.org/10.1021/acs.langmuir.2c00586 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lars Konermann, Scott Kim . Grotthuss Molecular Dynamics Simulations for Modeling Proton Hopping in Electrosprayed Water Droplets. Journal of Chemical Theory and Computation 2022, 18 (6) , 3781-3794. https://doi.org/10.1021/acs.jctc.2c00001 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sophia S. Y. Chan, Denise Lee, Maria Prisca Meivita, Lunna Li, Yaw Sing Tan, Natasa Bajalovic, Desmond K. Loke . Ultrasensitive Detection of MCF-7 Cells with a Carbon Nanotube-Based Optoelectronic-Pulse Sensor Framework. ACS Omega 2022, 7 (22) , 18459-18470. https://doi.org/10.1021/acsomega.2c00842 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nuno F. B. Oliveira, Miguel Machuqueiro . Novel US-CpHMD Protocol to Study the Protonation-Dependent Mechanism of the ATP/ADP Carrier. Journal of Chemical Information and Modeling 2022, 62 (10) , 2550-2560. https://doi.org/10.1021/acs.jcim.2c00233 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shuhei Kawamoto, Huihui Liu, Yusuke Miyazaki, Sangjae Seo, Mayank Dixit, Russell DeVane, Christopher MacDermaid, Giacomo Fiorin, Michael L. Klein, Wataru Shinoda . SPICA Force Field for Proteins and Peptides. Journal of Chemical Theory and Computation 2022, 18 (5) , 3204-3217. https://doi.org/10.1021/acs.jctc.1c01207 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alfredo E. Cardenas, Chad I. Drexler, Rachel Nechushtai, Ron Mittler, Assaf Friedler, Lauren J. Webb, Ron Elber . Peptide Permeation across a Phosphocholine Membrane: An Atomically Detailed Mechanism Determined through Simulations and Supported by Experimentation. The Journal of Physical Chemistry B 2022, 126 (15) , 2834-2849. https://doi.org/10.1021/acs.jpcb.1c10966 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lucy Kate Ladefoged, Rebekka Koch, Philip C. Biggin, Birgit Schiøtt . Binding and Activation of Serotonergic G-Protein Coupled Receptors by the Multimodal Antidepressant Vortioxetine. ACS Chemical Neuroscience 2022, 13 (8) , 1129-1142. https://doi.org/10.1021/acschemneuro.1c00029 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hakan Alici, Vladimir N. Uversky, David E. Kang, Junga Alexa Woo, Orkid Coskuner-Weber . Structures of the Wild-Type and S59L Mutant CHCHD10 Proteins Important in Amyotrophic Lateral Sclerosis–Frontotemporal Dementia. ACS Chemical Neuroscience 2022, 13 (8) , 1273-1280. https://doi.org/10.1021/acschemneuro.2c00011 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jakub Rydzewski, Katarzyna Walczewska-Szewc, Sylwia Czach, Wieslaw Nowak, Krzysztof Kuczera . Enhancing the Inhomogeneous Photodynamics of Canonical Bacteriophytochrome. The Journal of Physical Chemistry B 2022, 126 (14) , 2647-2657. https://doi.org/10.1021/acs.jpcb.2c00131 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Fatih Yasar, Miranda S. Sheridan, Ulrich H. E. Hansmann . Interconversion between Serum Amyloid A Native and Fibril Conformations. ACS Omega 2022, 7 (14) , 12186-12192. https://doi.org/10.1021/acsomega.2c00566 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Daniel Markthaler, Maximilian Fleck, Bartosz Stankiewicz, Niels Hansen . Exploring the Effect of Enhanced Sampling on Protein Stability Prediction. Journal of Chemical Theory and Computation 2022, 18 (4) , 2569-2583. https://doi.org/10.1021/acs.jctc.1c01012 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zhiyi Wu, Philip C. Biggin . Correction Schemes for Absolute Binding Free Energies Involving Lipid Bilayers. Journal of Chemical Theory and Computation 2022, 18 (4) , 2657-2672. https://doi.org/10.1021/acs.jctc.1c01251 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Chris J. Malajczuk, Sławomir S. Stachura, James O. Hendry, Ricardo L. Mancera . Redefining the Molecular Interplay between Dimethyl Sulfoxide, Lipid Bilayers, and Dehydration. The Journal of Physical Chemistry B 2022, 126 (13) , 2513-2529. https://doi.org/10.1021/acs.jpcb.2c00353 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Xinyue Li, Shaodong Ren, Guangchao Song, Yihan Liu, Yu Li, Fuping Lu . Novel Detection Method for Evaluating the Activity of an Alkaline Serine Protease from Bacillus clausii. Journal of Agricultural and Food Chemistry 2022, 70 (12) , 3765-3774. https://doi.org/10.1021/acs.jafc.2c00358 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Avijit Maity, Soumya Kanti De, Debanjan Bagchi, Hwankyu Lee, Anjan Chakraborty . Mechanistic Pathway of Lipid Phase-Dependent Lipid Corona Formation on Phenylalanine-Functionalized Gold Nanoparticles: A Combined Experimental and Molecular Dynamics Simulation Study. The Journal of Physical Chemistry B 2022, 126 (11) , 2241-2255. https://doi.org/10.1021/acs.jpcb.2c00356 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Christian Honnigfort, Leon Topp, Natalia García Rey, Andreas Heuer, Björn Braunschweig . Dynamic Wetting of Photoresponsive Arylazopyrazole Monolayers is Controlled by the Molecular Kinetics of the Monolayer. Journal of the American Chemical Society 2022, 144 (9) , 4026-4038. https://doi.org/10.1021/jacs.1c12832 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Carmelo Tempra, O. H. Samuli Ollila, Matti Javanainen . Accurate Simulations of Lipid Monolayers Require a Water Model with Correct Surface Tension. Journal of Chemical Theory and Computation 2022, 18 (3) , 1862-1869. https://doi.org/10.1021/acs.jctc.1c00951 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lunna Li, Tommaso Casalini, Paolo Arosio, Matteo Salvalaglio . Modeling the Structure and Interactions of Intrinsically Disordered Peptides with Multiple Replica, Metadynamics-Based Sampling Methods and Force-Field Combinations. Journal of Chemical Theory and Computation 2022, 18 (3) , 1915-1928. https://doi.org/10.1021/acs.jctc.1c00889 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sepideh Soltani, Shahin Sowlati-Hashjin, Conrard Giresse Tetsassi Feugmo, Mikko Karttunen . Free Energy and Stacking of Eumelanin Nanoaggregates. The Journal of Physical Chemistry B 2022, 126 (8) , 1805-1818. https://doi.org/10.1021/acs.jpcb.1c07884 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Shanlong Li, Rui Cui, Chunyang Yu, Yongfeng Zhou . Coarse-Grained Model of Thiol–Epoxy-Based Alternating Copolymers in Explicit Solvents. The Journal of Physical Chemistry B 2022, 126 (8) , 1830-1841. https://doi.org/10.1021/acs.jpcb.1c09406 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Cecilia Chávez-García, Jérôme Hénin, Mikko Karttunen . Multiscale Computational Study of the Conformation of the Full-Length Intrinsically Disordered Protein MeCP2. Journal of Chemical Information and Modeling 2022, 62 (4) , 958-970. https://doi.org/10.1021/acs.jcim.1c01354 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Francesc Sabanés Zariquiey, Edgar Jacoby, Ann Vos, Herman W. T. van Vlijmen, Gary Tresadern, Jeremy Harvey . Divide and Conquer. Pocket-Opening Mixed-Solvent Simulations in the Perspective of Docking Virtual Screening Applications for Drug Discovery. Journal of Chemical Information and Modeling 2022, 62 (3) , 533-543. https://doi.org/10.1021/acs.jcim.1c01164 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Cecilia Chávez-García, Mikko Karttunen . Highly Similar Sequence and Structure Yet Different Biophysical Behavior: A Computational Study of Two Triosephosphate Isomerases. Journal of Chemical Information and Modeling 2022, 62 (3) , 668-677. https://doi.org/10.1021/acs.jcim.1c01501 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Josh V. Vermaas, Christopher G. Mayne, Eric Shinn, Emad Tajkhorshid . Assembly and Analysis of Cell-Scale Membrane Envelopes. Journal of Chemical Information and Modeling 2022, 62 (3) , 602-617. https://doi.org/10.1021/acs.jcim.1c01050 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Marisa E. Gliege, Wendy J. Lin, Yifei Xu, Mu-Tao Chen, Christopher Whitney, Ryan Gunckel, Lenore Dai . Molecular Dynamics Insight into the Role of Water Molecules in Ionic Liquid Mixtures of 1-Butyl-3-methylimidazolium Iodide and Ethylammonium Nitrate. The Journal of Physical Chemistry B 2022, 126 (5) , 1115-1124. https://doi.org/10.1021/acs.jpcb.1c05595 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tal Duanis-Assaf, Tan Hu, Maayan Lavie, Zhuo Zhang, Meital Reches . Understanding the Adhesion Mechanism of Hydroxyapatite-Binding Peptide. Langmuir 2022, 38 (3) , 968-978. https://doi.org/10.1021/acs.langmuir.1c02293 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Chenghan Li, Robert V. Farese, Jr., Tobias C. Walther, Gregory A. Voth . Key Factors Governing Initial Stages of Lipid Droplet Formation. The Journal of Physical Chemistry B 2022, 126 (2) , 453-462. https://doi.org/10.1021/acs.jpcb.1c09683 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tu Lan, Peng Wu, Ziyi Liu, Martin Stroet, Jiali Liao, Zhifang Chai, Alan E. Mark, Ning Liu, Dongqi Wang . Understanding the Effect of pH on the Solubility and Aggregation Extent of Humic Acid in Solution by Combining Simulation and the Experiment. Environmental Science & Technology 2022, 56 (2) , 917-927. https://doi.org/10.1021/acs.est.1c05938 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Falk Hoffmann, Frans A. A. Mulder, Lars V. Schäfer . How Much Entropy Is Contained in NMR Relaxation Parameters?. The Journal of Physical Chemistry B 2022, 126 (1) , 54-68. https://doi.org/10.1021/acs.jpcb.1c07786 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Chris J. Malajczuk, Blake I. Armstrong, Sławomir S. Stachura, Ricardo L. Mancera . Mechanisms of Interaction of Small Hydroxylated Cryosolvents with Dehydrated Model Cell Membranes: Stabilization vs Destruction. The Journal of Physical Chemistry B 2022, 126 (1) , 197-216. https://doi.org/10.1021/acs.jpcb.1c07769 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hsieh Chen . Critical Packing Density of Water-Mediated Nonstick Self-Assembled Monolayer Coatings. Langmuir 2022, 38 (1) , 439-445. https://doi.org/10.1021/acs.langmuir.1c02803 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Christian Jorgensen, Martin B. Ulmschneider, Peter C. Searson . Atomistic Model of Solute Transport across the Blood–Brain Barrier. ACS Omega 2022, 7 (1) , 1100-1112. https://doi.org/10.1021/acsomega.1c05679 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kara K. Grotz, Nadine Schwierz . Optimized Magnesium Force Field Parameters for Biomolecular Simulations with Accurate Solvation, Ion-Binding, and Water-Exchange Properties in SPC/E, TIP3P-fb, TIP4P/2005, TIP4P-Ew, and TIP4P-D. Journal of Chemical Theory and Computation 2022, 18 (1) , 526-537. https://doi.org/10.1021/acs.jctc.1c00791 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Petteri Vainikka, Sebastian Thallmair, Paulo Cesar Telles Souza, Siewert J. Marrink . Martini 3 Coarse-Grained Model for Type III Deep Eutectic Solvents: Thermodynamic, Structural, and Extraction Properties. ACS Sustainable Chemistry & Engineering 2021, 9 (51) , 17338-17350. https://doi.org/10.1021/acssuschemeng.1c06521 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Gert-Jan Bekker, Narutoshi Kamiya . N-Terminal-Driven Binding Mechanism of an Antigen Peptide to Human Leukocyte Antigen-A*2402 Elucidated by Multicanonical Molecular Dynamic-Based Dynamic Docking and Path Sampling Simulations. The Journal of Physical Chemistry B 2021, 125 (49) , 13376-13384. https://doi.org/10.1021/acs.jpcb.1c07230 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jitendra Maharana, Diptimayee Maharana, Aritra Bej, Bikash R. Sahoo, Debashis Panda, Sachin B. Wadavrao, Ashutosh Vats, Sukanta K. Pradhan, Sachinandan De . Structural Elucidation of Inter-CARD Interfaces involved in NOD2 Tandem CARD Association and RIP2 Recognition. The Journal of Physical Chemistry B 2021, 125 (49) , 13349-13365. https://doi.org/10.1021/acs.jpcb.1c06176 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Katarzyna Walczewska-Szewc, Wieslaw Nowak . Photo-Switchable Sulfonylureas Binding to ATP-Sensitive Potassium Channel Reveal the Mechanism of Light-Controlled Insulin Release. The Journal of Physical Chemistry B 2021, 125 (48) , 13111-13121. https://doi.org/10.1021/acs.jpcb.1c07292 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ziyue Zou, Sun-Ting Tsai, Pratyush Tiwary . Toward Automated Sampling of Polymorph Nucleation and Free Energies with the SGOOP and Metadynamics. The Journal of Physical Chemistry B 2021, 125 (47) , 13049-13056. https://doi.org/10.1021/acs.jpcb.1c07595 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Atanu Das . Systematic Search for a Predictor for the Clinical Observables of Alzheimer’s Disease. The Journal of Physical Chemistry B 2021, 125 (44) , 12177-12186. https://doi.org/10.1021/acs.jpcb.1c06725 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Elisa Donati, Pietro Vidossich, Marco De Vivo . Molecular Mechanism of Phosphate Steering for DNA Binding, Cleavage Localization, and Substrate Release in Nucleases. ACS Catalysis 2021, 11 (21) , 13244-13254. https://doi.org/10.1021/acscatal.1c03346 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Raitis Bobrovs, Andrievs Auseklis Auzins, Laura Drunka, Rimants Metlans, Ruslans Muhamadejevs, Kristaps Jaudzems . Using HOESY NMR Spectroscopy to Characterize Prenucleation Aggregates. Crystal Growth & Design 2021, 21 (11) , 6166-6172. https://doi.org/10.1021/acs.cgd.1c00625 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ping Gao, Julien Nicolas, Tâp Ha-Duong . Supramolecular Organization of Polymer Prodrug Nanoparticles Revealed by Coarse-Grained Simulations. Journal of the American Chemical Society 2021, 143 (42) , 17412-17423. https://doi.org/10.1021/jacs.1c05332 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Gert-Jan Bekker, Mitsugu Araki, Kanji Oshima, Yasushi Okuno, Narutoshi Kamiya . Accurate Binding Configuration Prediction of a G-Protein-Coupled Receptor to Its Antagonist Using Multicanonical Molecular Dynamics-Based Dynamic Docking. Journal of Chemical Information and Modeling 2021, 61 (10) , 5161-5171. https://doi.org/10.1021/acs.jcim.1c00712 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nidhi Sorout, Amalendu Chandra . Interactions of the Aβ(1–42) Peptide with Boron Nitride Nanoparticles of Varying Curvature in an Aqueous Medium: Different Pathways to Inhibit β-Sheet Formation. The Journal of Physical Chemistry B 2021, 125 (40) , 11159-11178. https://doi.org/10.1021/acs.jpcb.1c05805 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Amirhossein Mafi, Soo-Kyung Kim, Keng C. Chou, Brian Güthrie, William A. Goddard, III . Predicted Structure of Fully Activated Tas1R3/1R3′ Homodimer Bound to G Protein and Natural Sugars: Structural Insights into G Protein Activation by a Class C Sweet Taste Homodimer with Natural Sugars. Journal of the American Chemical Society 2021, 143 (40) , 16824-16838. https://doi.org/10.1021/jacs.1c08839 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Chen-Hua Huang, Yun-Wen Chen, Tsun-Tsao Huang, Ya-Ting Kao . Effects of Distal Mutations on Ligand-Binding Affinity in E. coli Dihydrofolate Reductase. ACS Omega 2021, 6 (40) , 26065-26076. https://doi.org/10.1021/acsomega.1c02995 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Manasi Malik, Michael D. Ward, Yingye Fang, Justin R. Porter, Maxwell I. Zimmerman, Thomas Koelblen, Michelle Roh, Antonina I. Frolova, Thomas P. Burris, Gregory R. Bowman, Princess I. Imoukhuede, Sarah K. England . Naturally Occurring Genetic Variants in the Oxytocin Receptor Alter Receptor Signaling Profiles. ACS Pharmacology & Translational Science 2021, 4 (5) , 1543-1555. https://doi.org/10.1021/acsptsci.1c00095 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Valery Lutsyk, Wojciech Plazinski . Conformational Properties of Glycosaminoglycan Disaccharides: A Molecular Dynamics Study. The Journal of Physical Chemistry B 2021, 125 (39) , 10900-10916. https://doi.org/10.1021/acs.jpcb.1c04860 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Lingzhi Gu, Tong Wei, Mi Zhou, Hong Yang, Yang Zhou . Impact of Lipid Peroxidation on the Response of Cell Membranes to High-Speed Equibiaxial Stretching: A Computational Study. The Journal of Physical Chemistry B 2021, 125 (38) , 10736-10747. https://doi.org/10.1021/acs.jpcb.1c05544 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Bridgette J. Befort, Ryan S. DeFever, Garrett M. Tow, Alexander W. Dowling, Edward J. Maginn . Machine Learning Directed Optimization of Classical Molecular Modeling Force Fields. Journal of Chemical Information and Modeling 2021, 61 (9) , 4400-4414. https://doi.org/10.1021/acs.jcim.1c00448 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Venkateswara R. Kode, Kevin R. Hinkle, Geyou Ao . Interaction of DNA-Complexed Boron Nitride Nanotubes and Cosolvents Impacts Dispersion and Length Characteristics. Langmuir 2021, 37 (37) , 10934-10944. https://doi.org/10.1021/acs.langmuir.1c01309 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Yuri Saeki, Megumi Kayanuma, Aki Nitta, Yasuteru Shigeta, Izuru Kawamura, Tetsuya Nakagawa, Takashi Ubukata, Yasushi Yokoyama . On-Demand Chirality Transfer of Human Serum Albumin to Bis(thiophen-2-yl)hexafluorocyclopentenes through Their Photochromic Ring Closure. The Journal of Organic Chemistry 2021, 86 (18) , 12549-12558. https://doi.org/10.1021/acs.joc.1c00849 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Zoran Bjelobrk, Dan Mendels, Tarak Karmakar, Michele Parrinello, Marco Mazzotti . Solubility Prediction of Organic Molecules with Molecular Dynamics Simulations. Crystal Growth & Design 2021, 21 (9) , 5198-5205. https://doi.org/10.1021/acs.cgd.1c00546 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Sebastian Thallmair, Matti Javanainen, Balázs Fábián, Hector Martinez-Seara, Siewert J. Marrink . Nonconverged Constraints Cause Artificial Temperature Gradients in Lipid Bilayer Simulations. The Journal of Physical Chemistry B 2021, 125 (33) , 9537-9546. https://doi.org/10.1021/acs.jpcb.1c03665 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Afshan Ardalan, Shahin Sowlati-Hashjin, Habib Oduwoye, Stephanie O. Uwumarenogie, Mikko Karttunen, Matthew D. Smith, Masoud Jelokhani-Niaraki . Biphasic Proton Transport Mechanism for Uncoupling Proteins. The Journal of Physical Chemistry B 2021, 125 (32) , 9130-9144. https://doi.org/10.1021/acs.jpcb.1c04766 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ling Wu, Paul Velander, Anne M. Brown, Yao Wang, Dongmin Liu, David R. Bevan, Shijun Zhang, Bin Xu . Rosmarinic Acid Potently Detoxifies Amylin Amyloid and Ameliorates Diabetic Pathology in a Transgenic Rat Model of Type 2 Diabetes. ACS Pharmacology & Translational Science 2021, 4 (4) , 1322-1337. https://doi.org/10.1021/acsptsci.1c00028 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Christopher Päslack, Chandan K. Das, Jürgen Schlitter, Lars V. Schäfer . Spectrally Resolved Estimation of Water Entropy in the Active Site of Human Carbonic Anhydrase II. Journal of Chemical Theory and Computation 2021, 17 (8) , 5409-5418. https://doi.org/10.1021/acs.jctc.1c00554 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mikhail Ivanov, Alexander P. Lyubartsev . Atomistic Molecular Dynamics Simulations of Lipids Near TiO2 Nanosurfaces. The Journal of Physical Chemistry B 2021, 125 (29) , 8048-8059. https://doi.org/10.1021/acs.jpcb.1c04547 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Ying Liu, Kama Huang, Yanping Zhou, Dezhi Gou, Hongxiao Shi . Hydrogen Bonding and the Structural Properties of Glycerol–Water Mixtures with a Microwave Field: a Molecular Dynamics Study. The Journal of Physical Chemistry B 2021, 125 (29) , 8099-8106. https://doi.org/10.1021/acs.jpcb.1c03232 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Andreia Fortuna, Paulo J. Costa . Optimized Halogen Atomic Radii for PBSA Calculations Using Off-Center Point Charges. Journal of Chemical Information and Modeling 2021, 61 (7) , 3361-3375. https://doi.org/10.1021/acs.jcim.1c00177 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Toru Ekimoto, Takafumi Kudo, Tsutomu Yamane, Mitsunori Ikeguchi . Mechanism of Vitamin D Receptor Ligand-Binding Domain Regulation Studied by gREST Simulations. Journal of Chemical Information and Modeling 2021, 61 (7) , 3625-3637. https://doi.org/10.1021/acs.jcim.1c00534 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Jakub Rydzewski, Omar Valsson . Multiscale Reweighted Stochastic Embedding: Deep Learning of Collective Variables for Enhanced Sampling. The Journal of Physical Chemistry A 2021, 125 (28) , 6286-6302. https://doi.org/10.1021/acs.jpca.1c02869 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Xiaoyu Sun, Diling Yang, Hao Zhang, Hongbo Zeng, Tian Tang . Unraveling the Interaction of Water-in-Oil Emulsion Droplets via Molecular Simulations and Surface Force Measurements. The Journal of Physical Chemistry B 2021, 125 (27) , 7556-7567. https://doi.org/10.1021/acs.jpcb.1c04227 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Nikhil V. S. Avula, Anwesa Karmakar, Rahul Kumar, Sundaram Balasubramanian . Efficient Parametrization of Force Field for the Quantitative Prediction of the Physical Properties of Ionic Liquid Electrolytes. Journal of Chemical Theory and Computation 2021, 17 (7) , 4274-4290. https://doi.org/10.1021/acs.jctc.1c00268 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Tomás F. D. Silva, Diogo Vila-Viçosa, Miguel Machuqueiro . Improved Protocol to Tackle the pH Effects on Membrane-Inserting Peptides. Journal of Chemical Theory and Computation 2021, 17 (7) , 3830-3840. https://doi.org/10.1021/acs.jctc.1c00020 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Abhishek Acharya, Jigneshkumar Dahyabhai Prajapati, Ulrich Kleinekathöfer . Improved Sampling and Free Energy Estimates for Antibiotic Permeation through Bacterial Porins. Journal of Chemical Theory and Computation 2021, 17 (7) , 4564-4577. https://doi.org/10.1021/acs.jctc.1c00369 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Monika Michaelis, Massimo Delle Piane, Dirk Rothenstein, Carole C. Perry, Lucio Colombi Ciacchi . Lessons from a Challenging System: Accurate Adsorption Free Energies at the Amino Acid/ZnO Interface. Journal of Chemical Theory and Computation 2021, 17 (7) , 4420-4434. https://doi.org/10.1021/acs.jctc.1c00165 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Reza Talandashti, Faramarz Mehrnejad, Kiana Rostamipour, Farahnoosh Doustdar, Afsaneh Lavasanifar . Molecular Insights into Pore Formation Mechanism, Membrane Perturbation, and Water Permeation by the Antimicrobial Peptide Pleurocidin: A Combined All-Atom and Coarse-Grained Molecular Dynamics Simulation Study. The Journal of Physical Chemistry B 2021, 125 (26) , 7163-7176. https://doi.org/10.1021/acs.jpcb.1c01954 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Mauricio R. Bonilla, Fabián A. García Daza, Pierre Ranque, Frederic Aguesse, Javier Carrasco, Elena Akhmatskaya . Unveiling Interfacial Li-Ion Dynamics in Li7La3Zr2O12/PEO(LiTFSI) Composite Polymer-Ceramic Solid Electrolytes for All-Solid-State Lithium Batteries. ACS Applied Materials & Interfaces 2021, 13 (26) , 30653-30667. https://doi.org/10.1021/acsami.1c07029 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Gregory A. Voth . Physical Characterization of Triolein and Implications for Its Role in Lipid Droplet Biogenesis. The Journal of Physical Chemistry B 2021, 125 (25) , 6874-6888. https://doi.org/10.1021/acs.jpcb.1c03559 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Keisuke Yanagisawa, Yoshitaka Moriwaki, Tohru Terada, Kentaro Shimizu . EXPRORER: Rational Cosolvent Set Construction Method for Cosolvent Molecular Dynamics Using Large-Scale Computation. Journal of Chemical Information and Modeling 2021, 61 (6) , 2744-2753. https://doi.org/10.1021/acs.jcim.1c00134 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pradyumn Sharma, Rajat Desikan, K. Ganapathy Ayappa . Evaluating Coarse-Grained MARTINI Force-Fields for Capturing the Ripple Phase of Lipid Membranes. The Journal of Physical Chemistry B 2021, 125 (24) , 6587-6599. https://doi.org/10.1021/acs.jpcb.1c03277 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Margaret M. Blazhynska, Alexander Kyrychenko, Oleg N. Kalugin . pH-Responsive Coating of Silver Nanoparticles with Poly(2-(N,N-dimethylamino)ethyl methacrylate): The Role of Polymer Size and Degree of Protonation. The Journal of Physical Chemistry C 2021, 125 (22) , 12118-12130. https://doi.org/10.1021/acs.jpcc.1c02015 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Pan Tan, Jinming Yue, Yuanxi Yu, Binghang Liu, Tao Liu, Lirong Zheng, Lunhua He, Xiaohua Zhang, Liumin Suo, Liang Hong . Solid-Like Nano-Anion Cluster Constructs a Free Lithium-Ion-Conducting Superfluid Framework in a Water-in-Salt Electrolyte. The Journal of Physical Chemistry C 2021, 125 (22) , 11838-11847. https://doi.org/10.1021/acs.jpcc.1c01663 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Siyoung Kim, Myong In Oh, Jessica M. J. Swanson . Stressed Lipid Droplets: How Neutral Lipids Relieve Surface Tension and Membrane Expansion Drives Protein Association. The Journal of Physical Chemistry B 2021, 125 (21) , 5572-5586. https://doi.org/10.1021/acs.jpcb.1c01795 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Megan Chang, Carter J. Wilson, Nadun Chanaka Karunatilleke, Mohamed Hesham Moselhy, Mikko Karttunen, Wing-Yiu Choy . Exploring the Conformational Landscape of the Neh4 and Neh5 Domains of Nrf2 Using Two Different Force Fields and Circular Dichroism. Journal of Chemical Theory and Computation 2021, 17 (5) , 3145-3156. https://doi.org/10.1021/acs.jctc.0c01243 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Alexander van Teijlingen, Tell Tuttle . Beyond Tripeptides Two-Step Active Machine Learning for Very Large Data sets. Journal of Chemical Theory and Computation 2021, 17 (5) , 3221-3232. https://doi.org/10.1021/acs.jctc.1c00159 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Hayato Itaya, Kota Kasahara, Qilin Xie, Yoshiaki Yano, Katsumi Matsuzaki, Takuya Takahashi . All-Atom Molecular Dynamics Elucidating Molecular Mechanisms of Single-Transmembrane Model Peptide Dimerization in a Lipid Bilayer. ACS Omega 2021, 6 (17) , 11458-11465. https://doi.org/10.1021/acsomega.1c00482 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Filippo Marchetti, Elisabetta Moroni, Alessandro Pandini, Giorgio Colombo . Machine Learning Prediction of Allosteric Drug Activity from Molecular Dynamics. The Journal of Physical Chemistry Letters 2021, 12 (15) , 3724-3732. https://doi.org/10.1021/acs.jpclett.1c00045 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    David Rosenberger, Justin S. Smith, Angel E. Garcia . Modeling of Peptides with Classical and Novel Machine Learning Force Fields: A Comparison. The Journal of Physical Chemistry B 2021, 125 (14) , 3598-3612. https://doi.org/10.1021/acs.jpcb.0c10401 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Anita Plazinska, Wojciech Plazinski . Comparison of Carbohydrate Force Fields in Molecular Dynamics Simulations of Protein–Carbohydrate Complexes. Journal of Chemical Theory and Computation 2021, 17 (4) , 2575-2585. https://doi.org/10.1021/acs.jctc.1c00071 OpenURL UNIV OF MASSACHUSETTS AMHERST
+    Kara K. Grotz, Sergio Cruz-León, Nadine Schwierz . Optimized Magnesium Force Field Parameters for Biomolecular Simulations with Accurate Solvation, Ion-Binding, and Water-Exchange Properties. Journal of Chemical Theory and Computation 2021, 17 (4) , 2530-2540. https://doi.org/10.1021/acs.jctc.0c01281 OpenURL UNIV OF MASSACHUSETTS AMHERST 
+
+Load more citations
+
+    Figures
+    References 
+
+    Figure 1 Example of the parallel setup of P-LINCS with one molecule split over three domain decomposition cells, using a matrix expansion order of 3. The top part shows which atom coordinates need to be communicated to which cells. The bottom parts show the local constraints (solid) and the nonlocal constraints (dashed) for each of the three cells.
+
+Recommended Articles
+
+    GROMACS 4:  Algorithms for Highly Efficient, Load-Balanced, and Scalable Molecular Simulation Journal of Chemical Theory and Computation
+    Development and Testing of the OPLS All-Atom Force Field on Conformational Energetics and Properties of Organic Liquids Journal of the American Chemical Society
+    CHARMM-GUI Input Generator for NAMD, GROMACS, AMBER, OpenMM, and CHARMM/OpenMM Simulations Using the CHARMM36 Additive Force Field Journal of Chemical Theory and Computation
+    g_mmpbsa —A GROMACS Tool for High-Throughput MM-PBSA Calculations Journal of Chemical Information and Modeling
+    The MARTINI Force Field:  Coarse Grained Model for Biomolecular Simulations The Journal of Physical Chemistry B
+    ADVERTISEMENT
+
+back
+Partners
+Atypon
+Chorus
+Cope publication ethics
+Project Counter
+Crossref
+Crossref similarity check
+Orcid Connecting Research and Researchers
+Portico digital preservation service
+ACS Publications
+
+    1155 Sixteenth Street N.W.
+    Washington, DC 20036
+    Copyright © 2022
+    American Chemical Society
+
+About
+
+    About ACS Publications
+    ACS & Open Access
+    ACS Membership
+
+Resources and Information
+
+    Journals A-Z
+    Books and Reference
+    Advertising Media Kit
+    Institutional Sales
+    ACS Publishing Center
+    Privacy Policy
+    Terms of Use
+
+Support & Contact
+
+    Help
+    Live Chat
+    FAQ
+
+Connect with ACS Publications
+
